@@ -1,0 +1,9 @@
+{
+    "extends": "../../tsconfig.packages.json",
+    "compilerOptions": {
+        "baseUrl": "./",
+        "composite": true,
+        "declaration": true
+    },
+    "include": ["./src", "./src/**/*.json", "jest.setup.ts", "package.json"]
+}

@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "composite": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "lib": ["DOM", "ES2020"],
+        "module": "CommonJS",
+        "paths": {
+            "@abcdefpackage/*": ["packages/*/src"]
+        },
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "strict": true,
+        "target": "ES2020"
+    }
+}

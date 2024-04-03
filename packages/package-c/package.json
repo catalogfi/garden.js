@@ -1,0 +1,37 @@
+{
+    "name": "@abcdefpackage/package-c",
+    "version": "0.0.18",
+    "type": "module",
+    "dependencies": {
+        "@abcdefpackage/package-a": "workspace:^",
+        "@abcdefpackage/package-b": "workspace:^"
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "start:dev": "vite build --watch",
+        "preview": "vite preview",
+        "echo": "echo package-b",
+        "patch": "yarn version patch"
+    },
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.js",
+    "typings": "./dist/src/index.d.ts",
+    "exports": {
+        ".": {
+            "require": "./dist/index.cjs",
+            "import": "./dist/index.js"
+        }
+    },
+    "publishConfig": {
+        "access": "public",
+        "registry": "https://registry.npmjs.org/"
+    },
+    "devDependencies": {
+        "typescript": "^5.2.2",
+        "vite": "^5.1.6"
+    }
+}

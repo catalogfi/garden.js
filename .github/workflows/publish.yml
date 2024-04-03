@@ -1,0 +1,49 @@
+name: Node.js Package
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    build-and-publish-npm:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: 18
+                  registry-url: https://registry.npmjs.org/
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+            - name: install dependencies
+              run: |
+                  npm install -g yarn
+                  yarn
+            - name: check changeset file
+              id: check-changeset
+              run: |
+                  if [ $(ls .changeset | wc -l) -eq 2 ]; then
+                    exit 1
+                  else
+                    exit 0
+                  fi
+              continue-on-error: true
+            - name: build
+              id: build
+              run: |
+                  yarn build
+            - name: Versioning and Publish
+              if: steps.check-changeset.outcome == 'success'
+              run: |
+                  yarn changeset version
+            - name: Publish
+              run: |
+                  yarn run publish:affected
+                  git config user.email "<email>"
+                  git config user.name "<name>"
+                  git add -A
+                  git commit -m "Version packages"
+                  git push origin main
