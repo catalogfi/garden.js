@@ -27,11 +27,14 @@ function App() {
         // tooltipText="Click to claim rewards"
         // tooltipClickedText="Rewards claimed!"
       /> */}
+
       <GardenButton1>
       <GardenButton1.tooltip tooltipClassName="bg-red-500"  tooltipText="Click to claim rewards"  tooltipClickedText="Rewards claimed!"  tooltipPlace="bottom"  tooltip={true}/>
       <GardenButton1.Text>Claim Reward</GardenButton1.Text>
       <GardenButton1.Loader  waitingFunction={handlegardenbuttonclick}  loading={loading}  className="primary"/>
       </GardenButton1>
+      
+      
 
     </div>
   );

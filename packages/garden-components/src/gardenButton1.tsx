@@ -88,7 +88,7 @@ export const GardenButton1 = ({ children }: { children: ReactNode }) => {
     const handleHoverStart = () => {
         setCursorStyle(cursorStyle); 
       };
-    
+
       // Function to handle hover end
       const handleHoverEnd = () => {
         setCursorStyle(cursorStyle);
@@ -188,7 +188,7 @@ export const Loader: FC<LoaderProps> = ({ loading, waitingFunction, className })
             controls.start({ scale: 1 });
             setcursorStyle('cursor-not-allowed');
             // setVariant('secondary');
-            
+
         }
         if (tooltipClickedText) {
             setTooltipContent(tooltipClickedText);
@@ -196,7 +196,7 @@ export const Loader: FC<LoaderProps> = ({ loading, waitingFunction, className })
         if (waitingFunction) {
             await waitingFunction();
         }
-        
+
         // controls.stop();
 
         // setVariant('primary');
@@ -256,4 +256,3 @@ GardenButton1.Loader = Loader;
 GardenButton1.tooltip = tooltip;
 
 export default GardenButton1
-
