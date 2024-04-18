@@ -1,1 +1,0 @@
-"use strict";Object.defineProperty(exports,Symbol.toStringTag,{value:"Module"});class r{constructor(){this.memory=new Map}getItem(e){return this.memory.has(e)?this.memory.get(e):null}setItem(e,t){this.memory.set(e,t)}removeItem(e){this.memory.has(e)&&this.memory.delete(e)}}exports.MemoryStorage=r;

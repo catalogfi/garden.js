@@ -1,5 +1,5 @@
 .env
 node_modules
-
+packages/*/dist/**/*
 
 **/*/tsconfig.tsbuildinfo
