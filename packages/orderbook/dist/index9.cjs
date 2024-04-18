@@ -1,0 +1,1 @@
+"use strict";Object.defineProperty(exports,Symbol.toStringTag,{value:"Module"});const r={INVALID_SEND_AMOUNT:"invalid send amount",INVALID_RECEIVE_AMOUNT:"invalid receive amount"},e={SAME_ASSET:"cannot create orderpair with the same assets"};exports.OrderbookErrors=r;exports.OrderpairErrors=e;

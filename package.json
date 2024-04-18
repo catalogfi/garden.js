@@ -1,26 +1,29 @@
 {
-  "private": true,
-  "name": "yarn_workspace_sandbox",
-  "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT",
-  "scripts": {
-    "echo": "yarn workspaces foreach --include \"packages/*\" run echo",
-    "changeset": "changeset",
-    "build": "yarn workspaces foreach -Atp --include \"packages/*\" run build",
-    "dev": "yarn workspaces foreach -Api -j unlimited --include \"packages/*\" run dev ",
-    "patch:affected": "yarn workspaces foreach -p --topological --include \"packages/*\" --since=$0 run patch",
-    "publish:affected": "yarn workspaces foreach -p --include \"packages/*\" --since=main npm publish"
-  },
-  "workspaces": [
-    "packages/*"
-  ],
-  "packageManager": "yarn@4.1.1",
-  "devDependencies": {
-    "@changesets/cli": "^2.27.1",
-    "@types/node": "^20.11.30",
-    "typescript": "^5.4.2",
-    "vite": "^5.1.6",
-    "vite-plugin-dts": "^3.7.3"
-  }
+    "private": true,
+    "name": "yarn_workspace_sandbox",
+    "version": "1.0.0",
+    "main": "index.js",
+    "license": "MIT",
+    "scripts": {
+        "echo": "yarn workspaces foreach --include \"packages/*\" run echo",
+        "changeset": "changeset",
+        "build": "yarn workspaces foreach -Atp --include \"packages/*\" run build",
+        "start:docs": "yarn workspace docs start",
+        "dev": "yarn workspaces foreach -Api -j unlimited --include \"packages/*\" run dev ",
+        "patch:affected": "yarn workspaces foreach -p --topological --include \"packages/*\" --since=$0 run patch",
+        "publish:affected": "yarn workspaces foreach -p --include \"packages/*\" --since=main npm publish"
+    },
+    "workspaces": [
+        "packages/*",
+        "docs"
+    ],
+    "packageManager": "yarn@4.1.1",
+    "devDependencies": {
+        "@changesets/cli": "^2.27.1",
+        "@types/node": "^20.11.30",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.4.2",
+        "vite": "^5.1.6",
+        "vite-plugin-dts": "^3.7.3"
+    }
 }
