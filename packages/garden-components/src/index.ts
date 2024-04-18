@@ -1,4 +1,4 @@
 import "./index.css";
 
 export { GardenButton } from "./GardenButton";
-export { GardenButton1 } from "./gardenButton1";
+// export { GardenButton1 } from "./gardenButton1";
