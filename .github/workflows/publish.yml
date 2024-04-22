@@ -44,6 +44,12 @@ jobs:
                   yarn run publish:affected
                   git config user.email "<email>"
                   git config user.name "<name>"
-                  git add -A
-                  git commit -m "Version packages"
-                  git push origin main
+            - name: Versioning PR
+              if: steps.check-changeset.outcome == 'success'
+              uses: peter-evans/create-pull-request@v6
+              with:
+                commit-message: Version packages
+                title: 'Update package versions'
+                body: 'Updates the versions of the packages'
+                labels: version packages
+                branch: ci/version-packages
