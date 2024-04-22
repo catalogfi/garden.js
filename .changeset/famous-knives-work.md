@@ -1,6 +1,6 @@
 ---
-"@gardenfi/orderbook": minor
 "@gardenfi/core": minor
+"@gardenfi/orderbook": minor
 ---
 
 Go open source
