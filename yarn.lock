@@ -1743,33 +1743,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@catalogfi/extension@file:../extension::locator=%40catalogfi%2Fwallets%40file%3A%2FUsers%2Fayman%2Fcatalog%2Fcatalog.js%2Fpackages%2Fwallets%23%2FUsers%2Fayman%2Fcatalog%2Fcatalog.js%2Fpackages%2Fwallets%3A%3Ahash%3D75807f%26locator%3D%2540gardenfi%252Fcore%2540workspace%253Apackages%252Fcore":
-  version: 0.0.67
-  resolution: "@catalogfi/extension@file:../extension#../extension::hash=b16d15&locator=%40catalogfi%2Fwallets%40file%3A%2FUsers%2Fayman%2Fcatalog%2Fcatalog.js%2Fpackages%2Fwallets%23%2FUsers%2Fayman%2Fcatalog%2Fcatalog.js%2Fpackages%2Fwallets%3A%3Ahash%3D75807f%26locator%3D%2540gardenfi%252Fcore%2540workspace%253Apackages%252Fcore"
-  checksum: 10c0/5c1bf0b2d8a1af987d25469b9d48479f45359fec4568359b2772c4388f54f791d3b360269f716427c6b6f893517f2cf8bcd86205aac8713c59d64cc8d6a248c6
+"@catalogfi/extension@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "@catalogfi/extension@npm:0.1.0"
+  checksum: 10c0/116d64fd1acdb68f0b3ec904684abafd3e8f1f507621524d6f5701ef6941e529b2cee3255c5c197a12295971bf40c5d122d3e02aa7a6e0f7661c03bf9312e63a
   languageName: node
   linkType: hard
 
-"@catalogfi/utils@file:../utils::locator=%40catalogfi%2Fwallets%40file%3A%2FUsers%2Fayman%2Fcatalog%2Fcatalog.js%2Fpackages%2Fwallets%23%2FUsers%2Fayman%2Fcatalog%2Fcatalog.js%2Fpackages%2Fwallets%3A%3Ahash%3D75807f%26locator%3D%2540gardenfi%252Fcore%2540workspace%253Apackages%252Fcore":
-  version: 0.0.56
-  resolution: "@catalogfi/utils@file:../utils#../utils::hash=28cb6c&locator=%40catalogfi%2Fwallets%40file%3A%2FUsers%2Fayman%2Fcatalog%2Fcatalog.js%2Fpackages%2Fwallets%23%2FUsers%2Fayman%2Fcatalog%2Fcatalog.js%2Fpackages%2Fwallets%3A%3Ahash%3D75807f%26locator%3D%2540gardenfi%252Fcore%2540workspace%253Apackages%252Fcore"
-  checksum: 10c0/30198d06850ba9583d5e0d14442c517adabdb3c13fbcba1c367776268dc6265d1a024d70a2e3db87cb00b669a900fb3713298ce99d41052807d5ebc4e281d984
+"@catalogfi/utils@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "@catalogfi/utils@npm:0.1.0"
+  checksum: 10c0/932e3f79b855692a9bf78db889d392bb4c627e050408ffc5190c462cc834e3923bbe3e91de469782ef88c8286f2c964277ab53944ee1dca4752a235fe965b4f3
   languageName: node
   linkType: hard
 
-"@catalogfi/utils@npm:^0.0.56":
-  version: 0.0.56
-  resolution: "@catalogfi/utils@npm:0.0.56"
-  checksum: 10c0/2a16126e4155187404de9060ac1d3ba74bad085de069c0bbd71d2b33201b82d954679ede5b9e039c09bf0b2dadaeb10e983386155d8ecf14aa93b7e6ea4c9160
-  languageName: node
-  linkType: hard
-
-"@catalogfi/wallets@file:/Users/ayman/catalog/catalog.js/packages/wallets::locator=%40gardenfi%2Fcore%40workspace%3Apackages%2Fcore":
-  version: 0.1.19
-  resolution: "@catalogfi/wallets@file:/Users/ayman/catalog/catalog.js/packages/wallets#/Users/ayman/catalog/catalog.js/packages/wallets::hash=75807f&locator=%40gardenfi%2Fcore%40workspace%3Apackages%2Fcore"
+"@catalogfi/wallets@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "@catalogfi/wallets@npm:0.2.0"
   dependencies:
-    "@catalogfi/extension": ../extension
-    "@catalogfi/utils": ../utils
+    "@catalogfi/extension": "npm:^0.1.0"
+    "@catalogfi/utils": "npm:^0.1.0"
     "@typechain/ethers-v6": "npm:^0.5.1"
     bip32: "npm:^4.0.0"
     bip39: "npm:^3.1.0"
@@ -1781,7 +1774,7 @@ __metadata:
     tiny-secp256k1: "npm:^2.2.3"
     typechain: "npm:^8.3.2"
     utf-8-validate: "npm:^6.0.3"
-  checksum: 10c0/5dd3e3dfbf3e87eea0113877a30e17432dc6a4c4b00cd79d26114bda7c987fb00f66500ab9dcc2420da1b0eea264ffa354f473816886661e355ed6d66253cce4
+  checksum: 10c0/05cd318b39f6c4406bfbb13bb1ef3f7c990ff8c08240ad2f98ce5ebb88712cc0aba07de66decfcb1dacce83e00f03d843857fe72bed390f56edf2c26294d3788
   languageName: node
   linkType: hard
 
@@ -3008,8 +3001,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@gardenfi/core@workspace:packages/core"
   dependencies:
-    "@catalogfi/utils": "npm:^0.0.56"
-    "@catalogfi/wallets": /Users/ayman/catalog/catalog.js/packages/wallets
+    "@catalogfi/utils": "npm:^0.1.0"
+    "@catalogfi/wallets": "npm:^0.2.0"
     "@gardenfi/orderbook": "workspace:^"
     "@types/jest": "npm:^29.5.12"
     dotenv: "npm:^16.3.1"
@@ -3027,7 +3020,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@gardenfi/orderbook@workspace:packages/orderbook"
   dependencies:
-    "@catalogfi/utils": "npm:^0.0.56"
+    "@catalogfi/utils": "npm:^0.1.0"
     "@types/jest": "npm:^29.5.12"
     "@types/ws": "npm:^8.5.7"
     bufferutil: "npm:^4.0.8"
