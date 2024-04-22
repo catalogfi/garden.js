@@ -1,0 +1,10 @@
+{
+    "label": "Core",
+    "position": 2,
+    "link": {
+        "type": "doc",
+        "id": "Packages/Core/index"
+    },
+    "collapsible": false,
+    "collapsed": false
+}
