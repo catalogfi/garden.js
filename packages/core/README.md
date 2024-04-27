@@ -1,19 +1,19 @@
-# @catalogfi/catalog
+# @gardenfi/core
 
-The `@catalogfi/catalog` package serves as an abstraction layer over the `@catalogfi/wallets` and `@catalogfi/orderbook` packages. It provides a simple interface to perform atomic swaps.
+The `@gardenfi/core` package serves as an abstraction layer over the `@catalogfi/wallets` and `@gardenfi/orderbook` packages. It provides a simple interface to perform atomic swaps.
 
 ## Installation
 
 ```
-npm install `@catalogfi/catalog`
+npm install `@gardenfi/core`
 ```
 
-For more information regarding using the library in different environments see [setup](https://github.com/catalogfi/catalog.js-v2/tree/main/packages/catalog#setup).
+For more information regarding using the library in different environments see [setup](https://github.com/catalogfi/garden.js/tree/main/packages/core#setup).
 
 ## Usage
 
-1. Creating an atomic swap: ([should create an order with valid parameters](https://github.com/catalogfi/catalog.js-v2/blob/3019559e8857bf0b54b0c3affcdcad580b868947/packages/catalog/src/lib/catalog.spec.ts#L91))
-2. Interacting with created orders: ([should initiate and redeem](https://github.com/catalogfi/catalog.js-v2/blob/3019559e8857bf0b54b0c3affcdcad580b868947/packages/catalog/src/lib/catalog.spec.ts#L107))
+1. Creating an atomic swap: ([should create an order with valid parameters](https://github.com/catalogfi/garden.js/blob/4623a0679d1948755500c7179113112a025e33f8/packages/core/src/lib/garden.spec.ts#L91))
+2. Interacting with created orders: ([should initiate and redeem](https://github.com/catalogfi/garden.js/blob/4623a0679d1948755500c7179113112a025e33f8/packages/core/src/lib/garden.spec.ts#L107))
 
 ## Setup
 
