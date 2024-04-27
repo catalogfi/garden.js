@@ -21,6 +21,7 @@ const compareVersions = (version1, version2) => {
 const SCOPE = "@gardenfi";
 
 const package = process.argv[2];
+if(["example", "garden-components"].indexOf(package) > -1) process.exit(0);
 
 const publishedVersion = JSON.parse(Buffer.from(execSync(`yarn npm info ${SCOPE}/${package} --json`), "hex"))["dist-tags"]['latest'];
 const currentVersion = require(`../packages/${package}/package.json`).version;
