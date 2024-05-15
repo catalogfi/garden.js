@@ -3,8 +3,8 @@
     "version": "0.1.2",
     "type": "module",
     "dependencies": {
-        "@catalogfi/utils": "^0.1.0",
-        "@catalogfi/wallets": "^0.2.7",
+        "@catalogfi/utils": "^0.1.1",
+        "@catalogfi/wallets": "^0.2.26",
         "@gardenfi/orderbook": "workspace:^",
         "ethers": "6.8.0"
     },
