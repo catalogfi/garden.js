@@ -18,6 +18,7 @@
     ],
     "packageManager": "yarn@4.1.1",
     "devDependencies": {
+        "@types/chrome": "^0.0.268",
         "@types/node": "^20.11.30",
         "ts-node": "^10.9.2",
         "typescript": "^5.4.2",

@@ -1748,12 +1748,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@catalogfi/wallets@npm:^0.2.7":
-  version: 0.2.7
-  resolution: "@catalogfi/wallets@npm:0.2.7"
+"@catalogfi/utils@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "@catalogfi/utils@npm:0.1.1"
+  checksum: 10c0/4414522225b3b1429e7efd5d60046d5898d1a7eb564d01e50d869df089e3c6a9e15e6951963c4b7ae8d4e2fec9e2008541596b6b41633fb4e061fc3cebbe3344
+  languageName: node
+  linkType: hard
+
+"@catalogfi/wallets@npm:^0.2.26":
+  version: 0.2.26
+  resolution: "@catalogfi/wallets@npm:0.2.26"
   dependencies:
     "@catalogfi/extension": "npm:^0.1.0"
-    "@catalogfi/utils": "npm:^0.1.0"
+    "@catalogfi/utils": "npm:^0.1.1"
+    "@noble/hashes": "npm:^1.4.0"
     "@typechain/ethers-v6": "npm:^0.5.1"
     bip32: "npm:^4.0.0"
     bip39: "npm:^3.1.0"
@@ -1766,7 +1774,7 @@ __metadata:
     typechain: "npm:^8.3.2"
     utf-8-validate: "npm:^6.0.3"
     uuid: "npm:^9.0.1"
-  checksum: 10c0/e964ba70c7e9fc205194d51823418075298d146ba368027b449286611f09b86172ed68444844bf7e76ad788d843d9cd3c9de56d029f499c381223f7ab1baadf8
+  checksum: 10c0/bb34e79b4a634307e69e44dfad20077c4008ea62d07b8ecf5c2431f57b3ea5df547c345619820c95a343488a0aed52dddb98fb476c0a2a783962d0a2873e214e
   languageName: node
   linkType: hard
 
@@ -2758,8 +2766,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@gardenfi/core@workspace:packages/core"
   dependencies:
-    "@catalogfi/utils": "npm:^0.1.0"
-    "@catalogfi/wallets": "npm:^0.2.7"
+    "@catalogfi/utils": "npm:^0.1.1"
+    "@catalogfi/wallets": "npm:^0.2.26"
     "@gardenfi/orderbook": "workspace:^"
     "@types/jest": "npm:^29.5.12"
     dotenv: "npm:^16.3.1"
@@ -3313,7 +3321,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@noble/hashes@npm:^1.1.2, @noble/hashes@npm:^1.2.0":
+"@noble/hashes@npm:^1.1.2, @noble/hashes@npm:^1.2.0, @noble/hashes@npm:^1.4.0":
   version: 1.4.0
   resolution: "@noble/hashes@npm:1.4.0"
   checksum: 10c0/8c3f005ee72e7b8f9cff756dfae1241485187254e3f743873e22073d63906863df5d4f13d441b7530ea614b7a093f0d889309f28b59850f33b66cb26a779a4a5
@@ -4395,6 +4403,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/chrome@npm:^0.0.268":
+  version: 0.0.268
+  resolution: "@types/chrome@npm:0.0.268"
+  dependencies:
+    "@types/filesystem": "npm:*"
+    "@types/har-format": "npm:*"
+  checksum: 10c0/2701a43ec00d102302adeb9c8b8ff3f7644c0359fada720e4c9c74f6fa4ac3b14ce231d4fbba743e6e758e9741f738d4d333b005e9a3ebb7fac23c13792bd532
+  languageName: node
+  linkType: hard
+
 "@types/connect-history-api-fallback@npm:^1.3.5":
   version: 1.5.4
   resolution: "@types/connect-history-api-fallback@npm:1.5.4"
@@ -4483,6 +4501,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/filesystem@npm:*":
+  version: 0.0.36
+  resolution: "@types/filesystem@npm:0.0.36"
+  dependencies:
+    "@types/filewriter": "npm:*"
+  checksum: 10c0/3ebec32f0494b0a2612187d148e9f253ff55672c53f566d9a1e6d891eb6e2372df93c252b594b2775bc53e6660c4c37fdb05dc1b26e72b60a31010da8e1f7317
+  languageName: node
+  linkType: hard
+
+"@types/filewriter@npm:*":
+  version: 0.0.33
+  resolution: "@types/filewriter@npm:0.0.33"
+  checksum: 10c0/363ef9a658a961ceae04f52934562e4ebdcdc3a2564dd8544f593d77113c16574938b6ba4fea0bee418c37bda0668c1e03dfedb6adf00d55853f51fb3a59247b
+  languageName: node
+  linkType: hard
+
 "@types/graceful-fs@npm:^4.1.3":
   version: 4.1.9
   resolution: "@types/graceful-fs@npm:4.1.9"
@@ -4496,6 +4530,13 @@ __metadata:
   version: 0.0.12
   resolution: "@types/gtag.js@npm:0.0.12"
   checksum: 10c0/fee8f4c6e627301b89ab616c9e219bd53fa6ea1ffd1d0a8021e21363f0bdb2cf7eb1a5bcda0c6f1502186379bc7784ec29c932e21634f4e07f9e7a8c56887400
+  languageName: node
+  linkType: hard
+
+"@types/har-format@npm:*":
+  version: 1.2.15
+  resolution: "@types/har-format@npm:1.2.15"
+  checksum: 10c0/43ede55c3947e5cf59561f165930dc2eb3ae983fd162980cdc7274be1e7f528a6f77e65fee9a02a20d91b09bde10bed832b0470724f5c744ef6669015d00564e
   languageName: node
   linkType: hard
 
@@ -16553,6 +16594,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "yarn_workspace_sandbox@workspace:."
   dependencies:
+    "@types/chrome": "npm:^0.0.268"
     "@types/node": "npm:^20.11.30"
     ts-node: "npm:^10.9.2"
     typescript: "npm:^5.4.2"
