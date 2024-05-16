@@ -1,8 +1,8 @@
 ---
 sidebar_position: 1
-id: bitcoin
+id: traders
 ---
 
-# Bitcoin
+# Traders
 
 Coming soon!

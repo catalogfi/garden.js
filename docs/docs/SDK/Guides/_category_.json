@@ -4,7 +4,5 @@
     "link": {
         "type": "generated-index",
         "description": "Guides to quickly get you started with Garden.js."
-    },
-    "collapsible": false,
-    "collapsed": false
+    }
 }

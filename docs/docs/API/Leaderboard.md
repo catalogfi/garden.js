@@ -1,8 +1,8 @@
 ---
 sidebar_position: 2
-id: EVM
+id: leaderboard
 ---
 
-# EVM
+# Leaderboard
 
 Coming soon!

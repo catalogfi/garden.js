@@ -1,8 +1,8 @@
 ---
 sidebar_position: 1
-id: bitcoin
+id: bug-bounty
 ---
 
-# Bitcoin
+# Bug Bounty
 
 Coming soon!

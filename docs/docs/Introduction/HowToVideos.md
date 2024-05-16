@@ -1,8 +1,8 @@
 ---
 sidebar_position: 2
-id: EVM
+id: how-to-videos
 ---
 
-# EVM
+# How To Videos
 
 Coming soon!

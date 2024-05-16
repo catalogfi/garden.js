@@ -1,8 +1,8 @@
 ---
 sidebar_position: 1
-id: bitcoin
+id: revenue-split
 ---
 
-# Bitcoin
+# Revenue Split
 
 Coming soon!

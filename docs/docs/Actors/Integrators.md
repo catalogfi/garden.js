@@ -1,8 +1,8 @@
 ---
 sidebar_position: 2
-id: EVM
+id: integrators
 ---
 
-# EVM
+# Integrators
 
 Coming soon!
