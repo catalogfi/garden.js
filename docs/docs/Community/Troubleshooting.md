@@ -1,6 +1,6 @@
 ---
 id: troubleshooting
-sidebar-position: 7
+sidebar-position: 3
 ---
 
 # Troubleshooting

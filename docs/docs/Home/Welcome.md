@@ -1,11 +1,12 @@
 ---
 sidebar_position: 1
 slug: /
+id: home
 ---
 
 # Welcome to Garden
 
-Garden allows Web3 apps to natively access Bitcoin liquidity. Bitcoin has a 51.4% market share of the crypto industry, but is still one of the least used assets in Web3 today. Our APIs and solutions remove the complexity and reduce the infrastructure overhead to use Bitcoin in your Dapp. 
+Garden allows Web3 apps to natively access Bitcoin liquidity. Bitcoin has a 51.4% market share of the crypto industry, but is still one of the least used assets in Web3 today. Our APIs and solutions remove the complexity and reduce the infrastructure overhead to use Bitcoin in your Dapp.
 
 We offer a fully integrated suite of APIs that help you quickly build, launch, and scale your financial products across multiple EVM-compatible chains and Bitcoin.
 
@@ -17,26 +18,24 @@ We recommend starting off with an [Introduction to garden](./introduction/introd
 
 ## Explore Garden Actors
 
-- [Trader](./actors/traders)
-- [Integrators](./actors/integrators)
-- [Staker](./actors/stakers)
-- [Filler](./actors/fillers)
+-   [Trader](./actors/traders)
+-   [Integrators](./actors/integrators)
+-   [Staker](./actors/stakers)
+-   [Filler](./actors/fillers)
 
 ## Explore garden APIs
 
-- [Orderbook](./API/orderbook)
-- [Leaderboard](./API/leaderboard)
-- [Referral](./API/referral)
-- [Feehub](./API/feehub)
-- [Liquidity](./API/liquidity)
-- [Price](./API/price)
-
+-   [Orderbook](./developers/API/orderbook)
+-   [Leaderboard](./developers/API/leaderboard)
+-   [Referral](./developers/API/referral)
+-   [Feehub](./developers/API/feehub)
+-   [Liquidity](./developers/API/liquidity)
+-   [Price](./developers/API/price)
 
 ## Explore garden tokenomics
 
-- [Tokenomics](./tokenomics)
-- [Revenue Split](./tokenomics/revenue-split)
-
+-   [Tokenomics](./tokenomics)
+-   [Revenue Split](./tokenomics/revenue-split)
 
 ## Explore garden SDK
 
@@ -60,23 +59,23 @@ To run the development server that builds all packages as you develop run:
 ### Hello Garden Example
 
 ## Explore garden Contracts
-- [Bitcoin](./contracts/bitcoin)
-- [EVM](./contracts/evm)
-- [Solana](./contracts/solana)
+
+-   [Bitcoin](./contracts/bitcoin)
+-   [EVM](./contracts/evm)
+-   [Solana](./contracts/solana)
 
 ## How To Videos
 
-- [How To Videos](./introduction/how-to-videos)
+-   [How To Videos](./introduction/how-to-videos)
 
 ## Troubleshooting
 
-- [Troubleshooting](./troubleshooting)
+-   [Troubleshooting](./troubleshooting)
 
 ## Security
 
-- [BugBounty](https://google.com)
-- [Audits](https://google.com)
-- [Constraints](https://google.com)
+-   [BugBounty](https://google.com)
+-   [Audits](https://google.com)
+-   [Constraints](https://google.com)
 
 ## Contributing
-

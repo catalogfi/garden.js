@@ -1,6 +1,6 @@
 ---
 sidebar_position: 6
-id: Price
+id: price
 ---
 
 # Price

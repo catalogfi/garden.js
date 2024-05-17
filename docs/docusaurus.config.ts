@@ -1,6 +1,7 @@
 import { themes as prismThemes } from "prism-react-renderer";
 import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
+import { sidebarItemsGenerator } from "./sidebar";
 
 const config: Config = {
     title: "Garden.js",
@@ -36,6 +37,7 @@ const config: Config = {
                 docs: {
                     routeBasePath: "/",
                     sidebarPath: "./sidebars.ts",
+                    sidebarItemsGenerator: sidebarItemsGenerator,
                     // Please change this to your repo.
                     // Remove this to remove the "edit this page" links.
                     //   editUrl:
@@ -56,6 +58,54 @@ const config: Config = {
                 alt: "Garden logo",
                 src: "img/garden.svg",
             },
+            items: [
+                {
+                    to: "/",
+                    type: "doc",
+                    position: "left",
+                    docId: "Home/home",
+                    label: "Home",
+                },
+                {
+                    to: "/developers",
+                    type: "doc",
+                    position: "left",
+                    docId: "Developers/developers",
+                    label: "Developers",
+                },
+                {
+                    to: "/cookbook",
+                    type: "doc",
+                    position: "left",
+                    docId: "Cookbook/cookbook",
+                    label: "Cookbook",
+                },
+                {
+                    to: "/community",
+                    type: "doc",
+                    position: "left",
+                    docId: "Community/community",
+                    label: "Community",
+                },
+                {
+                    href: "https://github.com/catalogfi/garden.js",
+                    position: "right",
+                    className: "header-link header-github-link",
+                    "aria-label": "GitHub repository",
+                },
+                {
+                    href: "https://twitter.com/intent/follow?screen_name=garden_finance",
+                    position: "right",
+                    className: "header-link header-twitter-link",
+                    "aria-label": "Twitter Handle",
+                },
+                {
+                    href: "https://discord.com/invite/Fp4ZmZZrFu",
+                    position: "right",
+                    className: "header-link header-discord-link",
+                    "aria-label": "Discord Server",
+                },
+            ],
         },
         prism: {
             theme: prismThemes.github,
