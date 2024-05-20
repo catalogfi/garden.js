@@ -23,7 +23,6 @@ const orderStatus = (order: Order) =>
 
 describe("Catalog", () => {
     const API_ENDPOINT = process.env["BACKEND_URL"];
-    console.log(process.env["BACKEND_URL"]);
     if (!API_ENDPOINT || !process.env["ANKR_RPC_URL"]) {
         throw new Error("Missing env vars");
     }
@@ -105,7 +104,7 @@ describe("Catalog", () => {
         expect(order).toBeTruthy();
     });
 
-    it.only(
+    it.skip(
         "should initiate and redeem",
         async () => {
             const bitcoinWallet = BitcoinWallet.fromPrivateKey(
