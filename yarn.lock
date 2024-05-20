@@ -1734,10 +1734,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@catalogfi/extension@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "@catalogfi/extension@npm:0.1.0"
-  checksum: 10c0/116d64fd1acdb68f0b3ec904684abafd3e8f1f507621524d6f5701ef6941e529b2cee3255c5c197a12295971bf40c5d122d3e02aa7a6e0f7661c03bf9312e63a
+"@catalogfi/extension@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "@catalogfi/extension@npm:0.1.1"
+  checksum: 10c0/18955692182de06975789810c21d86a2db25cbbd43bd481f63e26bf5fe913f0d15f28632ed83b40ce71c3fad2ac90e9802da01fcec3787561a98477f6f381c01
   languageName: node
   linkType: hard
 
@@ -1755,12 +1755,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@catalogfi/wallets@npm:^0.2.26":
-  version: 0.2.26
-  resolution: "@catalogfi/wallets@npm:0.2.26"
+"@catalogfi/utils@npm:^0.1.2":
+  version: 0.1.2
+  resolution: "@catalogfi/utils@npm:0.1.2"
+  checksum: 10c0/f1a1526151cd391a97c7c3bdd283c75db47d87f2a7af81cb9edb3363ed7a45f65c8e58b55a02347fd4ad5c4d835d6638aa8ea497d96bbaacaaa34333c6d8bd44
+  languageName: node
+  linkType: hard
+
+"@catalogfi/wallets@npm:^0.2.28":
+  version: 0.2.28
+  resolution: "@catalogfi/wallets@npm:0.2.28"
   dependencies:
-    "@catalogfi/extension": "npm:^0.1.0"
-    "@catalogfi/utils": "npm:^0.1.1"
+    "@catalogfi/extension": "npm:^0.1.1"
+    "@catalogfi/utils": "npm:^0.1.2"
     "@noble/hashes": "npm:^1.4.0"
     "@typechain/ethers-v6": "npm:^0.5.1"
     bip32: "npm:^4.0.0"
@@ -1774,7 +1781,8 @@ __metadata:
     typechain: "npm:^8.3.2"
     utf-8-validate: "npm:^6.0.3"
     uuid: "npm:^9.0.1"
-  checksum: 10c0/bb34e79b4a634307e69e44dfad20077c4008ea62d07b8ecf5c2431f57b3ea5df547c345619820c95a343488a0aed52dddb98fb476c0a2a783962d0a2873e214e
+    yup: "npm:^1.4.0"
+  checksum: 10c0/a1d1635d36317583d78e31c055bc8267c729aa9a0331a27736c7f69e78f294077ca5df7c4388777ec3649300ffb6c4387833b88bdb3e7a78a285955aabbfe8f6
   languageName: node
   linkType: hard
 
@@ -2767,7 +2775,7 @@ __metadata:
   resolution: "@gardenfi/core@workspace:packages/core"
   dependencies:
     "@catalogfi/utils": "npm:^0.1.1"
-    "@catalogfi/wallets": "npm:^0.2.26"
+    "@catalogfi/wallets": "npm:^0.2.28"
     "@gardenfi/orderbook": "workspace:^"
     "@types/jest": "npm:^29.5.12"
     dotenv: "npm:^16.3.1"
@@ -7365,10 +7373,13 @@ __metadata:
     "@docusaurus/tsconfig": "npm:3.2.0"
     "@docusaurus/types": "npm:3.2.0"
     "@mdx-js/react": "npm:^3.0.0"
+    autoprefixer: "npm:^10.4.19"
     clsx: "npm:^2.0.0"
+    postcss: "npm:^8.4.38"
     prism-react-renderer: "npm:^2.3.0"
     react: "npm:^18.0.0"
     react-dom: "npm:^18.0.0"
+    tailwindcss: "npm:^3.4.3"
     typescript: "npm:~5.2.2"
   languageName: unknown
   linkType: soft
@@ -13303,6 +13314,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"property-expr@npm:^2.0.5":
+  version: 2.0.6
+  resolution: "property-expr@npm:2.0.6"
+  checksum: 10c0/69b7da15038a1146d6447c69c445306f66a33c425271235bb20507f1846dbf9577a8f9dfafe8acbfcb66f924b270157f155248308f026a68758f35fc72265b3c
+  languageName: node
+  linkType: hard
+
 "property-information@npm:^6.0.0":
   version: 6.5.0
   resolution: "property-information@npm:6.5.0"
@@ -15225,6 +15243,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tiny-case@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "tiny-case@npm:1.0.3"
+  checksum: 10c0/c0cbed35884a322265e2cd61ff435168d1ea523f88bf3864ce14a238ae9169e732649776964283a66e4eb882e655992081d4daf8c865042e2233425866111b35
+  languageName: node
+  linkType: hard
+
 "tiny-invariant@npm:^1.0.2":
   version: 1.3.3
   resolution: "tiny-invariant@npm:1.3.3"
@@ -15275,6 +15300,13 @@ __metadata:
   version: 1.0.1
   resolution: "toidentifier@npm:1.0.1"
   checksum: 10c0/93937279934bd66cc3270016dd8d0afec14fb7c94a05c72dc57321f8bd1fa97e5bea6d1f7c89e728d077ca31ea125b78320a616a6c6cd0e6b9cb94cb864381c1
+  languageName: node
+  linkType: hard
+
+"toposort@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "toposort@npm:2.0.2"
+  checksum: 10c0/ab9ca91fce4b972ccae9e2f539d755bf799a0c7eb60da07fd985fce0f14c159ed1e92305ff55697693b5bc13e300f5417db90e2593b127d421c9f6c440950222
   languageName: node
   linkType: hard
 
@@ -15460,7 +15492,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"type-fest@npm:^2.13.0, type-fest@npm:^2.5.0":
+"type-fest@npm:^2.13.0, type-fest@npm:^2.19.0, type-fest@npm:^2.5.0":
   version: 2.19.0
   resolution: "type-fest@npm:2.19.0"
   checksum: 10c0/a5a7ecf2e654251613218c215c7493574594951c08e52ab9881c9df6a6da0aeca7528c213c622bc374b4e0cb5c443aa3ab758da4e3c959783ce884c3194e12cb
@@ -16621,6 +16653,18 @@ __metadata:
   version: 1.0.0
   resolution: "yocto-queue@npm:1.0.0"
   checksum: 10c0/856117aa15cf5103d2a2fb173f0ab4acb12b4b4d0ed3ab249fdbbf612e55d1cadfd27a6110940e24746fb0a78cf640b522cc8bca76f30a3b00b66e90cf82abe0
+  languageName: node
+  linkType: hard
+
+"yup@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "yup@npm:1.4.0"
+  dependencies:
+    property-expr: "npm:^2.0.5"
+    tiny-case: "npm:^1.0.3"
+    toposort: "npm:^2.0.2"
+    type-fest: "npm:^2.19.0"
+  checksum: 10c0/fe142141365eed0f78fb2e18bdd2f10bf101385dae12a5f9de14884448067bdca16a54b547fc0bffec04a098dd70b4519ff366422f3da006fd11a0717a7863ac
   languageName: node
   linkType: hard
 
