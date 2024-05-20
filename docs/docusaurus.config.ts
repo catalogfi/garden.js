@@ -4,9 +4,9 @@ import type * as Preset from "@docusaurus/preset-classic";
 import { sidebarItemsGenerator } from "./sidebar";
 
 const config: Config = {
-    title: "Garden.js",
-    tagline: "Brining bitcoin based assets to your dApp.",
-    favicon: "img/garden.svg",
+    title: "Garden Docs",
+    tagline: "Bringing bitcoin based assets to your dApp.",
+    favicon: "img/flower.svg",
 
     // Set the production url of your site here
     url: "https://your-docusaurus-site.example.com",
@@ -17,7 +17,7 @@ const config: Config = {
     // GitHub pages deployment config.
     // If you aren't using GitHub pages, you don't need these.
     organizationName: "gardenfi", // Usually your GitHub org/user name.
-    projectName: "garden.js", // Usually your repo name.
+    projectName: "garden docs", // Usually your repo name.
 
     onBrokenLinks: "throw",
     onBrokenMarkdownLinks: "warn",
@@ -29,6 +29,20 @@ const config: Config = {
         defaultLocale: "en",
         locales: ["en"],
     },
+
+    plugins: [
+        async function myPlugin(context, options) {
+            return {
+                name: "docusaurus-tailwindcss",
+                configurePostCss(postcssOptions) {
+                    // Appends TailwindCSS and AutoPrefixer.
+                    postcssOptions.plugins.push(require("tailwindcss"));
+                    postcssOptions.plugins.push(require("autoprefixer"));
+                    return postcssOptions;
+                },
+            };
+        },
+    ],
 
     presets: [
         [
@@ -56,7 +70,8 @@ const config: Config = {
         navbar: {
             logo: {
                 alt: "Garden logo",
-                src: "img/garden.svg",
+                src: "img/garden-docs.svg",
+                srcDark: "img/garden-docs-white.svg",
             },
             items: [
                 {
@@ -110,6 +125,75 @@ const config: Config = {
         prism: {
             theme: prismThemes.github,
             darkTheme: prismThemes.dracula,
+        },
+        footer: {
+            logo: {
+                alt: "Garden logo",
+                src: "img/garden.svg",
+                srcDark: "img/garden-white.svg",
+            },
+            links: [
+                {
+                    title: "Application",
+                    items: [
+                        {
+                            label: "Swap",
+                            to: "https://garden.finance/swap",
+                        },
+                        {
+                            label: "Stake",
+                            to: "https://garden.finance/stake",
+                        },
+                        {
+                            label: "Leaderboard",
+                            to: "https://garden.finance/leaderboard",
+                        },
+                    ],
+                },
+                {
+                    title: "Resources",
+                    items: [
+                        {
+                            label: "Blog",
+                            to: "https://garden.finance/blog/",
+                        },
+                        {
+                            label: "Audits",
+                            to: "https://github.com/catalogfi/audits",
+                        },
+                    ],
+                },
+                {
+                    title: "Ecosystem",
+                    items: [
+                        {
+                            label: "Analytics",
+                            to: "https://dune.com/garden_finance/gardenfinance",
+                        },
+                        {
+                            label: "Explorer",
+                            to: "https://main--symphonious-chaja-a69e12.netlify.app/",
+                        },
+                    ],
+                },
+                {
+                    title: "Community",
+                    items: [
+                        {
+                            label: "Discord",
+                            to: "https://discord.com/invite/Fp4ZmZZrFu",
+                        },
+                        {
+                            label: "Telegram",
+                            to: "https://t.me/GardenTownhall",
+                        },
+                        {
+                            label: "X",
+                            to: "https://x.com/intent/follow?screen_name=garden_finance",
+                        },
+                    ],
+                },
+            ],
         },
     } satisfies Preset.ThemeConfig,
 };
