@@ -18,10 +18,8 @@ An "Order" is simply creating two atomic swaps on the source and destination cha
 
 ## Packages
 
--   [Orderbook](https://github.com/catalogfi/garden.js/tree/main/packages/orderbook#gardenfiorderbook): `@gardenfi/orderbook` allows you to create orders and listen to them.
--   [Core](https://github.com/catalogfi/garden.js/tree/main/packages/catalog#gardenficore): `@gardenfi/core` allows you to create, listen and interact with orders.
--   [Wallets](https://github.com/catalogfi/garden.js/tree/main/packages/catalog#gardenfiota)
--   [Assets](https://github.com/catalogfi/garden.js/tree/main/packages/catalog#gardenfiota)
+-   [Orderbook](../SDK/Packages/Orderbook/Orderbook.md): `@gardenfi/orderbook` allows you to create orders and listen to them.
+-   [Core](../SDK/Packages/Core/GardenJS.md): `@gardenfi/core` allows you to create, listen and interact with orders.
 
 ## Contributing
 
