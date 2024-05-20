@@ -14,26 +14,26 @@ Garden is currently live on the following [Mainnet and Testnet Chains](https://g
 
 ## New to garden?
 
-We recommend starting off with an [Introduction to garden](./Introduction/IntroductionToGarden.md).
+We recommend starting off with an [Introduction to garden](./introduction/IntroductionToGarden.md).
 
 ## Explore Garden Actors
 
--   [Trader](./Actors/Traders.md)
--   [Staker](./Actors/Stakers.md)
--   [Filler](./Actors/Fillers.md)
+-   [Trader](./actors/Traders.md)
+-   [Staker](./actors/Stakers.md)
+-   [Filler](./actors/Fillers.md)
 
 ## Explore garden APIs
 
--   [Orderbook](../Developers/API/Orderbook.md)
--   [Leaderboard](../Developers/API/Leaderboard.md)
--   [Referral](../Developers/API/Referral.md)
--   [Feehub](../Developers/API/Feehub.md)
--   [Liquidity](../Developers/API/Liquidity.md)
--   [Price](../Developers/API/Price.md)
+-   [Orderbook](../developers/api/Orderbook.md)
+-   [Leaderboard](../developers/api/Leaderboard.md)
+-   [Referral](../developers/api/Referral.md)
+-   [Feehub](../developers/api/Feehub.md)
+-   [Liquidity](../developers/api/Liquidity.md)
+-   [Price](../developers/api/Price.md)
 
 ## Explore garden tokenomics
 
--   [Tokenomics](./Tokenomics/tokenomics.md)
+-   [Tokenomics](./tokenomics/tokenomics.md)
 
 ## Explore garden SDK
 
@@ -56,22 +56,22 @@ To run the development server that builds all packages as you develop run:
 
 ## Explore garden Contracts
 
--   [Bitcoin](../Developers/Contracts/Bitcoin/Bitcoin.md)
--   [EVM](../Developers/Contracts/EVM/EVM.md)
--   [Solana](../Developers/Contracts/Solana/Solana.md)
+-   [Bitcoin](../developers/contracts/bitcoin/Bitcoin.md)
+-   [EVM](../developers/contracts/evm/EVM.md)
+-   [Solana](../developers/contracts/solana/Solana.md)
 
 ## How To Videos
 
--   [How To Videos](./Introduction/HowToVideos.md)
+-   [How To Videos](./introduction/HowToVideos.md)
 
 ## Troubleshooting
 
--   [Troubleshooting](../Community/Troubleshooting.md)
+-   [Troubleshooting](../community/Troubleshooting.md)
 
 ## Security
 
--   [BugBounty](https://google.com)
--   [Audits](https://google.com)
--   [Constraints](https://google.com)
+-   [Security](./security/Security.md)
+-   [BugBounty](./security/BugBounty.md)
+-   [Constraints](./security/Constraints.md)
 
 ## Contributing

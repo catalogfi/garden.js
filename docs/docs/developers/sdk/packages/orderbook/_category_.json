@@ -1,0 +1,10 @@
+{
+    "label": "Orderbook",
+    "position": 1,
+    "link": {
+        "type": "generated-index",
+        "description": "Allows you to interact with the backend orderbook fillers."
+    },
+    "collapsible": false,
+    "collapsed": false
+}

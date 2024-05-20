@@ -1,9 +1,9 @@
 ---
 sidebar_position: 3
-id: creating-and-redeeming
+id: initiating-and-redeeming
 ---
 
-# Creating and Redeeming an order
+# Initiating and Redeeming an order
 
 For easy interaction with the backend interfaces we recommend using the GardenJS class available in `@gardenfi/core` as it allows you to create orders and interact with them.
 
