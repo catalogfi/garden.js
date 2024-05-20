@@ -1741,20 +1741,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@catalogfi/utils@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "@catalogfi/utils@npm:0.1.0"
-  checksum: 10c0/932e3f79b855692a9bf78db889d392bb4c627e050408ffc5190c462cc834e3923bbe3e91de469782ef88c8286f2c964277ab53944ee1dca4752a235fe965b4f3
-  languageName: node
-  linkType: hard
-
-"@catalogfi/utils@npm:^0.1.1":
-  version: 0.1.1
-  resolution: "@catalogfi/utils@npm:0.1.1"
-  checksum: 10c0/4414522225b3b1429e7efd5d60046d5898d1a7eb564d01e50d869df089e3c6a9e15e6951963c4b7ae8d4e2fec9e2008541596b6b41633fb4e061fc3cebbe3344
-  languageName: node
-  linkType: hard
-
 "@catalogfi/utils@npm:^0.1.2":
   version: 0.1.2
   resolution: "@catalogfi/utils@npm:0.1.2"
@@ -2774,7 +2760,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@gardenfi/core@workspace:packages/core"
   dependencies:
-    "@catalogfi/utils": "npm:^0.1.1"
+    "@catalogfi/utils": "npm:^0.1.2"
     "@catalogfi/wallets": "npm:^0.2.28"
     "@gardenfi/orderbook": "workspace:^"
     "@types/jest": "npm:^29.5.12"
@@ -2793,7 +2779,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@gardenfi/orderbook@workspace:packages/orderbook"
   dependencies:
-    "@catalogfi/utils": "npm:^0.1.0"
+    "@catalogfi/utils": "npm:^0.1.2"
     "@types/jest": "npm:^29.5.12"
     "@types/ws": "npm:^8.5.7"
     bufferutil: "npm:^4.0.8"
@@ -7373,13 +7359,10 @@ __metadata:
     "@docusaurus/tsconfig": "npm:3.2.0"
     "@docusaurus/types": "npm:3.2.0"
     "@mdx-js/react": "npm:^3.0.0"
-    autoprefixer: "npm:^10.4.19"
     clsx: "npm:^2.0.0"
-    postcss: "npm:^8.4.38"
     prism-react-renderer: "npm:^2.3.0"
     react: "npm:^18.0.0"
     react-dom: "npm:^18.0.0"
-    tailwindcss: "npm:^3.4.3"
     typescript: "npm:~5.2.2"
   languageName: unknown
   linkType: soft

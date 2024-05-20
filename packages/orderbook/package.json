@@ -1,9 +1,9 @@
 {
     "name": "@gardenfi/orderbook",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "type": "module",
     "dependencies": {
-        "@catalogfi/utils": "^0.1.0",
+        "@catalogfi/utils": "^0.1.2",
         "bufferutil": "^4.0.8",
         "ethers": "6.8.0",
         "siwe": "^2.1.4",
