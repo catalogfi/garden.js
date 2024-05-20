@@ -30,16 +30,14 @@ const sidebars: SidebarsConfig = {
             link: { type: "doc", id: "Home/Actors/actors" },
             items: [
                 "Home/Actors/traders",
-                "Home/Actors/integrators",
                 "Home/Actors/stakers",
                 "Home/Actors/fillers",
             ],
         },
         {
-            type: "category",
+            type: "doc",
+            id: "Home/Tokenomics/tokenomics",
             label: "Tokenomics",
-            link: { type: "doc", id: "Home/Tokenomics/tokenomics" },
-            items: ["Home/Tokenomics/revenue-split"],
         },
         {
             type: "category",

@@ -19,7 +19,6 @@ We recommend starting off with an [Introduction to garden](./Introduction/Introd
 ## Explore Garden Actors
 
 -   [Trader](./Actors/Traders.md)
--   [Integrators](./Actors/Integrators.md)
 -   [Staker](./Actors/Stakers.md)
 -   [Filler](./Actors/Fillers.md)
 
@@ -35,7 +34,6 @@ We recommend starting off with an [Introduction to garden](./Introduction/Introd
 ## Explore garden tokenomics
 
 -   [Tokenomics](./Tokenomics/tokenomics.md)
--   [Revenue Split](./Tokenomics/revenue_split.md)
 
 ## Explore garden SDK
 

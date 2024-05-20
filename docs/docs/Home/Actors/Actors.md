@@ -5,4 +5,4 @@ id: actors
 
 # Actors
 
-Coming soon!
+The walled garden creates opportunities for new actors (fillers and stakers) and creates new value for the existing ones.
