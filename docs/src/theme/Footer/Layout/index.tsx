@@ -92,16 +92,16 @@ export default function FooterLayout({
                     colorMode === "dark" ? "bg-gray-600" : "bg-gray-200"
                 }`}
             ></div>
-            <div className="flex flex-col gap-8 md:flex-row w-full py-16 justify-between container-width mx-auto">
+            <div className="flex flex-col gap-8 md:flex-row w-full py-16 justify-between sm:w-[35rem] md:w-[51rem] lg:w-[67rem] mx-auto">
                 <div>{logo}</div>
                 {links}
             </div>
             <div
-                className={`h-[2px] container-width mx-auto ${
+                className={`h-[2px] w-[21rem] sm:w-[35rem] md:w-[51rem] lg:w-[67rem] mx-auto ${
                     colorMode === "dark" ? "bg-[#4A4A4A]" : "bg-black"
                 }`}
             ></div>
-            <div className="pt-4 mb-14 flex flex-col sm:flex-row gap-4 justify-between w-full container-width mx-auto">
+            <div className="pt-4 mb-14 flex flex-col sm:flex-row gap-4 justify-between w-full sm:w-[35rem] md:w-[51rem] lg:w-[67rem] mx-auto">
                 <div className="font-semibold flex flex-col items-start sm:flex-row sm:items-center gap-1 sm:gap-4">
                     <div className="flex gap-2 items-center">
                         <span>Powered by </span>

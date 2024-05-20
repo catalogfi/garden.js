@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-.container-width {
-    @apply w-[21rem] sm:w-[35rem] md:w-[51rem] lg:w-[67rem];
-}
-
 /**
  * Any CSS included here will be global. The classic template
  * bundles Infima by default. Infima is a CSS framework designed to
