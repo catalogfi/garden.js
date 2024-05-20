@@ -16,7 +16,6 @@
         "packages/*",
         "docs"
     ],
-    "packageManager": "yarn@4.1.1",
     "devDependencies": {
         "@types/chrome": "^0.0.268",
         "@types/node": "^20.11.30",
