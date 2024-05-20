@@ -9,10 +9,10 @@ const config: Config = {
     favicon: "img/flower.svg",
 
     // Set the production url of your site here
-    url: "https://your-docusaurus-site.example.com",
+    url: "http://127.0.0.1:3000",
     // Set the /<baseUrl>/ pathname under which your site is served
     // For GitHub pages deployment, it is often '/<projectName>/'
-    baseUrl: "/",
+    baseUrl: "/docs/build/",
 
     // GitHub pages deployment config.
     // If you aren't using GitHub pages, you don't need these.

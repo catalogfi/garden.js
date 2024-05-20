@@ -14,32 +14,32 @@ Garden is currently live on the following [Mainnet and Testnet Chains](https://g
 
 ## New to garden?
 
-We recommend starting off with an [Introduction to garden](./introduction/introduction-to-garden).
+We recommend starting off with an [Introduction to garden](./Introduction/IntroductionToGarden.md).
 
 ## Explore Garden Actors
 
--   [Trader](./actors/traders)
--   [Integrators](./actors/integrators)
--   [Staker](./actors/stakers)
--   [Filler](./actors/fillers)
+-   [Trader](./Actors/Traders.md)
+-   [Integrators](./Actors/Integrators.md)
+-   [Staker](./Actors/Stakers.md)
+-   [Filler](./Actors/Fillers.md)
 
 ## Explore garden APIs
 
--   [Orderbook](./developers/API/orderbook)
--   [Leaderboard](./developers/API/leaderboard)
--   [Referral](./developers/API/referral)
--   [Feehub](./developers/API/feehub)
--   [Liquidity](./developers/API/liquidity)
--   [Price](./developers/API/price)
+-   [Orderbook](../Developers/API/Orderbook.md)
+-   [Leaderboard](../Developers/API/Leaderboard.md)
+-   [Referral](../Developers/API/Referral.md)
+-   [Feehub](../Developers/API/Feehub.md)
+-   [Liquidity](../Developers/API/Liquidity.md)
+-   [Price](../Developers/API/Price.md)
 
 ## Explore garden tokenomics
 
--   [Tokenomics](./tokenomics)
--   [Revenue Split](./tokenomics/revenue-split)
+-   [Tokenomics](./Tokenomics/tokenomics.md)
+-   [Revenue Split](./Tokenomics/revenue_split.md)
 
 ## Explore garden SDK
 
-Build and use your first appication using garden SDK
+Build and use your first application using garden SDK
 
 -   [Orderbook](https://github.com/catalogfi/garden.js/tree/main/packages/orderbook#gardenfiorderbook)
 -   [Core](https://github.com/catalogfi/garden.js/tree/main/packages/catalog#gardenficatalog)
@@ -60,17 +60,17 @@ To run the development server that builds all packages as you develop run:
 
 ## Explore garden Contracts
 
--   [Bitcoin](./contracts/bitcoin)
--   [EVM](./contracts/evm)
--   [Solana](./contracts/solana)
+-   [Bitcoin](../Developers/Contracts/Bitcoin/Bitcoin.md)
+-   [EVM](../Developers/Contracts/EVM/EVM.md)
+-   [Solana](../Developers/Contracts/Solana/Solana.md)
 
 ## How To Videos
 
--   [How To Videos](./introduction/how-to-videos)
+-   [How To Videos](./Introduction/HowToVideos.md)
 
 ## Troubleshooting
 
--   [Troubleshooting](./troubleshooting)
+-   [Troubleshooting](../Community/Troubleshooting.md)
 
 ## Security
 
