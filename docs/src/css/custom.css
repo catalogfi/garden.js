@@ -66,6 +66,38 @@
         var(--ifm-transition-timing-default);
 }
 
+html[data-theme="dark"] .footer-partition-top {
+    background-color: rgb(75 85 99);
+}
+
+html[data-theme="light"] .footer-partition-top {
+    background-color: rgb(229 231 235);
+}
+
+html[data-theme="dark"] .footer-partition-bottom {
+    background-color: #4a4a4a;
+}
+
+html[data-theme="light"] .footer-partition-bottom {
+    background-color: black;
+}
+
+html[data-theme="dark"] .link {
+    color: #ffffff;
+}
+
+html[data-theme="light"] .link {
+    color: #554b6a;
+}
+
+html[data-theme="dark"] .link:hover {
+    color: var(--ifm-color-primary) !important;
+}
+
+html[data-theme="light"] .link:hover {
+    color: var(--ifm-color-primary) !important;
+}
+
 .header-link:hover::before {
     opacity: 0.6;
 }

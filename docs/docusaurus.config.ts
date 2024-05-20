@@ -66,6 +66,11 @@ const config: Config = {
     ],
 
     themeConfig: {
+        colorMode: {
+            defaultMode: "light",
+            disableSwitch: false,
+            respectPrefersColorScheme: true,
+        },
         image: "img/garden.svg",
         navbar: {
             logo: {

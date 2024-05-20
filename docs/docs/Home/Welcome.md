@@ -54,8 +54,6 @@ To run the development server that builds all packages as you develop run:
 
 `yarn dev`
 
-### Hello Garden Example
-
 ## Explore garden Contracts
 
 -   [Bitcoin](../Developers/Contracts/Bitcoin/Bitcoin.md)
