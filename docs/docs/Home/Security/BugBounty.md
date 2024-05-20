@@ -96,7 +96,7 @@ Our Bug Bounty Program invites skilled security researchers to proactively ident
 ## Out of Scope
 
 -   Any services hosted by third-party providers.
--   Any services hosted by Garden that are not explicitly mentioned in the [Scope](#scope) section.
+-   Any services hosted by Garden that are not explicitly mentioned in the Scope section.
 -   Attacks that the reporter has already exploited themselves, leading to damage.
 -   Attacks requiring access to leaked keys/credentials.
 
