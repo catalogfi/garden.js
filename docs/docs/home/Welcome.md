@@ -10,8 +10,6 @@ Garden allows Web3 apps to natively access Bitcoin liquidity. Bitcoin has a 51.4
 
 We offer a fully integrated suite of APIs that help you quickly build, launch, and scale your financial products across multiple EVM-compatible chains and Bitcoin.
 
-Garden is currently live on the following [Mainnet and Testnet Chains](https://google.com).
-
 ## New to garden?
 
 We recommend starting off with an [Introduction to garden](./introduction/IntroductionToGarden.md).
