@@ -1,0 +1,25 @@
+version: 0.2
+
+phases:
+    install:
+        runtime-versions:
+            nodejs: 20
+        commands:
+            - npm install -g yarn
+    pre_build:
+        commands:
+            - cd .. && yarn set version 4.2.2 && cd -
+            - cd docs
+            - export NODE_AUTH_TOKEN=""
+            - yarn install
+    build:
+        commands:
+            - yarn build
+    post_build:
+        commands:
+            - mv build ../d
+
+artifacts:
+    files:
+        - "./d/**/*"
+    discard-paths: no
