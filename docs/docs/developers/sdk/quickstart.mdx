@@ -1,0 +1,149 @@
+---
+sidebar_position: 3
+id: quickstart
+---
+
+import DocCardList from "@theme/DocCardList";
+
+# Quickstart
+
+Garden SDK is a set of packages that aims to quickly swap your cross-chain assets seamlessly.
+
+## Guides
+
+Check out our guides to help you get started on swapping your assets.
+
+<DocCardList
+    items={[
+        {
+            type: "link",
+            href: "/developers/sdk/guides/creating-wallets",
+            label: "Creating wallets",
+            docId: "developers/sdk/guides/creating-wallets",
+            description:
+                "Learn how to create wallets using the @catalogfi/wallets package.",
+        },
+        {
+            type: "link",
+            href: "/developers/sdk/guides/btc-to-wbtc",
+            label: "Swapping from BTC to WBTC",
+            docId: "developers/sdk/guides/btc-to-wbtc",
+            description: "Make a swap from BTC to WBTC.",
+        },
+        {
+            type: "link",
+            href: "/developers/sdk/guides/wbtc-to-btc",
+            label: "Swapping from WBTC to BTC",
+            docId: "developers/sdk/guides/wbtc-to-btc",
+            description: "Make a swap from WBTC to BTC.",
+        },
+        {
+            type: "link",
+            href: "/developers/sdk/guides/1inch-integration",
+            label: "1inch Integration",
+            docId: "developers/sdk/guides/1inch-integration",
+            description:
+                "Integrate 1inch into your app to swap anything to BTC.",
+        },
+    ]}
+/>
+
+## Learn more about Garden SDK
+
+Learn more about the `Garden SDK` by exploring the supported assets, chains and underlying concepts.
+
+<DocCardList
+    items={[
+        {
+            type: "link",
+            href: "/developers/sdk/supported-chains",
+            label: "Supported Chains",
+            docId: "developers/sdk/supported-chains",
+            description:
+                "Find out all the supported chains, assets supported by Garden SDK.",
+        },
+        {
+            type: "link",
+            href: "/developers/sdk/core-concepts",
+            label: "Core Concepts",
+            docId: "developers/sdk/core-concepts",
+            description: "Learn how swapping works under the hood.",
+        },
+    ]}
+/>
+
+## Swapping your BTC to WBTC
+
+Swapping from BTC to WBTC will only require two things from you:
+
+-   A Bitcoin private key
+-   An Ethereum private key
+
+The below code snippet swaps your BTC to WBTC on Ethereum. To understand what's happening at each step, take a look at the [swapping from BTC to WBTC guide](./guides/btc-to-wbtc).
+
+```ts
+import {
+    BitcoinNetwork,
+    BitcoinWallet,
+    BitcoinProvider,
+    EVMWallet,
+} from "@catalogfi/wallets";
+import {
+    Orderbook,
+    Chains,
+    Assets,
+    Actions,
+    parseStatus,
+} from "@gardenfi/orderbook";
+import { GardenJS } from "@gardenfi/core";
+import { JsonRpcProvider, Wallet } from "ethers";
+
+const bitcoinProvider = new BitcoinProvider(BitcoinNetwork.Mainnet);
+const bitcoinPk = "YOUR BITCOIN PRIVATE KEY";
+
+const bitcoinWallet = BitcoinWallet.fromPrivateKey(bitcoinPk, bitcoinProvider);
+
+const ethereumPk = "YOUR ETHEREUM PRIVATE KEY";
+const ethereumProvider = new JsonRpcProvider("https://rpc.ankr.com/eth");
+const wallet = new Wallet(ethereumPk, ethereumProvider);
+
+const evmWallet = new EVMWallet(wallet);
+
+(async () => {
+    const orderbook = await Orderbook.init({
+        signer: wallet,
+    });
+
+    const wallets = {
+        [Chains.bitcoin]: bitcoinWallet,
+        [Chains.ethereum]: evmWallet,
+    };
+
+    const garden = new GardenJS(orderbook, wallets);
+
+    const sendAmount = 0.0001 * 1e8;
+    const recieveAmount = (1 - 0.3 / 100) * sendAmount;
+
+    const orderId = await garden.swap(
+        Assets.bitcoin.BTC,
+        Assets.ethereum.WBTC,
+        sendAmount,
+        recieveAmount
+    );
+
+    garden.subscribeOrders(await evmWallet.getAddress(), async (orders) => {
+        const order = orders.filter((order) => order.ID === orderId)[0];
+        if (!order) return;
+
+        const action = parseStatus(order);
+
+        if (action === Actions.UserCanInitiate || Actions.UserCanRedeem) {
+            const swapper = garden.getSwap(order);
+            const swapOutput = await swapper.next();
+            console.log(
+                `Completed Action ${swapOutput.action} with transaction hash: ${swapOutput.output}`
+            );
+        }
+    });
+})();
+```

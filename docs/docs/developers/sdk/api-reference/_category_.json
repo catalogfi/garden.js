@@ -4,6 +4,6 @@
     "link": {
         "type": "generated-index",
         "description": "Packages available in the @gardenfi ecosystem.",
-        "slug": "/developers/sdk/packages"
+        "slug": "/developers/sdk/api-reference"
     }
 }
