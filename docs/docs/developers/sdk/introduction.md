@@ -5,39 +5,12 @@ id: introduction
 
 # Introduction
 
-The `Garden SDK` is a typescript monorepo library that allows you to interact with [Garden](https://garden.finance) allowing you to bridge Bitcoin to EVM based chains and vice versa.
+The `Garden SDK` is a set of typescript packages that allow you to bridge bitcoin to EVM based chains. The SDK is an abstraction over the garden APIs, providing developers to easily integrate garden components into their dapps.
 
-The `Garden SDK` allows you to seamlessly create "Orders" and interact with them. Interacting with an order includes:
+Want to know how everything works internally? Check out core concepts [here](./core-concepts.md).
 
--   Initiating
--   Redeeming
--   Refunding
+## Features
 
-An "Order" is simply creating two atomic swaps on the source and destination chain and successfully moving assets within those chains.
-
-## Packages
-
--   [Orderbook](./api-reference/orderbook/Orderbook.md): `@gardenfi/orderbook` allows you to create orders and listen to them.
--   [Core](./api-reference/core/GardenJS.md): `@gardenfi/core` allows you to create, listen and interact with orders.
-
-## Contributing
-
-`Garden SDK` is open source and and we welcome contributions from the community.
-
-### Setup
-
-This monorepo uses `yarn v4.1.1`. To switch to this version, enable corepack (using `corepack enable`) and use `yarn set version 4.1.1`.
-
-To build a package:
-
-`yarn workspace @gardenfi/<package_name> build`
-
-To run the development server that builds all packages as you develop run:
-
-`yarn dev`
-
-When creating a PR:
-
--   Fork the repo
--   Run `yarn` to install all dependencies
--   Make a PR from your fork to the main repo including your changes and a changelog
+-   **Cross chain Swaps**: Swap assets between Bitcoin and EVM based chains.
+-   **Compatibility**: The SDK is compatible with ethers.js or any other standard web3 providers making it easy to integrate with dapps.
+-   **OTAs**: Create one time bitcoin accounts using your web3 providers, giving you access to all bitcoin wallet features.
