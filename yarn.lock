@@ -1748,9 +1748,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@catalogfi/wallets@npm:^0.2.28":
-  version: 0.2.28
-  resolution: "@catalogfi/wallets@npm:0.2.28"
+"@catalogfi/wallets@npm:^0.2.29":
+  version: 0.2.29
+  resolution: "@catalogfi/wallets@npm:0.2.29"
   dependencies:
     "@catalogfi/extension": "npm:^0.1.1"
     "@catalogfi/utils": "npm:^0.1.2"
@@ -1768,7 +1768,7 @@ __metadata:
     utf-8-validate: "npm:^6.0.3"
     uuid: "npm:^9.0.1"
     yup: "npm:^1.4.0"
-  checksum: 10c0/a1d1635d36317583d78e31c055bc8267c729aa9a0331a27736c7f69e78f294077ca5df7c4388777ec3649300ffb6c4387833b88bdb3e7a78a285955aabbfe8f6
+  checksum: 10c0/3347a1cebb65214ef9cc8af69c5ffc26fa98415b2eeed91b28b8803d99a143a1a9d681e40188c855a6f574fd437b672d586140ec64dc4444d377f5d6fc14d856
   languageName: node
   linkType: hard
 
@@ -2761,7 +2761,7 @@ __metadata:
   resolution: "@gardenfi/core@workspace:packages/core"
   dependencies:
     "@catalogfi/utils": "npm:^0.1.2"
-    "@catalogfi/wallets": "npm:^0.2.28"
+    "@catalogfi/wallets": "npm:^0.2.29"
     "@gardenfi/orderbook": "workspace:^"
     "@types/jest": "npm:^29.5.12"
     dotenv: "npm:^16.3.1"

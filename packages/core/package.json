@@ -4,7 +4,7 @@
     "type": "module",
     "dependencies": {
         "@catalogfi/utils": "^0.1.2",
-        "@catalogfi/wallets": "^0.2.28",
+        "@catalogfi/wallets": "^0.2.29",
         "@gardenfi/orderbook": "workspace:^",
         "ethers": "6.8.0"
     },
