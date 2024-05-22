@@ -1,10 +1,9 @@
 ---
-sidebar_position: 7
-id: sdk
-type: doc
+sidebar_position: 1
+id: introduction
 ---
 
-# Garden SDK
+# Introduction
 
 The `Garden SDK` is a typescript monorepo library that allows you to interact with [Garden](https://garden.finance) allowing you to bridge Bitcoin to EVM based chains and vice versa.
 
