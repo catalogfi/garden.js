@@ -18,8 +18,8 @@ An "Order" is simply creating two atomic swaps on the source and destination cha
 
 ## Packages
 
--   [Orderbook](../sdk/packages/orderbook/Orderbook.md): `@gardenfi/orderbook` allows you to create orders and listen to them.
--   [Core](../sdk/packages/core/GardenJS.md): `@gardenfi/core` allows you to create, listen and interact with orders.
+-   [Orderbook](./api-reference/orderbook/Orderbook.md): `@gardenfi/orderbook` allows you to create orders and listen to them.
+-   [Core](./api-reference/core/GardenJS.md): `@gardenfi/core` allows you to create, listen and interact with orders.
 
 ## Contributing
 

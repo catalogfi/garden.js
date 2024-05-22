@@ -1,6 +1,6 @@
 ---
 sidebar_position: 1
-slug: "/developers/sdk/packages/orderbook"
+slug: "/developers/sdk/api-reference/orderbook"
 id: orderbook
 ---
 
