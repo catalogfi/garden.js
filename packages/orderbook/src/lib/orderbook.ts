@@ -1,23 +1,23 @@
-import { Fetcher, trim0x } from '@catalogfi/utils';
+import { Fetcher, trim0x } from "@catalogfi/utils";
 import {
-  CreateOrderConfig,
-  CreateOrderResponse,
-  GetOrdersOutput,
-  IOrderbook,
-  Order,
-  OrderConfig,
-  OrderNonVerbose,
-  OrderbookConfig,
-} from './orderbook.types';
-import { OrdersSocket } from './ordersSocket';
-import { Siwe } from './auth/siwe';
-import { IAuth } from './auth/auth.interface';
-import { parseURL } from './utils';
-import { orderPairGenerator } from './orderpair';
-import { OrderbookErrors } from './errors';
-import { StoreKeys } from './store/store.interface';
-import { MemoryStorage } from './store/memoryStorage';
-import { API } from './api';
+    CreateOrderConfig,
+    CreateOrderResponse,
+    GetOrdersOutput,
+    IOrderbook,
+    Order,
+    OrderConfig,
+    OrderNonVerbose,
+    OrderbookConfig,
+} from "./orderbook.types";
+import { OrdersSocket } from "./ordersSocket";
+import { Siwe } from "./auth/siwe";
+import { IAuth } from "./auth/auth.interface";
+import { orderPairGenerator } from "./orderpair";
+import { OrderbookErrors } from "./errors";
+import { StoreKeys } from "./store/store.interface";
+import { MemoryStorage } from "./store/memoryStorage";
+import { API } from "./api";
+import { Url } from "./url";
 
 /**
  * A class that allows you to create and manage orders with the backend url.
@@ -26,114 +26,122 @@ import { API } from './api';
  * @implements {IOrderbook}
  */
 export class Orderbook implements IOrderbook {
-  private orderSocket: OrdersSocket;
-  private url: string;
-  private auth: IAuth;
+    private orderSocket: OrdersSocket;
+    private url: Url;
+    private auth: IAuth;
 
-  /**
-   * Creates an instance of Orderbook. Does not login to the orderbook backend
-   * @constructor
-   * @param {OrderbookConfig} orderbookConfig - The configuration object for the orderbook.
-   *
-   */
-  constructor(orderbookConfig: OrderbookConfig) {
-    this.url = parseURL(orderbookConfig.url ?? API);
-    this.orderSocket = new OrdersSocket(this.url.replace('https', 'wss'));
-    this.url += this.url.endsWith('/') ? '' : '/';
-    this.auth = new Siwe(this.url, orderbookConfig.signer, {
-      ...orderbookConfig.opts,
-      store: orderbookConfig.opts?.store || new MemoryStorage(),
-    });
-  }
+    /**
+     * Creates an instance of Orderbook. Does not login to the orderbook backend
+     * @constructor
+     * @param {OrderbookConfig} orderbookConfig - The configuration object for the orderbook.
+     *
+     */
+    constructor(orderbookConfig: OrderbookConfig) {
+        //TODO: Make a URLParser class
+        this.url = new Url("/", orderbookConfig.url ?? API);
+        this.orderSocket = new OrdersSocket(this.url.socket());
 
-  /**
-   * Initializes the orderbook as well as logs in the orderbook and stores the auth token in the store.
-   *
-   * @param {OrderbookConfig} orderbookConfig - The configuration object for the orderbook.
-   */
-
-  static async init(orderbookConfig: OrderbookConfig) {
-    const auth = new Siwe(
-      orderbookConfig.url ?? API,
-      orderbookConfig.signer,
-      orderbookConfig.opts
-    );
-    const authToken = await auth.getToken();
-    orderbookConfig.opts = {
-      ...orderbookConfig.opts,
-      store: orderbookConfig?.opts?.store ?? new MemoryStorage(),
-    };
-    orderbookConfig.opts.store!.setItem(StoreKeys.AUTH_TOKEN, authToken);
-    return new Orderbook(orderbookConfig);
-  }
-
-  async createOrder(createOrderConfig: CreateOrderConfig): Promise<number> {
-    const {
-      sendAmount,
-      secretHash,
-      receiveAmount,
-      fromAsset,
-      toAsset,
-      ...rest
-    } = createOrderConfig;
-    this.validateConfig(createOrderConfig);
-    const orderPair = orderPairGenerator(fromAsset, toAsset);
-
-    const url = this.url + 'orders';
-    const { orderId } = await Fetcher.post<CreateOrderResponse>(url, {
-      body: JSON.stringify({
-        ...rest,
-        sendAmount,
-        receiveAmount,
-        secretHash: trim0x(secretHash),
-        orderPair,
-        userWalletBTCAddress: rest.btcInputAddress,
-      }),
-      headers: {
-        Authorization: await this.auth.getToken(),
-      },
-    });
-
-    return orderId;
-  }
-
-  async getOrders<T extends boolean>(
-    address: string,
-    orderConfig?: Partial<OrderConfig<T>>
-  ): Promise<(T extends true ? Order : OrderNonVerbose)[]> {
-    const ordersResponse = await Fetcher.get<GetOrdersOutput<T>>(
-      this.url +
-        'orders?' +
-        new URLSearchParams({
-          ...(orderConfig?.taker ? { taker: address } : { maker: address }),
-          verbose: orderConfig?.verbose ? 'true' : 'false',
-          ...(orderConfig?.pending ? { status: '2' } : {}),
-        })
-    );
-
-    if (orderConfig?.verbose) {
-      return ordersResponse as GetOrdersOutput<true>;
+        this.auth = new Siwe(this.url, orderbookConfig.signer, {
+            ...orderbookConfig.opts,
+            store: orderbookConfig.opts?.store || new MemoryStorage(),
+        });
     }
 
-    return ordersResponse;
-  }
+    /**
+     * Initializes the orderbook as well as logs in the orderbook and stores the auth token in the store.
+     *
+     * @param {OrderbookConfig} orderbookConfig - The configuration object for the orderbook.
+     */
 
-  subscribeOrders(account: string, cb: (orders: Order[]) => void): void {
-    this.orderSocket.subscribe(account, cb);
-  }
+    static async init(orderbookConfig: OrderbookConfig) {
+        const auth = new Siwe(
+            new Url("/", orderbookConfig.url ?? API),
+            orderbookConfig.signer,
+            orderbookConfig.opts
+        );
+        const authToken = await auth.getToken();
+        const store = orderbookConfig.opts?.store ?? new MemoryStorage();
+        orderbookConfig.opts = {
+            ...orderbookConfig.opts,
+            store,
+        };
+        store.setItem(StoreKeys.AUTH_TOKEN, authToken);
+        return new Orderbook(orderbookConfig);
+    }
 
-  unsubscribeOrders(): void {
-    this.orderSocket.unsubscribe();
-  }
+    async createOrder(createOrderConfig: CreateOrderConfig): Promise<number> {
+        const {
+            sendAmount,
+            secretHash,
+            receiveAmount,
+            fromAsset,
+            toAsset,
+            ...rest
+        } = createOrderConfig;
+        this.validateConfig(createOrderConfig);
+        const orderPair = orderPairGenerator(fromAsset, toAsset);
 
-  private validateConfig(config: CreateOrderConfig) {
-    const { sendAmount, receiveAmount } = config;
-    const inputAmount = +sendAmount;
-    const outputAmount = +receiveAmount;
-    if (isNaN(inputAmount) || inputAmount <= 0 || sendAmount.includes('.'))
-      throw new Error(OrderbookErrors.INVALID_SEND_AMOUNT);
+        const url = this.url.endpoint("orders");
+        const { orderId } = await Fetcher.post<CreateOrderResponse>(url, {
+            body: JSON.stringify({
+                ...rest,
+                sendAmount,
+                receiveAmount,
+                secretHash: trim0x(secretHash),
+                orderPair,
+                userWalletBTCAddress: rest.btcInputAddress,
+            }),
+            headers: {
+                Authorization: await this.auth.getToken(),
+            },
+        });
 
-    if (isNaN(outputAmount) || outputAmount <= 0 || receiveAmount.includes('.'))
-      throw new Error(OrderbookErrors.INVALID_RECEIVE_AMOUNT);
-  }
+        return orderId;
+    }
+
+    async getOrders<T extends boolean>(
+        address: string,
+        orderConfig?: Partial<OrderConfig<T>>
+    ): Promise<(T extends true ? Order : OrderNonVerbose)[]> {
+        const ordersResponse = await Fetcher.get<GetOrdersOutput<T>>(
+            this.url +
+                "orders?" +
+                new URLSearchParams({
+                    ...(orderConfig?.taker
+                        ? { taker: address }
+                        : { maker: address }),
+                    verbose: orderConfig?.verbose ? "true" : "false",
+                    ...(orderConfig?.pending ? { status: "2" } : {}),
+                })
+        );
+
+        if (orderConfig?.verbose) {
+            return ordersResponse as GetOrdersOutput<true>;
+        }
+
+        return ordersResponse;
+    }
+
+    subscribeOrders(account: string, cb: (orders: Order[]) => void): void {
+        this.orderSocket.subscribe(account, cb);
+    }
+
+    unsubscribeOrders(): void {
+        this.orderSocket.unsubscribe();
+    }
+
+    private validateConfig(config: CreateOrderConfig) {
+        const { sendAmount, receiveAmount } = config;
+        const inputAmount = +sendAmount;
+        const outputAmount = +receiveAmount;
+        if (isNaN(inputAmount) || inputAmount <= 0 || sendAmount.includes("."))
+            throw new Error(OrderbookErrors.INVALID_SEND_AMOUNT);
+
+        if (
+            isNaN(outputAmount) ||
+            outputAmount <= 0 ||
+            receiveAmount.includes(".")
+        )
+            throw new Error(OrderbookErrors.INVALID_RECEIVE_AMOUNT);
+    }
 }
