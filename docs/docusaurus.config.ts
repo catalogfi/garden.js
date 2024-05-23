@@ -9,7 +9,7 @@ const config: Config = {
     favicon: "img/flower.svg",
 
     // Set the production url of your site here
-    url: "https://garden-finance.s3.ap-south-2.amazonaws.com",
+    url: "https://*.garden.finance",
     // Set the /<baseUrl>/ pathname under which your site is served
     // For GitHub pages deployment, it is often '/<projectName>/'
     baseUrl: "/",
