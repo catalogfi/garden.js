@@ -7,7 +7,7 @@ id: core-concepts
 
 # Garden
 
-Bringing Bitcoin to EVM-based chains or vice versa is not a simple process. To accomplish this, Garden utilizes an atomic swap contract. If Alice, a [trader](./../../home/actors/Traders.md), wants to swap her bitcoin for an asset on an EVM-based chain or Ethereum itself, she needs a way to communicate with Garden that she wants to swap bitcoin. This is where Garden into play, `Garden` makes use of an orderbook engine to create orders that are matched by actors known as [fillers](./../../home/actors/Fillers.md). Alice can now use the garden to make an order to swap her bitcoin to WBTC on Ethereum. We'll cover more details on how this swapping works below.
+Bringing Bitcoin to EVM-based chains or vice versa is not a simple process. To accomplish this, Garden utilizes an atomic swap contract. If Alice, a [trader](./../../home/actors/Traders.md), wants to swap her bitcoin for an asset on an EVM-based chain or Ethereum itself, she needs a way to communicate with Garden that she wants to swap bitcoin. This is where Garden comes into play, `Garden` makes use of an orderbook engine to create orders that are matched by actors known as [fillers](./../../home/actors/Fillers.md). Alice can now use the garden to make an order to swap her bitcoin to WBTC on Ethereum. We'll cover more details on how this swapping works below.
 
 ![create-order](../../../static/img/alice_create_order.png)
 
