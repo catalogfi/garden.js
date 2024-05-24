@@ -49,6 +49,7 @@ const sidebars: SidebarsConfig = {
 
     developers: [
         "developers/developers",
+        "developers/core-concepts",
         {
             type: "category",
             label: "API",
