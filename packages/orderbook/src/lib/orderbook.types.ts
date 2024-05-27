@@ -1,20 +1,7 @@
-import { MarkNonNullable } from '@catalogfi/utils';
-import { Asset } from './asset';
-import { JsonRpcSigner, Wallet } from 'ethers';
-import { IStore } from './store/store.interface';
-
-/**
- * Type for the configuration of an Order.
- *
- * @typedef {Object} OrderConfig
- *
- * @template T extends boolean
- *
- * @property {T} verbose - Determines the verbosity of the order.
- * @property {boolean} taker - True if the order is a taker order, false otherwise.
- * @property {boolean} [pending] - True if the order is pending, false otherwise. Optional.
- *
- */
+import { MarkNonNullable } from "@catalogfi/utils";
+import { Asset } from "./asset";
+import { JsonRpcSigner, Wallet } from "ethers";
+import { IStore } from "./store/store.interface";
 
 /**
  * Configuration for the orders you want to receive
@@ -73,6 +60,11 @@ export interface CreateOrderConfig {
    * The funds are received at this address if specified, otherwise the funds are sent to the receive address.
    */
   btcInputAddress: string;
+
+  /**
+   * Pay with seed
+   */
+  feeInSeed?: string;
 }
 
 /**
@@ -95,24 +87,11 @@ export type OrderbookOpts = {
  *
  */
 export interface OrderbookConfig {
-  /**
-   *
-   */
   url?: string;
-  /**
-   *
-   */
   signer: JsonRpcSigner | Wallet;
-  /**
-   *
-   */
   opts?: OrderbookOpts;
 }
 
-/**
- * @interface IOrderbook
- *
- */
 export interface IOrderbook {
   /**
    * Creates an order
@@ -206,7 +185,7 @@ export type DecodedAuthToken = {
 // export type OrderNonVerbose = z.infer<typeof OrderSchema>;
 export type Order = MarkNonNullable<
   OrderNonVerbose,
-  'initiatorAtomicSwap' | 'followerAtomicSwap'
+  "initiatorAtomicSwap" | "followerAtomicSwap"
 >;
 export type Orders = Order[];
 export type GetOrdersOutput<T extends boolean> = (T extends true
