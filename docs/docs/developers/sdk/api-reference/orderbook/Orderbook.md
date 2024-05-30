@@ -32,7 +32,7 @@ const orderbook = await Orderbook.init({
 ### Params
 
 -   `OrderbookConfig`: The configuration object for the orderbook.
-    -   `url`: The backend API URL the orderbook uses, to create or listen to orders. Optional.
+    -   `url`: The backend API URL the orderbook uses, to create or listen to orders. This is optional. By default, the official orderbook URL is used which is `api.garden.finance`.
     -   `signer`: The signer that is used to authenticate the user.
     -   `opts`: Additional options that customise authentication behaviour. Optional.
         -   `domain`: The domain from which the authentication request originates. This is usually the url of the dApp in which you're using the orderbook. In case the `Orderbook` is being used in the backend then this field can be left empty. Optional.

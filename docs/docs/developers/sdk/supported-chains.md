@@ -14,7 +14,7 @@ Garden supports the following chains:
 
 We use `WBTC` as the base asset for EVM based chains.
 
-Following swaps are supported:
+The following swaps are supported:
 
 -   BTC to WBTC (bitcoin -> ethereum)
 -   WBTC to WBTC (ethereum -> arbitrum)

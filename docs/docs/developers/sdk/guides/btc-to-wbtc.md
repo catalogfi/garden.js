@@ -13,11 +13,13 @@ id: btc-to-wbtc
     <!-- prettier-ignore -->
 :::
 
-In this guide we'll be swapping BTC to WBTC on Ethereum.
+In this guide, we'll be swapping BTC to WBTC on Ethereum.
 
 ## Creating the wallets
 
-We'll need a Bitcoin and an EVM wallet to be able to do the swap. The process is same as described in the [creating wallets](./creating-wallets) guide. You'll need:
+We'll need a Bitcoin and an EVM wallet to do the swap. The process is the same as described in the [creating wallets](./creating-wallets) guide.
+
+**You'll need**:
 
 1. Your Bitcoin private key or a signer from your web3 provider to create a Bitcoin OTA
 2. Your Ethereum private key or a signer from your web3 provider
@@ -53,7 +55,7 @@ Checkout the [creating wallets](./creating-wallets) guide for more information o
 
 ## Creating the orderbook instance
 
-The orderbook simply keeps track of all your "orders". An "order" is simply a request to swap your BTC to WBTC (or vice versa) to the backend Garden systems. The `Orderbook` in `@gardenfi/orderbook` allows you to create orders and listen to them.
+The orderbook keeps track of all your "orders." An "order" is simply a request to swap your BTC to WBTC (or vice versa) to the backend Garden systems. The `Orderbook` in `@gardenfi/orderbook` allows you to create orders and listen to them.
 
 To create the orderbook you need a signer. The reason a signer is needed is to sign a [siwe](https://eips.ethereum.org/EIPS/eip-4361) message and authenticate itself with the backend orderbook. The orderbook can be created using the constructor or using the `.init(..)` method. In this example we'll be using the latter as it also performs [siwe](https://eips.ethereum.org/EIPS/eip-4361) authentication.
 
@@ -78,7 +80,7 @@ From now the rest of the code will be written inside this async block.
 
 To swap BTC to WBTC, we'll make use of the `GardenJS` in `@gardenfi/core`. The core package is responsible for executing swaps.
 
-To create the `GardenJS` instance we'll need the wallets object and orderbook we've created before. The wallets object should be in such a way that the keys are the chains and the values are the wallets. Checkout supported chains in [here](../supported-chains.md).
+To create the GardenJS instance, we'll need the wallet object and orderbook we created before. The wallet object should be such that the keys are the chains and the values are the wallets. Checkout supported chains in [here](../supported-chains.md).
 
 ```ts
 import { Chains } from "@gardenfi/orderbook";
@@ -92,9 +94,9 @@ const wallets = {
 const garden = new GardenJS(orderbook, wallets);
 ```
 
-Now that we have the garden instance, we can use it to swap BTC to WBTC. The first step is to create the swap request. We use the `gardenJS.swap()` to create the swap. The minimum amount required is 0.0001 BTC and we'll be paying a fee of 0.3% to the [fillers](../../../home/actors/Fillers.md). The `.swap` method however accepts the send and receive amount in their lowest denominations (in the case of BTC it's satoshis).
+Now that we have the Garden instance, we can swap BTC for WBTC. The first step is to create the swap request. We use the `gardenJS.swap()` to create the swap. The minimum amount required is 0.0001 BTC and we'll be paying a fee of 0.3% to the fillers[fillers](../../../home/actors/Fillers.md). The `.swap` method however accepts the send and receive amount in their lowest denominations (in the case of BTC it's satoshis).
 
-We'll also need to specify the assets we want to swap from and to. Since we want to swap from BTC in Bitcoin to WBTC in ethereum, we'll need those assets respectively. These assets are specified in the `Assets` object.
+We'll also need to specify the assets we want to swap from and to. Since we want to swap from BTC on the Bitcoin chain to WBTC and Ethereum. These assets are specified in the `Assets` object.
 
 ```ts
 import { Assets } from "@gardenfi/orderbook";
@@ -110,14 +112,14 @@ const orderId = await garden.swap(
 );
 ```
 
-This is just making a swap request. Actual swap happens if the filler accepts the request.
-If you need to do anything related to your order then you will need the order ID.
+This is just making a swap request. An actual swap happens if the filler accepts the request.
+If you need to do anything related to your order, you will need the order ID.
 
-If a filler accept our swap request, a series of steps need to be performed and all of this has been abstracted in `GardenJS`. To know more about this process, take a look at [core concepts](../core-concepts).
+If a filler accepts our swap request, a series of steps need to be performed, and all of this has been abstracted in `GardenJS`. To learn more about this process, take a look at [core concepts](../core-concepts).
 
-We have just created a swap request aka an order. From now on we treat the swap request as an order. Any changes made to our order like a filler filling it or user locking funds will be updated via watchers in the backend orderbook. More on [this](../core-concepts).
+We have just created a swap request aka an order. From now on we treat the swap request as an order. Any changes made to an order, like a filler filling it or user locking funds, will be updated via watchers in the backend orderbook. More on [this](../core-concepts).
 
-To listen to orders created by your evm address you will need to subscribe to these orders by passing your evm address which you used to create the order.
+To listen to orders created by your EVM address, you will need to subscribe to them by passing the EVM address you used to create the order.
 
 ```ts
 import { Actions, parseStatus } from "@gardenfi/orderbook";
@@ -145,8 +147,8 @@ garden.subscribeOrders(await evmWallet.getAddress(), async (orders) => {
 });
 ```
 
-Inside the callback we filter out the order we created. This is because orders can also include other order updates which you may have created previously.
+Inside the callback, we filter out the order we created. This is because orders can also include other order updates that you may have created previously.
 
-We only want to progress on our swap only when we _can_ initiate or redeem. We parse the order status and compare it with the `Actions` enum. If true then we progress the swap using the `next` method on the swapper.
+We only want to progress on our swap when we can initiate or redeem. We parse the order status and compare it with the `Actions` enum. If true, we will progress the swap using the `next()` method on the swapper.
 
-The complete code is available in the [quickstart page](../quickstart).
+The complete code is available on [quickstart](../quickstart).

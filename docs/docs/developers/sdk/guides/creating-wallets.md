@@ -5,7 +5,7 @@ id: creating-wallets
 
 # Creating Wallets
 
-To be able to swap from BTC to WBTC or vice versa, you need a wallet to send and receive assets. The `@catalogfi/wallets` package provides different types of wallets for Bitcoin and EVM. With a Bitcoin wallet and an EVM wallet, you can easily make swaps between the two cross-chain assets.
+To swap from BTC to WBTC or vice versa, you need a wallet to send and receive assets. The @catalogfi/wallets package provides different types of wallets for Bitcoin and EVM. With a Bitcoin wallet and an EVM wallet, you can easily make swaps between the two cross-chain assets.
 
 ## Installation
 
@@ -17,7 +17,7 @@ npm install @catalogfi/wallets
 
 ## Creating a Bitcoin Wallet
 
-To create a Bitcoin wallet, you need a private key and a `BitcoinProvider`. A Bitcoin provider is simply a helper class that communicates with the Bitcoin blockchain.
+To create a Bitcoin wallet, you need a private key and a `BitcoinProvider`. A Bitcoin provider is simply a helper class communicating with the blockchain.
 
 ```ts
 import {
@@ -32,9 +32,9 @@ const privateKey = "YOUR PRIVATE KEY";
 const wallet = BitcoinWallet.fromPrivateKey(privateKey, provider);
 ```
 
-By default, the wallet uses `p2wpkh` to derive addresses. If you want to use a different address type, you can pass it as the third argument in the `opts` object.
+By default, the wallet uses `p2wpkh` (Pay-to-Witness-Public-Key-Hash) to derive addresses. If you want to use a different address type, you can pass it as the third argument in the `opts` object.
 
-If you don't have access to private keys, you can use Bitcoin OTAs to create one time bitcoin accounts. To generate an OTA, you need a signer from your web3 provider.
+If you don't have access to private keys, you can use Bitcoin OTAs to create one-time Bitcoin accounts. To generate an OTA, you need a signer from your Web3 provider.
 
 ```ts
 import {
@@ -52,7 +52,7 @@ const ota = new BitcoinOTA(provider, signer);
 
 ## Creating an EVM Wallet
 
-To create an EVM wallet, you can either pass a `Wallet` implementation from `ethers.js` or a `JsonRpcSigner` from your web3 provider.
+To create an EVM wallet, you can either pass a `Wallet` implementation from `ethers.js` or a `JsonRpcSigner` from your Web3 provider.
 
 :::note
 `@catalogfi/wallets` uses ethers version `6.8.0`.
@@ -77,7 +77,7 @@ const wallet = new Wallet(privateKey, provider);
 const evmWallet = new EVMWallet(wallet);
 ```
 
-If you don't have access to a private key, you can use the `JsonRpcSigner` from your web3 provider.
+If you don't have access to a private key, you can use the JsonRpcSigner from your Web3 provider.
 
 ```ts
 import { EVMWallet } from "@catalogfi/wallets";
