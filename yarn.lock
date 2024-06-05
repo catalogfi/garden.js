@@ -1734,6 +1734,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@catalogfi/encrypto@npm:^0.1.4":
+  version: 0.1.4
+  resolution: "@catalogfi/encrypto@npm:0.1.4"
+  checksum: 10c0/7f6e8bfa1deafe8d030f49f101fbcf5da45d4d0acdc397e3a269f61c8e8aea036b09a8e81fcb2da6b7f46b04111dceb008877288c034dac599dadb2a2ec52960
+  languageName: node
+  linkType: hard
+
 "@catalogfi/extension@npm:^0.1.1":
   version: 0.1.1
   resolution: "@catalogfi/extension@npm:0.1.1"
@@ -1741,33 +1748,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@catalogfi/utils@npm:^0.1.2":
-  version: 0.1.2
-  resolution: "@catalogfi/utils@npm:0.1.2"
-  checksum: 10c0/f1a1526151cd391a97c7c3bdd283c75db47d87f2a7af81cb9edb3363ed7a45f65c8e58b55a02347fd4ad5c4d835d6638aa8ea497d96bbaacaaa34333c6d8bd44
+"@catalogfi/utils@npm:^0.1.6":
+  version: 0.1.6
+  resolution: "@catalogfi/utils@npm:0.1.6"
+  checksum: 10c0/e1d8637701bd1fcc05719c25bc1f7c3c6969c0a7f2c030a58260900346c2a9ac9721c3c34eadd8cc8d2f4442e72e4bc355821a4024442f750fa2ddfb23c022ae
   languageName: node
   linkType: hard
 
-"@catalogfi/utils@npm:^0.1.4":
-  version: 0.1.4
-  resolution: "@catalogfi/utils@npm:0.1.4"
-  checksum: 10c0/709bcadd6aee92413df4143a950f84e020188d1c6bd396cc4611a444ed08f2e90074d83e76e0f7f3ed098695864aee20b9ee741899300f5124154c8d0cd82298
-  languageName: node
-  linkType: hard
-
-"@catalogfi/utils@npm:^0.1.5":
-  version: 0.1.5
-  resolution: "@catalogfi/utils@npm:0.1.5"
-  checksum: 10c0/e2f5271a9637f607081387e36cc5b1f02b669310f31662d1835a96e69b38c63fd3f843b81544b82f88317097d905ef9499e74b8bab57adbec6e40fa97f2f2f4b
-  languageName: node
-  linkType: hard
-
-"@catalogfi/wallets@npm:0.2.30":
-  version: 0.2.30
-  resolution: "@catalogfi/wallets@npm:0.2.30"
+"@catalogfi/wallets@npm:0.2.35, @catalogfi/wallets@npm:^0.2.35":
+  version: 0.2.35
+  resolution: "@catalogfi/wallets@npm:0.2.35"
   dependencies:
+    "@catalogfi/encrypto": "npm:^0.1.4"
     "@catalogfi/extension": "npm:^0.1.1"
-    "@catalogfi/utils": "npm:^0.1.4"
+    "@catalogfi/utils": "npm:^0.1.6"
     "@noble/hashes": "npm:^1.4.0"
     "@typechain/ethers-v6": "npm:^0.5.1"
     bip32: "npm:^4.0.0"
@@ -1782,31 +1776,7 @@ __metadata:
     utf-8-validate: "npm:^6.0.3"
     uuid: "npm:^9.0.1"
     yup: "npm:^1.4.0"
-  checksum: 10c0/977652526e0901bd629c2d773296d0abdb9a52caa580720909c7d33bd70ec2fb1023e27b77068e8b4d805e65bf119545245cc494bb0f6e75c7b18449a3363594
-  languageName: node
-  linkType: hard
-
-"@catalogfi/wallets@npm:^0.2.29":
-  version: 0.2.29
-  resolution: "@catalogfi/wallets@npm:0.2.29"
-  dependencies:
-    "@catalogfi/extension": "npm:^0.1.1"
-    "@catalogfi/utils": "npm:^0.1.2"
-    "@noble/hashes": "npm:^1.4.0"
-    "@typechain/ethers-v6": "npm:^0.5.1"
-    bip32: "npm:^4.0.0"
-    bip39: "npm:^3.1.0"
-    bitcoinjs-lib: "npm:^6.1.5"
-    bufferutil: "npm:^4.0.8"
-    dotenv: "npm:^16.3.1"
-    ecpair: "npm:^2.1.0"
-    ethers: "npm:6.8.0"
-    tiny-secp256k1: "npm:^2.2.3"
-    typechain: "npm:^8.3.2"
-    utf-8-validate: "npm:^6.0.3"
-    uuid: "npm:^9.0.1"
-    yup: "npm:^1.4.0"
-  checksum: 10c0/3347a1cebb65214ef9cc8af69c5ffc26fa98415b2eeed91b28b8803d99a143a1a9d681e40188c855a6f574fd437b672d586140ec64dc4444d377f5d6fc14d856
+  checksum: 10c0/803c000552809ff452adfd63e48758b901005442f0f0a1c001f289fbcab10210634c0da07f0f26bdd6544dbeed92c9cbe049efa7b1d615674d0da5b34067eab1
   languageName: node
   linkType: hard
 
@@ -2798,8 +2768,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@gardenfi/core@workspace:packages/core"
   dependencies:
-    "@catalogfi/utils": "npm:^0.1.2"
-    "@catalogfi/wallets": "npm:^0.2.29"
+    "@catalogfi/utils": "npm:^0.1.6"
+    "@catalogfi/wallets": "npm:^0.2.35"
     "@gardenfi/orderbook": "workspace:^"
     "@types/jest": "npm:^29.5.12"
     dotenv: "npm:^16.3.1"
@@ -2817,8 +2787,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@gardenfi/orderbook@workspace:packages/orderbook"
   dependencies:
-    "@catalogfi/utils": "npm:^0.1.5"
-    "@catalogfi/wallets": "npm:0.2.30"
+    "@catalogfi/utils": "npm:^0.1.6"
+    "@catalogfi/wallets": "npm:0.2.35"
     "@types/jest": "npm:^29.5.12"
     "@types/ws": "npm:^8.5.7"
     bufferutil: "npm:^4.0.8"
