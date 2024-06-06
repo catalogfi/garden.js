@@ -21,9 +21,9 @@ To create a Bitcoin wallet, you need a private key and a `BitcoinProvider`. A Bi
 
 ```ts
 import {
-    BitcoinWallet,
-    BitcoinProvider,
-    BitcoinNetwork,
+  BitcoinWallet,
+  BitcoinProvider,
+  BitcoinNetwork,
 } from "@catalogfi/wallets";
 
 const provider = new BitcoinProvider(BitcoinNetwork.Mainnet);
@@ -32,15 +32,15 @@ const privateKey = "YOUR PRIVATE KEY";
 const wallet = BitcoinWallet.fromPrivateKey(privateKey, provider);
 ```
 
-By default, the wallet uses `p2wpkh` (Pay-to-Witness-Public-Key-Hash) to derive addresses. If you want to use a different address type, you can pass it as the third argument in the `opts` object.
+By default, the wallet uses `p2wpkh` (Pay-to-Witness-Public-Key-Hash) to derive addresses. If you want to use a different address type, you can pass it as the third argument in the `opts` object. If you have a WIF (Wallet Import Format) key, you can use the `fromWIF` method.
 
 If you don't have access to private keys, you can use Bitcoin OTAs to create one-time Bitcoin accounts. To generate an OTA, you need a signer from your Web3 provider.
 
 ```ts
 import {
-    BitcoinOTA,
-    BitcoinProvider,
-    BitcoinNetwork,
+  BitcoinOTA,
+  BitcoinProvider,
+  BitcoinNetwork,
 } from "@catalogfi/wallets";
 import { JsonRpcSigner, BrowserProvider } from "ethers";
 
