@@ -115,9 +115,9 @@ const orderId = await garden.swap(
 This is just making a swap request. An actual swap happens if the filler accepts the request.
 If you need to do anything related to your order, you will need the order ID.
 
-If a filler accepts our swap request, a series of steps need to be performed, and all of this has been abstracted in `GardenJS`. To learn more about this process, take a look at [core concepts](../core-concepts).
+If a filler accepts our swap request, a series of steps need to be performed, and all of this has been abstracted in `GardenJS`. To learn more about this process, take a look at [core concepts](../../core-concepts).
 
-We have just created a swap request aka an order. From now on we treat the swap request as an order. Any changes made to an order, like a filler filling it or user locking funds, will be updated via watchers in the backend orderbook. More on [this](../core-concepts).
+We have just created a swap request aka an order. From now on we treat the swap request as an order. Any changes made to an order, like a filler filling it or user locking funds, will be updated via watchers in the backend orderbook. More on [this](../../core-concepts).
 
 To listen to orders created by your EVM address, you will need to subscribe to them by passing the EVM address you used to create the order.
 
