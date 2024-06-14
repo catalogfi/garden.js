@@ -45,6 +45,11 @@ const sidebars: SidebarsConfig = {
             link: { type: "doc", id: "home/security/security" },
             items: ["home/security/bug-bounty", "home/security/constraints"],
         },
+        {
+            type: "doc",
+            id: "home/guide",
+            label: "Garden Brand Guide",
+        }
     ],
 
     developers: [
