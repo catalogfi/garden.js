@@ -83,7 +83,7 @@ const config: Config = {
                     to: "/",
                     type: "doc",
                     position: "left",
-                    docId: "home/home",
+                    docId: "home/get-started",
                     label: "Home",
                 },
                 {

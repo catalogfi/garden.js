@@ -1,0 +1,5 @@
+---
+id: cookbook
+---
+
+# Cookbook
