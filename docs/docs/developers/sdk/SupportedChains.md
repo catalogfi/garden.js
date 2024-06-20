@@ -42,7 +42,7 @@ const wbtcOnArbitrum = Assets.ethereum_arbitrum.WBTC;
 const btc = Assets.bitcoin.BTC;
 ```
 
-Now, these can be passed to `swap()` gardenJS to perform swaps. Checkout swap example in  [Swapping from BTC to WBTC](../../basics/guides/BtcWbtc.md).
+Now, these can be passed to `swap()` gardenJS to perform swaps. Checkout swap example in  [Swapping from BTC to WBTC](./sdk-guides/SwappingBtcWbtc.md).
 
 ## Contracts
 Garden uses the following contracts to perform swaps on respective chains:

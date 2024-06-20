@@ -3,10 +3,7 @@ sidebar_position: 1
 slug: /
 id: get-started
 ---
-
-# Get Started
-
-## What is Garden?
+# What is Garden?
 
 Garden is the first instant Bitcoin liquidity layer in web3, a mobility/circulation module in the Bitcoin 2.0 stack. Whether you are a trader or a dApp, Garden enables blazing fast and accurately priced bitcoin liquidity for you.
 
@@ -34,9 +31,9 @@ To learn how swapping works under the hood, check out the [Swap](./basics/swap/S
 ### Build
 Garden is a community-driven project that encourages and appreciates developers' use of its composable dev stack to build cool Bitcoin cross-chain experiences.
 If you're a developer looking to integrate or build on Garden, these are good places to start:
-- [SDK](./build/sdk/Sdk.md) : A simple guide to using the Garden SDK.
-- [Recipes](./build/cookbook/recipes/Recipes.md) : If you're looking for some inspiration, you can find the projects cooked up by our devs and partners here! *chef's kiss*
-To get your hands dirty in Garden (pun intended), check out the [Build](./build/Build.md) section.
+- [SDK](../developers/sdk/Sdk.md) : A simple guide to using the Garden SDK.
+- Recipes : If you're looking for some inspiration, you can find the projects cooked up by our devs and partners here! *chef's kiss*
+To get your hands dirty in Garden (pun intended), check out the [Build](../developers/Developers.md) section.
 
 ### Provide
 Provide liquidity to Garden and earn fees by facilitating swaps. Check out [Liquidity Provision](./basics/LiquidityProvision.md) to understand the role of LPs or **Fillers** (as we like to call them) in the Garden ecosystem.

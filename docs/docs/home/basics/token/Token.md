@@ -2,8 +2,7 @@
 id: token
 ---
 
-# Token
-## Introduction to SEED 
+# Introduction to SEED 
 SEED is the fundamental utility token at the heart of Garden, designed to fuel the platform's ecosystem and empower our community. Launched on January 18th, 2024, SEED facilitates community engagement, incentivizes participation, and enhances interactions within the protocol.
 ## Token Utility and Benefits
 - **Staking**: Stake SEED tokens to participate in decision-making and earn a yield through our revenue-sharing model. A minimum of 2,100 SEED are required to stake. 

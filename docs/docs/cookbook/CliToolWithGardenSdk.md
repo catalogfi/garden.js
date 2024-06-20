@@ -2,22 +2,26 @@
 id: cli-tool-with-garden-sdk
 ---
 
-# CLI took with Garden SDK
-**Disclaimer: This guide is provided as an example to help you get accustomed to using the Garden SDK. It is not intended to serve as a standard for creating CLI tools with the Garden SDK. A proper tool will  take into consideration many best practices and optimizations. In the  example below, we have cut a lot of corners for simplicity.**
+# CLI tool with Garden SDK
+:::note
+This guide is provided as an example to help you get accustomed to using the Garden SDK. It is not intended to serve as a standard for creating CLI tools with the Garden SDK. A proper tool will  take into consideration many best practices and optimizations. In the  example below, we have cut a lot of corners for simplicity.
+:::
 
 # Introduction
 This guide will walk you through building your own command-line interface (CLI) to manage your crypto assets using the **Garden SDK**, by the end of this guide you should be able to 
-- Create wallets ( both **bitcoin** and evm )
+- Create wallets (both Bitcoin and EVM)
 - Swap **WBTC** and **BTC**  (or vice versa)
 all using the CLI.
 
 # Prerequisites
-You should have [Bun](https://bun.sh/) installed
+You should have [Bun](https://bun.sh/), but you can use Nodejs too.
 
 ```console
-#Install Bun v1.1.11
-curl -fsSL https://bun.sh/install | bash #Linux and macOS
-powershell -c "irm bun.sh/install.ps1 | iex" #Windows
+# Linux and macOS
+curl -fsSL https://bun.sh/install | bash 
+
+# Windows
+powershell -c "irm bun.sh/install.ps1 | iex" 
 ```
 
 # Setting up your environment
@@ -59,9 +63,14 @@ bun link < mentioned in the output of bun link >
 
 # Installing Packages
 ```shell
-bun add @catalogfi/wallets @gardenfi/orderbook @gardenfi/core  # Installs Garden SDK
-bun add yargs # Installs Yargs an npm package used for building cli tools
-bun add -D @types/yargs # Intalling the types for Yargs
+# Installs Garden SDK
+bun add @catalogfi/wallets @gardenfi/orderbook @gardenfi/core 
+
+# Installs Yargs an npm package used for building cli tools
+bun add yargs 
+
+# Intalling the types for Yargs
+bun add -D @types/yargs 
 ```
 
 # Basic Setup
@@ -100,7 +109,7 @@ console.log(ivar);
 
 **ivar** stands for **input variables** and **ccreator** stands for **command creator**  
 
-![basic setup](../../images/basic_setup_swapper.png)
+![basic setup](./images/basic_setup_swapper.png)
 
 # Creating Wallets
 - Creating an **evm** wallet
@@ -162,7 +171,7 @@ class KeyError extends Error {
 
 export { KeyError };
 ```
-![create wallet](../../images/swapper_createevmwallet.png)
+![create wallet](./images/swapper_createevmwallet.png)
 
 - **Creating a bitcoin wallet**
 ```ts
@@ -206,13 +215,13 @@ ccreator.command(
 
 ccreator.parse();
 ```
-![create bitcoin wallet](../../images/swapper_createbitcoinwallet.png)
+![create bitcoin wallet](./images/swapper_createbitcoinwallet.png)
 
 Ta-da! 🎉 You've successfully created both an **EVM wallet** and a **Bitcoin wallet**.
 # Creating a .config file
 As we move on we will need to reuse the **privatekeys** a bunch of times, so it's better if we save them in  a **.config** file somewhere, but we are not going to do it manually of-course, so let's write some more code.
 
-- **Read ( or Create ) `.swapper_config.json`**
+- Read ( or Create ) `.swapper_config.json`
 ```ts
 // File: src/index.ts
 
@@ -269,7 +278,7 @@ export { logAddressAndBalance , readJsonFileSync };
 
 Above code will read the **.swapper_config.json** file present in your home directory ( if it doesn't exist it will create it! )
 
-- **Saving private keys  in `.swapper_config.json`** 
+- **Saving private keys** in `.swapper_config.json`
 
 ```ts
 // File: src/index.ts
@@ -317,7 +326,7 @@ ccreator.command(
 ccreator.parse() // <-- Don't forget that this should be at the end of `src/index.ts` file
 ```
 
-![getdetails](../../images/swapper_getdetails.png)
+![getdetails](./images/swapper_getdetails.png)
 
 # Performing the swap
 - Create **swapwbtctobtc**
@@ -481,7 +490,7 @@ The above code snippet does the following in order
 - Uses the `subscribeOrders`  method to listen to order states.
 To get a more detailed overview of what is happening checkout [Swapping from BTC to WBTC](https://docs.garden.finance/developers/sdk/guides/btc-to-wbtc)
 
-![swapwbtctobtc](../../images/swapper_swapwbtctobtc.png)
+![swapwbtctobtc](./images/swapper_swapwbtctobtc.png)
 
 - Create **swapbtctowbtc**
 ```ts

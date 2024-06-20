@@ -21,7 +21,7 @@ id: wbtc-btc
 5. Select the Bitcoin blockchain network to receive BTC.
 ![step 5](../../images/guide-wbtc-btc-5.png)
 
- 
+
 6. Copy your Bitcoin address and paste it into the "Receive Address" field.
 ![step 6](../../images/guide-wbtc-btc-6.png)
 

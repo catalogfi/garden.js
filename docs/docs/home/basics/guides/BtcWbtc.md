@@ -16,11 +16,11 @@ id: btc-wbtc
 4. Select the Bitcoin chain for sending BTC.
 ![step 4](../../images/guide-btc-wbtc-4.png)
 
-      
+
 5. Choose the blockchain network where you want to receive WBTC.
 ![step 5](../../images/guide-btc-wbtc-5.png)
 
-     
+
 6. Copy and paste your BTC address into the "Refund Address" field. This address will be used to return your BTC in case the transaction fails. 
 ![step 6](../../images/guide-btc-wbtc-6.png)
 

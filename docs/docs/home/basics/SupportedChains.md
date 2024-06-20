@@ -29,3 +29,15 @@ WBTC on any chain to WBTC on Polygon.
 
 WBTC on any chain to WBTC on Optimism.
 </details>
+
+<details>
+<summary>Avalanche</summary>
+
+BTC.b on Avalanche to WBTC (any chain) / BTCB (BNB Smart Chain) 
+</details>
+
+<details>
+<summary>BNB Smart Chain</summary>
+
+BTCB on BNB Smart Chain to WBTC (any chain) / BTC.b (Avalanche chain) 
+</details>

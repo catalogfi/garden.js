@@ -21,7 +21,7 @@ id: wbtc-wbtc
 5. Select the desired chain for receiving WBTC
 ![step 5](../../images/guide-wbtc-wbtc-5.png)
 
- 
+
 6. Enter the amount of WBTC you want to swap and Click “Initiate”
 ![step 6](../../images/guide-wbtc-wbtc-6.png)
 
