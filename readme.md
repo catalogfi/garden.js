@@ -1,10 +1,13 @@
 # Garden SDK
 
-The Garden SDK is a monorepo that is used to interact with the backend orderbook fillers to create orders and interact with them. 
+The Garden SDK is a set of typescript packages that allow you to bridge Bitcoin to EVM-based chains. It is an abstraction over the Garden APIs, allowing developers to easily integrate Garden components into their dApps.
 
 ## Pacakges
 - [@catalogfi/orderbook](./packages/orderbook): Allows you to create orders and listen to them.
 - [@catalogfi/core](./packages/core): Allows you to interact with orders once you setup your wallets. 
+
+## Docs
+Docs, guides and internal working is available [here](https://docs.garden.finance/developers/sdk/introduction).
 
 ## Contributing 
 
