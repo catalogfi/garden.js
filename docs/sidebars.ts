@@ -92,12 +92,6 @@ const sidebars: SidebarsConfig = {
                     link: { type: "doc", id: "home/build/cookbook/cookbook" },
                     items: [
                         "home/build/cookbook/cli-tool-with-garden-sdk",
-                        {
-                            type: "category",
-                            label: "Recipes",
-                            link: { type: "doc", id: "home/build/cookbook/recipes/recipes" },
-                            items: ["home/build/cookbook/recipes/btc-bridge-on-tg"]
-                        }
                     ]
                 }
             ]
