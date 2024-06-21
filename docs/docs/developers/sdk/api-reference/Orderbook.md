@@ -8,7 +8,7 @@ The `@gardenfi/orderbook` package is used to facilitate the creation of orders. 
 ## Creating the Orderbook
 The `Orderbook` instance can be created using the constructor or the `.init(..)` static method. It is recommended to use the `.init(..)` static method to create the orderbook as it also performs authentication during orderbook creation.
 
-```javascript
+```ts
 import { Orderbook, MemoryStorage } from "@gardenfi/orderbook";
 import { Wallet } from "ethers";
 
@@ -34,7 +34,7 @@ const orderbook = await Orderbook.init({
 - `store`: Storage for the auth token. If left empty, then in-memory storage is used. (Optional)
 
 ### Methods
-```javascript
+```ts
 init(orderbookConfig: OrderbookConfig)
 
 createOrder(createOrderConfig: CreateOrderConfig): Promise<number>
@@ -47,11 +47,13 @@ unsubscribeOrders(): void
 ```
 
 ## Create Order
-`createOrder(createOrderConfig: CreateOrderConfig): Promise<number>`
+```ts
+createOrder(createOrderConfig: CreateOrderConfig): Promise<number>
+```
 
 Creates an order.
 
-```javascript
+```ts
 import { Assets } from "@gardenfi/orderbook";
 import { sha256 } from "ethers";
 import * as crypto from "crypto";
@@ -90,11 +92,11 @@ const orderId = await orderbook.createOrder({
 #### Returns
 Order ID of the created order.
 :::note
-The sendAmount and receiveAmount must be in their lowest denominations. For example, if you want to send 0.001 Bitcoin then the sendAmount would be 100,000 SATS. 
+The `sendAmount` and `receiveAmount` must be in their lowest denominations. For example, if you want to send `0.001` Bitcoin then the `sendAmount` would be `100,000` SATS. 
 :::
 
 ### Get Orders
-```javascript
+```ts
 getOrders<T extends boolean>(
     address: string,
     orderConfig?: Partial<OrderConfig<T>>
@@ -103,7 +105,7 @@ getOrders<T extends boolean>(
 
 To get all orders of an address, you can use `.getOrders()` to get a list of all the orders.
 
-```javascript
+```ts
 const orders = await orderbook.getOrders("<AN EVM ADDRESS>", {
     verbose: true,
     taker: false, //get only those orders where the specified address acted as the initiator
@@ -120,11 +122,13 @@ const orders = await orderbook.getOrders("<AN EVM ADDRESS>", {
 An array of orders. If verbose is specified, the order will also include details of the initiator and follower atomic swaps.
 
 ### Subscribe Orders
-`subscribeOrders(account: string, cb: (orders: Order[]) => void): void`
+```ts
+subscribeOrders(account: string, cb: (orders: Order[]) => void): void
+```
 
 If you want to listen to any updates on an order associated with a given EVM address, then you can use `.subscribeOrders()`.
 
-```javascript
+```ts
 const orderId = 156; //the order you want to listen to
 
 orderbook.subsribeOrders("<AN EVM ADDRESS>", (orders) => {

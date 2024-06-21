@@ -23,7 +23,7 @@ From chain and to chain are interchangeable here.
 ## How do I get the supported chains?
 `@gardenfi/orderbook` exports a constant called `Chains` which contains all supported chains.
 
-```javascript
+```ts
 import { Chains } from "@gardenfi/orderbook";
 
 const bitcoin = Chains.bitcoin;
@@ -34,7 +34,7 @@ const arbitrum = Chains.ethereum_arbitrum;
 ## How do I specify an asset on the X chain?
 `@gardenfi/orderbook` exports a constant called `Assets` which contains respective chains and it's supported assets.
 
-```javascript
+```ts
 import { Assets } from "@gardenfi/orderbook";
 
 const wbtcOnEthereum = Assets.ethereum.WBTC;
@@ -48,8 +48,8 @@ Now, these can be passed to `swap()` gardenJS to perform swaps. Checkout swap ex
 Garden uses the following contracts to perform swaps on respective chains:
 
 
-|Chain    |Contract                                      |
-|---------|:--------------------------------------------:|
-|Bitcoin  |HTLC                                          |
-|Ethereum |0xa5e38d098b54c00f10e32e51647086232a9a0afd    |
-|Arbitrum |0x203DAC25763aE783Ad532A035FfF33d8df9437eE    |
+|Chain    |Contract                                                                                                              |
+|---------|:--------------------------------------------------------------------------------------------------------------------:|
+|Bitcoin  |[HTLC](https://github.com/catalogfi/swapper/blob/main/bitcoin/AtomicSwap.ts)                                          |
+|Ethereum |[0xa5e38d098b54c00f10e32e51647086232a9a0afd](https://etherscan.io/address/0xa5e38d098b54c00f10e32e51647086232a9a0afd) |
+|Arbitrum |[0x203DAC25763aE783Ad532A035FfF33d8df9437eE](https://arbiscan.io/address/0x203DAC25763aE783Ad532A035FfF33d8df9437eE)  |

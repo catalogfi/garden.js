@@ -3,24 +3,25 @@ id: swapping-btc-wbtc
 ---
 
 # Swapping from BTC to WBTC
-:::note
-Pre-requisites: [Creating Wallets](./CreatingWallets.md)
+:::info
+Pre-requisites: 
+- [Creating Wallets](./CreatingWallets.md)
 :::
 
 In this guide, we'll be swapping BTC to WBTC on Ethereum.
 
 ## Creating the Wallets
-We'll need a Bitcoin and an EVM wallet to do the swap. The process is the same as described in the [Creating Wallets](./CreatingWallets.md)
+We'll need a Bitcoin and an EVM wallet to do the swap. The process is the same as described in [Creating Wallets](./CreatingWallets.md).
 
 **You'll need:**
 1. Your Bitcoin private key or a signer from your Web3 provider to create a Bitcoin OTA
 2. Your Ethereum private key or a signer from your Web3 provider
 
-:::note
+:::warning
 Make sure these wallets are funded before doing the swap!
 :::
 
-```javascript
+```ts
 import {
     BitcoinNetwork,
     BitcoinWallet,
@@ -42,7 +43,7 @@ const evmWallet = new EVMWallet(signer);
 ```
 
 :::note
-Checkout the [Creating Wallets](./CreatingWallets.md) for more information on creating wallets without private keys.
+Checkout [Creating Wallets](./CreatingWallets.md) for more information on creating wallets without private keys.
 :::
 
 ## Creating the Orderbook Instance
@@ -50,7 +51,7 @@ The orderbook keeps track of all your "orders." An "order" is simply a request t
 
 To create the orderbook you need a signer. The reason a signer is needed is to sign a [siwe](https://eips.ethereum.org/EIPS/eip-4361) message and authenticate itself with the backend orderbook. The orderbook can be created using the constructor or using the `.init(..)` method. In this example we'll be using the latter as it also performs [siwe](https://eips.ethereum.org/EIPS/eip-4361) authentication.
 
-```javascript
+```ts
 import { Orderbook } from "@gardenfi/orderbook";
 
 // we can use the following signer if you are using a web3 provider
@@ -70,9 +71,9 @@ From now the rest of the code will be written inside this async block.
 ## Swapping
 To swap BTC to WBTC, we'll make use of the `GardenJS` in `@gardenfi/core`. The core package is responsible for executing swaps.
 
-To create the `GardenJS` instance, we'll need the wallet object and orderbook we created before. The wallet object should be such that the keys are the chains and the values are the wallets. Checkout supported chains in 
+To create the `GardenJS` instance, we'll need the wallet object and orderbook we created before. The wallet object should be such that the keys are the chains and the values are the wallets. Checkout supported chains in [Supported Chains](../SupportedChains.md)
 
-```javascript
+```ts
 import { Chains } from "@gardenfi/orderbook";
 import { GardenJS } from "@gardenfi/core";
 
@@ -88,7 +89,7 @@ Now that we have the Garden instance, we can swap BTC for WBTC. The first step i
 
 We'll also need to specify the assets we want to swap from and to. Since we want to swap from BTC on the Bitcoin chain to WBTC and Ethereum. These assets are specified in the `Assets` object.
 
-```javascript
+```ts
 import { Assets } from "@gardenfi/orderbook";
 
 const sendAmount = 0.0001 * 1e8;
@@ -111,7 +112,7 @@ We have just created a *swap request aka an order*. From now on we treat the swa
 
 To listen to orders created by your EVM address, you will need to subscribe to them by passing the EVM address you used to create the order.
 
-```javascript
+```ts
 import { Actions, parseStatus } from "@gardenfi/orderbook";
 
 garden.subscribeOrders(await evmWallet.getAddress(), async (orders) => {

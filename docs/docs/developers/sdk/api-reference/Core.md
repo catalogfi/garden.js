@@ -7,10 +7,12 @@ id: core
 The `GardenJS` class simplifies the creation of atomic swap orders and interactions with it.
 
 ## Creating a `GardenJS` Instance
-`constructor(orderbook: IOrderbook, wallets: Partial<Wallets>)`
+```ts
+constructor(orderbook: IOrderbook, wallets: Partial<Wallets>)
+```
 
 It accepts an `IOrderbook`, and an object with the keys as the `Chain` and the corresponding wallet for that chain. It can be created as follows:
-```javascript
+```ts
 import { 
     BitcoinOTA, 
     EVMWallet,
@@ -42,7 +44,7 @@ const garden = new GardenJS(orderbook, {
 ```
 
 ### Methods
-```javascript
+```ts
 subscribeOrders(address: string, callback: (orders: Orders) => void): void
 
 unsubscribeOrders(): void
@@ -65,7 +67,9 @@ calculateReceiveAmt(
 ```
 
 ## Subscribe Orders
-`subscribeOrders(address: string, callback: (orders: Orders) => void): void`
+```ts
+subscribeOrders(address: string, callback: (orders: Orders) => void): void
+```
 
 The `subscribeOrders` method is a wrapper over `IOrderbook`'s `subscribeOrders`. This method allows you to listen to all order updates where you're the maker or the taker.
 
@@ -74,11 +78,13 @@ The `subscribeOrders` method is a wrapper over `IOrderbook`'s `subscribeOrders`.
 - `callback`: a callback function that takes in `Orders` as a parameter.
 
 ## Unsubscribe Orders
-`unsubscribeOrders(): void`
+```ts
+unsubscribeOrders(): void
+```
 The `unsubscribeOrders` method stops listening to all orders on all accounts.
 
 ## Swap
-```
+```ts
 swap(
     from: Asset,
     to: Asset,
@@ -91,7 +97,7 @@ swap(
 The swap method is used to create atomic swap orders. The initiator addresses and receiver addresses are filled based on the wallets provided. For example, if your `fromAsset` is testnet Bitcoin then the address chosen as the initiator address is the testnet Bitcoin wallet.
 
 The secret is the message signed by an `IBitcoinWallet` and the signed message is `garden.js<nonce><EVM wallet's pub key>` where the nonce is the number of orders created plus one (without the angular brackets).
-```javascript
+```ts
 //after creating a GardenJS instance
 
 import { Assets } from '@gardenfi/orderbook';
@@ -115,7 +121,9 @@ const orderId = await garden.swap(
 The order id.
 
 ### Get Swap
-`getSwap(order: Order): ISwapper`
+```ts
+getSwap(order: Order): ISwapper
+```
 
 The `getSwap` method provides a `Swapper` instance that allows you to initiate, redeem, or refund your order by using the `.next()` method. The `.next()` method makes the appropriate action based on the status of the order and the role of the person performing the action that is, initiator or redeemer.
 
@@ -136,7 +144,9 @@ The `parseStatus` function in `@gardenfi/orderbook` provides you the `status` of
 When creating orders, the follower is the backend orderbook fillers.
 
 ### Calculate Receive Amount
-`calculateReceiveAmt(from: Asset, to: Asset, sendAmt: number): Promise<number>`
+```ts
+calculateReceiveAmt(from: Asset, to: Asset, sendAmt: number): Promise<number>
+```
 
 Calculates the optimal amount of fee taken by the fillers in the orderbook which is *currently 3%*.
 

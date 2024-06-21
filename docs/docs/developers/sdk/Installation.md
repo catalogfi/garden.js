@@ -10,15 +10,23 @@ import TabItem from '@theme/TabItem';
 To install the `Garden SDK`,  You can use the following options:
 <Tabs>
 <TabItem value="npm" label="npm" default>
-`npm install @catalogfi/wallets @gardenfi/orderbook @gardenfi/core`
+```shell
+npm install @catalogfi/wallets @gardenfi/orderbook @gardenfi/core
+```
 </TabItem>
 <TabItem value="yarn" label="yarn">
-`yarn add @catalogfi/wallets @gardenfi/orderbook @gardenfi/core`
+```shell
+yarn add @catalogfi/wallets @gardenfi/orderbook @gardenfi/core
+```
 </TabItem>
 <TabItem value="pnpm" label="pnpm">
-`pnpm add @catalogfi/wallets @gardenfi/orderbook @gardenfi/core`
+```shell
+pnpm add @catalogfi/wallets @gardenfi/orderbook @gardenfi/core
+```
 </TabItem>
 <TabItem value="bun" label="bun">
-`bun add @catalogfi/wallets @gardenfi/orderbook @gardenfi/core`
+```shell
+bun add @catalogfi/wallets @gardenfi/orderbook @gardenfi/core
+```
 </TabItem>
 </Tabs>

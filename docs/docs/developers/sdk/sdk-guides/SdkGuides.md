@@ -31,6 +31,7 @@ SDK Guides are dedicated to providing developers with detailed, step-by-step ins
             type: "link",
             href: "./1inch-integration",
             label: "1inch Integration",
+            docId: "developers/sdk/sdk-guides/1inch-integration"
         }
     ]}
 />

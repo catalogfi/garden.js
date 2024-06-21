@@ -7,12 +7,14 @@ To swap from BTC to WBTC or vice versa, you need a wallet to send and receive as
 
 ## Installation
 To install `@catalogfi/wallets` run:
-`npm install @catalogfi/wallets`
+```shell
+npm install @catalogfi/wallets
+```
 
 ## Creating a Bitcoin Wallet
 To create a Bitcoin wallet, you need a private key and a `BitcoinProvider`. A Bitcoin provider is simply a helper class communicating with the blockchain.
 
-```javascript
+```ts
 import {
     BitcoinWallet,
     BitcoinProvider,
@@ -29,7 +31,7 @@ By default, the wallet uses `p2wpkh` (Pay-to-Witness-Public-Key-Hash) to derive 
 
 If you don't have access to private keys, you can use Bitcoin OTAs to create one-time Bitcoin accounts. To generate an OTA, you need a signer from your Web3 provider.
 
-```javascript
+```ts
 import {
     BitcoinOTA,
     BitcoinProvider,
@@ -52,7 +54,7 @@ To create an EVM wallet, you can either pass a `Wallet` implementation from `eth
 
 The process is similar to creating a Bitcoin wallet. You don't need anything other than the private key and the provider.
 
-```javascript
+```ts
 import { EVMWallet } from "@catalogfi/wallets";
 import { JsonRpcProvider, Wallet } from "ethers";
 
@@ -65,7 +67,7 @@ const evmWallet = new EVMWallet(wallet);
 
 If you don't have access to a private key, you can use the `JsonRpcSigner` from your Web3 provider.
 
-```javascript
+```ts
 import { EVMWallet } from "@catalogfi/wallets";
 import { JsonRpcSigner, BrowserProvider } from "ethers";
 

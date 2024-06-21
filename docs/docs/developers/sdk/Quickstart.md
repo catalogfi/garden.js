@@ -2,6 +2,8 @@
 id: quickstart
 ---
 
+import DocCardList from '@theme/DocCardList';
+
 # Quickstart
 Garden SDK is a set of packages that aims to quickly and seamlessly swap your cross-chain assets.
 ## Swapping your BTC to WBTC
@@ -11,7 +13,7 @@ Swapping from BTC to WBTC will only require two things from you:
 
 The code snippet below swaps your BTC to WBTC on Ethereum. To understand what's happening at each step, take a look at [Swapping from BTC to WBTC](./sdk-guides/SwappingBtcWbtc.md).
 
-```javascript
+```ts
 import {
   BitcoinNetwork,
   BitcoinWallet,
@@ -81,18 +83,58 @@ const evmWallet = new EVMWallet(
 ## Guides
 Check out our guides to help you get started on swapping your assets.
 
-- [Creating Wallets](./sdk-guides/CreatingWallets.md): Learn how to create wallets using the @catalogfi/wallets package
-
-- [Swapping from BTC to WBTC](./sdk-guides/SwappingBtcWbtc.md): Swap BTC to WBTC
- 
-- [Swapping from WBTC to BTC](./sdk-guides/SwappingWbtcBtc.md): Swap WBTC to BTC
-
-- [1inch integration](./sdk-guides/1inchIntegration.md): Integrate 1inch into your app to swap anything to BTC or vice versa
+<DocCardList
+    items={[
+        {
+            type: "link",
+            href: "./sdk-guides/creating-wallets",
+            label: "Creating Wallets",
+            docId: "developers/sdk/sdk-guides/creating-wallets",
+            description: "Learn how to create wallets using the @catalogfi/wallets package"
+        },
+        {
+            type: "link",
+            href: "./sdk-guides/swapping-btc-wbtc",
+            label: "Swapping from BTC to WBTC",
+            docId: "developers/sdk/sdk-guides/swapping-btc-wbtc",
+            description: "Swap BTC to WBTC"
+        },
+        {
+            type: "link",
+            href: "./sdk-guides/swapping-wbtc-btc",
+            label: "Swapping from WBTC to BTC",
+            docId: "developers/sdk/sdk-guides/swapping-wbtc-btc",
+            description: "Swap WBTC to BTC"
+        },
+        {
+            type: "link",
+            href: "./sdk-guides/1inch-integration",
+            label: "1inch Integration",
+            docId: "developers/sdk/sdk-guides/1inch-integration",
+            description: "Integrate 1inch into your app to swap anything to BTC or vice versa"
+        }
+    ]}
+/>
 
 
 ## Learn more about Garden SDK
 Learn more about the **Garden SDK** by exploring the supported assets, chains, and underlying concepts.
 
-- [Core Concepts](./CoreConcepts.md): Learn how swapping works under the hood
-
-- [Supported Chains](./SupportedChains.md): Find out all the supported chains & assets supported by Garden SDK
+<DocCardList
+    items={[
+        {
+            type: "link",
+            href: "developers/sdk/core-concepts",
+            label: "Core Concepts",
+            docId: "developers/sdk/core-concepts",
+            description: "Learn how swapping works under the hood"
+        },
+        {
+            type: "link",
+            href: "developers/sdk/supported-chains",
+            label: "Supported Chains",
+            docId: "developers/sdk/supported-chains",
+            description: "Find out all the supported chains & assets supported by Garden SDK"
+        }
+    ]}
+/>
