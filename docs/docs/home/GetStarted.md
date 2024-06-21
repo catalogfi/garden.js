@@ -32,7 +32,7 @@ To learn how swapping works under the hood, check out the [Swap](./basics/swap/S
 Garden is a community-driven project that encourages and appreciates developers' use of its composable dev stack to build cool Bitcoin cross-chain experiences.
 If you're a developer looking to integrate or build on Garden, these are good places to start:
 - [SDK](../developers/sdk/Sdk.md) : A simple guide to using the Garden SDK.
-- [Recipes](../cookbook/Cookbook.md) : If you're looking for some inspiration, you can find the projects cooked up by our devs and partners here! *chef's kiss*
+- [Cookbook](../cookbook/Cookbook.md) : If you're looking for some inspiration, you can find the projects cooked up by our devs and partners here! *chef's kiss*
 To get your hands dirty in Garden (pun intended), check out the [Developers](../developers/Developers.md) section.
 
 ### Provide
