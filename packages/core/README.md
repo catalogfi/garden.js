@@ -1,6 +1,6 @@
 # @gardenfi/core
 
-The `@gardenfi/core` package serves as an abstraction layer over the `@catalogfi/wallets` and `@gardenfi/orderbook` packages. It provides a simple interface to perform atomic swaps.
+The `@gardenfi/core` package serves as an abstraction layer over the `@catalogfi/wallets`(contains different kind of bitcoin and evm wallets) and `@gardenfi/orderbook` packages. It provides a simple interface to perform atomic swaps.
 
 ## Installation
 
