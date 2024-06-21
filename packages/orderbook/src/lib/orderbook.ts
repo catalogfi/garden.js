@@ -1,4 +1,4 @@
-import { Fetcher, trim0x } from '@catalogfi/utils';
+import { Fetcher, trim0x } from "@catalogfi/utils";
 import {
   CreateOrderConfig,
   CreateOrderResponse,
@@ -8,16 +8,16 @@ import {
   OrderConfig,
   OrderNonVerbose,
   OrderbookConfig,
-} from './orderbook.types';
-import { OrdersSocket } from './ordersSocket';
-import { Siwe } from './auth/siwe';
-import { IAuth } from './auth/auth.interface';
-import { parseURL } from './utils';
-import { orderPairGenerator } from './orderpair';
-import { OrderbookErrors } from './errors';
-import { StoreKeys } from './store/store.interface';
-import { MemoryStorage } from './store/memoryStorage';
-import { API } from './api';
+} from "./orderbook.types";
+import { OrdersSocket } from "./ordersSocket";
+import { Siwe } from "./auth/siwe";
+import { IAuth } from "./auth/auth.interface";
+import { orderPairGenerator } from "./orderpair";
+import { OrderbookErrors } from "./errors";
+import { StoreKeys } from "./store/store.interface";
+import { MemoryStorage } from "./store/memoryStorage";
+import { API } from "./api";
+import { Url } from "./url";
 
 /**
  * A class that allows you to create and manage orders with the backend url.
@@ -27,7 +27,7 @@ import { API } from './api';
  */
 export class Orderbook implements IOrderbook {
   private orderSocket: OrdersSocket;
-  private url: string;
+  private url: Url;
   private auth: IAuth;
 
   /**
@@ -37,9 +37,10 @@ export class Orderbook implements IOrderbook {
    *
    */
   constructor(orderbookConfig: OrderbookConfig) {
-    this.url = parseURL(orderbookConfig.url ?? API);
-    this.orderSocket = new OrdersSocket(this.url.replace('https', 'wss'));
-    this.url += this.url.endsWith('/') ? '' : '/';
+    //TODO: Make a URLParser class
+    this.url = new Url("/", orderbookConfig.url ?? API);
+    this.orderSocket = new OrdersSocket(this.url.socket());
+
     this.auth = new Siwe(this.url, orderbookConfig.signer, {
       ...orderbookConfig.opts,
       store: orderbookConfig.opts?.store || new MemoryStorage(),
@@ -54,16 +55,17 @@ export class Orderbook implements IOrderbook {
 
   static async init(orderbookConfig: OrderbookConfig) {
     const auth = new Siwe(
-      orderbookConfig.url ?? API,
+      new Url("/", orderbookConfig.url ?? API),
       orderbookConfig.signer,
       orderbookConfig.opts
     );
     const authToken = await auth.getToken();
+    const store = orderbookConfig.opts?.store ?? new MemoryStorage();
     orderbookConfig.opts = {
       ...orderbookConfig.opts,
-      store: orderbookConfig?.opts?.store ?? new MemoryStorage(),
+      store,
     };
-    orderbookConfig.opts.store!.setItem(StoreKeys.AUTH_TOKEN, authToken);
+    store.setItem(StoreKeys.AUTH_TOKEN, authToken);
     return new Orderbook(orderbookConfig);
   }
 
@@ -73,13 +75,14 @@ export class Orderbook implements IOrderbook {
       secretHash,
       receiveAmount,
       fromAsset,
+      feeInSeed,
       toAsset,
       ...rest
     } = createOrderConfig;
     this.validateConfig(createOrderConfig);
     const orderPair = orderPairGenerator(fromAsset, toAsset);
 
-    const url = this.url + 'orders';
+    const url = this.url.endpoint("orders");
     const { orderId } = await Fetcher.post<CreateOrderResponse>(url, {
       body: JSON.stringify({
         ...rest,
@@ -103,11 +106,11 @@ export class Orderbook implements IOrderbook {
   ): Promise<(T extends true ? Order : OrderNonVerbose)[]> {
     const ordersResponse = await Fetcher.get<GetOrdersOutput<T>>(
       this.url +
-        'orders?' +
+        "orders?" +
         new URLSearchParams({
           ...(orderConfig?.taker ? { taker: address } : { maker: address }),
-          verbose: orderConfig?.verbose ? 'true' : 'false',
-          ...(orderConfig?.pending ? { status: '2' } : {}),
+          verbose: orderConfig?.verbose ? "true" : "false",
+          ...(orderConfig?.pending ? { status: "2" } : {}),
         })
     );
 
@@ -130,10 +133,10 @@ export class Orderbook implements IOrderbook {
     const { sendAmount, receiveAmount } = config;
     const inputAmount = +sendAmount;
     const outputAmount = +receiveAmount;
-    if (isNaN(inputAmount) || inputAmount <= 0 || sendAmount.includes('.'))
+    if (isNaN(inputAmount) || inputAmount <= 0 || sendAmount.includes("."))
       throw new Error(OrderbookErrors.INVALID_SEND_AMOUNT);
 
-    if (isNaN(outputAmount) || outputAmount <= 0 || receiveAmount.includes('.'))
+    if (isNaN(outputAmount) || outputAmount <= 0 || receiveAmount.includes("."))
       throw new Error(OrderbookErrors.INVALID_RECEIVE_AMOUNT);
   }
 }

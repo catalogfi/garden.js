@@ -1,9 +1,11 @@
 import { JsonRpcProvider, Wallet } from "ethers";
-import { Order, Orderbook, parseStatus } from "@gardenfi/orderbook";
+import { Order, Orderbook } from "@gardenfi/orderbook";
 import {
+    AddressType,
     BitcoinNetwork,
     BitcoinOTA,
     BitcoinProvider,
+    BitcoinWallet,
     EVMWallet,
     generateMnemonic,
     mnemonicToPrivateKey,
@@ -25,21 +27,19 @@ describe("Catalog", () => {
         throw new Error("Missing env vars");
     }
     const provider = new JsonRpcProvider(process.env["ANKR_RPC_URL"]);
-    const pk = mnemonicToPrivateKey(generateMnemonic(), BitcoinNetwork.Testnet);
-    const bitcoinPk = mnemonicToPrivateKey(
-        generateMnemonic(),
-        BitcoinNetwork.Testnet
-    ); //add pks that are funded for the last test to pass
+    const mnemonic = generateMnemonic();
+    const pk = mnemonicToPrivateKey(mnemonic, BitcoinNetwork.Testnet);
+    const bitcoinPk = mnemonicToPrivateKey(mnemonic, BitcoinNetwork.Testnet); //add pks that are funded for the last test to pass
 
     const ethereumSigner = new Wallet(pk, provider);
-    const bitcoinSigner = new Wallet(bitcoinPk, provider);
+
     const orderbook = new Orderbook({
         url: "https://" + API_ENDPOINT,
         signer: ethereumSigner,
     });
     const bitcoinProvider = new BitcoinProvider(BitcoinNetwork.Testnet);
 
-    const sendAmount = 0.001 * 1e8;
+    const sendAmount = 0.0001 * 1e8;
     const receiveAmount = sendAmount - 0.003 * sendAmount;
 
     it("cannot swap if there's no from wallet", async () => {
@@ -107,10 +107,13 @@ describe("Catalog", () => {
     it.skip(
         "should initiate and redeem",
         async () => {
-            const bitcoinWallet = new BitcoinOTA(
-                bitcoinProvider,
-                bitcoinSigner
+            const bitcoinWallet = BitcoinWallet.fromPrivateKey(
+                bitcoinPk,
+                AddressType.p2wpkh,
+                "m/84'/0'/0'/0/0",
+                bitcoinProvider
             );
+
             const evmWallet = new EVMWallet(ethereumSigner);
             const catalog = new GardenJS(orderbook, {
                 ethereum_sepolia: evmWallet,
@@ -118,8 +121,8 @@ describe("Catalog", () => {
             });
 
             const orderId = await catalog.swap(
-                Assets.bitcoin_testnet.BTC,
                 Assets.ethereum_sepolia.WBTC,
+                Assets.bitcoin_testnet.BTC,
                 sendAmount,
                 receiveAmount
             );
@@ -143,6 +146,7 @@ describe("Catalog", () => {
                             if (currentStatus === status) {
                                 return;
                             }
+                            console.log(currentStatus);
                             if (
                                 currentStatus === 200 ||
                                 currentStatus === 222

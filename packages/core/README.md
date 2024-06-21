@@ -35,18 +35,18 @@ npm install vite-plugin-wasm vite-plugin-node-polyfills --save-dev
 
 and update your `vite.config.ts` as follows:
 
-```
+```typescript
 import { defineConfig } from "vite";
 import wasm from "vite-plugin-wasm";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 export default defineConfig({
-	plugins: [
-		nodePolyfills(),
-		wasm(),
-		//other plugins
-	],
-	//other settings
+  plugins: [
+    nodePolyfills(),
+    wasm(),
+    //other plugins
+  ],
+  //other settings
 });
 ```
 
@@ -54,18 +54,18 @@ export default defineConfig({
 
 If you're using webpack with a framework like next, then in your webpack config, (if you're using NextJS, this can be found in `next.config.js` ) add support for wasm as shown below:
 
-```
+```typescript
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-	//other nextConfig options
-	webpack: function (config, options) {
-		//other webpack config options
-		config.experiments = {
-			...config.experiments,
-			asyncWebAssembly: true,
-		};
-	return config;
-	},
+  //other nextConfig options
+  webpack: function (config, options) {
+    //other webpack config options
+    config.experiments = {
+      ...config.experiments,
+      asyncWebAssembly: true,
+    };
+    return config;
+  },
 };
 module.exports = nextConfig;
 ```
