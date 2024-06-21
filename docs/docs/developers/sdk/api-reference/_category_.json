@@ -1,9 +1,0 @@
-{
-    "label": "API reference",
-    "position": 7,
-    "link": {
-        "type": "generated-index",
-        "description": "Packages available in the @gardenfi ecosystem.",
-        "slug": "/developers/sdk/api-reference"
-    }
-}

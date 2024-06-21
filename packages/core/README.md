@@ -21,6 +21,10 @@ For more information regarding using the library in different environments see [
 
 No extra setup is required as both `cjs` and `esm` modules are supported.
 
+### Browser
+
+Following cases only cover vite and webpack setups. For other bundlers, please refer to their respective documentation on how to add wasm and polyfills support.
+
 ### Vite
 
 Install the vite plugins:

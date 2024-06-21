@@ -1,5 +1,4 @@
 ---
-sidebar_position: 1
 id: bug-bounty
 ---
 
