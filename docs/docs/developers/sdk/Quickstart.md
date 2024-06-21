@@ -124,14 +124,14 @@ Learn more about the **Garden SDK** by exploring the supported assets, chains, a
     items={[
         {
             type: "link",
-            href: "developers/sdk/core-concepts",
+            href: "core-concepts",
             label: "Core Concepts",
             docId: "developers/sdk/core-concepts",
             description: "Learn how swapping works under the hood"
         },
         {
             type: "link",
-            href: "developers/sdk/supported-chains",
+            href: "supported-chains",
             label: "Supported Chains",
             docId: "developers/sdk/supported-chains",
             description: "Find out all the supported chains & assets supported by Garden SDK"
