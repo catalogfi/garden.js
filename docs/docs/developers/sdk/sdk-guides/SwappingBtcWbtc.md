@@ -23,10 +23,10 @@ Make sure these wallets are funded before doing the swap!
 
 ```ts
 import {
-    BitcoinNetwork,
-    BitcoinWallet,
-    BitcoinProvider,
-    EVMWallet,
+  BitcoinNetwork,
+  BitcoinWallet,
+  BitcoinProvider,
+  EVMWallet,
 } from "@catalogfi/wallets";
 import { JsonRpcProvider, Wallet } from "ethers";
 
@@ -58,9 +58,9 @@ import { Orderbook } from "@gardenfi/orderbook";
 // const signer = await new BrowserProvider(window.ethereum).getSigner();
 
 (async () => {
-    const orderbook = await Orderbook.init({
-        signer, // use the signer from above code snippet
-    });
+  const orderbook = await Orderbook.init({
+    signer, // use the signer from above code snippet
+  });
 })();
 ```
 
@@ -78,8 +78,8 @@ import { Chains } from "@gardenfi/orderbook";
 import { GardenJS } from "@gardenfi/core";
 
 const wallets = {
-    [Chains.bitcoin]: bitcoinWallet,
-    [Chains.ethereum]: evmWallet,
+  [Chains.bitcoin]: bitcoinWallet,
+  [Chains.ethereum]: evmWallet,
 };
 
 const garden = new GardenJS(orderbook, wallets);
@@ -96,10 +96,10 @@ const sendAmount = 0.0001 * 1e8;
 const recieveAmount = (1 - 0.3 / 100) * sendAmount;
 
 const orderId = await garden.swap(
-    Assets.bitcoin.BTC,
-    Assets.ethereum.WBTC,
-    sendAmount,
-    recieveAmount
+  Assets.bitcoin.BTC,
+  Assets.ethereum.WBTC,
+  sendAmount,
+  recieveAmount
 );
 ```
 
@@ -116,25 +116,22 @@ To listen to orders created by your EVM address, you will need to subscribe to t
 import { Actions, parseStatus } from "@gardenfi/orderbook";
 
 garden.subscribeOrders(await evmWallet.getAddress(), async (orders) => {
-    // filter the order we have just created
-    const order = orders.filter((order) => order.ID === orderId)[0];
-    if (!order) return;
+  // filter the order we have just created
+  const order = orders.filter((order) => order.ID === orderId)[0];
+  if (!order) return;
 
-    // get the action we can perform on the order right now
-    const action = parseStatus(order);
+  // get the action we can perform on the order right now
+  const action = parseStatus(order);
 
-    if (
-        action === Actions.UserCanInitiate ||
-        action === Actions.UserCanRedeem
-    ) {
-        const swapper = garden.getSwap(order);
-        // if it is UserCanInitiate, this step will lock the funds in the contract.
-        // if it is UserCanRedeem, this step will unlocks the funds from the contract.
-        const performedAction = await swapper.next();
-        console.log(
-            `Completed Action ${performedAction.action} with transaction hash: ${performedAction.output}`
-        );
-    }
+  if (action === Actions.UserCanInitiate || action === Actions.UserCanRedeem) {
+    const swapper = garden.getSwap(order);
+    // if it is UserCanInitiate, this step will lock the funds in the contract.
+    // if it is UserCanRedeem, this step will unlocks the funds from the contract.
+    const performedAction = await swapper.next();
+    console.log(
+      `Completed Action ${performedAction.action} with transaction hash: ${performedAction.output}`
+    );
+  }
 });
 ```
 
