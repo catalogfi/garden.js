@@ -76,6 +76,17 @@ import { Orderbook } from "@gardenfi/orderbook";
 })();
 ```
 
+You can pass following options to the `Orderbook.init` method:
+
+```typescript
+opts: {
+  store: IStore, // Used for caching auth tokens
+  domain: string, // this domain is used to create the siwe message
+}
+```
+
+`IStore` is compatible with the `localStorage` API. You can pass browser's `localStorage` or any other store that implements the same API.
+
 :::note
 From now the rest of the code will be written inside this async block.
 :::
