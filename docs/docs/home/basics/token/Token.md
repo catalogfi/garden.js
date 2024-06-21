@@ -17,6 +17,7 @@ SEED is the fundamental utility token at the heart of Garden, designed to fuel t
 - **Grants**: 5.5% (8,000,000 SEED) reserved for both tech and non-tech community grants.
 - **Team**: 15% (22,000,000 SEED) earmarked for the Garden team, with a lock-in period coinciding with the duration of the seasons program.
 - **Investors**: 19.6% (29,000,000 SEED) allocated to early backers, with tokens locked until the end of the seasons program.
+
 ![Token economics](../../images/Token_economics.png)
 
 ## SEED Emission Schedule

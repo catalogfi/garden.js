@@ -7,6 +7,7 @@ id: atomic-swaps
 Hashed Time Locked Contracts (HTLCs) are a type of smart contract used in blockchain transactions to enforce a time-bound condition for transferring assets between parties. They require the receiver of a transaction to acknowledge receiving the payment by generating a cryptographic proof within a certain timeframe. This proof is a response to a cryptographic challenge embedded in the contract, typically involving a hash function. If the receiver fails to provide the correct proof within the specified time, the transaction is automatically reversed, returning the assets to the sender. HTLCs are crucial for enabling trustless and secure atomic swaps between different cryptocurrencies.
 
 Here's a simple representation to understand the key components and flow of a Hashed Time-Locked Contract (HTLC) in the garden:
+
 ![HTLC](../../images/htlc1.png)
 
 **A simple example**: Alice wants to swap asset A with Bob’s asset B. Here’s how the process unfolds:

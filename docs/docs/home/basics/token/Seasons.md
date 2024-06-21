@@ -9,6 +9,7 @@ Seasons are a main component of Garden's incentive program, designed to boost co
 Season 1 of Garden concluded with significant achievements that surpassed our expectations. As the season ended with the symbolic melting of our Snowman, we observed a remarkable increase in daily trading volumes, achieving a peak of 615 BTC on the final day.
 
 Total swap volume generated in Season 1: 
+
 ![S1 Volume](../../images/s1_vol.png)
 
 You can read more about Season 1 [here](https://garden.finance/blogs/season-1-review/). 
@@ -16,6 +17,7 @@ You can read more about Season 1 [here](https://garden.finance/blogs/season-1-re
 Season 2 at Garden concluded with impressive achievements, highlighted by a 300% increase in total trading volume, reaching approximately $553 million by the end of the season. This remarkable growth was also reflected in our daily average volume, which more than tripled compared to Season 1, showcasing an action-packed period filled with significant advancements and community engagement.
 
 Total swap volume generated in Season 2: 
+
 ![S2 Volume](../../images/s2-vol.jpeg)
 
 You can read more about Season 2 [here](https://garden.finance/blogs/season-2-review/). 

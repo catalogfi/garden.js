@@ -171,6 +171,7 @@ class KeyError extends Error {
 
 export { KeyError };
 ```
+
 ![create wallet](./images/swapper_createevmwallet.png)
 
 - **Creating a bitcoin wallet**
@@ -215,6 +216,7 @@ ccreator.command(
 
 ccreator.parse();
 ```
+
 ![create bitcoin wallet](./images/swapper_createbitcoinwallet.png)
 
 Ta-da! 🎉 You've successfully created both an **EVM wallet** and a **Bitcoin wallet**.
