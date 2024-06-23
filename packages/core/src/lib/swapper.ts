@@ -113,7 +113,6 @@ export class Swapper implements ISwapper {
                     this.wallets,
                     this.order.secretNonce
                 );
-                console.log("secret when redeeming: ", secret);
                 return {
                     user: SwapperRole.INITIATOR,
                     action: SwapperActions.Redeem,
@@ -197,7 +196,6 @@ const htlcWalletFromOrder = async (
     user: User,
     contractAddress: string
 ): Promise<IHTLCWallet> => {
-    console.log(user, contractAddress);
     const atomicSwap =
         user === User.NATIVE
             ? order.initiatorAtomicSwap

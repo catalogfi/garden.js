@@ -1,6 +1,6 @@
 # @gardenfi/core
 
-The `@gardenfi/core` package serves as an abstraction layer over the `@catalogfi/wallets` and `@gardenfi/orderbook` packages. It provides a simple interface to perform atomic swaps.
+The `@gardenfi/core` package serves as an abstraction layer over the `@catalogfi/wallets`(contains different kind of bitcoin and evm wallets) and `@gardenfi/orderbook` packages. It provides a simple interface to perform atomic swaps.
 
 ## Installation
 
@@ -20,6 +20,10 @@ For more information regarding using the library in different environments see [
 ### Node
 
 No extra setup is required as both `cjs` and `esm` modules are supported.
+
+### Browser
+
+Following cases only cover vite and webpack setups. For other bundlers, please refer to their respective documentation on how to add wasm and polyfills support.
 
 ### Vite
 
