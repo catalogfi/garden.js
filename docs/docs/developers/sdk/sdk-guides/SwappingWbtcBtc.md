@@ -21,12 +21,12 @@ To swap from WBTC to BTC, you can reuse most of the code described in the [Swapp
 import { Assets } from "@gardenfi/orderbook";
 
 const sendAmount = 0.0001 * 1e8;
-const recieveAmount = (1 - 0.3 / 100) * sendAmount;
+const receiveAmount = (1 - 0.3 / 100) * sendAmount;
 
 const orderId = await garden.swap(
   Assets.ethereum.WBTC,
   Assets.bitcoin.BTC,
   sendAmount,
-  recieveAmount
+  receiveAmount
 );
 ```

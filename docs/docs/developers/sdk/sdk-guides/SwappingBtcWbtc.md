@@ -117,13 +117,13 @@ We'll also need to specify the assets we want to swap from and to. Since we want
 import { Assets } from "@gardenfi/orderbook";
 
 const sendAmount = 0.0001 * 1e8;
-const recieveAmount = (1 - 0.3 / 100) * sendAmount;
+const receiveAmount = (1 - 0.3 / 100) * sendAmount;
 
 const orderId = await garden.swap(
   Assets.bitcoin.BTC,
   Assets.ethereum.WBTC,
   sendAmount,
-  recieveAmount
+  receiveAmount
 );
 ```
 

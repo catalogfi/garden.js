@@ -5,7 +5,7 @@ id: cli-tool-with-garden-sdk
 # CLI tool with Garden SDK
 
 :::note
-This guide is provided as an example to help you get accustomed to using the Garden SDK. It is not intended to serve as a standard for creating CLI tools with the Garden SDK. A proper tool will take into consideration many best practices and optimizations. In the example below, we have cut a lot of corners for simplicity.
+This guide is provided as an example to help you get accustomed to using the Garden SDK. It is not intended to serve as a standard for creating CLI tools with the Garden SDK. A proper tool will take into consideration many best practices and optimizations. In the example below, we have cut a lot of corners for simplicity. Full code is available here [Swapper CLI](https://github.com/gardenfi/swapper-cli).
 :::
 
 # Introduction
@@ -390,13 +390,13 @@ async function swap(fromAsset: Asset, toAsset: Asset, amount: number) {
   const garden = await getGarden(evmPrivateKey, evmWallet, bitcoinWallet);
 
   const sendAmount = amount * 1e8;
-  const recieveAmount = (1 - 0.3 / 100) * sendAmount;
+  const receiveAmount = (1 - 0.3 / 100) * sendAmount;
 
   const orderId = await garden.swap(
     fromAsset,
     toAsset,
     sendAmount,
-    recieveAmount
+    receiveAmount
   );
 
   let order: Order | null = null;
