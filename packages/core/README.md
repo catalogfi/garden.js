@@ -30,7 +30,7 @@ Following cases only cover vite and webpack setups. For other bundlers, please r
 Install the vite plugins:
 
 ```
-npm install vite-plugin-wasm vite-plugin-node-polyfills --save-dev
+npm install vite-plugin-wasm vite-plugin-top-level-await vite-plugin-node-polyfills --save-dev
 ```
 
 and update your `vite.config.ts` as follows:
@@ -39,11 +39,13 @@ and update your `vite.config.ts` as follows:
 import { defineConfig } from "vite";
 import wasm from "vite-plugin-wasm";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
+import topLevelAwait from "vite-plugin-top-level-await";
 
 export default defineConfig({
   plugins: [
     nodePolyfills(),
     wasm(),
+    topLevelAwait(),
     //other plugins
   ],
   //other settings

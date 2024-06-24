@@ -23,6 +23,7 @@ bun create vite swapper --template react-ts
 
 ## Installing Dependencies
 The following are the dependencies needed to build the dApp.
+
 ```shell
 # Installs Garden SDK
 bun add @catalogfi/wallets @gardenfi/orderbook @gardenfi/core ethers@6.8.0
@@ -139,6 +140,7 @@ function App() {
 
 export default App;
 ```
+
 We haven't employed Tailwind CSS or any other CSS library, and discussing CSS specifics for the app is outside the scope of this guide. However, you can find all the CSS code on GitHub [here](https://github.com/gardenfi/swapper-frontend/blob/main/src/App.css).
 
 In this setup, `SwapComponent` includes the code for the swap screen, while `TransactionsComponent` contains the code for fetching the latest transactions of the currently active EVM account. Additionally, `TransactionsComponent` calls the `useGardenSetup` hook, which establishes the Garden instance.
@@ -146,6 +148,7 @@ In this setup, `SwapComponent` includes the code for the swap screen, while `Tra
 ![Layout](./images/layout.png)
 
 ## SwapComponent
+
 ```ts
 import { useState } from "react";
 
@@ -183,6 +186,7 @@ const SwapComponent: React.FC = () => {
 ```
 
 `WalletConnect`  manages the logic for connecting to MetaMask. `SwapAmount`  handles the logic for inputting amounts. `Swap`  manages addresses and the actual swapping process. Let's examine this component.
+
 ```ts
 import { Assets } from "@gardenfi/orderbook";
 
@@ -205,9 +209,9 @@ const Swap: React.FC<SwapProps> = ({ amount, changeAmount }) => {
     )
       return;
 
-  // convert to least denominations
+    // convert to least denominations
     const sendAmount = Number(wbtcAmount) * 1e8;
-    const recieveAmount = Number(btcAmount) * 1e8;
+    const receiveAmount = Number(btcAmount) * 1e8;
 
     setBtcAddress("");
     changeAmount("WBTC", "");
@@ -216,7 +220,7 @@ const Swap: React.FC<SwapProps> = ({ amount, changeAmount }) => {
       Assets.ethereum_sepolia.WBTC,
       Assets.bitcoin_testnet.BTC,
       sendAmount,
-      recieveAmount
+      receiveAmount
     );
   };
 
@@ -322,4 +326,5 @@ import {
 const parsedStatus = parseStatus(order);
 // parsedStatus could be one of these (UserCanInitiate, UserCanRedeem, UserCanRefund etc.)
 ```
+
 Checkout full code [here](https://github.com/gardenfi/swapper-frontend).
