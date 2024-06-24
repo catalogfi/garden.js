@@ -5,7 +5,8 @@ id: swapper-frontend
 # Swapper Frontend
 
 :::note
-This guide is meant to be followed along side [Swapper Frontend](https://github.com/gardenfi/swapper-frontend) and is not meant for production use; it is merely an example to help you get started with the SDK .
+This guide is meant to be followed along side [Swapper Frontend](https://github.com/gardenfi/swapper-frontend) and is not meant for production use; it is merely an example to help you get started with the SDK.
+:::
 
 ## Introduction
 This guide details how to use the [Garden SDK](../developers/sdk/Sdk.md) to create a basic dApp that enables swapping WBTC to BTC. Visually, the UI would look something like the image below:
