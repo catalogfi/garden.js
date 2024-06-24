@@ -8,7 +8,7 @@ phases:
             - npm install -g yarn
     pre_build:
         commands:
-            - cd .. && yarn set version 4.2.2 && cd -
+            - cd .. && yarn set version 4.3.1 && cd -
             - cd docs
             - export NODE_AUTH_TOKEN=""
             - yarn install
