@@ -1,6 +1,6 @@
-import { Asset, Chains, EvmChain } from './asset';
-import { CONTRACT_ADDRESS } from './contractAddress';
-import { OrderpairErrors } from './errors';
+import { Asset, Chains, EvmChain } from "./asset";
+import { CONTRACT_ADDRESS } from "./contractAddress";
+import { OrderpairErrors } from "./errors";
 
 export const orderPairGenerator = (from: Asset, to: Asset) => {
   if (from.chain === to.chain) {
@@ -28,6 +28,8 @@ export const chainToId: Record<EvmChain, number> = {
   ethereum: 1,
   ethereum_sepolia: 11155111,
   ethereum_arbitrum: 42161,
+  ethereum_arbitrumlocalnet: 31338,
+  ethereum_localnet: 31337,
 };
 
 export const idToChain: Record<number, EvmChain> = Object.entries(

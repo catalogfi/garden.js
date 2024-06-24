@@ -5,6 +5,8 @@ export const Chains = {
   bitcoin_testnet: "bitcoin_testnet",
   bitcoin_regtest: "bitcoin_regtest",
   ethereum_arbitrum: "ethereum_arbitrum",
+  ethereum_arbitrumlocalnet: "ethereum_arbitrumlocalnet",
+  ethereum_localnet: "ethereum_localnet",
 } as const;
 
 export type Chain = keyof typeof Chains;
@@ -53,6 +55,28 @@ export const Assets = {
       isToken: true,
       thumbnail: "https://cryptologos.cc/logos/wrapped-bitcoin-wbtc-logo.svg",
       address: "0x3D1e56247033FE191DC789b5838E366dC04b1b73",
+    },
+  },
+  ethereum_arb_localnet: {
+    WBTC: {
+      name: "Wrapped Bitcoin",
+      symbol: "WBTC",
+      decimals: 8,
+      chain: Chains.ethereum_arbitrum,
+      isToken: true,
+      thumbnail: "https://cryptologos.cc/logos/wrapped-bitcoin-wbtc-logo.svg",
+      address: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+    },
+  },
+  ethereum_localnet: {
+    WBTC: {
+      name: "Wrapped Bitcoin",
+      symbol: "WBTC",
+      decimals: 8,
+      chain: Chains.ethereum_localnet,
+      isToken: true,
+      thumbnail: "https://cryptologos.cc/logos/wrapped-bitcoin-wbtc-logo.svg",
+      address: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
     },
   },
   bitcoin: {
@@ -149,12 +173,34 @@ export const ChainsData: Record<Chain, ChainData> = {
       thumbnail: "https://cryptologos.cc/logos/arbitrum-arb-logo.svg",
     },
   },
+  ethereum_arbitrumlocalnet: {
+    nativeAsset: {
+      name: "Ethereum",
+      symbol: "ETH",
+      decimals: 18,
+      chain: Chains.ethereum_arbitrumlocalnet,
+      isToken: false,
+      thumbnail: "https://cryptologos.cc/logos/arbitrum-arb-logo.svg",
+    },
+  },
+  ethereum_localnet: {
+    nativeAsset: {
+      name: "Ethereum",
+      symbol: "ETH",
+      decimals: 18,
+      chain: Chains.ethereum_localnet,
+      isToken: false,
+      thumbnail: "https://cryptologos.cc/logos/ethereum-eth-logo.svg",
+    },
+  },
 };
 
 export const isMainnet = (chain: Chain) => {
   return !(
     chain === Chains.ethereum_sepolia ||
     chain === Chains.bitcoin_testnet ||
-    chain === Chains.bitcoin_regtest
+    chain === Chains.bitcoin_regtest ||
+    chain === Chains.ethereum_arbitrumlocalnet ||
+    chain === Chains.ethereum_localnet
   );
 };
