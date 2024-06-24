@@ -32,12 +32,17 @@ bun add @catalogfi/wallets @gardenfi/orderbook @gardenfi/core ethers@6.8.0
 
 ## Installing dev dependencies
 We need `vite-plugin-wasm` , `vite-plugin-node-polyfills`  and `vite-plugin-top-level-await` dependencies to work with the SDK in the frontend.
+
 ```shell
-bun add -D vite-plugin-wasm vite-plugin-node-polyfills vite-plugin-top-level-await
+bun add -D \
+  vite-plugin-wasm \
+  vite-plugin-node-polyfills \
+  vite-plugin-top-level-await
 ```
+
 Let's update the vite config to the following.
 
-```ts
+```ts title="/vite.config.ts"
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import wasm from "vite-plugin-wasm";
@@ -58,7 +63,8 @@ The documentation frequently discusses creating a `Garden`  instance and utilize
 We'll use [Zustand](https://zustand-demo.pmnd.rs/) to manage the store in the Dapp since it requires minimal boilerplate and is user-friendly. If you're unfamiliar with it, please refer to [Zustand documentation](https://docs.pmnd.rs/zustand/getting-started/introduction) first.
 
 ### useGarden hook
-```ts
+
+```ts title="/src/store.tsx"
 import { GardenJS } from "@gardenfi/core";
 import { create } from "zustand";
 
@@ -83,7 +89,7 @@ const useGarden = () => gardenStore((state) => state.garden);
 
 Next, let's create a hook that sets the Garden instance.
 
-```ts
+```ts title="/src/store.tsx"
 // this hook has to be called at the root level only once
 const useGardenSetup = () => {
 // this could be useWeb3React too. (type of browserProvider from ethers)
@@ -123,7 +129,7 @@ For creation of wallets you can refer to [Creating Wallets](../developers/sdk/sd
 
 ## Root component
 
-```ts
+```ts title="/src/App.tsx"
 import SwapComponent from "./SwapComponent";
 import TransactionsComponent from "./TransactionComponent";
 import { useGardenSetup } from "./store";
@@ -150,7 +156,7 @@ In this setup, `SwapComponent` includes the code for the swap screen, while `Tra
 
 ## SwapComponent
 
-```ts
+```ts title="/src/SwapComponent.tsx"
 import { useState } from "react";
 
 const SwapComponent: React.FC = () => {
@@ -188,7 +194,7 @@ const SwapComponent: React.FC = () => {
 
 `WalletConnect`  manages the logic for connecting to MetaMask. `SwapAmount`  handles the logic for inputting amounts. `Swap`  manages addresses and the actual swapping process. Let's examine this component.
 
-```ts
+```ts title="/src/SwapComponent.tsx"
 import { Assets } from "@gardenfi/orderbook";
 
 type SwapProps = {
@@ -258,7 +264,7 @@ The main logic we want to focus on is `handleSwap`. `garden.swap` facilitates th
 
 We will not discuss the whole component here, but let's look at how we fetch the orders, aka transactions.
 
-```ts
+```ts title="/src/TransactionsComponent.tsx"
 import {
   Actions,
   Order as OrderbookOrder,
@@ -318,6 +324,7 @@ const performedAction = await swapper.next();
 ```
 
 `swapper.next()` performs required actions to go into next state. If you created an order, `.next()` will initiate the order by depositing funds. Once the counterparty initiates, calling `.next` redeems the funds on destination chain. But when to do what? To do so, you can parse the order status using the code snippet below.
+
 ```ts
 import {
   Actions,
