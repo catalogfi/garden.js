@@ -14,7 +14,9 @@ Our final Dapp would look something like this
 ![Final dapp](./images/final_dapp.png)
 
 ## Project Setup
-Let's create a react app using the following command.
+
+Let's create a react app using the following command. If you don't have bun installed, please refer [bun](https://bun.sh/).
+
 ```shell
 # Creates a react-app using vite
 bun create vite swapper --template react-ts
@@ -43,7 +45,7 @@ import topLevelAwait from "vite-plugin-top-level-await";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), wasm(), nodePolyfills(),topLevelAwait()],
+  plugins: [react(), wasm(), nodePolyfills(), topLevelAwait()],
 });
 ```
 
@@ -57,6 +59,7 @@ We'll use [Zustand](https://zustand-demo.pmnd.rs/) to manage the store in the Da
 ### useGarden hook
 ```ts
 import { GardenJS } from "@gardenfi/core";
+import { create } from "zustand";
 
 type GardenStore = {
   garden: GardenJS | null;
@@ -82,9 +85,9 @@ Next, let's create a hook that sets the Garden instance.
 ```ts
 // this hook has to be called at the root level only once
 const useGardenSetup = () => {
-// this could be useWeb3React too. (type of browserProvider         // from ethers)
+// this could be useWeb3React too. (type of browserProvider from ethers)
   const evmProvider = useMetaMaskStore((state) => state.evmProvider);
-  
+
   const setGarden = gardenStore((state) => state.setGarden);
 
   useEffect(() => {
@@ -118,6 +121,7 @@ const useGardenSetup = () => {
 For creation of wallets you can refer to [Creating Wallets](../developers/sdk/sdk-guides/CreatingWallets.md).
 
 ## Root component
+
 ```ts
 import SwapComponent from "./SwapComponent";
 import TransactionsComponent from "./TransactionComponent";
@@ -188,12 +192,9 @@ type SwapProps = {
   changeAmount: (of: "WBTC" | "BTC", value: string) => void;
 };
 
-const Swap: React.FC<SwapProps> = ({
-  amount,
-  changeAmount,
-}) => {
+const Swap: React.FC<SwapProps> = ({ amount, changeAmount }) => {
   const garden = useGarden();
-  const [ btcAddress, setBtcAddress ] = useState<string>();
+  const [btcAddress, setBtcAddress] = useState<string>();
   const { metaMaskIsConnected } = useMetaMaskStore();
   const { wbtcAmount, btcAmount } = amount;
 
@@ -250,7 +251,9 @@ The main logic we want to focus on is `handleSwap`. `garden.swap` facilitates th
 ![Swap](./images/swap.png)
 
 ## Transactions Component
+
 We will not discuss the whole component here, but let's look at how we fetch the orders aka transactions.
+
 ```ts
 import {
   Actions,
@@ -304,6 +307,7 @@ function TransactionsComponent() {
 ![Order Component](./images/order_component.png)
 
 `garden.subscribeOrders` will create a socket connection with the orderbook backend and fetches all orders on first request and updated orders on subsequent requests. Now performing actions on orders is as follows.
+
 ```ts
 const swapper = garden.getSwap(order);
 const performedAction = await swapper.next();
