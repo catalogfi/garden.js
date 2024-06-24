@@ -3,7 +3,7 @@ sidebar_position: 6
 id: garden-brand-guide
 ---
 
-import Colorways from "./Colorways";
+import Colorways from "./components/Colorways";
 
 # Garden Brand Guide
 

@@ -6,16 +6,18 @@ id: swapper-frontend
 
 :::note
 This guide is meant to be followed along side [Swapper Frontend](https://github.com/gardenfi/swapper-frontend) and is not meant for production use, it is merely an example to help you get started with the SDK .
+:::
 
 ## Introduction
+
 This guide details how to use the Garden SDK to create a basic Dapp that enables swapping WBTC to BTC.
-Our final Dapp would look something like this
+Dapp would look something like this :
 
 ![Final dapp](./images/final_dapp.png)
 
 ## Project Setup
 
-Let's create a react app using the following command. If you don't have bun installed, please refer [bun](https://bun.sh/).
+Let's create a react app using the following command. If you don't have bun already installed, please refer [bun](https://bun.sh/).
 
 ```shell
 # Creates a react-app using vite
@@ -23,14 +25,18 @@ bun create vite swapper --template react-ts
 ```
 
 ## Installing Dependencies
+
 Following are the necessary dependencies needed for building the dapp.
+
 ```shell
 # Installs Garden SDK
 bun add @catalogfi/wallets @gardenfi/orderbook @gardenfi/core ethers@6.8.0
 ```
 
 ## Installing dev dependencies
-We need `vite-plugin-wasm` , `vite-plugin-node-polyfills`  and `vite-plugin-top-level-await` dependencies to work with the SDK in the frontend.
+
+We need `vite-plugin-wasm` , `vite-plugin-node-polyfills` and `vite-plugin-top-level-await` dependencies to work with the SDK in the frontend.
+
 ```shell
 bun add -D vite-plugin-wasm vite-plugin-node-polyfills vite-plugin-top-level-await
 ```
@@ -53,10 +59,11 @@ Now we are all set to build the dapp.
 
 ## The Dapp
 
-The documentation frequently discusses creating a `Garden`  instance and utilizing it for swaps and other actions. Let's develop a hook to encapsulate the creation of the Garden instance. 
+The documentation frequently discusses creating a `Garden` instance and utilizing it for swaps and other actions. Let's develop a hook to encapsulate the creation of the Garden instance.
 We'll use [Zustand](https://zustand-demo.pmnd.rs/) to manage the store in the Dapp since it requires minimal boilerplate and is user-friendly. If you're unfamiliar with it, please refer to [Zustand documentation](https://docs.pmnd.rs/zustand/getting-started/introduction) first.
 
 ### useGarden hook
+
 ```ts
 import { GardenJS } from "@gardenfi/core";
 import { create } from "zustand";
@@ -116,7 +123,8 @@ const useGardenSetup = () => {
     })();
   }, [evmProvider]);
 ```
-`useGardenSetup` will set the Garden provider whenever the EVM provider changes. 
+
+`useGardenSetup` will set the Garden provider whenever the EVM provider changes.
 
 For creation of wallets you can refer to [Creating Wallets](../developers/sdk/sdk-guides/CreatingWallets.md).
 
@@ -140,6 +148,7 @@ function App() {
 
 export default App;
 ```
+
 We haven't employed Tailwind CSS or any other CSS library, and discussing CSS specifics for the app is outside the scope of this guide. However, you can find all the CSS code on GitHub [here](https://github.com/gardenfi/swapper-frontend/blob/main/src/App.css).
 
 In this setup, `SwapComponent` includes the code for the swap screen, while `TransactionsComponent` contains the code for fetching the latest transactions of the currently active EVM account. Additionally, `TransactionsComponent` calls the `useGardenSetup` hook, which establishes the Garden instance.
@@ -147,6 +156,7 @@ In this setup, `SwapComponent` includes the code for the swap screen, while `Tra
 ![Layout](./images/layout.png)
 
 ## SwapComponent
+
 ```ts
 import { useState } from "react";
 
@@ -183,7 +193,8 @@ const SwapComponent: React.FC = () => {
 };
 ```
 
-`WalletConnect`  manages the logic for connecting to MetaMask. `SwapAmount`  handles the logic for inputting amounts. `Swap`  manages addresses and the actual swapping process. Let's examine this component.
+`WalletConnect` manages the logic for connecting to MetaMask. `SwapAmount` handles the logic for inputting amounts. `Swap` manages addresses and the actual swapping process. Let's examine this component.
+
 ```ts
 import { Assets } from "@gardenfi/orderbook";
 
@@ -206,9 +217,9 @@ const Swap: React.FC<SwapProps> = ({ amount, changeAmount }) => {
     )
       return;
 
-  // convert to least denominations
+    // convert to least denominations
     const sendAmount = Number(wbtcAmount) * 1e8;
-    const recieveAmount = Number(btcAmount) * 1e8;
+    const receiveAmount = Number(btcAmount) * 1e8;
 
     setBtcAddress("");
     changeAmount("WBTC", "");
@@ -217,7 +228,7 @@ const Swap: React.FC<SwapProps> = ({ amount, changeAmount }) => {
       Assets.ethereum_sepolia.WBTC,
       Assets.bitcoin_testnet.BTC,
       sendAmount,
-      recieveAmount
+      receiveAmount
     );
   };
 
@@ -255,10 +266,7 @@ The main logic we want to focus on is `handleSwap`. `garden.swap` facilitates th
 We will not discuss the whole component here, but let's look at how we fetch the orders aka transactions.
 
 ```ts
-import {
-  Actions,
-  Order as OrderbookOrder,
-} from "@gardenfi/orderbook";
+import { Actions, Order as OrderbookOrder } from "@gardenfi/orderbook";
 
 function TransactionsComponent() {
   const garden = useGarden();
@@ -314,16 +322,16 @@ const performedAction = await swapper.next();
 ```
 
 `swapper.next()` performs required actions to go into next state. If you created an order just now, `.next()` will initiate the order by depositing funds. Once the counterparty initiates, calling `.next` redeems the funds on destination chain. But when to do what ? For that you can parse the status of the order using the below code snippet.
+
 ```ts
-import {
-  Actions,
-  parseStatus,
-} from "@gardenfi/orderbook";
+import { Actions, parseStatus } from "@gardenfi/orderbook";
 
 const parsedStatus = parseStatus(order);
 // parsedStatus could be one of these (UserCanInitiate, UserCanRedeem, UserCanRefund etc.)
 ```
+
 Checkout full code [here](https://github.com/gardenfi/swapper-frontend).
 
 ## Conclusion
+
 As previously mentioned, this serves as a simple example to help you begin using the SDK on the frontend. Detailed explanations of various UI components are omitted here, as our focus is solely on the SDK itself.
