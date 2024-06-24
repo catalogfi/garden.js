@@ -1746,7 +1746,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@catalogfi/wallets@npm:0.2.43, @catalogfi/wallets@npm:^0.2.35":
+"@catalogfi/wallets@npm:0.2.43, @catalogfi/wallets@npm:^0.2.43":
   version: 0.2.43
   resolution: "@catalogfi/wallets@npm:0.2.43"
   dependencies:
@@ -2519,7 +2519,7 @@ __metadata:
   resolution: "@gardenfi/core@workspace:packages/core"
   dependencies:
     "@catalogfi/utils": "npm:^0.1.6"
-    "@catalogfi/wallets": "npm:^0.2.35"
+    "@catalogfi/wallets": "npm:^0.2.43"
     "@gardenfi/orderbook": "workspace:^"
     "@types/jest": "npm:^29.5.12"
     dotenv: "npm:^16.3.1"
