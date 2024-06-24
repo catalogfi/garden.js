@@ -5,17 +5,16 @@ id: swapper-frontend
 # Swapper Frontend
 
 :::note
-This guide is meant to be followed along side [Swapper Frontend](https://github.com/gardenfi/swapper-frontend) and is not meant for production use, it is merely an example to help you get started with the SDK .
+This guide is meant to be followed along side [Swapper Frontend](https://github.com/gardenfi/swapper-frontend) and is not meant for production use; it is merely an example to help you get started with the SDK .
 
 ## Introduction
-This guide details how to use the Garden SDK to create a basic Dapp that enables swapping WBTC to BTC.
-Our final Dapp would look something like this
+This guide details how to use the [Garden SDK](../developers/sdk/Sdk.md) to create a basic dApp that enables swapping WBTC to BTC. Visually, the UI would look something like the image below:
 
-![Final dapp](./images/final_dapp.png)
+![Final dApp](./images/final_dapp.png)
 
 ## Project Setup
 
-Let's create a react app using the following command. If you don't have bun installed, please refer [bun](https://bun.sh/).
+Let's create a react app using the following command. If you don't have bun installed, please refer to [bun](https://bun.sh/).
 
 ```shell
 # Creates a react-app using vite
@@ -23,7 +22,7 @@ bun create vite swapper --template react-ts
 ```
 
 ## Installing Dependencies
-Following are the necessary dependencies needed for building the dapp.
+The following are the dependencies needed to build the dApp.
 ```shell
 # Installs Garden SDK
 bun add @catalogfi/wallets @gardenfi/orderbook @gardenfi/core ethers@6.8.0
@@ -34,9 +33,9 @@ We need `vite-plugin-wasm` , `vite-plugin-node-polyfills`  and `vite-plugin-top-
 ```shell
 bun add -D vite-plugin-wasm vite-plugin-node-polyfills vite-plugin-top-level-await
 ```
+Let's update the vite config to the following.
 
 ```ts
-Let's update the vite config to the following.
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import wasm from "vite-plugin-wasm";
@@ -49,11 +48,11 @@ export default defineConfig({
 });
 ```
 
-Now we are all set to build the dapp.
+Now we are all set to build the dApp.
 
-## The Dapp
+## The dApp
 
-The documentation frequently discusses creating a `Garden`  instance and utilizing it for swaps and other actions. Let's develop a hook to encapsulate the creation of the Garden instance. 
+The documentation frequently discusses creating a `Garden`  instance and utilize it for swaps and other actions. Let's develop a hook to encapsulate the creation of the Garden instance. 
 We'll use [Zustand](https://zustand-demo.pmnd.rs/) to manage the store in the Dapp since it requires minimal boilerplate and is user-friendly. If you're unfamiliar with it, please refer to [Zustand documentation](https://docs.pmnd.rs/zustand/getting-started/introduction) first.
 
 ### useGarden hook
@@ -252,7 +251,7 @@ The main logic we want to focus on is `handleSwap`. `garden.swap` facilitates th
 
 ## Transactions Component
 
-We will not discuss the whole component here, but let's look at how we fetch the orders aka transactions.
+We will not discuss the whole component here, but let's look at how we fetch the orders, aka transactions.
 
 ```ts
 import {
@@ -306,14 +305,14 @@ function TransactionsComponent() {
 
 ![Order Component](./images/order_component.png)
 
-`garden.subscribeOrders` will create a socket connection with the orderbook backend and fetches all orders on first request and updated orders on subsequent requests. Now performing actions on orders is as follows.
+`garden.subscribeOrders` will create a socket connection with the orderbook backend, fetch all orders on the first request and update orders on subsequent requests. Now performing actions on orders is as follows.
 
 ```ts
 const swapper = garden.getSwap(order);
 const performedAction = await swapper.next();
 ```
 
-`swapper.next()` performs required actions to go into next state. If you created an order just now, `.next()` will initiate the order by depositing funds. Once the counterparty initiates, calling `.next` redeems the funds on destination chain. But when to do what ? For that you can parse the status of the order using the below code snippet.
+`swapper.next()` performs required actions to go into next state. If you created an order, `.next()` will initiate the order by depositing funds. Once the counterparty initiates, calling `.next` redeems the funds on destination chain. But when to do what? To do so, you can parse the order status using the code snippet below.
 ```ts
 import {
   Actions,
@@ -324,6 +323,3 @@ const parsedStatus = parseStatus(order);
 // parsedStatus could be one of these (UserCanInitiate, UserCanRedeem, UserCanRefund etc.)
 ```
 Checkout full code [here](https://github.com/gardenfi/swapper-frontend).
-
-## Conclusion
-As previously mentioned, this serves as a simple example to help you begin using the SDK on the frontend. Detailed explanations of various UI components are omitted here, as our focus is solely on the SDK itself.
