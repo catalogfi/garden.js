@@ -316,7 +316,7 @@ function TransactionsComponent() {
 
 ![Order Component](./images/order_component.png)
 
-`garden.subscribeOrders` will create a socket connection with the orderbook backend, fetch all orders on the first request and update orders on subsequent requests. Now performing actions on orders is as follows.
+`garden.subscribeOrders` will create a socket connection with the orderbook backend, fetches all orders on the first request and updated-orders on subsequent requests. Now performing actions on orders is as follows.
 
 ```ts
 const swapper = garden.getSwap(order);
