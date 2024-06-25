@@ -9,7 +9,7 @@ Garden strives to become the most liquid crypto exchange that allows you to trad
 ## Mission
 We build user-centric financial applications, leveraging the best decentralized tech has to offer. 
 ### Key Principles
-- **Bitcoin Focus**: Bitcoin is the biggest volume based on both marketcap and daily trading volume, but still one of the least represented asset in DeFi. We intend to change this, and allow every Dapp to add support for Bitcoin within a day.
+- **Bitcoin Focus**: Bitcoin is the biggest volume based on both marketcap and daily trading volume, but still one of the least represented asset in DeFi. We intend to change this, and allow every dApp to add support for Bitcoin within a day.
 - **Deep Liquidity**: Garden has a deep focus on liquidity, we do not believe in recreating liquidity that already exists, we integrate all sources of decentralized and centralized liquidity to become the most liquid crypto exchange
 - **User-Centric**: We believe in building products for users, so for us a user is at the center of every decision we make as a company.
 - **Asset Catalog**: We support the most number of assets and asset pairs across DeFi. 
