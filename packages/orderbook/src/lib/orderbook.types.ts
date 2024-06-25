@@ -1,7 +1,7 @@
-import { MarkNonNullable } from "@catalogfi/utils";
-import { Asset, SupportedContracts } from "./asset";
-import { JsonRpcSigner, Wallet } from "ethers";
-import { IStore } from "./store/store.interface";
+import { MarkNonNullable } from '@catalogfi/utils';
+import { Asset, SupportedContracts } from './asset';
+import { JsonRpcSigner, Wallet } from 'ethers';
+import { IStore } from './store/store.interface';
 
 /**
  * Configuration for the orders you want to receive
@@ -57,7 +57,7 @@ export interface CreateOrderConfig {
    */
   secretHash: string;
   /**
-   * The funds are received at this address if specified, otherwise the funds are sent to the receive address.
+   * The address of the user's btc wallet. The funds will be sent to this address in case of a redeem or refund.
    */
   btcInputAddress: string;
 
@@ -190,7 +190,7 @@ export type DecodedAuthToken = {
 // export type OrderNonVerbose = z.infer<typeof OrderSchema>;
 export type Order = MarkNonNullable<
   OrderNonVerbose,
-  "initiatorAtomicSwap" | "followerAtomicSwap"
+  'initiatorAtomicSwap' | 'followerAtomicSwap'
 >;
 export type Orders = Order[];
 export type GetOrdersOutput<T extends boolean> = (T extends true

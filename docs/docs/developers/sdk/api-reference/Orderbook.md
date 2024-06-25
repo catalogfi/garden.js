@@ -15,14 +15,14 @@ We recommend using `ethers@6.8.0` for the comatibility with the `@gardenfi/order
 The `Orderbook` instance can be created using the constructor or the `.init(..)` static method. It is recommended to use the `.init(..)` static method to create the orderbook as it also performs authentication during orderbook creation.
 
 ```ts
-import { Orderbook, MemoryStorage } from "@gardenfi/orderbook";
-import { Wallet } from "ethers";
+import { Orderbook, MemoryStorage } from '@gardenfi/orderbook';
+import { Wallet } from 'ethers';
 
 const provider = new BrowserProvider(window.ethereum);
 const signer = await provider.getSigner();
 
 const orderbook = await Orderbook.init({
-  url: "https://api.garden.finance",
+  url: 'https://api.garden.finance',
   signer,
   opts: {
     domain: window.location.host,
@@ -63,16 +63,16 @@ createOrder(createOrderConfig: CreateOrderConfig): Promise<number>
 Creates an order.
 
 ```ts
-import { Assets } from "@gardenfi/orderbook";
-import { sha256 } from "ethers";
-import * as crypto from "crypto";
+import { Assets } from '@gardenfi/orderbook';
+import { sha256 } from 'ethers';
+import * as crypto from 'crypto';
 
 //make sure the initialise the orderbook and your wallet
 
 const sendAmount = 0.001 * 1e8;
 const receiveAmount = sendAmount - 0.03 * sendAmount; //taking 0.3% as fee
-const sendAddress = "<YOUR BITCOIN ADDRESS>";
-const secret = crypto.randomBytes(32).toString("hex");
+const sendAddress = '<YOUR BITCOIN ADDRESS>';
+const secret = crypto.randomBytes(32).toString('hex');
 const secretHash = sha256(secret);
 
 const orderId = await orderbook.createOrder({
@@ -97,7 +97,7 @@ const orderId = await orderbook.createOrder({
 - `sendAmount`: The amount of `fromAsset` you want to send.
 - `receiveAmount`: The amount of `toAsset` you want to receive.
 - `secretHash`: `sha256` hash of the secret. The secret has to be a unique 32-byte length string.
-- `btcInputAddress`: If specified then the funds will be sent to this address.
+- `btcInputAddress`: The Bitcoin address of the user. The funds will be sent to this address in case of redeem or refund.
 
 #### Returns
 
@@ -118,7 +118,7 @@ getOrders<T extends boolean>(
 To get all orders of an address, you can use `.getOrders()` to get a list of all the orders.
 
 ```ts
-const orders = await orderbook.getOrders("<AN EVM ADDRESS>", {
+const orders = await orderbook.getOrders('<AN EVM ADDRESS>', {
   verbose: true,
   taker: false, //get only those orders where the specified address acted as the initiator
 });
@@ -146,7 +146,7 @@ If you want to listen to any updates on an order associated with a given EVM add
 ```ts
 const orderId = 156; //the order you want to listen to
 
-orderbook.subsribeOrders("<AN EVM ADDRESS>", (orders) => {
+orderbook.subsribeOrders('<AN EVM ADDRESS>', (orders) => {
   const filteredOrder = orders.filter((order) => order.ID === orderId);
   //perform your logic with the order
 });
