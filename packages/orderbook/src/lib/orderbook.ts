@@ -122,7 +122,7 @@ export class Orderbook implements IOrderbook {
         receiveAmount,
         secretHash: trim0x(secretHash),
         orderPair,
-        // shouldn't we be forced to define btcInput? (as docs suggest) for btc/wntc flow
+        // shouldn't we not be forced to define btcInput? (as docs suggest) for btc/wntc flow
         // this handles undefined case by defaulting back to users btcAddr
         userWalletBTCAddress: rest.btcInputAddress ?? btcInputAddress,
       }),
