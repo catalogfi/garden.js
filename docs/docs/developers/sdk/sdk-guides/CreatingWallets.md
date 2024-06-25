@@ -24,9 +24,9 @@ To create a Bitcoin wallet, you need a private key and a `BitcoinProvider`. A Bi
 
 ```ts
 import {
-  BitcoinWallet,
-  BitcoinProvider,
-  BitcoinNetwork,
+    BitcoinWallet,
+    BitcoinProvider,
+    BitcoinNetwork,
 } from "@catalogfi/wallets";
 
 const provider = new BitcoinProvider(BitcoinNetwork.Mainnet);
@@ -41,9 +41,9 @@ If you don't have access to private keys, you can use Bitcoin OTAs to create one
 
 ```ts
 import {
-  BitcoinOTA,
-  BitcoinProvider,
-  BitcoinNetwork,
+    BitcoinOTA,
+    BitcoinProvider,
+    BitcoinNetwork,
 } from "@catalogfi/wallets";
 import { JsonRpcSigner, BrowserProvider } from "ethers";
 
@@ -58,7 +58,7 @@ const ota = new BitcoinOTA(provider, signer);
 To create an EVM wallet, you can either pass a `Wallet` implementation from `ethers.js` or a `JsonRpcSigner` from your Web3 provider.
 
 :::note
-@catalogfi/wallets uses ethers version `6.8.0`.
+@catalogfi/wallets uses ethers version `6.8.0`. Make sure to use the same version in your project.
 :::
 
 The process is similar to creating a Bitcoin wallet. You don't need anything other than the private key and the provider.

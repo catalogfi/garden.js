@@ -83,6 +83,9 @@ bun add yargs
 
 # Intalling the types for Yargs
 bun add -D @types/yargs
+
+# Installs ethers 6.8.0 as other versions may not be compatible with the SDK
+bun add ethers@6.8.0
 ```
 
 # Basic Setup

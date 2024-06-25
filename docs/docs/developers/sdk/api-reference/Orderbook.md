@@ -8,6 +8,10 @@ The `@gardenfi/orderbook` package is used to facilitate the creation of orders. 
 
 ## Creating the Orderbook
 
+:::note
+We recommend using `ethers@6.8.0` for the comatibility with the `@gardenfi/orderbook` package.
+:::
+
 The `Orderbook` instance can be created using the constructor or the `.init(..)` static method. It is recommended to use the `.init(..)` static method to create the orderbook as it also performs authentication during orderbook creation.
 
 ```ts
