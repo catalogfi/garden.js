@@ -2,7 +2,6 @@ import { MarkNonNullable } from "@catalogfi/utils";
 import { Asset, SupportedContracts } from "./asset";
 import { JsonRpcSigner, Wallet } from "ethers";
 import { IStore } from "./store/store.interface";
-
 /**
  * Configuration for the orders you want to receive
  *
@@ -59,7 +58,7 @@ export interface CreateOrderConfig {
   /**
    * The funds are received at this address if specified, otherwise the funds are sent to the receive address.
    */
-  btcInputAddress: string;
+  btcInputAddress?: string;
 
   /**
    * Pay with seed

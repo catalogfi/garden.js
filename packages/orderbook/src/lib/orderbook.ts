@@ -109,7 +109,12 @@ export class Orderbook implements IOrderbook {
     const contracts = await this.getSupportedContracts();
     const orderPair = orderPairGenerator(fromAsset, toAsset, contracts);
 
-    const url = this.url.endpoint("orders");
+    const btcInputAddress =
+      rest.sendAddress.slice(0, 2) === '0x'
+        ? rest.receiveAddress
+        : rest.sendAddress;
+
+    const url = this.url.endpoint('orders');
     const { orderId } = await Fetcher.post<CreateOrderResponse>(url, {
       body: JSON.stringify({
         ...rest,
@@ -117,7 +122,9 @@ export class Orderbook implements IOrderbook {
         receiveAmount,
         secretHash: trim0x(secretHash),
         orderPair,
-        userWalletBTCAddress: rest.btcInputAddress,
+        // should not be forced to define btcInput (as docs suggest) for wbtc/eth flow
+        // this handles undefined case by defaulting back to users btcAddr
+        userWalletBTCAddress: rest.btcInputAddress ?? btcInputAddress,
       }),
       headers: {
         Authorization: await this.auth.getToken(),
