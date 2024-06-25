@@ -15761,6 +15761,7 @@ __metadata:
     typescript: "npm:^5.4.2"
     vite: "npm:^5.1.6"
     vite-plugin-dts: "npm:^3.7.3"
+    vitest: "npm:^1.6.0"
   languageName: unknown
   linkType: soft
 

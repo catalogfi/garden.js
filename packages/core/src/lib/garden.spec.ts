@@ -109,8 +109,6 @@ describe("Catalog", () => {
         async () => {
             const bitcoinWallet = BitcoinWallet.fromPrivateKey(
                 bitcoinPk,
-                AddressType.p2wpkh,
-                "m/84'/0'/0'/0/0",
                 bitcoinProvider
             );
 

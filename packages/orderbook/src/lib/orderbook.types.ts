@@ -1,5 +1,5 @@
 import { MarkNonNullable } from "@catalogfi/utils";
-import { Asset } from "./asset";
+import { Asset, SupportedContracts } from "./asset";
 import { JsonRpcSigner, Wallet } from "ethers";
 import { IStore } from "./store/store.interface";
 
@@ -111,6 +111,9 @@ export interface IOrderbook {
     address: string,
     orderConfig?: Partial<OrderConfig<T>>
   ): Promise<(T extends true ? Order : OrderNonVerbose)[]>;
+
+  getOrder(orderId: number): Promise<Order>;
+
   /**
    *
    *
@@ -127,6 +130,8 @@ export interface IOrderbook {
    */
 
   unsubscribeOrders(): void;
+
+  getSupportedContracts(): Promise<SupportedContracts>;
 }
 
 export type AtomicSwap = {

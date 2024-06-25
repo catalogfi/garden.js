@@ -8,5 +8,4 @@ export type {
 export { chainToId, idToChain, orderPairGenerator } from './lib/orderpair';
 export type { Chain, EvmChain, Asset, ChainData } from './lib/asset';
 export { Chains, Assets, ChainsData, isMainnet } from './lib/asset';
-export { CONTRACT_ADDRESS } from './lib/contractAddress';
 export { parseStatus, Actions } from './lib/utils';

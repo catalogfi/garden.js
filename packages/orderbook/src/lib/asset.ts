@@ -54,10 +54,10 @@ export const Assets = {
       chain: Chains.ethereum_sepolia,
       isToken: true,
       thumbnail: "https://cryptologos.cc/logos/wrapped-bitcoin-wbtc-logo.svg",
-      address: "0x3D1e56247033FE191DC789b5838E366dC04b1b73",
+      address: "0xaD9d14CA82d9BF97fFf745fFC7d48172A1c0969E",
     },
   },
-  ethereum_arb_localnet: {
+  ethereum_arbitrumlocalnet: {
     WBTC: {
       name: "Wrapped Bitcoin",
       symbol: "WBTC",
@@ -121,6 +121,8 @@ export const Assets = {
     },
   },
 };
+
+export type SupportedContracts = Partial<Record<Chain, string>>;
 
 export type ChainData = {
   nativeAsset: Asset;

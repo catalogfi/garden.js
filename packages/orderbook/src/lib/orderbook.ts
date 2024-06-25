@@ -18,6 +18,7 @@ import { StoreKeys } from "./store/store.interface";
 import { MemoryStorage } from "./store/memoryStorage";
 import { API } from "./api";
 import { Url } from "./url";
+import { Chain, SupportedContracts } from "./asset";
 
 /**
  * A class that allows you to create and manage orders with the backend url.
@@ -29,6 +30,7 @@ export class Orderbook implements IOrderbook {
   private orderSocket: OrdersSocket;
   private url: Url;
   private auth: IAuth;
+  private supportedContracts: SupportedContracts = {};
 
   /**
    * Creates an instance of Orderbook. Does not login to the orderbook backend
@@ -37,7 +39,6 @@ export class Orderbook implements IOrderbook {
    *
    */
   constructor(orderbookConfig: OrderbookConfig) {
-    //TODO: Make a URLParser class
     this.url = new Url("/", orderbookConfig.url ?? API);
     this.orderSocket = new OrdersSocket(this.url.socket());
 
@@ -68,6 +69,31 @@ export class Orderbook implements IOrderbook {
     store.setItem(StoreKeys.AUTH_TOKEN, authToken);
     return new Orderbook(orderbookConfig);
   }
+  /**
+   * Returns the supported contracts from the orderbook.
+   */
+  async getSupportedContracts(): Promise<SupportedContracts> {
+    if (Object.keys(this.supportedContracts).length > 0)
+      return this.supportedContracts;
+
+    const url = this.url.endpoint("assets");
+    const assetsFromOrderbook = await Fetcher.get<
+      Partial<Record<Chain, string[]>>
+    >(url);
+
+    const assets: SupportedContracts = {};
+
+    for (const chain in assetsFromOrderbook) {
+      assets[chain as Chain] = assetsFromOrderbook[chain as Chain]![0];
+    }
+    this.supportedContracts = assets;
+    return assets;
+  }
+
+  async getOrder(orderId: number): Promise<Order> {
+    const url = this.url.endpoint(`orders/${orderId}`);
+    return Fetcher.get<Order>(url);
+  }
 
   async createOrder(createOrderConfig: CreateOrderConfig): Promise<number> {
     const {
@@ -80,7 +106,8 @@ export class Orderbook implements IOrderbook {
       ...rest
     } = createOrderConfig;
     this.validateConfig(createOrderConfig);
-    const orderPair = orderPairGenerator(fromAsset, toAsset);
+    const contracts = await this.getSupportedContracts();
+    const orderPair = orderPairGenerator(fromAsset, toAsset, contracts);
 
     const url = this.url.endpoint("orders");
     const { orderId } = await Fetcher.post<CreateOrderResponse>(url, {

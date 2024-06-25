@@ -1,4 +1,4 @@
-import { Assets } from "./asset";
+import { Assets, Chain } from "./asset";
 import { OrderpairErrors } from "./errors";
 import { orderPairGenerator } from "./orderpair";
 
@@ -10,16 +10,21 @@ describe("order pair generator", () => {
   const regtestOrderPair =
     "bitcoin_regtest-ethereum_sepolia:0x9ceD08aeE17Fbc333BB7741Ec5eB2907b0CA4241";
 
+  const contracts: Partial<Record<Chain, string>> = {
+    ethereum_sepolia: "0x9ceD08aeE17Fbc333BB7741Ec5eB2907b0CA4241",
+  };
+
   it("should throw an error if the assets are the same", () => {
     expect(() =>
-      orderPairGenerator(Assets.bitcoin.BTC, Assets.bitcoin.BTC)
+      orderPairGenerator(Assets.bitcoin.BTC, Assets.bitcoin.BTC, contracts)
     ).toThrow(OrderpairErrors.SAME_ASSET);
   });
 
   it("should return the proper order pair when going from bitcoin", () => {
     const orderPair = orderPairGenerator(
       Assets.bitcoin_testnet.BTC,
-      Assets.ethereum_sepolia.WBTC
+      Assets.ethereum_sepolia.WBTC,
+      contracts
     );
     expect(orderPair).toEqual(btcToWbtcOrderPair);
   });
@@ -27,7 +32,8 @@ describe("order pair generator", () => {
   it("should return the proper order pair when going from ethereum", () => {
     const orderPair = orderPairGenerator(
       Assets.ethereum_sepolia.WBTC,
-      Assets.bitcoin_testnet.BTC
+      Assets.bitcoin_testnet.BTC,
+      contracts
     );
 
     expect(orderPair).toEqual(wbtcToBtcOrderPair);
@@ -36,7 +42,8 @@ describe("order pair generator", () => {
   it("should return the proper order pair when going from regtest", () => {
     const orderPair = orderPairGenerator(
       Assets.bitcoin_regtest.BTC,
-      Assets.ethereum_sepolia.WBTC
+      Assets.ethereum_sepolia.WBTC,
+      contracts
     );
 
     expect(orderPair).toEqual(regtestOrderPair);

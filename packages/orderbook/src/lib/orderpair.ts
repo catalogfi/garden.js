@@ -1,8 +1,17 @@
-import { Asset, Chains, EvmChain } from "./asset";
-import { CONTRACT_ADDRESS } from "./contractAddress";
-import { OrderpairErrors } from "./errors";
+import { Asset, Chain, Chains, EvmChain } from './asset';
+import { OrderpairErrors, OrderbookErrors } from './errors';
 
-export const orderPairGenerator = (from: Asset, to: Asset) => {
+export const orderPairGenerator = (
+  from: Asset,
+  to: Asset,
+  contracts: Partial<Record<Chain, string>>
+) => {
+  if (!contracts[from.chain] || !contracts[to.chain]) {
+    let error = OrderbookErrors.UNSUPPORTED_CHAIN + ': ';
+    error += 'only ' + Object.keys(contracts).join(', ') + ' are supported';
+    throw new Error(error);
+  }
+
   if (from.chain === to.chain) {
     throw new Error(OrderpairErrors.SAME_ASSET);
   }
@@ -12,15 +21,9 @@ export const orderPairGenerator = (from: Asset, to: Asset) => {
     from.chain === Chains.bitcoin_regtest;
 
   if (fromBitcoin) {
-    const toChainId = chainToId[to.chain as EvmChain];
-    return `${Chains[from.chain]}-${Chains[to.chain]}:${
-      CONTRACT_ADDRESS[toChainId].AtomicSwap
-    }`;
+    return `${Chains[from.chain]}-${Chains[to.chain]}:${contracts[to.chain]}`;
   } else {
-    const fromChainId = chainToId[from.chain as EvmChain];
-    return `${Chains[from.chain]}:${CONTRACT_ADDRESS[fromChainId].AtomicSwap}-${
-      Chains[to.chain]
-    }`;
+    return `${Chains[from.chain]}:${contracts[from.chain]}-${Chains[to.chain]}`;
   }
 };
 
