@@ -13,9 +13,11 @@ export const CONTRACT_ADDRESS: Record<number, ContractAddress> = {
   42161: {
     AtomicSwap: "0x203DAC25763aE783Ad532A035FfF33d8df9437eE",
   },
+  // ethereum localnet
   31337: {
     AtomicSwap: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
   },
+  // arbitrum localnet
   31338: {
     AtomicSwap: "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
   },

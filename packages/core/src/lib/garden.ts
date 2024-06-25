@@ -10,8 +10,10 @@ import { Connector, isCatalogWalletInstalled } from "@catalogfi/extension";
 import { catalogWalletActions } from "./catalogActions";
 
 /**
- * @class
- * @implements {ICatalogJS}
+ * GardenJS is the core component of the Garden SDK. It allows you to create orders,
+ * subscribe to order updates, and perform initiates, redeems, and refunds on swaps.
+ *
+ * Visit the [GardenJS documentation](https://docs.garden.finance/developers/sdk/) for more information.
  */
 export class GardenJS implements IGardenJS {
     private readonly orderbook: IOrderbook;
@@ -36,13 +38,23 @@ export class GardenJS implements IGardenJS {
     unsubscribeOrders(): void {
         return this.orderbook.unsubscribeOrders();
     }
-
+    /**
+     * Creates a swap order in the orderbook backend. Checkout `Assets` from @gardenfi/orderbook for the available assets
+     * @param from from asset (e.g. Assets.ethereum.WBTC)
+     * @param to to asset (e.g. Assets.bitcoin.BTC)
+     * @param amt send amount
+     * @param receiveAmount receive amount
+     * @param opts if the swap destination is bitcoin, you can provide a btcInputAddress to redeem funds to.
+     * @returns order id
+     *
+     * Note: localnet assets require `merry` running, else it will throw an error saying unsupported asset.
+     */
     async swap(
         from: Asset,
         to: Asset,
         amt: number,
         receiveAmount: number,
-        opts?: { btcInputAddress?: string }
+        opts?: { btcUserAddress?: string }
     ): Promise<number> {
         if (isCatalogWalletInstalled()) {
             const id = await new Connector().send(
@@ -69,9 +81,9 @@ export class GardenJS implements IGardenJS {
 
         validateChain(from.chain, to.chain);
 
-        if ((opts && !opts.btcInputAddress) || !opts) {
+        if ((opts && !opts.btcUserAddress) || !opts) {
             opts = opts || {};
-            opts.btcInputAddress = await this.wallets[
+            opts.btcUserAddress = await this.wallets[
                 isFromChainBitcoin(from.chain) ? from.chain : to.chain
             ]!.getAddress();
         }
@@ -106,14 +118,20 @@ export class GardenJS implements IGardenJS {
             sendAddress,
             secretHash: sha256(with0x(secret)),
             btcInputAddress:
-                opts.btcInputAddress ?? (await bitcoinWallet.getAddress()),
+                opts.btcUserAddress ?? (await bitcoinWallet.getAddress()),
         });
     }
 
+    /**
+     * Given an order, returns a Swapper instance to progress the swap (init, redeem, refund)
+     */
     getSwap(order: Order): ISwapper {
         return new Swapper(order, this.wallets);
     }
 
+    /**
+     * Calculates the receive amount for the given send amount
+     */
     calculateReceiveAmt(
         from: Asset,
         to: Asset,

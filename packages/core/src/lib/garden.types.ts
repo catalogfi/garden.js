@@ -13,7 +13,7 @@ export interface IGardenJS {
      * @param {number} amt - The amount you want to swap in it's lowest denomination
      * @param {number} receiveAmount - The amount you want to receive in it's lowest denomination
      * @param {Object} [opts] - Additional options for creating an order
-     * @param {string} [opts.btcInputAddress] - If specified, BTC will be sent to this address
+     * @param {string} [opts.btcUserAddress] - If specified, BTC will be sent to this address
      * @returns {Promise<number>} The order ID
      */
     swap(
@@ -22,7 +22,7 @@ export interface IGardenJS {
         amt: number,
         receiveAmount: number,
         opts?: {
-            btcInputAddress?: string;
+            btcUserAddress?: string;
         }
     ): Promise<number>;
 
