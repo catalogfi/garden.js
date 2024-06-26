@@ -81,7 +81,7 @@ bun add @catalogfi/wallets @gardenfi/orderbook @gardenfi/core
 # Installs Yargs an npm package used for building cli tools
 bun add yargs
 
-# Intalling the types for Yargs
+# Installing the types for Yargs
 bun add -D @types/yargs
 
 # Installs ethers 6.8.0 as other versions may not be compatible with the SDK
@@ -471,7 +471,7 @@ export {
 /* KeyError class */
 
 class WalletError extends Error {
-  constructor(message = "Wallets have not been initialised") {
+  constructor(message = "Wallets have not been initialized") {
     super(message);
     this.name = "WalletError";
   }
