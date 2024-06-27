@@ -17,7 +17,7 @@ Check out our [docs](https://docs.garden.finance/developers/sdk/introduction) to
 
 ### Setup
 
-This project uses yarn workspaces. Run `yarn` in the directory to install all packages.
+This project uses yarn workspaces. Run `yarn` in the directory to install all dependencies.
 
 To build a package, use:
 
