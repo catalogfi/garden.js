@@ -1746,7 +1746,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@catalogfi/wallets@npm:0.2.43, @catalogfi/wallets@npm:^0.2.43":
+"@catalogfi/wallets@npm:0.2.43":
   version: 0.2.43
   resolution: "@catalogfi/wallets@npm:0.2.43"
   dependencies:
@@ -1768,6 +1768,31 @@ __metadata:
     uuid: "npm:^9.0.1"
     yup: "npm:^1.4.0"
   checksum: 10c0/b25777e97f28e2d38ff6f1f07584cb838e95baf194f66e2524d368ecbd0c1cdee93481deba69802a1b62eeddcfe2c060f3ebc0f74f1dc23901ab9396b27047f7
+  languageName: node
+  linkType: hard
+
+"@catalogfi/wallets@npm:^0.2.44":
+  version: 0.2.44
+  resolution: "@catalogfi/wallets@npm:0.2.44"
+  dependencies:
+    "@catalogfi/encrypto": "npm:^0.1.5"
+    "@catalogfi/extension": "npm:^0.1.1"
+    "@catalogfi/utils": "npm:^0.1.6"
+    "@noble/hashes": "npm:^1.4.0"
+    "@typechain/ethers-v6": "npm:^0.5.1"
+    bip32: "npm:^4.0.0"
+    bip39: "npm:^3.1.0"
+    bitcoinjs-lib: "npm:^6.1.5"
+    bufferutil: "npm:^4.0.8"
+    dotenv: "npm:^16.3.1"
+    ecpair: "npm:^2.1.0"
+    ethers: "npm:6.8.0"
+    tiny-secp256k1: "npm:^2.2.3"
+    typechain: "npm:^8.3.2"
+    utf-8-validate: "npm:^6.0.3"
+    uuid: "npm:^9.0.1"
+    yup: "npm:^1.4.0"
+  checksum: 10c0/555ad3920058758c5abc22cb77cf54adf3b16c3444c299b507f9e212049e69cf80887da415e9a298a90bbbc13e33944820578700a248ab6eae680d81cf50a9eb
   languageName: node
   linkType: hard
 
@@ -2519,7 +2544,7 @@ __metadata:
   resolution: "@gardenfi/core@workspace:packages/core"
   dependencies:
     "@catalogfi/utils": "npm:^0.1.6"
-    "@catalogfi/wallets": "npm:^0.2.43"
+    "@catalogfi/wallets": "npm:^0.2.44"
     "@gardenfi/orderbook": "workspace:^"
     "@types/jest": "npm:^29.5.12"
     dotenv: "npm:^16.3.1"
