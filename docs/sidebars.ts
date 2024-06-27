@@ -102,7 +102,7 @@ const sidebars: SidebarsConfig = {
 
     cookbook: [
         "cookbook/cookbook",
-        "cookbook/cli-tool-with-garden-sdk",
+        "cookbook/swapper-cli",
         "cookbook/swapper-frontend"
     ],
 

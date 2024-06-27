@@ -1,8 +1,8 @@
 ---
-id: cli-tool-with-garden-sdk
+id: swapper-cli
 ---
 
-# CLI tool with Garden SDK
+# Swapper CLI
 
 :::note
 This guide is provided as an example to help you get accustomed to using the Garden SDK. It is not intended to serve as a standard for creating CLI tools with the Garden SDK. A proper tool will take into consideration many best practices and optimizations. In the example below, we have cut a lot of corners for simplicity. Full code is available here [Swapper CLI](https://github.com/gardenfi/swapper-cli).
