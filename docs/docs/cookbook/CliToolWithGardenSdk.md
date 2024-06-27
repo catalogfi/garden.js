@@ -1,8 +1,8 @@
 ---
-id: cli-tool-with-garden-sdk
+id: swapper-cli
 ---
 
-# CLI tool with Garden SDK
+# Swapper CLI
 
 :::note
 This guide is provided as an example to help you get accustomed to using the Garden SDK. It is not intended to serve as a standard for creating CLI tools with the Garden SDK. A proper tool will take into consideration many best practices and optimizations. In the example below, we have cut a lot of corners for simplicity. Full code is available here [Swapper CLI](https://github.com/gardenfi/swapper-cli).
@@ -81,7 +81,7 @@ bun add @catalogfi/wallets @gardenfi/orderbook @gardenfi/core
 # Installs Yargs an npm package used for building cli tools
 bun add yargs
 
-# Intalling the types for Yargs
+# Installing the types for Yargs
 bun add -D @types/yargs
 
 # Installs ethers 6.8.0 as other versions may not be compatible with the SDK
@@ -93,9 +93,7 @@ bun add ethers@6.8.0
 - **Initiating yargs**
   Yargs in an npm package widely used for building CLI's with nodejs.
 
-```ts
-// File: src/command.ts
-
+```ts title="/src/command.ts"
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
@@ -107,17 +105,14 @@ let ccreator = yargs(hideBin(process.argv));
 export { ivar, ccreator };
 ```
 
-```ts
-// File : src/types.ts
+```ts title="/src/types.ts"
 export type Argv = {
   privatekey?: string;
   amount?: number;
 };
 ```
 
-```ts
-// File: src/index.ts
-
+```ts title="/src/index.ts"
 #! /usr/bin/env bun
 import { ivar, ccreator } from "./command.ts";
 
@@ -132,9 +127,7 @@ console.log(ivar);
 
 - Creating an **evm** wallet
 
-```ts
-// File: src/index.ts
-
+```ts title="/src/index.ts"
 #! /usr/bin/env bun
 
 import { EVMWallet } from "@catalogfi/wallets";
@@ -165,9 +158,9 @@ ccreator.command("createevmwallet", "creates an evm wallet", async () => {
 });
 
 ccreator.parse(); // Will always come at the end of `src/index.ts` file
+```
 
-// File: src/utility.ts
-
+```ts title="/src/utility.ts"
 function logAddressAndBalance(address: string, balance: number | bigint) {
     console.info("Fetching Address and Balance...");
     console.info(`Address : ${address}`);
@@ -177,9 +170,7 @@ function logAddressAndBalance(address: string, balance: number | bigint) {
 export { logAddressAndBalance };
 ```
 
-```ts
-// File: src/errors.ts
-
+```ts title="/src/errors.ts"
 class KeyError extends Error {
   constructor(message = "Private key is undefined") {
     super(message);
@@ -194,9 +185,7 @@ export { KeyError };
 
 - **Creating a bitcoin wallet**
 
-```ts
-// File: src/index.ts
-
+```ts title="/src/index.ts"
 #! /usr/bin/env bun
 
 import {
@@ -246,9 +235,7 @@ As we move on we will need to reuse the **privatekeys** a bunch of times, so it'
 
 - Read ( or Create ) `.swapper_config.json`
 
-```ts
-// File: src/index.ts
-
+```ts title="/src/index.ts"
 #! /usr/bin/env bun
 
 /* Previous Imports */
@@ -263,9 +250,9 @@ const DOT_CONFIG_PATH = join(homedir(), ".swapper_config.json");
 
 // Read config
 let dotConfig = readJsonFileSync(DOT_CONFIG_PATH);
+```
 
-// File: src/types.ts
-
+```ts title="/src/types.ts"
 export type DotConfig = {
     evmPrivateKey?: string;
     bitcoinPrivateKey?: string;
@@ -277,9 +264,7 @@ export type Argv = {
 };
 ```
 
-```ts
-// File: src/utility.ts
-
+```ts title="/src/utility.ts"
 import { writeFileSync, existsSync, readFileSync } from "fs";
 import { type DotConfig } from "./types.ts";
 
@@ -304,9 +289,7 @@ Above code will read the **.swapper_config.json** file present in your home dire
 
 - **Saving private keys** in `.swapper_config.json`
 
-```ts
-// File: src/index.ts
-
+```ts title="/src/index.ts"
 /* Previous Imports */
 
 import { writeFileSync } from "fs";
@@ -340,9 +323,7 @@ that's it! now whenever someone creates a wallet with their **private keys**, it
 
 - Create **getdetails**
 
-```ts
-// File: src/index.ts
-
+```ts title="/src/index.ts"
 ccreator.command(
   "getdetails",
   "gets the contents of $HOME/.swapper_config.json",
@@ -360,9 +341,7 @@ ccreator.parse(); // <-- Don't forget that this should be at the end of `src/ind
 
 - Create **swapwbtctobtc**
 
-```ts
-// File: src/index.ts
-
+```ts title="/src/index.ts"
 /* Previous Imports */
 
 import { sleep } from "bun";
@@ -436,9 +415,7 @@ ccreator.command("swapwbtctobtc", "Swaps from WBTC to BTC", async () => {
 });
 ```
 
-```ts
-// File: src/utility.ts
-
+```ts title="/src/utility.ts"
 /* Previous Imports */
 
 import { BitcoinWallet, BitcoinProvider, EVMWallet } from "@catalogfi/wallets";
@@ -490,13 +467,11 @@ export {
 };
 ```
 
-```ts
-// File: src/errors.ts
-
+```ts title="/src/errors.ts"
 /* KeyError class */
 
 class WalletError extends Error {
-  constructor(message = "Wallets have not been initialised") {
+  constructor(message = "Wallets have not been initialized") {
     super(message);
     this.name = "WalletError";
   }
