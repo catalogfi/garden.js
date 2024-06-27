@@ -11,22 +11,28 @@ The Garden SDK is a set of typescript packages that allow you to bridge Bitcoin 
 
 ## Docs
 
-Docs, guides and internal working is available [here](https://docs.garden.finance/developers/sdk/introduction).
+Check out our [docs](https://docs.garden.finance/developers/sdk/introduction) to learn more about Garden and how to build on it. 
 
 ## Contributing
 
 ### Setup
 
-This project uses `yarn workspaces`. Run `yarn` in the directory to install all packages.
+This project uses yarn workspaces. Run `yarn` in the directory to install all dependencies.
 
-To build a package:
+To build a package, use:
 
-`yarn workspace @gardenfi/<package_name> build`
+```bash
+yarn workspace @gardenfi/<package_name> build
+```
 
-To run the development server while building all packages as you develop run:
+To run the development server while building all packages as you develop, use:
 
-`yarn dev`
+```bash
+yarn dev
+```
 
-To run the development server for docs run:
+To run the development server for the documentation, use:
 
-`yarn start:docs`
+```bash
+yarn start:docs
+```
