@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "yarn_workspace_sandbox",
+  "name": "gardenjs",
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
@@ -25,5 +25,6 @@
     "vite": "^5.1.6",
     "vite-plugin-dts": "^3.7.3",
     "vitest": "^1.6.0"
-  }
+  },
+  "packageManager": "yarn@4.3.1"
 }

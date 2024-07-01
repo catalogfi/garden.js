@@ -9,9 +9,11 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { MemoryStorage } from './store/memoryStorage';
 import { StoreKeys } from './store/store.interface';
+
+import { describe, test, expect } from 'vitest';
 dotenv.config({ path: path.resolve(__dirname, '..', '..', '.env') });
 
-describe('orderbook', () => {
+describe.only('orderbook', () => {
   if (!process.env['BACKEND_URL']) {
     throw new Error('BACKEND_URL not set');
   }
@@ -47,15 +49,15 @@ describe('orderbook', () => {
       btcInputAddress: bitcoin_testnet_address,
     };
 
-    expect(
-      async () => await orderbook.createOrder(createOrderConfig)
-    ).rejects.toThrow(OrderbookErrors.INVALID_SEND_AMOUNT);
+    await expect(orderbook.createOrder(createOrderConfig)).rejects.toThrow(
+      OrderbookErrors.INVALID_SEND_AMOUNT
+    );
 
     createOrderConfig.sendAmount = (inputAmount * 1e8).toString();
 
-    expect(async () =>
-      orderbook.createOrder(createOrderConfig)
-    ).rejects.toThrow(OrderbookErrors.INVALID_RECEIVE_AMOUNT);
+    await expect(orderbook.createOrder(createOrderConfig)).rejects.toThrow(
+      OrderbookErrors.INVALID_RECEIVE_AMOUNT
+    );
   });
 
   test('should create an order with the valid configuration', async () => {
@@ -72,6 +74,7 @@ describe('orderbook', () => {
       secretHash: sha256(crypto.randomBytes(32)),
       btcInputAddress: bitcoin_testnet_address,
     });
+
     expect(response).toBeTruthy();
     expect(response).toBeGreaterThan(0);
   }, 15000);

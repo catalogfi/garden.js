@@ -5,9 +5,12 @@ import { Orders } from './orderbook.types';
 
 import * as dotenv from 'dotenv';
 import * as path from 'path';
+
+import { describe, it, expect } from 'vitest';
+
 dotenv.config({ path: path.resolve(__dirname, '..', '..', '.env') });
 
-describe.only('Order Socket', () => {
+describe.skip('Order Socket', () => {
   console.log('MAKE SURE TO RUN THE WS SERVER IN ./socketServer');
   if (!process.env['BACKEND_URL']) {
     throw new Error('BACKEND_URL not set');
