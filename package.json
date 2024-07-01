@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "yarn_workspace_sandbox",
+  "name": "gardenjs",
   "version": "4.2.2",
   "main": "index.js",
   "license": "MIT",
