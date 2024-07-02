@@ -56,6 +56,19 @@ describe('Garden', () => {
     ).rejects.toThrow(GardenErrors.WALLET_NOT_FOUND(true));
   });
 
+  it('should calculate the receive amount correctly', async () => {
+    const garden = new GardenJS(orderbook, {
+      bitcoin_regtest: new BitcoinOTA(bitcoinProvider, ethereumSigner),
+    });
+    const receiveAmount = await garden.calculateReceiveAmt(
+      Assets.bitcoin_regtest.BTC,
+      Assets.ethereum_localnet.WBTC,
+      100000
+    );
+
+    expect(receiveAmount).toEqual(99700);
+  });
+
   it("cannot swap if there's no to wallet", async () => {
     const garden = new GardenJS(orderbook, {
       bitcoin_regtest: new BitcoinOTA(bitcoinProvider, ethereumSigner),

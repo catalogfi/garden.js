@@ -8,6 +8,12 @@ import { GardenErrors } from './errors';
 import { with0x } from '@catalogfi/utils';
 import { Connector, isCatalogWalletInstalled } from '@catalogfi/extension';
 import { catalogWalletActions } from './catalogActions';
+import {
+  AbstractBitcoinWallet,
+  BitcoinWallet,
+  IBaseWallet,
+  IBitcoinWallet,
+} from '@catalogfi/wallets';
 
 /**
  * GardenJS is the core component of the Garden SDK. It allows you to create orders,
@@ -69,6 +75,7 @@ export class GardenJS implements IGardenJS {
       );
       return Number(id);
     }
+
     const fromWallet = this.wallets[from.chain];
     const toWallet = this.wallets[to.chain];
 
@@ -83,9 +90,14 @@ export class GardenJS implements IGardenJS {
 
     if ((opts && !opts.btcUserAddress) || !opts) {
       opts = opts || {};
-      opts.btcUserAddress = await this.wallets[
-        isFromChainBitcoin(from.chain) ? from.chain : to.chain
-      ]!.getAddress();
+
+      const bitcoinWallet = this.getBitcoinWallet();
+
+      if (!bitcoinWallet || !(bitcoinWallet instanceof AbstractBitcoinWallet)) {
+        throw new Error(GardenErrors.CHAIN_WALLET_NOT_FOUND('Bitcoin'));
+      }
+
+      opts.btcUserAddress = await bitcoinWallet.getAddress();
     }
 
     const fromBitcoin = isFromChainBitcoin(from.chain);
@@ -109,7 +121,7 @@ export class GardenJS implements IGardenJS {
       orders.length + 1
     );
 
-    return this.orderbook.createOrder({
+    return await this.orderbook.createOrder({
       fromAsset: from,
       toAsset: to,
       sendAmount: amt.toString(),
@@ -130,14 +142,23 @@ export class GardenJS implements IGardenJS {
   }
 
   /**
-   * Calculates the receive amount for the given send amount
+   * Calculates the receive amount for the given send amount. The send amount should be in it's lowest denomination
    */
   calculateReceiveAmt(
     from: Asset,
     to: Asset,
     sendAmt: number
   ): Promise<number> {
-    return Promise.resolve(sendAmt - sendAmt * 0.03);
+    return Promise.resolve(Math.floor(sendAmt - sendAmt * 0.003));
+  }
+
+  private getBitcoinWallet(): IBaseWallet | null {
+    for (const chain in this.wallets) {
+      if (isFromChainBitcoin(chain as Chain)) {
+        return this.wallets[chain as Chain] as IBaseWallet;
+      }
+    }
+    return null;
   }
 }
 
