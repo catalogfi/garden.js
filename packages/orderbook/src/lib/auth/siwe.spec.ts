@@ -9,15 +9,8 @@ import { Url } from '../url';
 dotenv.config({ path: path.resolve(__dirname, '..', '..', '..', '.env') });
 
 describe('Siwe', () => {
-  if (!process.env['BACKEND_URL']) {
-    throw new Error('BACKEND_URL not set');
-  }
-  const API_ENDPOINT = process.env['BACKEND_URL'];
-
-  if (!process.env['ANKR_RPC_URL']) {
-    throw new Error('ANKR_RPC_URL not set');
-  }
-  const provider = new JsonRpcProvider(process.env['ANKR_RPC_URL']);
+  const provider = new JsonRpcProvider('http://localhost:8545');
+  const API_ENDPOINT = 'http://localhost:8080';
   const pk =
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
 

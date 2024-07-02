@@ -2,28 +2,18 @@ import { JsonRpcProvider, Wallet } from 'ethers';
 import { Orderbook } from './orderbook';
 import { OrdersSocket } from './ordersSocket';
 import { Orders } from './orderbook.types';
+import { startWsServer } from './testUtils';
 
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 
 dotenv.config({ path: path.resolve(__dirname, '..', '..', '.env') });
 
-describe.skip('Order Socket', () => {
-  console.log('MAKE SURE TO RUN THE WS SERVER IN ./socketServer');
-  if (!process.env['BACKEND_URL']) {
-    throw new Error('BACKEND_URL not set');
-  }
-
-  if (!process.env['ANKR_RPC_URL']) {
-    throw new Error('ANKR_RPC_URL not set');
-  }
-
-  console.log(process.env['BACKEND_URL']);
-
-  const API_ENDPOINT = process.env['BACKEND_URL'];
-  const provider = new JsonRpcProvider(process.env['ANKR_RPC_URL']);
+describe('Order Socket', () => {
+  const API_ENDPOINT = 'http://localhost:8080';
+  const provider = new JsonRpcProvider('localhost:8545');
   const pk =
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
   const wallet = new Wallet(pk, provider);
@@ -33,16 +23,18 @@ describe.skip('Order Socket', () => {
     signer: wallet,
   });
 
-  const DUMMY_API_ENDPOINT = 'ws://localhost:8080';
+  const DUMMY_API_ENDPOINT = 'ws://localhost:8081';
+
+  beforeAll(() => {
+    startWsServer();
+  });
   it(
     'should subscribe and listen to orders',
     async () => {
       const orderbookOrders = await orderbook.getOrders(
         await wallet.getAddress()
       );
-      const ordersSocket = new OrdersSocket(
-        API_ENDPOINT.replace('https', 'wss')
-      );
+      const ordersSocket = new OrdersSocket(API_ENDPOINT.replace('http', 'ws'));
       const ordersSocketOrders: Orders = await new Promise(
         async (resolve, reject) => {
           ordersSocket.subscribe(await wallet.getAddress(), (orders) => {
@@ -63,7 +55,6 @@ describe.skip('Order Socket', () => {
       const ordersSocket = new OrdersSocket(DUMMY_API_ENDPOINT);
       const orders: Orders = await new Promise(async (resolve, reject) => {
         ordersSocket.subscribe(await wallet.getAddress(), (orders) => {
-          console.log(orders);
           resolve(orders);
         });
       });
@@ -75,7 +66,7 @@ describe.skip('Order Socket', () => {
     10 * 1000
   );
 
-  it.only(
+  it(
     'should retry after timeout',
     async () => {
       const ordersSocket = new OrdersSocket(DUMMY_API_ENDPOINT);

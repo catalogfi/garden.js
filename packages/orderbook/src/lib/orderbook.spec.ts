@@ -14,23 +14,17 @@ import { describe, test, expect } from 'vitest';
 dotenv.config({ path: path.resolve(__dirname, '..', '..', '.env') });
 
 describe.only('orderbook', () => {
-  if (!process.env['BACKEND_URL']) {
-    throw new Error('BACKEND_URL not set');
-  }
-  const API_ENDPOINT = process.env['BACKEND_URL'];
-  if (!process.env['ANKR_RPC_URL']) {
-    throw new Error('ANKR_RPC_URL not set');
-  }
+  const API_ENDPOINT = 'localhost:8080';
 
   const bitcoin_testnet_address = 'tb1qf97p3cwpzkqxwqy5akj22eqrqksumd9t2hwl8j';
   const sepolia_address = '0x236396E7c79ef96232AA052aF8ee4eb1bCBC0830';
   const pk =
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
 
-  const provider = new JsonRpcProvider(process.env['ANKR_RPC_URL']);
+  const provider = new JsonRpcProvider('http://localhost:8545');
   const wallet = new Wallet(pk, provider);
   const orderbook = new Orderbook({
-    url: 'https://' + API_ENDPOINT + '/',
+    url: 'http://' + API_ENDPOINT + '/',
     signer: wallet,
   });
 
@@ -39,8 +33,8 @@ describe.only('orderbook', () => {
     const outputAmount = 0.001;
 
     const createOrderConfig = {
-      fromAsset: Assets.bitcoin_testnet.BTC,
-      toAsset: Assets.ethereum_sepolia.WBTC,
+      fromAsset: Assets.bitcoin_regtest.BTC,
+      toAsset: Assets.ethereum_localnet.WBTC,
       sendAddress: bitcoin_testnet_address,
       receiveAddress: sepolia_address,
       sendAmount: inputAmount.toString(),
@@ -65,8 +59,8 @@ describe.only('orderbook', () => {
     const outputAmount = inputAmount - 0.01 * inputAmount;
 
     const response = await orderbook.createOrder({
-      fromAsset: Assets.bitcoin_testnet.BTC,
-      toAsset: Assets.ethereum_sepolia.WBTC,
+      fromAsset: Assets.bitcoin_regtest.BTC,
+      toAsset: Assets.ethereum_localnet.WBTC,
       sendAddress: bitcoin_testnet_address,
       receiveAddress: sepolia_address,
       sendAmount: inputAmount.toString(),
@@ -107,7 +101,7 @@ describe.only('orderbook', () => {
   test('should initiate with an auth token', async () => {
     const store = new MemoryStorage();
     await Orderbook.init({
-      url: 'https://' + API_ENDPOINT + '/',
+      url: 'http://' + API_ENDPOINT + '/',
       signer: wallet,
       opts: {
         store,
