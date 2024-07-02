@@ -73,7 +73,7 @@ describe.only('orderbook', () => {
     expect(response).toBeGreaterThan(0);
   }, 15000);
 
-  test('should return orders where the user is the maker', async () => {
+  test('subscribe orders should trigger the callback when an order are updated', async () => {
     const res = await orderbook.getOrders(wallet.address, {
       taker: false,
       verbose: true,
@@ -98,7 +98,7 @@ describe.only('orderbook', () => {
     expect(orders.length).toBeGreaterThanOrEqual(0);
   }, 35000);
 
-  test('should initiate with an auth token', async () => {
+  test('init should create the orderbook with an auth token', async () => {
     const store = new MemoryStorage();
     await Orderbook.init({
       url: 'http://' + API_ENDPOINT + '/',
@@ -108,5 +108,40 @@ describe.only('orderbook', () => {
       },
     });
     expect(store.getItem(StoreKeys.AUTH_TOKEN)).toBeTruthy();
+  });
+
+  test('should get a single order', async () => {
+    const inputAmount = 0.001 * 1e8;
+    const outputAmount = inputAmount - 0.01 * inputAmount;
+
+    const orderId = await orderbook.createOrder({
+      fromAsset: Assets.bitcoin_regtest.BTC,
+      toAsset: Assets.ethereum_localnet.WBTC,
+      sendAddress: bitcoin_testnet_address,
+      receiveAddress: sepolia_address,
+      sendAmount: inputAmount.toString(),
+      receiveAmount: outputAmount.toString(),
+      secretHash: sha256(crypto.randomBytes(32)),
+      btcInputAddress: bitcoin_testnet_address,
+    });
+
+    const order = await orderbook.getOrder(orderId);
+    expect(orderId).toEqual(order.ID);
+  });
+
+  test('should be able to get supported assets', async () => {
+    const assets = await orderbook.getSupportedContracts();
+    expect(assets).toBeDefined();
+    // bitcoin_regtest, ethereum_localnet, ethereum_arbitrumlocalnet
+    expect(assets.bitcoin_regtest).toBeDefined();
+    expect(assets.ethereum_localnet).toBeDefined();
+    expect(assets.ethereum_arbitrumlocalnet).toBeDefined();
+    expect(assets.bitcoin_regtest).toBe('primary');
+    expect(assets.ethereum_localnet).toBe(
+      '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512'
+    );
+    expect(assets.ethereum_arbitrumlocalnet).toBe(
+      '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9'
+    );
   });
 });
