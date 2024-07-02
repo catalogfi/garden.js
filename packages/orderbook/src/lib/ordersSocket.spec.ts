@@ -12,18 +12,18 @@ import { describe, it, expect, beforeAll } from 'vitest';
 dotenv.config({ path: path.resolve(__dirname, '..', '..', '.env') });
 
 describe('Order Socket', () => {
-  const API_ENDPOINT = 'http://localhost:8080';
+  const OrderbookApi = 'http://localhost:8080';
   const provider = new JsonRpcProvider('localhost:8545');
   const pk =
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
   const wallet = new Wallet(pk, provider);
 
   const orderbook = new Orderbook({
-    url: API_ENDPOINT,
+    url: OrderbookApi,
     signer: wallet,
   });
 
-  const DUMMY_API_ENDPOINT = 'ws://localhost:8081';
+  const DUMMY_OrderbookApi = 'ws://localhost:8081';
 
   beforeAll(() => {
     startWsServer();
@@ -34,7 +34,7 @@ describe('Order Socket', () => {
       const orderbookOrders = await orderbook.getOrders(
         await wallet.getAddress()
       );
-      const ordersSocket = new OrdersSocket(API_ENDPOINT.replace('http', 'ws'));
+      const ordersSocket = new OrdersSocket(OrderbookApi.replace('http', 'ws'));
       const ordersSocketOrders: Orders = await new Promise(
         async (resolve, reject) => {
           ordersSocket.subscribe(await wallet.getAddress(), (orders) => {
@@ -52,7 +52,7 @@ describe('Order Socket', () => {
   it(
     'should retry when error is encountered and get orders',
     async () => {
-      const ordersSocket = new OrdersSocket(DUMMY_API_ENDPOINT);
+      const ordersSocket = new OrdersSocket(DUMMY_OrderbookApi);
       const orders: Orders = await new Promise(async (resolve, reject) => {
         ordersSocket.subscribe(await wallet.getAddress(), (orders) => {
           resolve(orders);
@@ -69,7 +69,7 @@ describe('Order Socket', () => {
   it(
     'should retry after timeout',
     async () => {
-      const ordersSocket = new OrdersSocket(DUMMY_API_ENDPOINT);
+      const ordersSocket = new OrdersSocket(DUMMY_OrderbookApi);
 
       let counter = 0;
       let orders: Orders = await new Promise(async (resolve, reject) => {

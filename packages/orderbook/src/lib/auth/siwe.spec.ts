@@ -10,13 +10,13 @@ dotenv.config({ path: path.resolve(__dirname, '..', '..', '..', '.env') });
 
 describe('Siwe', () => {
   const provider = new JsonRpcProvider('http://localhost:8545');
-  const API_ENDPOINT = 'http://localhost:8080';
+  const OrderbookApi = 'http://localhost:8080';
   const pk =
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
 
   const wallet = new Wallet(pk, provider);
 
-  const url = new Url('/', API_ENDPOINT);
+  const url = new Url('/', OrderbookApi);
 
   describe('construction', () => {
     it('should be made with https domains', async () => {
