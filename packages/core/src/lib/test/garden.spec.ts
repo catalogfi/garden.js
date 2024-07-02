@@ -20,7 +20,7 @@ const orderStatus = (order: Order) =>
   +`${order.status}${order.initiatorAtomicSwap.swapStatus}${order.followerAtomicSwap.swapStatus}`;
 
 describe('Garden', () => {
-  const API_ENDPOINT = 'localhost:8080';
+  const OrderbookApi = 'localhost:8080';
 
   const provider = new JsonRpcProvider('http://localhost:8545');
   const mnemonic = generateMnemonic();
@@ -30,7 +30,7 @@ describe('Garden', () => {
   const ethereumSigner = new Wallet(pk, provider);
 
   const orderbook = new Orderbook({
-    url: 'http://' + API_ENDPOINT,
+    url: 'http://' + OrderbookApi,
     signer: ethereumSigner,
   });
   const bitcoinProvider = new BitcoinProvider(
@@ -178,7 +178,6 @@ describe('Garden', () => {
               if (currentStatus === status) {
                 return;
               }
-              console.log(currentStatus);
               if (currentStatus === 200 || currentStatus === 222) {
                 await garden.getSwap(currentOrder).next();
                 statusChanged = true;
