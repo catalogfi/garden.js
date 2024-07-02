@@ -1,7 +1,6 @@
 import { JsonRpcProvider, Wallet } from 'ethers';
 import { Chains, Order, Orderbook } from '@gardenfi/orderbook';
 import {
-  AddressType,
   BitcoinNetwork,
   BitcoinOTA,
   BitcoinProvider,
@@ -12,7 +11,7 @@ import {
 } from '@catalogfi/wallets';
 import { GardenJS } from '../garden';
 import { Assets } from '@gardenfi/orderbook';
-import { CatalogErrors } from '../errors';
+import { GardenErrors } from '../errors';
 import { fund } from './testUtils';
 
 import { describe, it, expect } from 'vitest';
@@ -20,7 +19,7 @@ import { describe, it, expect } from 'vitest';
 const orderStatus = (order: Order) =>
   +`${order.status}${order.initiatorAtomicSwap.swapStatus}${order.followerAtomicSwap.swapStatus}`;
 
-describe('Catalog', () => {
+describe('Garden', () => {
   const API_ENDPOINT = 'localhost:8080';
 
   const provider = new JsonRpcProvider('http://localhost:8545');
@@ -54,7 +53,7 @@ describe('Catalog', () => {
           sendAmount,
           receiveAmount
         )
-    ).rejects.toThrow(CatalogErrors.WALLET_NOT_FOUND(true));
+    ).rejects.toThrow(GardenErrors.WALLET_NOT_FOUND(true));
   });
 
   it("cannot swap if there's no to wallet", async () => {
@@ -69,23 +68,23 @@ describe('Catalog', () => {
           sendAmount,
           receiveAmount
         )
-    ).rejects.toThrow(CatalogErrors.WALLET_NOT_FOUND(false));
+    ).rejects.toThrow(GardenErrors.WALLET_NOT_FOUND(false));
   });
 
   it("cannot swap if there's no bitcoin wallet", async () => {
-    const catalog = new GardenJS(orderbook, {
+    const garden = new GardenJS(orderbook, {
       ethereum_localnet: new EVMWallet(ethereumSigner),
       ethereum: new EVMWallet(ethereumSigner),
     });
 
     expect(async () => {
-      await catalog.swap(
+      await garden.swap(
         Assets.ethereum_localnet.WBTC,
         Assets.ethereum_localnet.WBTC,
         sendAmount,
         receiveAmount
       );
-    }).rejects.toThrow(CatalogErrors.CHAIN_WALLET_NOT_FOUND('EVM'));
+    }).rejects.toThrow(GardenErrors.CHAIN_WALLET_NOT_FOUND('EVM'));
   });
 
   it('should be able to create order with valid parameters', async () => {
