@@ -1,4 +1,4 @@
-import { Fetcher, trim0x } from "@catalogfi/utils";
+import { Fetcher, trim0x } from '@catalogfi/utils';
 import {
   CreateOrderConfig,
   CreateOrderResponse,
@@ -8,17 +8,17 @@ import {
   OrderConfig,
   OrderNonVerbose,
   OrderbookConfig,
-} from "./orderbook.types";
-import { OrdersSocket } from "./ordersSocket";
-import { Siwe } from "./auth/siwe";
-import { IAuth } from "./auth/auth.interface";
-import { orderPairGenerator } from "./orderpair";
-import { OrderbookErrors } from "./errors";
-import { StoreKeys } from "./store/store.interface";
-import { MemoryStorage } from "./store/memoryStorage";
-import { API } from "./api";
-import { Url } from "./url";
-import { Chain, SupportedContracts } from "./asset";
+} from './orderbook.types';
+import { OrdersSocket } from './ordersSocket';
+import { Siwe } from './auth/siwe';
+import { IAuth } from './auth/auth.interface';
+import { orderPairGenerator } from './orderpair';
+import { OrderbookErrors } from './errors';
+import { StoreKeys } from './store/store.interface';
+import { MemoryStorage } from './store/memoryStorage';
+import { API } from './api';
+import { Url } from './url';
+import { Chain, SupportedContracts } from './asset';
 
 /**
  * A class that allows you to create and manage orders with the backend url.
@@ -39,7 +39,7 @@ export class Orderbook implements IOrderbook {
    *
    */
   constructor(orderbookConfig: OrderbookConfig) {
-    this.url = new Url("/", orderbookConfig.url ?? API);
+    this.url = new Url('/', orderbookConfig.url ?? API);
     this.orderSocket = new OrdersSocket(this.url.socket());
 
     this.auth = new Siwe(this.url, orderbookConfig.signer, {
@@ -56,7 +56,7 @@ export class Orderbook implements IOrderbook {
 
   static async init(orderbookConfig: OrderbookConfig) {
     const auth = new Siwe(
-      new Url("/", orderbookConfig.url ?? API),
+      new Url('/', orderbookConfig.url ?? API),
       orderbookConfig.signer,
       orderbookConfig.opts
     );
@@ -76,7 +76,8 @@ export class Orderbook implements IOrderbook {
     if (Object.keys(this.supportedContracts).length > 0)
       return this.supportedContracts;
 
-    const url = this.url.endpoint("assets");
+    const url = this.url.endpoint('assets');
+
     const assetsFromOrderbook = await Fetcher.get<
       Partial<Record<Chain, string[]>>
     >(url);
@@ -109,7 +110,7 @@ export class Orderbook implements IOrderbook {
     const contracts = await this.getSupportedContracts();
     const orderPair = orderPairGenerator(fromAsset, toAsset, contracts);
 
-    const url = this.url.endpoint("orders");
+    const url = this.url.endpoint('orders');
     const { orderId } = await Fetcher.post<CreateOrderResponse>(url, {
       body: JSON.stringify({
         ...rest,
@@ -133,11 +134,11 @@ export class Orderbook implements IOrderbook {
   ): Promise<(T extends true ? Order : OrderNonVerbose)[]> {
     const ordersResponse = await Fetcher.get<GetOrdersOutput<T>>(
       this.url +
-        "orders?" +
+        'orders?' +
         new URLSearchParams({
           ...(orderConfig?.taker ? { taker: address } : { maker: address }),
-          verbose: orderConfig?.verbose ? "true" : "false",
-          ...(orderConfig?.pending ? { status: "2" } : {}),
+          verbose: orderConfig?.verbose ? 'true' : 'false',
+          ...(orderConfig?.pending ? { status: '2' } : {}),
         })
     );
 
@@ -160,10 +161,10 @@ export class Orderbook implements IOrderbook {
     const { sendAmount, receiveAmount } = config;
     const inputAmount = +sendAmount;
     const outputAmount = +receiveAmount;
-    if (isNaN(inputAmount) || inputAmount <= 0 || sendAmount.includes("."))
+    if (isNaN(inputAmount) || inputAmount <= 0 || sendAmount.includes('.'))
       throw new Error(OrderbookErrors.INVALID_SEND_AMOUNT);
 
-    if (isNaN(outputAmount) || outputAmount <= 0 || receiveAmount.includes("."))
+    if (isNaN(outputAmount) || outputAmount <= 0 || receiveAmount.includes('.'))
       throw new Error(OrderbookErrors.INVALID_RECEIVE_AMOUNT);
   }
 }

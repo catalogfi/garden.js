@@ -1,44 +1,45 @@
-import { WebSocketServer } from "ws";
-import * as http from "http";
-const port = 8080;
+import { WebSocketServer } from 'ws';
+import * as http from 'http';
 
-const httpServer = http.createServer().listen(port);
+export const startWsServer = () => {
+  const port = 8081;
 
-const wss = new WebSocketServer({ server: httpServer });
+  const httpServer = http.createServer().listen(port);
 
-const orders = [
+  const wss = new WebSocketServer({ server: httpServer });
+
+  const orders = [
     {
-        ID: 1,
+      ID: 1,
     },
     {
-        ID: 2,
+      ID: 2,
     },
-];
+  ];
 
-let counter = 0;
+  let counter = 0;
 
-wss.on("connection", (ws) => {
-    console.log("client connected");
-
-    ws.on("message", (message) => {
-        if (counter == 0) {
-            //send error first
-            ws.send(
-                JSON.stringify({
-                    type: "rest.WebsocketError",
-                })
-            );
-        } else {
-            //send all
-            ws.send(
-                JSON.stringify({
-                    type: "rest.UpdatedOrders",
-                    msg: {
-                        orders,
-                    },
-                })
-            );
-        }
-        counter++;
+  wss.on('connection', (ws) => {
+    ws.on('message', (message) => {
+      if (counter == 0) {
+        //send error first
+        ws.send(
+          JSON.stringify({
+            type: 'rest.WebsocketError',
+          })
+        );
+      } else {
+        //send all
+        ws.send(
+          JSON.stringify({
+            type: 'rest.UpdatedOrders',
+            msg: {
+              orders,
+            },
+          })
+        );
+      }
+      counter++;
     });
-});
+  });
+};
