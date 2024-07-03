@@ -159,6 +159,8 @@ describe('Garden', () => {
 
       const oldBtcBalance = await bitcoinWallet.getBalance();
 
+      let txHash: string = '';
+
       expect(orderId).toBeTruthy();
 
       let statusChanged = false;
@@ -179,7 +181,7 @@ describe('Garden', () => {
                 return;
               }
               if (currentStatus === 200 || currentStatus === 222) {
-                await garden.getSwap(currentOrder).next();
+                txHash = (await garden.getSwap(currentOrder).next()).output;
                 statusChanged = true;
                 status = currentStatus;
               }
@@ -203,8 +205,21 @@ describe('Garden', () => {
 
       const newBtcBalance = await bitcoinWallet.getBalance();
 
-      expect(receiveAmount).greaterThan(newBtcBalance - oldBtcBalance);
+      expect(receiveAmount).toEqual(
+        newBtcBalance -
+          oldBtcBalance +
+          (await getFeeFromTxId(bitcoinProvider, txHash))
+      );
     },
     1000 * 1000
   );
 });
+
+const getFeeFromTxId = async (
+  provider: BitcoinProvider,
+  txid: string
+): Promise<number> => {
+  const tx = await provider.getTransaction(txid);
+
+  return tx.fee;
+};
