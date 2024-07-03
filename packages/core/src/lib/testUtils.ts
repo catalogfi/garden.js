@@ -65,6 +65,7 @@ const atomicSwapFactory = ({
 export const orderFactory = ({
   secret,
   secretHash,
+  userBtcWalletAddress,
   secretNonce,
   initiatorInitatorAddress,
   initiatorRedeemerAddress,
@@ -76,6 +77,7 @@ export const orderFactory = ({
   secret: string;
   secretHash: string;
   secretNonce: number;
+  userBtcWalletAddress: string;
   initiatorInitatorAddress: string;
   initiatorRedeemerAddress: string;
   followerInitiatorAddress: string;
@@ -116,7 +118,7 @@ export const orderFactory = ({
     price: 0,
     status: 1,
     secretNonce,
-    userBtcWalletAddress: initiatorInitatorAddress, //param
+    userBtcWalletAddress, //param
     RandomMultiplier: 0,
     RandomScore: 0,
     fee: 0,
