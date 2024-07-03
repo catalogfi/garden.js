@@ -31,17 +31,14 @@ describe('Order Socket', () => {
   it(
     'should subscribe and listen to orders',
     async () => {
-      const orderbookOrders = await orderbook.getOrders(
-        await wallet.getAddress()
-      );
+      const address = await wallet.getAddress();
+      const orderbookOrders = await orderbook.getOrders(address);
       const ordersSocket = new OrdersSocket(OrderbookApi.replace('http', 'ws'));
-      const ordersSocketOrders: Orders = await new Promise(
-        async (resolve, reject) => {
-          ordersSocket.subscribe(await wallet.getAddress(), (orders) => {
-            resolve(orders);
-          });
-        }
-      );
+      const ordersSocketOrders: Orders = await new Promise((resolve) => {
+        ordersSocket.subscribe(address, (orders) => {
+          resolve(orders);
+        });
+      });
 
       expect(orderbookOrders.length).toEqual(ordersSocketOrders.length);
       ordersSocket.unsubscribe();
@@ -52,9 +49,10 @@ describe('Order Socket', () => {
   it(
     'should retry when error is encountered and get orders',
     async () => {
+      const address = await wallet.getAddress();
       const ordersSocket = new OrdersSocket(DUMMY_OrderbookApi);
-      const orders: Orders = await new Promise(async (resolve, reject) => {
-        ordersSocket.subscribe(await wallet.getAddress(), (orders) => {
+      const orders: Orders = await new Promise((resolve) => {
+        ordersSocket.subscribe(address, (orders) => {
           resolve(orders);
         });
       });
@@ -70,10 +68,10 @@ describe('Order Socket', () => {
     'should retry after timeout',
     async () => {
       const ordersSocket = new OrdersSocket(DUMMY_OrderbookApi);
-
+      const address = await wallet.getAddress();
       let counter = 0;
-      let orders: Orders = await new Promise(async (resolve, reject) => {
-        ordersSocket.subscribe(await wallet.getAddress(), (socketOrders) => {
+      const orders: Orders = await new Promise((resolve) => {
+        ordersSocket.subscribe(address, (socketOrders) => {
           counter++;
           if (counter == 2) resolve(socketOrders);
         });

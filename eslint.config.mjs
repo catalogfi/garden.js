@@ -12,4 +12,7 @@ export default [
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
+  {
+    ignores: ['**/dist/*', '**/build/*', 'scripts'],
+  },
 ];
