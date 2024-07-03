@@ -11,7 +11,7 @@ The Garden SDK is a set of typescript packages that allow you to bridge Bitcoin 
 
 ## Docs
 
-Check out our [docs](https://docs.garden.finance/developers/sdk/introduction) to learn more about Garden and how to build on it. 
+Check out our [docs](https://docs.garden.finance/developers/sdk) to learn more about Garden and how to build on it. 
 
 ## Contributing
 
