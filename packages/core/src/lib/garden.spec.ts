@@ -9,9 +9,9 @@ import {
   generateMnemonic,
   mnemonicToPrivateKey,
 } from '@catalogfi/wallets';
-import { GardenJS } from '../garden';
+import { GardenJS } from './garden';
 import { Assets } from '@gardenfi/orderbook';
-import { GardenErrors } from '../errors';
+import { GardenErrors } from './errors';
 import { fund } from './testUtils';
 
 import { describe, it, expect } from 'vitest';
@@ -175,6 +175,10 @@ describe('Garden', () => {
           try {
             if (currentOrder) {
               const currentStatus = orderStatus(currentOrder);
+              console.log(
+                currentStatus,
+                currentOrder.initiatorAtomicSwap.initiateTxHash
+              );
               if (currentStatus === status) {
                 return;
               }
