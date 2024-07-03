@@ -2,12 +2,13 @@
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 import pkg from './package.json';
+import eslint from 'vite-plugin-eslint';
 
 export default defineConfig({
   cacheDir: '../node_modules/.vite/orderbook',
 
   plugins: [
-    // nodePolyfills(),
+    eslint(),
     dts({
       outDir: './dist',
       pathsToAliases: false,

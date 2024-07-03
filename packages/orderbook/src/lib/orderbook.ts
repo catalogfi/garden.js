@@ -102,7 +102,6 @@ export class Orderbook implements IOrderbook {
       secretHash,
       receiveAmount,
       fromAsset,
-      feeInSeed,
       toAsset,
       ...rest
     } = createOrderConfig;

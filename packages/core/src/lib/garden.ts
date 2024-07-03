@@ -8,12 +8,7 @@ import { GardenErrors } from './errors';
 import { with0x } from '@catalogfi/utils';
 import { Connector, isCatalogWalletInstalled } from '@catalogfi/extension';
 import { catalogWalletActions } from './catalogActions';
-import {
-  AbstractBitcoinWallet,
-  BitcoinWallet,
-  IBaseWallet,
-  IBitcoinWallet,
-} from '@catalogfi/wallets';
+import { AbstractBitcoinWallet, IBaseWallet } from '@catalogfi/wallets';
 
 /**
  * GardenJS is the core component of the Garden SDK. It allows you to create orders,
