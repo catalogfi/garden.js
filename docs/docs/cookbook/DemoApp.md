@@ -1,11 +1,11 @@
 ---
-id: swapper-frontend
+id: demo-app
 ---
 
-# Swapper Frontend
+# Demo App
 
 :::note
-This guide is meant to be followed along side [Swapper Frontend](https://github.com/gardenfi/swapper-frontend) and is not meant for production use; it is merely an example to help you get started with the SDK.
+This guide is meant to be followed along side the [gardenfi/demo-app](https://github.com/gardenfi/demo-app) and is not meant for production use; it is merely an example to help you get started with the SDK.
 :::
 
 ## Introduction
@@ -148,7 +148,7 @@ function App() {
 export default App;
 ```
 
-We haven't employed Tailwind CSS or any other CSS library, and discussing CSS specifics for the app is outside the scope of this guide. However, you can find all the CSS code on GitHub [here](https://github.com/gardenfi/swapper-frontend/blob/main/src/App.css).
+We haven't employed Tailwind CSS or any other CSS library, and discussing CSS specifics for the app is outside the scope of this guide. However, you can find all the CSS code on GitHub [here](https://github.com/gardenfi/demo-app/blob/main/src/App.css).
 
 In this setup, `SwapComponent` includes the code for the swap screen, while `TransactionsComponent` contains the code for fetching the latest transactions of the currently active EVM account. Additionally, `TransactionsComponent` calls the `useGardenSetup` hook, which establishes the Garden instance.
 
@@ -335,4 +335,4 @@ const parsedStatus = parseStatus(order);
 // parsedStatus could be one of these (UserCanInitiate, UserCanRedeem, UserCanRefund etc.)
 ```
 
-Checkout full code [here](https://github.com/gardenfi/swapper-frontend).
+Checkout full code [here](https://github.com/gardenfi/demo-app).

@@ -102,8 +102,8 @@ const sidebars: SidebarsConfig = {
 
     cookbook: [
         "cookbook/cookbook",
-        "cookbook/swapper-cli",
-        "cookbook/swapper-frontend"
+        "cookbook/demo-cli",
+        "cookbook/demo-app"
     ],
 
     community: [

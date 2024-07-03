@@ -1,11 +1,11 @@
 ---
-id: swapper-cli
+id: demo-cli
 ---
 
-# Swapper CLI
+# Demo CLI
 
 :::note
-This guide is provided as an example to help you get accustomed to using the Garden SDK. It is not intended to serve as a standard for creating CLI tools with the Garden SDK. A proper tool will take into consideration many best practices and optimizations. In the example below, we have cut a lot of corners for simplicity. Full code is available here [Swapper CLI](https://github.com/gardenfi/swapper-cli).
+This guide is provided as an example to help you get accustomed to using the Garden SDK. It is not intended to serve as a standard for creating CLI tools with the Garden SDK. A proper tool will take into consideration many best practices and optimizations. In the example below, we have cut a lot of corners for simplicity. Full code is available here [gardenfi/demo-cli](https://github.com/gardenfi/demo-cli).
 :::
 
 # Introduction
@@ -20,7 +20,7 @@ This guide will walk you through building your own command-line interface (CLI) 
 
 You should have [Bun](https://bun.sh/), but you can use Nodejs too.
 
-```console
+```shell
 # Linux and macOS
 curl -fsSL https://bun.sh/install | bash
 
@@ -31,8 +31,8 @@ powershell -c "irm bun.sh/install.ps1 | iex"
 # Setting up your environment
 
 ```shell
-mkdir swapper-cli
-cd swapper-cli
+mkdir demo-cli
+cd demo-cli
 bun init -y
 ```
 
@@ -508,6 +508,8 @@ ccreator.command("swapbtctowbtc", "Swaps from BTC to WBTC", async () => {
 
 ccreator.parse();
 ```
+
+![swapbtctowbtc](./images/swapper_swapbtctowbtc.png)
 
 Ta-da! 🎉 Now you have both **WBTC to BTC** & **BTC to WBTC** swaps working.
 
