@@ -1,5 +1,5 @@
 import { exec } from 'child_process';
-import { AtomicSwap, Chain, Order } from '@gardenfi/orderbook';
+import { AtomicSwap, Order } from '@gardenfi/orderbook';
 import {
   Contract,
   Interface,
@@ -65,37 +65,23 @@ const atomicSwapFactory = ({
 export const orderFactory = ({
   secret,
   secretHash,
-  userBtcWalletAddress,
   secretNonce,
-  initiatorTimelock,
-  followerTimelock,
-  initiatorAmount,
-  followerAmount,
   initiatorInitatorAddress,
   initiatorRedeemerAddress,
   followerInitiatorAddress,
   followerRedeemerAddress,
-  initiatorChain,
-  redeemerChain,
-  initiatorAsset,
-  followerAsset,
+  fromBitcoin,
+  contractAddress,
 }: {
   secret: string;
   secretHash: string;
   secretNonce: number;
-  userBtcWalletAddress: string;
-  initiatorTimelock: string;
-  followerTimelock: string;
-  initiatorAmount: string;
-  followerAmount: string;
   initiatorInitatorAddress: string;
   initiatorRedeemerAddress: string;
   followerInitiatorAddress: string;
   followerRedeemerAddress: string;
-  initiatorChain: Chain;
-  redeemerChain: Chain;
-  initiatorAsset: string;
-  followerAsset: string;
+  fromBitcoin: boolean;
+  contractAddress: string;
 }): Order => {
   return {
     ID: 0,
@@ -109,28 +95,28 @@ export const orderFactory = ({
     FollowerAtomicSwapID: 0,
     initiatorAtomicSwap: atomicSwapFactory({
       secret,
-      timelock: initiatorTimelock,
-      amount: initiatorAmount,
+      timelock: '2',
+      amount: '100000',
       initiatorAddress: initiatorInitatorAddress,
       redeemerAddress: initiatorRedeemerAddress,
-      chain: initiatorChain,
-      asset: initiatorAsset,
+      chain: fromBitcoin ? 'bitcoin_regtest' : 'ethereum_localnet',
+      asset: fromBitcoin ? 'primary' : contractAddress,
     }),
     followerAtomicSwap: atomicSwapFactory({
       secret,
-      timelock: followerTimelock,
-      amount: followerAmount,
+      timelock: '2',
+      amount: '99900',
       initiatorAddress: followerInitiatorAddress,
       redeemerAddress: followerRedeemerAddress,
-      chain: redeemerChain,
-      asset: followerAsset,
+      chain: fromBitcoin ? 'ethereum_localnet' : 'bitcoin_regtest',
+      asset: fromBitcoin ? contractAddress : 'primary',
     }),
     secretHash, //param
     secret, //param
     price: 0,
     status: 1,
     secretNonce,
-    userBtcWalletAddress, //param
+    userBtcWalletAddress: initiatorInitatorAddress, //param
     RandomMultiplier: 0,
     RandomScore: 0,
     fee: 0,

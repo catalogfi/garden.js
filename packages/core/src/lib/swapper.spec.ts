@@ -60,19 +60,12 @@ describe('Swapper', () => {
       secret,
       secretHash,
       secretNonce,
-      userBtcWalletAddress: await aliceBtcWallet.getAddress(),
-      initiatorTimelock: '2',
-      followerTimelock: '2',
-      initiatorAmount: '100000',
-      followerAmount: '99900',
       initiatorInitatorAddress: await aliceBtcWallet.getAddress(),
       initiatorRedeemerAddress: await bobBtcWallet.getAddress(),
       followerInitiatorAddress: await bobEvmWallet.getAddress(),
       followerRedeemerAddress: await aliceEvmWallet.getAddress(),
-      initiatorChain: 'bitcoin_regtest',
-      redeemerChain: 'ethereum_localnet',
-      initiatorAsset: 'primary',
-      followerAsset: contractAddress,
+      fromBitcoin: true,
+      contractAddress,
     });
 
     const swapper = new Swapper(order, {
@@ -120,19 +113,12 @@ describe('Swapper', () => {
         secret,
         secretHash,
         secretNonce,
-        userBtcWalletAddress: await aliceBtcWallet.getAddress(),
-        initiatorTimelock: '2',
-        followerTimelock: '2',
-        initiatorAmount: '100000',
-        followerAmount: '99900',
         initiatorInitatorAddress: await aliceBtcWallet.getAddress(),
         initiatorRedeemerAddress: await bobBtcWallet.getAddress(),
         followerInitiatorAddress: await bobEvmWallet.getAddress(),
         followerRedeemerAddress: await aliceEvmWallet.getAddress(),
-        initiatorChain: 'bitcoin_regtest',
-        redeemerChain: 'ethereum_localnet',
-        initiatorAsset: 'primary',
-        followerAsset: contractAddress,
+        fromBitcoin: true,
+        contractAddress,
       });
 
       const aliceSwapper = new Swapper(order, {
@@ -202,19 +188,12 @@ describe('Swapper', () => {
         secret,
         secretHash,
         secretNonce,
-        userBtcWalletAddress: await aliceBtcWallet.getAddress(),
-        initiatorTimelock: '2',
-        followerTimelock: '2',
-        initiatorAmount: '100000',
-        followerAmount: '99900',
         initiatorInitatorAddress: await aliceEvmWallet.getAddress(),
         initiatorRedeemerAddress: await bobEvmWallet.getAddress(),
         followerInitiatorAddress: await bobBtcWallet.getAddress(),
         followerRedeemerAddress: await aliceBtcWallet.getAddress(),
-        initiatorChain: 'ethereum_localnet',
-        redeemerChain: 'bitcoin_regtest',
-        initiatorAsset: contractAddress,
-        followerAsset: 'primary',
+        fromBitcoin: false,
+        contractAddress,
       });
 
       await fund(await aliceEvmWallet.getAddress());
@@ -286,23 +265,14 @@ describe('Swapper', () => {
         secret,
         secretHash,
         secretNonce,
-        userBtcWalletAddress: await aliceBtcWallet.getAddress(),
-        initiatorTimelock: '2',
-        followerTimelock: '2',
-        initiatorAmount: '100000',
-        followerAmount: '99900',
         initiatorInitatorAddress: await aliceEvmWallet.getAddress(),
         initiatorRedeemerAddress: await bobEvmWallet.getAddress(),
         followerInitiatorAddress: await bobBtcWallet.getAddress(),
         followerRedeemerAddress: await aliceBtcWallet.getAddress(),
-        initiatorChain: 'ethereum_localnet',
-        redeemerChain: 'bitcoin_regtest',
-        initiatorAsset: contractAddress,
-        followerAsset: 'primary',
+        fromBitcoin: false,
+        contractAddress,
       });
 
-      //   await fundEvmAddress(evmProvider, await aliceEvmWallet.getAddress());
-      //   await fundTokens(aliceEvmWallet, 11155111, contractAddress);
       await fund(await aliceEvmWallet.getAddress());
 
       await new Promise((resolve) => setTimeout(resolve, 20 * 1000));

@@ -175,10 +175,6 @@ describe('Garden', () => {
           try {
             if (currentOrder) {
               const currentStatus = orderStatus(currentOrder);
-              console.log(
-                currentStatus,
-                currentOrder.initiatorAtomicSwap.initiateTxHash
-              );
               if (currentStatus === status) {
                 return;
               }
