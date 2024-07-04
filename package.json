@@ -30,5 +30,6 @@
     "vite-plugin-dts": "^3.7.3",
     "vite-plugin-eslint": "^1.8.1",
     "vitest": "^1.6.0"
-  }
+  },
+  "packageManager": "yarn@4.3.1"
 }

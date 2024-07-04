@@ -20,7 +20,7 @@ const orderStatus = (order: Order) =>
   +`${order.status}${order.initiatorAtomicSwap.swapStatus}${order.followerAtomicSwap.swapStatus}`;
 
 describe('Garden', () => {
-  const OrderbookApi = 'localhost:8080';
+  const OrderbookApi = '127.0.0.1:8080';
 
   const provider = new JsonRpcProvider('http://localhost:8545');
   const mnemonic = generateMnemonic();
