@@ -13,7 +13,7 @@ import { StoreKeys } from './store/store.interface';
 import { describe, test, expect } from 'vitest';
 dotenv.config({ path: path.resolve(__dirname, '..', '..', '.env') });
 
-describe.only('orderbook', () => {
+describe('orderbook', () => {
   const OrderbookApi = 'localhost:8080';
 
   const bitcoin_testnet_address = 'tb1qf97p3cwpzkqxwqy5akj22eqrqksumd9t2hwl8j';
