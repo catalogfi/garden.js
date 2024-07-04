@@ -1,0 +1,46 @@
+name: Run Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          registry-url: https://registry.npmjs.org/
+      - name: Install merry
+        run: curl https://get.merry.dev | bash
+      - name: Start merry
+        run: merry go --bare
+      - name: install dependencies
+        run: |
+          corepack enable
+          yarn set version 4.3.1
+          yarn install
+          yarn run build
+      - run: yarn run test
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          registry-url: https://registry.npmjs.org/
+      - name: Install merry
+        run: curl https://get.merry.dev | bash
+      - name: Start merry
+        run: merry go --bare
+      - name: install dependencies
+        run: |
+          corepack enable
+          yarn set version 4.3.1
+          yarn install
+      - run: yarn run build
