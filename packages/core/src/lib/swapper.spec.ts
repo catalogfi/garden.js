@@ -21,7 +21,7 @@ import {
 import { trim0x, with0x } from '@catalogfi/utils';
 import { describe, it, expect, beforeEach } from 'vitest';
 
-describe('Swapper', () => {
+describe('Swapper', async () => {
   const evmProvider = new JsonRpcProvider('http://localhost:8545');
 
   const contractAddress = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512';
@@ -43,13 +43,18 @@ describe('Swapper', () => {
   const aliceBtcWallet = new BitcoinOTA(bitcoinProvider, aliceEvmWallet);
   const bobBtcWallet = BitcoinWallet.fromMnemonic(bobMnemonic, bitcoinProvider);
 
+  const aliceBtcAddress = await aliceBtcWallet.getAddress();
+  const bobBtcAddress = await bobBtcWallet.getAddress();
+  const aliceEvmAddress = await aliceEvmWallet.getAddress();
+  const bobEvmAddress = await bobEvmWallet.getAddress();
+
   it('should not perform actions on invalid status', async () => {
     const secretNonce = Date.now();
     const msg = sha256(
       with0x(
-        Buffer.from(
-          'catalog.js' + secretNonce + (await aliceEvmWallet.getAddress())
-        ).toString('hex')
+        Buffer.from('catalog.js' + secretNonce + aliceEvmAddress).toString(
+          'hex'
+        )
       )
     ).slice(2);
     const signedMessage = await aliceBtcWallet.sign(msg);
@@ -60,11 +65,11 @@ describe('Swapper', () => {
       secret,
       secretHash,
       secretNonce,
-      userBtcWalletAddress: await aliceBtcWallet.getAddress(),
-      initiatorInitatorAddress: await aliceBtcWallet.getAddress(),
-      initiatorRedeemerAddress: await bobBtcWallet.getAddress(),
-      followerInitiatorAddress: await bobEvmWallet.getAddress(),
-      followerRedeemerAddress: await aliceEvmWallet.getAddress(),
+      userBtcWalletAddress: aliceBtcAddress,
+      initiatorInitatorAddress: aliceBtcAddress,
+      initiatorRedeemerAddress: bobBtcAddress,
+      followerInitiatorAddress: bobEvmAddress,
+      followerRedeemerAddress: aliceEvmAddress,
       fromBitcoin: true,
       contractAddress,
     });
@@ -92,14 +97,14 @@ describe('Swapper', () => {
     'should be able to initiate and redeem (btc to wbtc)',
     async () => {
       const secretNonce = Date.now();
-      await fund(await aliceBtcWallet.getAddress());
+      await fund(aliceBtcAddress);
 
       const msg = trim0x(
         sha256(
           with0x(
-            Buffer.from(
-              'catalog.js' + secretNonce + (await aliceEvmWallet.getAddress())
-            ).toString('hex')
+            Buffer.from('catalog.js' + secretNonce + aliceEvmAddress).toString(
+              'hex'
+            )
           )
         )
       );
@@ -107,18 +112,18 @@ describe('Swapper', () => {
       const secret = trim0x(sha256(with0x(signedMessage)));
       const secretHash = sha256(with0x(secret));
 
-      await fund(await bobEvmWallet.getAddress());
-      await fund(await aliceEvmWallet.getAddress());
+      await fund(bobEvmAddress);
+      await fund(aliceEvmAddress);
 
       const order = orderFactory({
         secret,
         secretHash,
         secretNonce,
-        userBtcWalletAddress: await aliceBtcWallet.getAddress(),
-        initiatorInitatorAddress: await aliceBtcWallet.getAddress(),
-        initiatorRedeemerAddress: await bobBtcWallet.getAddress(),
-        followerInitiatorAddress: await bobEvmWallet.getAddress(),
-        followerRedeemerAddress: await aliceEvmWallet.getAddress(),
+        userBtcWalletAddress: aliceBtcAddress,
+        initiatorInitatorAddress: aliceBtcAddress,
+        initiatorRedeemerAddress: bobBtcAddress,
+        followerInitiatorAddress: bobEvmAddress,
+        followerRedeemerAddress: aliceEvmAddress,
         fromBitcoin: true,
         contractAddress,
       });
@@ -148,7 +153,7 @@ describe('Swapper', () => {
         contractAddress
       );
 
-      expect(initiator).toEqual(await bobEvmWallet.getAddress());
+      expect(initiator).toEqual(bobEvmAddress);
 
       order.followerAtomicSwap.swapStatus = 2;
       await aliceSwapper.next(); //alice redeem
@@ -172,13 +177,13 @@ describe('Swapper', () => {
     'should be able to initiate and redeem (wbtc to btc)',
     async () => {
       const secretNonce = Date.now();
-      await fund(await bobBtcWallet.getAddress());
+      await fund(bobBtcAddress);
       const msg = trim0x(
         sha256(
           with0x(
-            Buffer.from(
-              'catalog.js' + secretNonce + (await aliceEvmWallet.getAddress())
-            ).toString('hex')
+            Buffer.from('catalog.js' + secretNonce + aliceEvmAddress).toString(
+              'hex'
+            )
           )
         )
       );
@@ -190,17 +195,17 @@ describe('Swapper', () => {
         secret,
         secretHash,
         secretNonce,
-        userBtcWalletAddress: await aliceBtcWallet.getAddress(),
-        initiatorInitatorAddress: await aliceEvmWallet.getAddress(),
-        initiatorRedeemerAddress: await bobEvmWallet.getAddress(),
-        followerInitiatorAddress: await bobBtcWallet.getAddress(),
-        followerRedeemerAddress: await aliceBtcWallet.getAddress(),
+        userBtcWalletAddress: aliceBtcAddress,
+        initiatorInitatorAddress: aliceEvmAddress,
+        initiatorRedeemerAddress: bobEvmAddress,
+        followerInitiatorAddress: bobBtcAddress,
+        followerRedeemerAddress: aliceBtcAddress,
         fromBitcoin: false,
         contractAddress,
       });
 
-      await fund(await aliceEvmWallet.getAddress());
-      await fund(await bobEvmWallet.getAddress());
+      await fund(aliceEvmAddress);
+      await fund(bobEvmAddress);
 
       const aliceSwapper = new Swapper(order, {
         bitcoin_regtest: aliceBtcWallet,
@@ -225,7 +230,7 @@ describe('Swapper', () => {
         contractAddress
       );
 
-      expect(initiator).toEqual(await aliceEvmWallet.getAddress());
+      expect(initiator).toEqual(aliceEvmAddress);
 
       order.followerAtomicSwap.swapStatus = 2;
       await aliceSwapper.next();
@@ -253,8 +258,7 @@ describe('Swapper', () => {
     beforeEach(async () => {
       //init
       const secretNonce = Date.now();
-      //   await regTestUtils.fund(await bobBtcWallet.getAddress(), bitcoinProvider);
-      await fund(await bobBtcWallet.getAddress());
+      await fund(bobBtcAddress);
       initialBtcBalance = await aliceBtcWallet.getBalance();
 
       const msg = trim0x(
@@ -268,16 +272,16 @@ describe('Swapper', () => {
         secret,
         secretHash,
         secretNonce,
-        userBtcWalletAddress: await aliceBtcWallet.getAddress(),
-        initiatorInitatorAddress: await aliceEvmWallet.getAddress(),
-        initiatorRedeemerAddress: await bobEvmWallet.getAddress(),
-        followerInitiatorAddress: await bobBtcWallet.getAddress(),
-        followerRedeemerAddress: await aliceBtcWallet.getAddress(),
+        userBtcWalletAddress: aliceBtcAddress,
+        initiatorInitatorAddress: aliceEvmAddress,
+        initiatorRedeemerAddress: bobEvmAddress,
+        followerInitiatorAddress: bobBtcAddress,
+        followerRedeemerAddress: aliceBtcAddress,
         fromBitcoin: false,
         contractAddress,
       });
 
-      await fund(await aliceEvmWallet.getAddress());
+      await fund(aliceEvmAddress);
 
       await new Promise((resolve) => setTimeout(resolve, 20 * 1000));
 
