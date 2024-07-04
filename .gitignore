@@ -5,3 +5,4 @@ packages/*/dist/**/*
 .DS_Store
 
 **/*/tsconfig.tsbuildinfo
+**/*/vite.config.ts*

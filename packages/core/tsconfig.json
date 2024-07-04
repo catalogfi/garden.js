@@ -1,29 +1,29 @@
 {
-    "extends": "../../tsconfig.json",
-    "compilerOptions": {
-        "baseUrl": "./",
-        "module": "ESNext",
-        "forceConsistentCasingInFileNames": true,
-        "composite": true,
-        "strict": true,
-        "moduleResolution": "node",
-        "noImplicitOverride": true,
-        "noPropertyAccessFromIndexSignature": true,
-        "noImplicitReturns": true,
-        "noFallthroughCasesInSwitch": true
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "module": "ESNext",
+    "forceConsistentCasingInFileNames": true,
+    "composite": true,
+    "strict": true,
+    "moduleResolution": "node",
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "files": [],
+  "include": ["src/**/*.ts", "index.ts"],
+  "exclude": ["src/**/*.spec.ts"],
+  "references": [
+    {
+      "path": "./tsconfig.lib.json"
     },
-    "files": [],
-    "include": ["src/**/*.ts"],
-    "exclude": ["src/**/*.spec.ts"],
-    "references": [
-        {
-            "path": "./tsconfig.lib.json"
-        },
-        {
-            "path": "./tsconfig.spec.json"
-        },
-        {
-            "path": "../orderbook"
-        }
-    ]
+    {
+      "path": "./tsconfig.spec.json"
+    },
+    {
+      "path": "../orderbook"
+    }
+  ]
 }
