@@ -24,6 +24,7 @@ jobs:
           corepack enable
           yarn set version 4.3.1
           yarn install
+          yarn run build
       - run: yarn run test
   build:
     runs-on: ubuntu-latest
