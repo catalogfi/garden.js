@@ -14,7 +14,7 @@ import { describe, test, expect } from 'vitest';
 dotenv.config({ path: path.resolve(__dirname, '..', '..', '.env') });
 
 describe('orderbook', () => {
-  const OrderbookApi = '127.0.0.1:8080';
+  const OrderbookApi = 'localhost:8080';
 
   const bitcoin_testnet_address = 'tb1qf97p3cwpzkqxwqy5akj22eqrqksumd9t2hwl8j';
   const sepolia_address = '0x236396E7c79ef96232AA052aF8ee4eb1bCBC0830';

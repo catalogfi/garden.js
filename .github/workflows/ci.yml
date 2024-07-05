@@ -18,7 +18,7 @@ jobs:
       - name: Install merry
         run: curl https://get.merry.dev | bash
       - name: Start merry
-        run: merry go --bare
+        run: merry go --headless
       - name: install dependencies
         run: |
           corepack enable
@@ -37,7 +37,7 @@ jobs:
       - name: Install merry
         run: curl https://get.merry.dev | bash
       - name: Start merry
-        run: merry go --bare
+        run: merry go --headless
       - name: install dependencies
         run: |
           corepack enable

@@ -12,7 +12,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 dotenv.config({ path: path.resolve(__dirname, '..', '..', '.env') });
 
 describe('Order Socket', () => {
-  const OrderbookApi = 'http://127.0.0.1:8080';
+  const OrderbookApi = 'http://localhost:8080';
   const provider = new JsonRpcProvider('localhost:8545');
   const pk =
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
