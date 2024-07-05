@@ -34,6 +34,7 @@ jobs:
         with:
           node-version: 18
           registry-url: https://registry.npmjs.org/
+      - name: install dependencies
         run: |
           corepack enable
           yarn set version 4.3.1
