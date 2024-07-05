@@ -34,11 +34,6 @@ jobs:
         with:
           node-version: 18
           registry-url: https://registry.npmjs.org/
-      - name: Install merry
-        run: curl https://get.merry.dev | bash
-      - name: Start merry
-        run: merry go --headless
-      - name: install dependencies
         run: |
           corepack enable
           yarn set version 4.3.1
