@@ -62,7 +62,7 @@ export const Assets = {
       name: "Wrapped Bitcoin",
       symbol: "WBTC",
       decimals: 8,
-      chain: Chains.ethereum_arbitrum,
+      chain: Chains.ethereum_arbitrumlocalnet,
       isToken: true,
       thumbnail: "https://cryptologos.cc/logos/wrapped-bitcoin-wbtc-logo.svg",
       address: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
