@@ -5,7 +5,7 @@ id: governance
 # Governance
 At Garden, we have always been vocal about our community-first ethos. The governance framework is created to put these words into action. To participate in governance, one must hold a minimum of 2,100 SEED. (1 vote) 
 
-The [multiplier effect](./Stake.md#staking-multiplier) discussed in staking applies to governance votes as well.
+The [multiplier effect](../home/basics/stake/Stake.md#staking-multiplier) discussed in staking applies to governance votes as well.
 
 **Prerequisites for raising a proposal:** 
 - 500 votes for creating a governance proposal 
@@ -13,7 +13,7 @@ The [multiplier effect](./Stake.md#staking-multiplier) discussed in staking appl
 
 ## Proposal Process:  
 ### 1. Sentiment Check
-Before raising a proposal at Garden, it is essential to initiate a Sentiment Check in the [#Governance](https://discord.gg/kqMBgeAKAh) channel on our Discord. This preliminary step allows you to gauge community interest and determine whether there is sufficient support to alter the status quo. Engage with community members to discuss your idea, gather feedback, and understand the community's perspective. If your proposal message on Discord receives more than 50 thumbs up, then you can move to the next step of the formal proposal process.
+Before raising a proposal at Garden, it is essential to initiate a Sentiment Check in the [#Governance](https://discord.gg/kqMBgeAKAh) channel on our Discord. This preliminary step allows you to gauge community interest and determine whether there is sufficient support to alter the status quo. Engage with community members to discuss your idea, gather feedback, and understand the community's perspective. If your proposal message on Discord receives more than 20 thumbs up, then you can move to the next step of the formal proposal process.
 ### 2. Raise a Proposal
 After your proposal receives over 50 thumbs up on Discord, indicating successful passage through the Sentiment Check, you can proceed to the formal proposal stage. Proposals should be submitted for community voting on Snapshot at https://snapshot.org/#/gardenfinance.eth. 
 

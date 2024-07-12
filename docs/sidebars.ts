@@ -28,12 +28,7 @@ const sidebars: SidebarsConfig = {
                     link: { type: "doc", id: "home/basics/swap/swap" },
                     items: ["home/basics/swap/atomic-swaps", "home/basics/swap/order-matching-engine"]
                 },
-                {
-                    type: "category",
-                    label: "Stake",
-                    link: { type: "doc", id: "home/basics/stake/stake" },
-                    items: ["home/basics/stake/governance"]
-                },
+                "home/basics/stake/stake",
                 "home/basics/liquidity-provision",
                 {
                     type: "category",
@@ -56,6 +51,7 @@ const sidebars: SidebarsConfig = {
             link: { type: "doc", id: "home/security/security" },
             items: ["home/security/bug-bounty"]
         },
+        "home/governance",
         {
             type: "category",
             label: "FAQs",
