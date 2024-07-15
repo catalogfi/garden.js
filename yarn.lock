@@ -699,6 +699,20 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@gardenfi/stake@workspace:packages/stake":
+  version: 0.0.0-use.local
+  resolution: "@gardenfi/stake@workspace:packages/stake"
+  dependencies:
+    "@types/ws": "npm:^8.5.7"
+    axios: "npm:^1.7.2"
+    dotenv: "npm:^16.3.1"
+    typescript: "npm:^5.2.2"
+    vite: "npm:^5.1.6"
+    vite-plugin-dts: "npm:^3.7.3"
+    vitest: "npm:^1.6.0"
+  languageName: unknown
+  linkType: soft
+
 "@isaacs/cliui@npm:^8.0.2":
   version: 8.0.2
   resolution: "@isaacs/cliui@npm:8.0.2"
@@ -5295,20 +5309,6 @@ __metadata:
   checksum: 10c0/89a1416668f950236dd5ac9f9a6b2588e1b9b62b1b6ad8dff1bfc5d1a15dbf0aafc9b52d2226d00c28dffff212da464eaeebfc6b7578b9d180cef3e3782c5983
   languageName: node
   linkType: hard
-
-"stake@workspace:packages/stake":
-  version: 0.0.0-use.local
-  resolution: "stake@workspace:packages/stake"
-  dependencies:
-    "@types/ws": "npm:^8.5.7"
-    axios: "npm:^1.7.2"
-    dotenv: "npm:^16.3.1"
-    typescript: "npm:^5.2.2"
-    vite: "npm:^5.1.6"
-    vite-plugin-dts: "npm:^3.7.3"
-    vitest: "npm:^1.6.0"
-  languageName: unknown
-  linkType: soft
 
 "std-env@npm:^3.5.0":
   version: 3.7.0
