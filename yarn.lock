@@ -699,6 +699,20 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@gardenfi/paymentchannel@workspace:packages/paymentChannel":
+  version: 0.0.0-use.local
+  resolution: "@gardenfi/paymentchannel@workspace:packages/paymentChannel"
+  dependencies:
+    "@types/ws": "npm:^8.5.7"
+    axios: "npm:^1.7.2"
+    dotenv: "npm:^16.3.1"
+    typescript: "npm:^5.2.2"
+    vite: "npm:^5.1.6"
+    vite-plugin-dts: "npm:^3.7.3"
+    vitest: "npm:^1.6.0"
+  languageName: unknown
+  linkType: soft
+
 "@gardenfi/stake@workspace:packages/stake":
   version: 0.0.0-use.local
   resolution: "@gardenfi/stake@workspace:packages/stake"
