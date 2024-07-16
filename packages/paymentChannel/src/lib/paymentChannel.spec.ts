@@ -1,19 +1,17 @@
+import { PaymentChannel } from './index';
 import { expect, test, describe } from 'vitest';
-import { PaymentChannelService } from './service';
 import { JsonRpcProvider, Wallet, sha256 } from 'ethers';
-import { Url } from '../../../../utils/src/lib/url';
-import { Siwe } from '../../../../utils/src/lib/auth/siwe';
 import { ERC20__factory } from '@catalogfi/wallets';
+import { Siwe, Url } from '@gardenfi/utils';
 
 // this test is just a sanity check
 // test out the service in whatever way you see fit and skip it
 
 describe.skip('Payment channel service', () => {
   const pk = Wallet.createRandom().privateKey;
-  //   const pk = '...';
   const provider = new JsonRpcProvider('...');
   const signer = new Wallet(pk, provider);
-  const service = PaymentChannelService.init(
+  const service = PaymentChannel.init(
     'https://feehubdev.garden.finance',
     signer,
     new Siwe(new Url('https://stg-test-orderbook.onrender.com'), signer)
@@ -22,16 +20,16 @@ describe.skip('Payment channel service', () => {
     '0x5eedb3f5bbA7Da86b0bBa2c6450C52E27e105eeD',
     signer
   );
-  test.skip('create channel', async () => {
-    const res = await service.createChannel('1000000');
-    expect(res.ok).toBeTruthy();
-    const paymentChannelAddress = res.val.address;
-    expect(paymentChannelAddress).toBeDefined();
+  // test.skip('create channel', async () => {
+  //   const res = await service.createChannel('1000000');
+  //   expect(res.ok).toBeTruthy();
+  //   const paymentChannelAddress = res.val.address;
+  //   expect(paymentChannelAddress).toBeDefined();
 
-    console.log({
-      signer: await signer.getAddress(),
-    });
-  });
+  //   console.log({
+  //     signer: await signer.getAddress(),
+  //   });
+  // });
 
   test.skip('get channel state', async () => {
     const res = await service.getChannel();

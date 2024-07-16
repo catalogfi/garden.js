@@ -78,13 +78,21 @@ export type ConditionalPaymentFinalRequest = {
 };
 
 export interface IPaymentChannel {
-  //get payment channel state
+  /**
+   * Get the payment channel state.
+   */
   getChannel(): AsyncResult<PaymentChannelState, string>;
-  //this function creates a conditional HTLC payment and sign it using the provider
+
+  /**
+   * Constructs a conditional payment request for backend to accept.
+   */
   createConditionalPayment(
     paymentRequest: Omit<ConditionalPaymentInitialRequest, 'timelock'>
   ): AsyncResult<ConditionalPaymentFinalRequest, string>;
-  //this function creates a conditonal HTLC payment and sign it and send it to the feehub
+
+  /**
+   * Pay conditionally: create a conditional payment request and send it to the backend.
+   */
   payConditionally(
     paymentRequest: Omit<ConditionalPaymentInitialRequest, 'timelock'>
   ): AsyncResult<void, string>;

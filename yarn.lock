@@ -704,9 +704,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@gardenfi/paymentchannel@workspace:packages/paymentChannel"
   dependencies:
+    "@catalogfi/utils": "npm:^0.1.6"
+    "@gardenfi/utils": "workspace:^"
     "@types/ws": "npm:^8.5.7"
     axios: "npm:^1.7.2"
     dotenv: "npm:^16.3.1"
+    ethers: "npm:6.8.0"
     typescript: "npm:^5.2.2"
     vite: "npm:^5.1.6"
     vite-plugin-dts: "npm:^3.7.3"

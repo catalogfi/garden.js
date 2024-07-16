@@ -35,6 +35,9 @@
   },
   "sideEffects": false,
   "dependencies": {
-    "axios": "^1.7.2"
+    "@catalogfi/utils": "^0.1.6",
+    "@gardenfi/utils": "workspace:^",
+    "axios": "^1.7.2",
+    "ethers": "6.8.0"
   }
 }

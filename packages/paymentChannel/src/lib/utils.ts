@@ -1,49 +1,26 @@
 import {
-  JsonRpcApiProvider,
   JsonRpcSigner,
-  TypedDataField,
   Wallet,
+  JsonRpcApiProvider,
+  TypedDataField,
 } from 'ethers';
-import { chainToId } from '../orderpair';
 import {
   ConditionalPaymentInitialRequest,
   PaymentChannelState,
-} from './interface';
-
-export async function getTimelock(provider: JsonRpcApiProvider) {
-  // currentBlock + (ONE_DAY in ETH blocks)
-  const network = (await provider.getNetwork()).chainId;
-  let currentBlock = 0;
-  if (
-    network !== BigInt(chainToId.ethereum) &&
-    network !== BigInt(chainToId.ethereum_sepolia)
-  ) {
-    // this means we are not on mainnet or testnet
-    // we need to fetch the block number via the provider
-    // and use that as the timeLock
-    const bNumber = await provider.send('eth_getBlockByNumber', [
-      'latest',
-      false,
-    ]);
-    currentBlock = parseInt(bNumber.result.number, 16);
-  } else {
-    currentBlock = await provider.getBlockNumber();
-  }
-  return currentBlock + 2 * 7200;
-}
-
-export const parseError = (error: unknown) => {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return error?.toString() ?? 'Unknown error';
-};
+} from './paymentChannel.types';
 
 export const getProviderOrThrow = (signer: JsonRpcSigner | Wallet) => {
   if (signer.provider && signer.provider instanceof JsonRpcApiProvider) {
     return signer.provider;
   }
   throw new Error('Provider (JsonRpcApiProvider) not found in the signer');
+};
+
+export const parseError = (error: unknown) => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return error?.toString() ?? 'Unknown error';
 };
 
 export const signPayment = async (
@@ -93,3 +70,22 @@ export const signPayment = async (
 
   return await signer.signTypedData(domain, types, claim);
 };
+
+export async function getTimelock(provider: JsonRpcApiProvider) {
+  // currentBlock + (TWO_DAYS in ETH blocks)
+  const network = (await provider.getNetwork()).chainId;
+  let currentBlock = 0;
+  if (network !== BigInt(1) && network !== BigInt(11155111)) {
+    // this means we are not on mainnet or testnet
+    // we need to fetch the block number via the provider
+    // and use that as the timeLock
+    const bNumber = await provider.send('eth_getBlockByNumber', [
+      'latest',
+      false,
+    ]);
+    currentBlock = parseInt(bNumber.result.number, 16);
+  } else {
+    currentBlock = await provider.getBlockNumber();
+  }
+  return currentBlock + 2 * 7200;
+}
