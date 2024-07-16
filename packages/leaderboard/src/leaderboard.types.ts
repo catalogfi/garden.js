@@ -4,14 +4,16 @@ export interface ILeaderboard {
   orderReward(orderId: number): Promise<number>;
   remainingSeed(): Promise<number>;
   canClaimGardenQuest(address: string): Promise<void>;
-  integrationFees(
-    userAddress: string,
-    chain: Chain,
-    partner: string,
-    proof: string,
-    authToken: string
-  ): Promise<number>;
+  integrationFees(interfaceFeesConfig: InterfaceFeesConfig): Promise<number>;
 }
+
+type InterfaceFeesConfig = {
+  userAddress: string;
+  chain: Chain;
+  partner: string;
+  proof: string;
+  authToken: string;
+};
 
 export type Chain = string; //TODO, change to enum / map that has all the proper chains
 
@@ -21,7 +23,7 @@ export type RaffleEntry = {
   ID: number;
   CreatedAt: string;
   UpdatedAt: string;
-  DeletedAt: any;
+  DeletedAt: string | null;
   userAddress: string;
   partner: string;
 };
