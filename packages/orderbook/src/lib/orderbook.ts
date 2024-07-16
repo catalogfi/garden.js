@@ -5,20 +5,16 @@ import {
   GetOrdersOutput,
   IOrderbook,
   Order,
+  OrderbookConfig,
   OrderConfig,
   OrderNonVerbose,
-  OrderbookConfig,
 } from './orderbook.types';
 import { OrdersSocket } from './ordersSocket';
-import { Siwe } from './auth/siwe';
-import { IAuth } from './auth/auth.interface';
 import { orderPairGenerator } from './orderpair';
 import { OrderbookErrors } from './errors';
-import { StoreKeys } from './store/store.interface';
-import { MemoryStorage } from './store/memoryStorage';
 import { API } from './api';
-import { Url } from './url';
 import { Chain, SupportedContracts } from './asset';
+import { IAuth, MemoryStorage, Siwe, StoreKeys, Url } from '@gardenfi/utils';
 
 /**
  * A class that allows you to create and manage orders with the backend url.

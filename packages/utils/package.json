@@ -1,17 +1,7 @@
 {
-  "name": "@gardenfi/orderbook",
-  "version": "0.1.9",
+  "name": "@gardenfi/utils",
+  "version": "0.0.0",
   "type": "module",
-  "dependencies": {
-    "@catalogfi/utils": "^0.1.6",
-    "@catalogfi/wallets": "0.2.43",
-    "@gardenfi/utils": "workspace:^",
-    "bufferutil": "^4.0.8",
-    "ethers": "6.8.0",
-    "siwe": "^2.1.4",
-    "utf-8-validate": "^6.0.3",
-    "ws": "^8.14.2"
-  },
   "scripts": {
     "build": "vite build",
     "test": "vitest run",
@@ -43,5 +33,10 @@
     "vite-plugin-dts": "^3.7.3",
     "vitest": "^1.6.0"
   },
-  "sideEffects": false
+  "sideEffects": false,
+  "dependencies": {
+    "axios": "^1.7.2",
+    "ethers": "6.8.0",
+    "siwe": "^2.3.2"
+  }
 }

@@ -685,6 +685,7 @@ __metadata:
   dependencies:
     "@catalogfi/utils": "npm:^0.1.6"
     "@catalogfi/wallets": "npm:0.2.43"
+    "@gardenfi/utils": "workspace:^"
     "@types/ws": "npm:^8.5.7"
     bufferutil: "npm:^4.0.8"
     dotenv: "npm:^16.3.1"
@@ -720,6 +721,22 @@ __metadata:
     "@types/ws": "npm:^8.5.7"
     axios: "npm:^1.7.2"
     dotenv: "npm:^16.3.1"
+    typescript: "npm:^5.2.2"
+    vite: "npm:^5.1.6"
+    vite-plugin-dts: "npm:^3.7.3"
+    vitest: "npm:^1.6.0"
+  languageName: unknown
+  linkType: soft
+
+"@gardenfi/utils@workspace:^, @gardenfi/utils@workspace:packages/utils":
+  version: 0.0.0-use.local
+  resolution: "@gardenfi/utils@workspace:packages/utils"
+  dependencies:
+    "@types/ws": "npm:^8.5.7"
+    axios: "npm:^1.7.2"
+    dotenv: "npm:^16.3.1"
+    ethers: "npm:6.8.0"
+    siwe: "npm:^2.3.2"
     typescript: "npm:^5.2.2"
     vite: "npm:^5.1.6"
     vite-plugin-dts: "npm:^3.7.3"
@@ -5212,7 +5229,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"siwe@npm:^2.1.4":
+"siwe@npm:^2.1.4, siwe@npm:^2.3.2":
   version: 2.3.2
   resolution: "siwe@npm:2.3.2"
   dependencies:

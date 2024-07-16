@@ -7,12 +7,12 @@ export class Url extends URL {
   }
   socket() {
     // is it https or http?
-    if (this.protocol === "https:") {
-      return this.origin.replace("https", "wss");
-    } else if (this.protocol === "http:") {
-      return this.origin.replace("http", "ws");
+    if (this.protocol === 'https:') {
+      return this.origin.replace('https', 'wss');
+    } else if (this.protocol === 'http:') {
+      return this.origin.replace('http', 'ws');
     } else {
-      throw new Error("Invalid protocol");
+      throw new Error('Invalid protocol');
     }
   }
 }

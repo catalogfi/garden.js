@@ -1,8 +1,8 @@
 import { expect, test, describe } from 'vitest';
 import { PaymentChannelService } from './service';
 import { JsonRpcProvider, Wallet, sha256 } from 'ethers';
-import { Url } from '../url';
-import { Siwe } from '../auth/siwe';
+import { Url } from '../../../../utils/src/lib/url';
+import { Siwe } from '../../../../utils/src/lib/auth/siwe';
 import { ERC20__factory } from '@catalogfi/wallets';
 
 // this test is just a sanity check
