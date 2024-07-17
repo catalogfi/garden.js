@@ -7,16 +7,17 @@ import {
   questsSchema,
   remainingSeedSchema,
 } from './leaderboard.schema';
+import { AsyncResult } from '@catalogfi/utils';
 
 export interface ILeaderboard {
-  leaderboard(): Promise<LeaderboardData>;
-  quests(): Promise<Quests>;
-  orderReward(orderId: number): Promise<number>;
-  remainingSeed(): Promise<number>;
-  canClaimGardenQuest(address: string): Promise<void>;
+  leaderboard(): AsyncResult<LeaderboardData, string>;
+  quests(): AsyncResult<Quests, string>;
+  orderReward(orderId: number): AsyncResult<string, string>;
+  remainingSeed(): AsyncResult<RemainingSeed, string>;
+  canClaimGardenQuest(address: string): AsyncResult<string, string>;
   claimIntegrationFees(
     interfaceFeesConfig: ClaimIntegrationFeesConfig
-  ): Promise<number>;
+  ): AsyncResult<number, string>;
 }
 
 export type ClaimIntegrationFeesConfig = {

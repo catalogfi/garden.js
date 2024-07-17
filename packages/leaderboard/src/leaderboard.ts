@@ -1,6 +1,7 @@
 import { URL } from 'url';
 import {
   ClaimIntegrationFeesConfig,
+  ILeaderboard,
   LeaderboardData,
   LeaderboardDataResponse,
   LeaderboardResources,
@@ -18,7 +19,7 @@ import {
 } from './leaderboard.schema';
 import { AsyncResult, Err, Fetcher, Ok } from '@catalogfi/utils';
 
-export class Leaderboard {
+export class Leaderboard implements ILeaderboard {
   public url: URL;
   constructor(
     leaderboardDomain: string = 'https://leaderboard.garden.finance'
