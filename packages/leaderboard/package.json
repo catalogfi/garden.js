@@ -11,6 +11,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "dependencies": {
+    "@catalogfi/utils": "^0.1.7",
+    "yup": "^1.4.0"
+  },
   "devDependencies": {
     "typescript": "^5.5.3",
     "vite": "^5.3.3",
