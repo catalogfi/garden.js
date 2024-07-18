@@ -1,0 +1,22 @@
+{
+  "name": "@gardenfi/debridge",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "vite build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "vite": "^5.1.6",
+    "vite-plugin-dts": "^3.7.3",
+    "vitest": "^1.6.0"
+  },
+  "dependencies": {
+    "@catalogfi/utils": "^0.1.9",
+    "yup": "^1.4.0"
+  }
+}
