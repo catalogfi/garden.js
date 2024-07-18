@@ -105,7 +105,7 @@ export class Leaderboard implements ILeaderboard {
     }
   }
 
-  async canClaimGardenQuest(address: string): AsyncResult<string, string> {
+  async claimGardenQuest(address: string): AsyncResult<string, string> {
     const url = new URL(
       LeaderboardResources.ClaimGardenQuest(address.toLowerCase()),
       this.url

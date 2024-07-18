@@ -14,7 +14,7 @@ export interface ILeaderboard {
   quests(): AsyncResult<Quests, string>;
   orderReward(orderId: number): AsyncResult<string, string>;
   remainingSeed(): AsyncResult<RemainingSeed, string>;
-  canClaimGardenQuest(address: string): AsyncResult<string, string>;
+  claimGardenQuest(address: string): AsyncResult<string, string>;
   claimIntegrationFees(
     interfaceFeesConfig: ClaimIntegrationFeesConfig
   ): AsyncResult<number, string>;
@@ -23,12 +23,30 @@ export interface ILeaderboard {
 export type ClaimIntegrationFeesConfig = {
   userAddress: string;
   chain: Chain;
-  partner: string;
+  partner: Partner;
   proof: string;
   authToken: string;
 };
 
-export type Chain = string; //TODO, change to enum / map that has all the proper chains
+export type Chain =
+  | 'ethereum'
+  | 'arbitrum'
+  | 'polygon'
+  | 'optimism'
+  | 'avalanche'
+  | 'binance';
+
+export type Partner =
+  | 'gmx'
+  | 'radiant'
+  | 'vertex'
+  | 'garden'
+  | 'debridge'
+  | 'camelot'
+  | 'traderjoe'
+  | 'pancake'
+  | 'arkdigital'
+  | 'dodo';
 
 export type LeaderboardData = { userAddress: string; amount: string }[];
 

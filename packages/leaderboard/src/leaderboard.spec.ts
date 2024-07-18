@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Leaderboard } from './leaderboard';
+import { getRank } from './rank';
 
 describe('Leaderboard', () => {
   it('should be fetched', async () => {
@@ -29,19 +30,38 @@ describe('Leaderboard', () => {
 
   it('should tell whether a user can claim a garden quest', async () => {
     const leaderboard = new Leaderboard();
-    const data = await leaderboard.canClaimGardenQuest(
+    const data = await leaderboard.claimGardenQuest(
       '0x0000000000000000000000000000000000000000'
     );
     expect(data.ok).toBeFalsy();
   }, 10000);
 
-  //   it('should claim fees for an integration', async () => {
-  //     const leaderboard = new Leaderboard();
-  //     await leaderboard.claimIntegrationFees({
-  //       userAddress: '0x0000000000000000000000000000000000000000',
-  //       chain: 'ethereum',
-  //       partner: 'camelot',
-  //       proof: '',
-  //     });
-  //   });
+  it('should get the correct rank', async () => {
+    const leaderboard = new Leaderboard();
+    const leaderboardData = await leaderboard.leaderboard();
+
+    expect(leaderboardData.ok).toBeTruthy();
+
+    const expectedRank = leaderboardData.val.length / 2 + 1;
+    const expectedAddress = leaderboardData.val[expectedRank - 1].userAddress;
+
+    const actualRank = getRank(leaderboardData.val, expectedAddress);
+
+    expect(expectedRank).toEqual(actualRank.val);
+  });
+
+  it('should return an error if user does not exist in the leaderboard', async () => {
+    const leaderboard = new Leaderboard();
+    const leaderboardData = await leaderboard.leaderboard();
+
+    expect(leaderboardData.ok).toBeTruthy();
+
+    const rank = getRank(
+      leaderboardData.val,
+      '0x0000000000000000000000000000000000000000'
+    );
+
+    expect(rank.error).toBeTruthy();
+    expect(rank.error).toEqual(-1);
+  });
 });
