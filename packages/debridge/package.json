@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@catalogfi/utils": "^0.1.9",
+    "ethers": "6.8.0",
     "yup": "^1.4.0"
   }
 }
