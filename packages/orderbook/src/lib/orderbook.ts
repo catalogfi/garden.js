@@ -16,7 +16,7 @@ import { orderPairGenerator } from './orderpair';
 import { OrderbookErrors } from './errors';
 import { StoreKeys } from './store/store.interface';
 import { MemoryStorage } from './store/memoryStorage';
-import { API } from './api';
+import { MAINNET_ORDERBOOK_API } from './api';
 import { Url } from './url';
 import { Chain, SupportedContracts } from './asset';
 
@@ -39,7 +39,7 @@ export class Orderbook implements IOrderbook {
    *
    */
   constructor(orderbookConfig: OrderbookConfig) {
-    this.url = new Url('/', orderbookConfig.url ?? API);
+    this.url = new Url('/', orderbookConfig.url ?? MAINNET_ORDERBOOK_API);
     this.orderSocket = new OrdersSocket(this.url.socket());
 
     this.auth = new Siwe(this.url, orderbookConfig.signer, {
@@ -56,7 +56,7 @@ export class Orderbook implements IOrderbook {
 
   static async init(orderbookConfig: OrderbookConfig) {
     const auth = new Siwe(
-      new Url('/', orderbookConfig.url ?? API),
+      new Url('/', orderbookConfig.url ?? MAINNET_ORDERBOOK_API),
       orderbookConfig.signer,
       orderbookConfig.opts
     );
