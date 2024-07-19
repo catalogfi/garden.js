@@ -13,6 +13,7 @@
   ],
   "scripts": {
     "build": "vite build",
+    "test": "vitest run",
     "dev": "vite build --watch"
   },
   "main": "./dist/index.cjs",
@@ -31,14 +32,13 @@
     "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.12",
     "dotenv": "^16.3.1",
-    "jest": "^29.7.0",
     "typescript": "^5.2.2",
     "vite": "^5.1.6",
     "vite-plugin-dts": "^3.7.3",
     "vite-plugin-top-level-await": "^1.4.1",
-    "vite-plugin-wasm": "^3.3.0"
+    "vite-plugin-wasm": "^3.3.0",
+    "vitest": "^1.6.0"
   },
   "sideEffects": false
 }

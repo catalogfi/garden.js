@@ -3,7 +3,7 @@ import { PaymentChannelService } from './service';
 import { JsonRpcProvider, Wallet, sha256 } from 'ethers';
 import { Url } from '../url';
 import { Siwe } from '../auth/siwe';
-import { ERC20__factory } from '@catalogfi/wallets';
+// import { ERC20__factory } from '@catalogfi/wallets';
 
 // this test is just a sanity check
 // test out the service in whatever way you see fit and skip it
@@ -18,10 +18,10 @@ describe.skip('Payment channel service', () => {
     signer,
     new Siwe(new Url('https://stg-test-orderbook.onrender.com'), signer)
   );
-  const erc20 = ERC20__factory.connect(
-    '0x5eedb3f5bbA7Da86b0bBa2c6450C52E27e105eeD',
-    signer
-  );
+  // const erc20 = ERC20__factory.connect(
+  //   '0x5eedb3f5bbA7Da86b0bBa2c6450C52E27e105eeD',
+  //   signer
+  // );
   test.skip('create channel', async () => {
     const res = await service.createChannel('1000000');
     expect(res.ok).toBeTruthy();

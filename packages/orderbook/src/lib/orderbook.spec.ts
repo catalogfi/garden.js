@@ -13,8 +13,8 @@ import { StoreKeys } from './store/store.interface';
 import { describe, test, expect } from 'vitest';
 dotenv.config({ path: path.resolve(__dirname, '..', '..', '.env') });
 
-describe.only('orderbook', () => {
-  const API_ENDPOINT = 'localhost:8080';
+describe('orderbook', () => {
+  const OrderbookApi = 'localhost:8080';
 
   const bitcoin_testnet_address = 'tb1qf97p3cwpzkqxwqy5akj22eqrqksumd9t2hwl8j';
   const sepolia_address = '0x236396E7c79ef96232AA052aF8ee4eb1bCBC0830';
@@ -24,7 +24,7 @@ describe.only('orderbook', () => {
   const provider = new JsonRpcProvider('http://localhost:8545');
   const wallet = new Wallet(pk, provider);
   const orderbook = new Orderbook({
-    url: 'http://' + API_ENDPOINT + '/',
+    url: 'http://' + OrderbookApi + '/',
     signer: wallet,
   });
 
@@ -101,7 +101,7 @@ describe.only('orderbook', () => {
   test('init should create the orderbook with an auth token', async () => {
     const store = new MemoryStorage();
     await Orderbook.init({
-      url: 'http://' + API_ENDPOINT + '/',
+      url: 'http://' + OrderbookApi + '/',
       signer: wallet,
       opts: {
         store,

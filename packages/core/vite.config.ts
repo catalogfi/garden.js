@@ -1,16 +1,16 @@
 /// <reference types='vitest' />
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
-import * as path from 'path';
 import wasm from 'vite-plugin-wasm';
 import topLevelAwait from 'vite-plugin-top-level-await';
 import pkg from './package.json';
-import { builtinModules } from 'module';
+import eslint from 'vite-plugin-eslint';
 
 export default defineConfig({
   cacheDir: '../node_modules/.vite/catalog',
 
   plugins: [
+    eslint(),
     wasm(),
     topLevelAwait(),
     // nodePolyfills(),

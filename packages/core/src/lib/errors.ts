@@ -1,4 +1,4 @@
-export const CatalogErrors = {
+export const GardenErrors = {
   WALLET_NOT_FOUND: (from: boolean): string =>
     `${
       from ? 'from' : 'to'

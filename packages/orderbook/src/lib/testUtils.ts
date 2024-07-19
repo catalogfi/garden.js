@@ -20,7 +20,7 @@ export const startWsServer = () => {
   let counter = 0;
 
   wss.on('connection', (ws) => {
-    ws.on('message', (message) => {
+    ws.on('message', () => {
       if (counter == 0) {
         //send error first
         ws.send(

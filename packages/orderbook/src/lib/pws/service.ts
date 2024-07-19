@@ -1,19 +1,19 @@
-import { JsonRpcApiProvider, JsonRpcSigner, Wallet } from "ethers";
+import { JsonRpcApiProvider, JsonRpcSigner, Wallet } from 'ethers';
 import {
   ConditionalPaymentFinalRequest,
   ConditionalPaymentInitialRequest,
   IPaymentChannelService as IPaymentChannelService,
   PaymentChannelState,
-} from "./interface";
-import { AsyncResult, Err, Fetcher, Ok, Void } from "@catalogfi/utils";
-import { Url } from "../url";
-import { IAuth } from "../auth/auth.interface";
+} from './interface';
+import { AsyncResult, Err, Fetcher, Ok, Void } from '@catalogfi/utils';
+import { Url } from '../url';
+import { IAuth } from '../auth/auth.interface';
 import {
   getProviderOrThrow,
   getTimelock,
   parseError,
   signPayment,
-} from "./utils";
+} from './utils';
 
 export class PaymentChannelService implements IPaymentChannelService {
   private api: Url;
@@ -36,13 +36,13 @@ export class PaymentChannelService implements IPaymentChannelService {
    * creates a new payment channel with the specified deposit amount
    */
   async createChannel(
-    depositAmt = "0"
+    depositAmt = '0'
   ): AsyncResult<PaymentChannelState, string> {
     const token = await this._getAuthToken();
     try {
       const res = await Fetcher.post<{
         data: PaymentChannelState;
-      }>(this.api.endpoint("create"), {
+      }>(this.api.endpoint('create'), {
         body: JSON.stringify({
           amount: depositAmt,
         }),
@@ -53,7 +53,7 @@ export class PaymentChannelService implements IPaymentChannelService {
       return Ok(res.data);
     } catch (error) {
       return Err(
-        "createChannel: failed to create channel: " + parseError(error)
+        'createChannel: failed to create channel: ' + parseError(error)
       );
     }
   }
@@ -67,21 +67,21 @@ export class PaymentChannelService implements IPaymentChannelService {
     try {
       const address = await this.signer.getAddress();
       const res = await Fetcher.get<{ data: PaymentChannelState[] }>(
-        this.api.endpoint("/channels/" + address)
+        this.api.endpoint('/channels/' + address)
       );
-      if (res.data.length === 0) return Err("No channel found");
+      if (res.data.length === 0) return Err('No channel found');
       return Ok(res.data[0]);
     } catch (error) {
       // failed to get channel state
       return Err(
-        "getChannelState: failed to get channel: " + parseError(error)
+        'getChannelState: failed to get channel: ' + parseError(error)
       );
     }
   }
 
   private _getAuthToken = async () => {
     const token = await this.auth.getToken();
-    if (!token) throw new Error("Token not found");
+    if (!token) throw new Error('Token not found');
     return token;
   };
 
@@ -90,7 +90,7 @@ export class PaymentChannelService implements IPaymentChannelService {
   ): AsyncResult<{ userSig: string; channelId: number }, string> {
     const state = await this.getChannel();
     if (state.error)
-      return Err("getSignatureForConditionalPayment:", state.error);
+      return Err('getSignatureForConditionalPayment:', state.error);
     const channel = state.val;
 
     const signature = await signPayment(channel, paymentRequest, this.signer);
@@ -101,7 +101,7 @@ export class PaymentChannelService implements IPaymentChannelService {
   private async _lockChannel(id: number) {
     const token = await this._getAuthToken();
     try {
-      await Fetcher.post(this.api.endpoint("lock"), {
+      await Fetcher.post(this.api.endpoint('lock'), {
         headers: {
           Authorization: token,
         },
@@ -112,16 +112,16 @@ export class PaymentChannelService implements IPaymentChannelService {
       return Ok(Void);
     } catch (error) {
       // failed to lock channel
-      return Err("lockChannel:", "failed to lock channel:", parseError(error));
+      return Err('lockChannel:', 'failed to lock channel:', parseError(error));
     }
   }
 
   async payConditionally(
-    request: Omit<ConditionalPaymentInitialRequest, "timeLock">
+    request: Omit<ConditionalPaymentInitialRequest, 'timeLock'>
   ): AsyncResult<void, string> {
     const paymentRequestRes = await this.createConditionalPayment(request);
     if (paymentRequestRes.error)
-      return Err("payConditionally:", paymentRequestRes.error);
+      return Err('payConditionally:', paymentRequestRes.error);
 
     const paymentRequest = paymentRequestRes.val;
     const res = await this._lockChannel(paymentRequest.channelId);
@@ -129,7 +129,7 @@ export class PaymentChannelService implements IPaymentChannelService {
 
     const token = await this._getAuthToken();
     try {
-      await Fetcher.post(this.api.endpoint("htlc"), {
+      await Fetcher.post(this.api.endpoint('htlc'), {
         body: JSON.stringify({
           ...paymentRequest,
           htlc: {
@@ -145,7 +145,7 @@ export class PaymentChannelService implements IPaymentChannelService {
       return Ok(Void);
     } catch (error) {
       // failed to pay conditionally
-      return Err("payConditionally:", parseError(error));
+      return Err('payConditionally:', parseError(error));
     }
   }
 
@@ -155,9 +155,9 @@ export class PaymentChannelService implements IPaymentChannelService {
    * Use .payConditionally() to actually pay conditionally.
    */
   async createConditionalPayment(
-    paymentRequest: Omit<ConditionalPaymentInitialRequest, "timeLock">
+    paymentRequest: Omit<ConditionalPaymentInitialRequest, 'timeLock'>
   ): AsyncResult<ConditionalPaymentFinalRequest, string> {
-    let payment: {
+    const payment: {
       channelId: number;
       htlc: ConditionalPaymentInitialRequest;
       userSig: string;
@@ -167,7 +167,7 @@ export class PaymentChannelService implements IPaymentChannelService {
         ...paymentRequest,
         timeLock: 0,
       },
-      userSig: "",
+      userSig: '',
     };
 
     payment.htlc.timeLock = await getTimelock(this.provider);
@@ -187,7 +187,7 @@ export class PaymentChannelService implements IPaymentChannelService {
       !payment.htlc.sendAmount ||
       !payment.htlc.receiveAmount
     ) {
-      return Err("createConditionalPayment: failed to create payment");
+      return Err('createConditionalPayment: failed to create payment');
     }
 
     return Ok(payment);
