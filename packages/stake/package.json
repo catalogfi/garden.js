@@ -35,6 +35,8 @@
   },
   "sideEffects": false,
   "dependencies": {
-    "axios": "^1.7.2"
+    "@catalogfi/utils": "^0.1.9",
+    "axios": "^1.7.2",
+    "viem": "^2.17.5"
   }
 }

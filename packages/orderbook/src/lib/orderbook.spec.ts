@@ -7,10 +7,9 @@ import { OrderbookErrors } from './errors';
 
 import * as dotenv from 'dotenv';
 import * as path from 'path';
-import { MemoryStorage } from './store/memoryStorage';
-import { StoreKeys } from './store/store.interface';
 
 import { describe, test, expect } from 'vitest';
+import { MemoryStorage, StoreKeys } from '@gardenfi/utils';
 dotenv.config({ path: path.resolve(__dirname, '..', '..', '.env') });
 
 describe.only('orderbook', () => {
