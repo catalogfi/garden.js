@@ -1,5 +1,5 @@
 import { Url } from '@gardenfi/utils';
-import { AsyncResult, Err, Fetcher, Ok } from '@catalogfi/utils';
+import { AsyncResult, Err, Fetcher, Ok, Result } from '@catalogfi/utils';
 import {
   Config,
   DURATION,
@@ -19,7 +19,11 @@ import { WalletClient, getContract, maxUint256 } from 'viem';
 import { arbitrum, sepolia } from 'viem/chains';
 import { FlowerABI } from './abi/flowerABI';
 import { StakeABI } from './abi/stakeABI';
-import { checkAllowanceAndApprove, convertTo0xString } from './utils';
+import {
+  checkAllowanceAndApprove,
+  convertTo0xString,
+  executeWithTryCatch,
+} from './utils';
 
 export class StakeProvider implements IStakeProvider {
   private address: `0x${string}`;
@@ -52,27 +56,23 @@ export class StakeProvider implements IStakeProvider {
     api: Url,
     address: string
   ): AsyncResult<Stake[], string> {
-    try {
+    return executeWithTryCatch<Stake[]>(async () => {
       const res = await Fetcher.get<{ data: Stake[] }>(
         api.endpoint('/stakes?userId=' + address)
       );
-      return Ok(res.data);
-    } catch (error) {
-      return Err('Failed to get stakes: ' + error);
-    }
+      return res.data;
+    }, 'Failed to get stakes');
   }
 
   static async getGlobalStakingData(
     api: Url
   ): AsyncResult<GlobalStakingData, string> {
-    try {
-      const res = await Fetcher.get<{
-        data: GlobalStakingData;
-      }>(api.endpoint('/stakingStats'));
-      return Ok(res.data);
-    } catch (error) {
-      return Err('Failed to get global staking data: ' + error);
-    }
+    return executeWithTryCatch<GlobalStakingData>(async () => {
+      const res = await Fetcher.get<{ data: GlobalStakingData }>(
+        api.endpoint('/stakingStats')
+      );
+      return res.data;
+    }, 'Failed to get global staking data');
   }
 
   async stakeAndVote(
@@ -114,32 +114,34 @@ export class StakeProvider implements IStakeProvider {
     );
     if (approveRes.error) return Err('Approve Error', approveRes.error);
 
-    try {
-      if (shouldMintNFT) {
-        const res = await flowerContract.write.mint(
-          [convertTo0xString(this.config.GARDEN_FILLER_ADDRESS)],
-          {
-            account: this.address,
-            chain: this.walletClient.chain,
-          }
-        );
-        return Ok(res);
-      } else {
-        const res = await stakeContract.write.vote(
-          [
-            convertTo0xString(this.config.GARDEN_FILLER_ADDRESS),
-            stakeUnits,
-            lockPeriod,
-          ],
-          {
-            account: this.address,
-            chain: this.walletClient.chain,
-          }
-        );
-        return Ok(res);
-      }
-    } catch (error) {
-      return Err('Failed to stake: ' + error);
+    if (shouldMintNFT) {
+      return executeWithTryCatch<`0x${string}`>(
+        async () =>
+          await flowerContract.write.mint(
+            [convertTo0xString(this.config.GARDEN_FILLER_ADDRESS)],
+            {
+              account: this.address,
+              chain: this.walletClient.chain,
+            }
+          ),
+        'Failed to mint NFT'
+      );
+    } else {
+      return executeWithTryCatch<`0x${string}`>(
+        async () =>
+          await stakeContract.write.vote(
+            [
+              convertTo0xString(this.config.GARDEN_FILLER_ADDRESS),
+              stakeUnits,
+              lockPeriod,
+            ],
+            {
+              account: this.address,
+              chain: this.walletClient.chain,
+            }
+          ),
+        'Failed to stake'
+      );
     }
   }
 
@@ -150,19 +152,14 @@ export class StakeProvider implements IStakeProvider {
       client: { public: this.walletClient, wallet: this.walletClient },
     });
 
-    try {
-      const txHash = await stakeContract.write.refund(
-        [convertTo0xString(stakeId)],
-        {
+    return executeWithTryCatch<`0x${string}`>(
+      async () =>
+        await stakeContract.write.refund([convertTo0xString(stakeId)], {
           account: this.address,
           chain: this.walletClient.chain,
-        }
-      );
-
-      return Ok(txHash);
-    } catch (error) {
-      return Err('Failed to unStake: ' + error);
-    }
+        }),
+      'Failed to unStake'
+    );
   }
 
   async renewStake(
@@ -175,19 +172,17 @@ export class StakeProvider implements IStakeProvider {
       client: { public: this.walletClient, wallet: this.walletClient },
     });
 
-    try {
-      const txHash = await stakeContract.write.renew(
-        [convertTo0xString(stakeId), BigInt(duration)],
-        {
-          account: this.address,
-          chain: this.walletClient.chain,
-        }
-      );
-
-      return Ok(txHash);
-    } catch (error) {
-      return Err('Failed to unStake: ' + error);
-    }
+    return executeWithTryCatch<`0x${string}`>(
+      async () =>
+        await stakeContract.write.renew(
+          [convertTo0xString(stakeId), BigInt(duration)],
+          {
+            account: this.address,
+            chain: this.walletClient.chain,
+          }
+        ),
+      'Failed to renew stake'
+    );
   }
   async extendStake(
     stakeId: string,
@@ -199,18 +194,16 @@ export class StakeProvider implements IStakeProvider {
       client: { public: this.walletClient, wallet: this.walletClient },
     });
 
-    try {
-      const txHash = await stakeContract.write.extend(
-        [convertTo0xString(stakeId), BigInt(duration)],
-        {
-          account: this.address,
-          chain: this.walletClient.chain,
-        }
-      );
-
-      return Ok(txHash);
-    } catch (error) {
-      return Err('Failed to unStake: ' + error);
-    }
+    return executeWithTryCatch<`0x${string}`>(
+      async () =>
+        await stakeContract.write.extend(
+          [convertTo0xString(stakeId), BigInt(duration)],
+          {
+            account: this.address,
+            chain: this.walletClient.chain,
+          }
+        ),
+      'Failed to extend stake'
+    );
   }
 }

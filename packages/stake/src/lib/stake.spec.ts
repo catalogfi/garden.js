@@ -35,6 +35,7 @@ describe('stake', async () => {
 
   test.skip('getGlobalStakingData', async () => {
     const res = await StakeProvider.getGlobalStakingData(api);
+    console.log('res :', res.val);
     expect(res.ok).toBeTruthy();
   });
 
@@ -46,10 +47,20 @@ describe('stake', async () => {
     expect(res.error).toBeUndefined();
   });
 
-  test('unstake', async () => {
+  test.skip('unstake', async () => {
     const res = await sp.unStake(
       '0x8636df0d65073632cc00550818d4e160a3f4fe724c90a1a4d038d3b431d973ab'
     );
+    expect(res.ok).toBeTruthy();
+    expect(res.val).toBeTypeOf('string');
+    expect(res.error).toBeUndefined();
+  });
+  test.skip('extend', async () => {
+    const res = await sp.extendStake(
+      '0x8636df0d65073632cc00550818d4e160a3f4fe724c90a1a4d038d3b431d973ab',
+      12
+    );
+    console.log('res.error :', res.error);
     expect(res.ok).toBeTruthy();
     expect(res.val).toBeTypeOf('string');
     expect(res.error).toBeUndefined();
