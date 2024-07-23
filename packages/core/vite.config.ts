@@ -7,19 +7,30 @@ import pkg from './package.json';
 import eslint from 'vite-plugin-eslint';
 
 export default defineConfig({
-  cacheDir: '../node_modules/.vite/catalog',
+  cacheDir: '../node_modules/.vite/core',
 
   plugins: [
     eslint(),
     wasm(),
     topLevelAwait(),
-    // nodePolyfills(),
+    // tsconfigPaths(),
     dts({
       outDir: './dist',
       pathsToAliases: false,
       entryRoot: '.',
+      tsconfigPath: './tsconfig.lib.json',
     }),
   ],
+
+  resolve: {
+    preserveSymlinks: true,
+  },
+
+  test: {
+    alias: {
+      '@gardenfi/orderbook': new URL('../orderbook', import.meta.url).pathname,
+    },
+  },
 
   // Uncomment this if you are using workers.
   // worker: {
@@ -30,8 +41,8 @@ export default defineConfig({
   build: {
     lib: {
       // Could also be a dictionary or array of multiple entry points.
-      entry: 'src/index.ts',
-      name: 'catalog',
+      entry: 'index.ts',
+      name: 'core',
       fileName: 'index',
       // Change this to the formats you want to support.
       // Don't forget to update your package.json as well.

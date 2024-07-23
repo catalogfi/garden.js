@@ -8,7 +8,7 @@ import { GardenErrors } from './errors';
 import { with0x } from '@catalogfi/utils';
 import { Connector, isCatalogWalletInstalled } from '@catalogfi/extension';
 import { catalogWalletActions } from './catalogActions';
-import { AbstractBitcoinWallet, IBaseWallet } from '@catalogfi/wallets';
+import { IBaseWallet } from '@catalogfi/wallets';
 
 /**
  * GardenJS is the core component of the Garden SDK. It allows you to create orders,
@@ -88,7 +88,7 @@ export class GardenJS implements IGardenJS {
 
       const bitcoinWallet = this.getBitcoinWallet();
 
-      if (!bitcoinWallet || !(bitcoinWallet instanceof AbstractBitcoinWallet)) {
+      if (!bitcoinWallet) {
         throw new Error(GardenErrors.CHAIN_WALLET_NOT_FOUND('Bitcoin'));
       }
 
@@ -165,3 +165,26 @@ const validateChain = (from: Chain, to: Chain) => {
         : GardenErrors.CHAIN_WALLET_NOT_FOUND('EVM')
     );
 };
+
+// const OrderbookApi = 'localhost:8080';
+
+// const provider = new JsonRpcProvider('http://localhost:8545');
+// const mnemonic = generateMnemonic();
+// const pk = mnemonicToPrivateKey(mnemonic, BitcoinNetwork.Regtest);
+
+// const ethereumSigner = new Wallet(pk, provider);
+
+// const orderbook = new Orderbook({
+//   url: 'http://' + OrderbookApi,
+//   signer: ethereumSigner,
+// });
+// const bitcoinProvider = new BitcoinProvider(
+//   BitcoinNetwork.Regtest,
+//   'http://localhost:30000'
+// );
+
+// const garden = new GardenJS(orderbook, {
+//   bitcoin_regtest: new BitcoinOTA(bitcoinProvider, ethereumSigner),
+// });
+
+// console.log(garden);
