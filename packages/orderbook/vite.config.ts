@@ -13,8 +13,13 @@ export default defineConfig({
       outDir: './dist',
       pathsToAliases: false,
       entryRoot: '.',
+      tsconfigPath: './tsconfig.lib.json',
     }),
   ],
+
+  resolve: {
+    preserveSymlinks: true,
+  },
 
   // Uncomment this if you are using workers.
   // worker: {
@@ -28,7 +33,7 @@ export default defineConfig({
     },
     lib: {
       // Could also be a dictionary or array of multiple entry points.
-      entry: 'src/index.ts',
+      entry: 'index.ts',
       name: 'orderbook',
       fileName: 'index',
       // Change this to the formats you want to support.
