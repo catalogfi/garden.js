@@ -47,22 +47,3 @@ export const checkAllowanceAndApprove = async (
     return Err('Failed to approve: ' + error);
   }
 };
-
-/**
- * A wrapper function to execute a function with try catch block.
- * @param tryFunction The function to execute.
- */
-export async function executeWithTryCatch<T>(
-  tryFunction: () => Promise<T> | AsyncResult<T, string>,
-  errorMessage: string = 'Failed to execute function'
-): AsyncResult<T, string> {
-  try {
-    const result = await tryFunction();
-    if (result instanceof Result) {
-      return result;
-    }
-    return Ok(result);
-  } catch (error: any) {
-    return Err(errorMessage + ': ', error);
-  }
-}

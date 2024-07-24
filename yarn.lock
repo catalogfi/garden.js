@@ -433,17 +433,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@catalogfi/utils@npm:^0.1.10":
+  version: 0.1.10
+  resolution: "@catalogfi/utils@npm:0.1.10"
+  checksum: 10c0/b9fe8edfd9d09626d0e8a66359cb9a8ad7189de16df672f8855dfaf2aa3330a87b9892d00a18771a6ada5a723c78bbdfc04f37d16dd93674df05368615c9c4d8
+  languageName: node
+  linkType: hard
+
 "@catalogfi/utils@npm:^0.1.6":
   version: 0.1.6
   resolution: "@catalogfi/utils@npm:0.1.6"
   checksum: 10c0/e1d8637701bd1fcc05719c25bc1f7c3c6969c0a7f2c030a58260900346c2a9ac9721c3c34eadd8cc8d2f4442e72e4bc355821a4024442f750fa2ddfb23c022ae
-  languageName: node
-  linkType: hard
-
-"@catalogfi/utils@npm:^0.1.9":
-  version: 0.1.9
-  resolution: "@catalogfi/utils@npm:0.1.9"
-  checksum: 10c0/4574f80172c879dcf4588b6b66088b47215bb8dbc8698c671fef67a03f4aa6279a7bce53d2bc8d6c9f4d108ff780e06646155a07445c9b07188bbf827afdc3c6
   languageName: node
   linkType: hard
 
@@ -711,7 +711,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@gardenfi/paymentchannel@workspace:packages/paymentChannel"
   dependencies:
-    "@catalogfi/utils": "npm:^0.1.6"
+    "@catalogfi/utils": "npm:^0.1.10"
     "@gardenfi/utils": "workspace:^"
     "@types/ws": "npm:^8.5.7"
     axios: "npm:^1.7.2"
@@ -728,7 +728,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@gardenfi/stake@workspace:packages/stake"
   dependencies:
-    "@catalogfi/utils": "npm:^0.1.9"
+    "@catalogfi/utils": "npm:^0.1.10"
     "@types/ws": "npm:^8.5.7"
     axios: "npm:^1.7.2"
     dotenv: "npm:^16.3.1"

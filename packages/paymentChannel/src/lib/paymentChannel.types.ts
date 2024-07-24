@@ -1,6 +1,6 @@
 import { AsyncResult } from '@catalogfi/utils';
 
-enum HTLCStatus {
+export enum HTLCStatus {
   Pending = 'pending',
   Ready = 'ready',
   Failed = 'failed',
@@ -18,7 +18,7 @@ type PendingHTLC = {
   processed: boolean;
 };
 
-type HTLC = {
+export type HTLC = {
   ID: number;
   secretHash: string; // used to create
   secret: string;
@@ -35,7 +35,7 @@ type HTLC = {
   refundTxHash: string;
 };
 
-export type PaymentChannelState = {
+export type Channel = {
   ID: number;
   CreatedAt: string;
   UpdatedAt: string;
@@ -77,11 +77,23 @@ export type ConditionalPaymentFinalRequest = {
   htlc: ConditionalPaymentInitialRequest;
 };
 
+export type WithdrawNonce = {
+  lastUsed: string;
+  nonce: number;
+};
+
+export type WithdrawHTLC = {
+  secretHash: string;
+  timeLock: number;
+  sendAmount: string;
+  receiveAmount: string;
+};
+
 export interface IPaymentChannel {
   /**
    * Get the payment channel state.
    */
-  getChannel(): AsyncResult<PaymentChannelState, string>;
+  getChannel(): AsyncResult<Channel, string>;
 
   /**
    * Constructs a conditional payment request for backend to accept.
@@ -96,4 +108,15 @@ export interface IPaymentChannel {
   payConditionally(
     paymentRequest: Omit<ConditionalPaymentInitialRequest, 'timelock'>
   ): AsyncResult<void, string>;
+
+  /**
+   * Initiate withdraw of the staking rewards.
+   * This function will create a conditional payment to feehub, triggering feehub to do the on-chain conditional initiate.
+   */
+  initiateWithdraw(): AsyncResult<Channel, string>;
+  /**
+   * Redeem when the withdraw is ready.
+   * This function will redeem the funds from on-chain contract initiated by feehub.
+   */
+  redeemRewards(channel: Channel): AsyncResult<string, string>;
 }

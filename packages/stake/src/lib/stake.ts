@@ -1,5 +1,10 @@
 import { Url } from '@gardenfi/utils';
-import { AsyncResult, Err, Fetcher, Ok, Result } from '@catalogfi/utils';
+import {
+  AsyncResult,
+  Err,
+  Fetcher,
+  executeWithTryCatch,
+} from '@catalogfi/utils';
 import {
   Config,
   DURATION,
@@ -19,11 +24,7 @@ import { WalletClient, getContract, maxUint256 } from 'viem';
 import { arbitrum, sepolia } from 'viem/chains';
 import { FlowerABI } from './abi/flowerABI';
 import { StakeABI } from './abi/stakeABI';
-import {
-  checkAllowanceAndApprove,
-  convertTo0xString,
-  executeWithTryCatch,
-} from './utils';
+import { checkAllowanceAndApprove, convertTo0xString } from './utils';
 
 export class StakeProvider implements IStakeProvider {
   private address: `0x${string}`;
