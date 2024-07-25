@@ -2,10 +2,20 @@ import { JsonRpcProvider, Wallet } from 'ethers';
 import { Debridge } from './debridge';
 import { describe, it, expect } from 'vitest';
 import { DeBridgeErrorCodes } from './debridge.types';
+import { tokens } from './tokens';
+import { Url } from '@gardenfi/utils';
+import { createWalletClient, http } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { mainnet } from 'viem/chains';
 
 describe('DeBridge', () => {
+  const debridge = new Debridge(
+    new Url('/v1.0', 'https://api.dln.trade'),
+    new Url('/api/Orders', 'https://stats-api.dln.trade/'),
+    new Url('https://points-api.debridge.finance/api/points')
+  );
   it('should be able to get points', async () => {
-    const points = await Debridge.getPoints(
+    const points = await debridge.getPoints(
       '0x0000000000000000000000000000000000000000'
     );
     expect(points.ok).toBeTruthy();
@@ -15,7 +25,7 @@ describe('DeBridge', () => {
   it(
     'should be able to get a transaction',
     async () => {
-      const tx = await Debridge.getTx(
+      const tx = await debridge.getTx(
         '0x0fe70282cc628d9a4449cd371b6b209c4a0ae970dc3f188f9475d4dcc8863cf8'
       );
       expect(tx.ok).toBeTruthy();
@@ -25,7 +35,7 @@ describe('DeBridge', () => {
   );
 
   it('should be able to get multiple transactions', async () => {
-    const txs = await Debridge.getTxs({
+    const txs = await debridge.getTxs({
       address: '0x0000000000000000000000000000000000000000',
     });
 
@@ -35,27 +45,37 @@ describe('DeBridge', () => {
   });
 
   it(
-    'should be able to create a tx',
+    'should be able to get a quote when the fromAmount is specified',
     async () => {
-      const abortController = new AbortController();
-      const createTxResponse = await Debridge.createTx(
-        {
-          srcChainId: 1,
-          srcChainTokenIn: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
-          isExactOut: false,
-          dstChainId: 42161,
-          dstChainTokenOut: '0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f',
-          dstChainTokenOutRecipient:
-            '0x3033A548f10f798c1aC7A77fB16f893B1Df07624',
-          senderAddress: '0x3033A548f10f798c1aC7A77fB16f893B1Df07624',
-          sellAmount: '1',
-          srcTokenDecimals: 8,
-        },
-        abortController
-      );
+      const quoteResponse = await debridge.quote({
+        fromAddress: '0x9f2218D53A94ff958EF71166243ad10c4C462987',
+        toAddress: '0x9f2218D53A94ff958EF71166243ad10c4C462987',
+        fromToken: tokens.WBTC.ethereum,
+        toToken: tokens.WBTC.arbitrum,
+        fromAmount: '1',
+      });
 
-      expect(createTxResponse.ok).toBeTruthy();
-      expect(createTxResponse.val.quote).toBeTruthy();
+      expect(quoteResponse.ok).toBeTruthy();
+      expect(quoteResponse.val.quote).toBeTruthy();
+      expect(quoteResponse.val.tx).toBeTruthy();
+    },
+    10 * 1000
+  );
+
+  it(
+    'should be able to get a quote when the toAmount is specified',
+    async () => {
+      const quoteResponse = await debridge.quote({
+        fromAddress: '0x9f2218D53A94ff958EF71166243ad10c4C462987',
+        toAddress: '0x9f2218D53A94ff958EF71166243ad10c4C462987',
+        fromToken: tokens.WBTC.ethereum,
+        toToken: tokens.WBTC.arbitrum,
+        toAmount: '1',
+      });
+
+      expect(quoteResponse.ok).toBeTruthy();
+      expect(quoteResponse.val.quote).toBeTruthy();
+      expect(quoteResponse.val.tx).toBeTruthy();
     },
     10 * 1000
   );
@@ -65,18 +85,13 @@ describe('DeBridge', () => {
     async () => {
       const abortController = new AbortController();
       setTimeout(() => abortController.abort(), 100);
-      const createTxResponse = await Debridge.createTx(
+      const createTxResponse = await debridge.quote(
         {
-          srcChainId: 1,
-          srcChainTokenIn: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
-          isExactOut: false,
-          dstChainId: 42161,
-          dstChainTokenOut: '0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f',
-          dstChainTokenOutRecipient:
-            '0x3033A548f10f798c1aC7A77fB16f893B1Df07624',
-          senderAddress: '0x3033A548f10f798c1aC7A77fB16f893B1Df07624',
-          sellAmount: '1',
-          srcTokenDecimals: 8,
+          fromAddress: '0x9f2218D53A94ff958EF71166243ad10c4C462987',
+          toAddress: '0x9f2218D53A94ff958EF71166243ad10c4C462987',
+          fromToken: tokens.WBTC.ethereum,
+          toToken: tokens.WBTC.arbitrum,
+          fromAmount: '1',
         },
         abortController
       );
@@ -89,34 +104,35 @@ describe('DeBridge', () => {
     10 * 1000
   );
 
-  it.skip(
+  it.only(
     'should be able to make a swap',
     async () => {
       const provider = new JsonRpcProvider(
-        'https://rpc.tenderly.co/fork/791394d4-d55d-4bf9-aa9a-4dca31365017'
+        'https://rpc.tenderly.co/fork/48dc0393-e30d-4771-b53e-3e0183d4c881'
       );
-      const signer = new Wallet(
-        '3000000000000000000000000000000000000000000000000000000000000000',
-        provider
-      );
-      const abortController = new AbortController();
 
-      const swapResponse = await Debridge.swap(
-        {
-          srcChainId: 1,
-          srcChainTokenIn: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
-          isExactOut: false,
-          dstChainId: 42161,
-          dstChainTokenOut: '0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f',
-          dstChainTokenOutRecipient:
-            '0x3033A548f10f798c1aC7A77fB16f893B1Df07624',
-          senderAddress: '0x3033A548f10f798c1aC7A77fB16f893B1Df07624',
-          sellAmount: '1',
-          srcTokenDecimals: 8,
-          signer,
-        },
-        abortController
+      const account = privateKeyToAccount(
+        '0x3000000000000000000000000000000000000000000000000000000000000000'
       );
+
+      const client = createWalletClient({
+        account,
+        chain: mainnet,
+        transport: http(
+          'https://rpc.tenderly.co/fork/48dc0393-e30d-4771-b53e-3e0183d4c881'
+        ),
+      });
+
+      const address = account.address;
+
+      const swapResponse = await debridge.swap({
+        fromAddress: address,
+        toAddress: address,
+        fromToken: tokens.WBTC.ethereum,
+        toToken: tokens.WBTC.arbitrum,
+        fromAmount: '1',
+        client,
+      });
 
       expect(swapResponse.ok).toBeTruthy();
       expect(swapResponse.val.txHash).toBeTruthy();
