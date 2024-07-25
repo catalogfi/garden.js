@@ -756,6 +756,20 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@gardenfi/wallet-connectors@workspace:packages/walletConnectors":
+  version: 0.0.0-use.local
+  resolution: "@gardenfi/wallet-connectors@workspace:packages/walletConnectors"
+  dependencies:
+    "@catalogfi/utils": "npm:^0.1.10"
+    "@types/ws": "npm:^8.5.7"
+    dotenv: "npm:^16.3.1"
+    typescript: "npm:^5.2.2"
+    vite: "npm:^5.1.6"
+    vite-plugin-dts: "npm:^3.7.3"
+    vitest: "npm:^1.6.0"
+  languageName: unknown
+  linkType: soft
+
 "@isaacs/cliui@npm:^8.0.2":
   version: 8.0.2
   resolution: "@isaacs/cliui@npm:8.0.2"
