@@ -104,7 +104,7 @@ describe('DeBridge', () => {
     10 * 1000
   );
 
-  it.only(
+  it(
     'should be able to make a swap',
     async () => {
       const provider = new JsonRpcProvider(
