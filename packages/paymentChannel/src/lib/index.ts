@@ -1,4 +1,3 @@
-import { erc20Abi } from 'viem';
 import {
   JsonRpcSigner,
   Wallet,

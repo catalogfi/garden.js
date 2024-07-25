@@ -1,6 +1,5 @@
 import { AsyncResult } from '@catalogfi/utils';
 import { DURATION_MAP } from './constants';
-import { IAuth } from '@gardenfi/utils';
 
 export type Stake = {
   id: string;
@@ -65,14 +64,6 @@ export interface IStakeProvider {
    * Extend stake.
    */
   extendStake(stakeId: string, duration: DURATION): AsyncResult<string, string>;
-  // /**
-  //  * Initiate withdraw of the staking rewards.
-  //  */
-  // initiateWithdraw(): AsyncResult<void, string>;
-  // /**
-  //  * Redeem when the withdraw is ready.
-  //  */
-  // redeemRewards(): AsyncResult<void, string>;
 }
 
 export interface IFeehub {
