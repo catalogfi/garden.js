@@ -1,4 +1,4 @@
-export { DeBridgeErrorCodes } from './src/debridge.types';
+export { DeBridgeErrors } from './src/debridge.types';
 export type {
   QuoteConfig,
   QuoteResponse,
