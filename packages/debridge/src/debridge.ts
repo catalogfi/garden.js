@@ -3,7 +3,7 @@ import {
   QuoteConfig,
   QuoteResponse,
   QuoteResult,
-  DeBridgeErrorCodes,
+  DeBridgeErrors,
   DeBridgePoints,
   DebridgeResources,
   GetDebridgeTxsResponse,
@@ -11,6 +11,7 @@ import {
   IDebridge,
   SwapConfig,
   SwapResponse,
+  DebridgeConfig,
 } from './debridge.types';
 import { QuoteQueryParams } from './debridge.api.types';
 import {
@@ -19,17 +20,20 @@ import {
   DEBRIDGE_REFERRAL_CODE,
 } from './constants';
 import * as ethers from 'ethers';
-import { erc20Abi } from './abi/erc20';
 import { Url } from '@gardenfi/utils';
-import { createPublicClient, getContract, http, maxUint256 } from 'viem';
+import { getContract, maxUint256, erc20Abi } from 'viem';
 
 export class Debridge implements IDebridge {
-  constructor(
-    public debridgeDomain: Url,
-    public debridgeTxDomain: Url,
-    public debridgePointsDomain: Url,
-    public orderCount: number = 100
-  ) {}
+  public debridgeDomain: Url;
+  public debridgeTxDomain: Url;
+  public debridgePointsDomain: Url;
+  public orderCount: number;
+  constructor(debridgeConfig: DebridgeConfig) {
+    this.debridgeDomain = new Url(debridgeConfig.debridgeDomain);
+    this.debridgeTxDomain = new Url(debridgeConfig.debridgeTxDomain);
+    this.debridgePointsDomain = new Url(debridgeConfig.debridgePointsDomain);
+    this.orderCount = debridgeConfig.orderCount || 100;
+  }
 
   async getPoints(address: string): AsyncResult<DeBridgePoints, string> {
     const searchParams = new URLSearchParams({ origin: 'DeSwap' });
@@ -90,27 +94,25 @@ export class Debridge implements IDebridge {
   async quote(
     quoteConfig: QuoteConfig,
     abortController?: AbortController
-  ): AsyncResult<QuoteResult, DeBridgeErrorCodes> {
+  ): AsyncResult<QuoteResult, DeBridgeErrors> {
     const url = this.debridgeDomain.endpoint(DebridgeResources.createTx);
-
-    const isFromAmount = 'fromAmount' in quoteConfig;
 
     const tenPowerInputDecimals =
       10n **
       BigInt(
-        isFromAmount
+        !quoteConfig.isExactOut
           ? quoteConfig.fromToken.decimals
           : quoteConfig.toToken.decimals
       );
 
-    const amount = isFromAmount ? quoteConfig.fromAmount : quoteConfig.toAmount;
+    const amount = quoteConfig.amount;
 
     const amountInDecimals = BigInt(amount) * tenPowerInputDecimals;
 
     const createTxQueryParams: QuoteQueryParams = {
       srcChainId: quoteConfig.fromToken.chainId,
       srcChainTokenIn: quoteConfig.fromToken.address,
-      srcChainTokenInAmount: isFromAmount
+      srcChainTokenInAmount: !quoteConfig.isExactOut
         ? amountInDecimals.toString()
         : 'auto',
       dstChainId: quoteConfig.toToken.chainId,
@@ -127,7 +129,7 @@ export class Debridge implements IDebridge {
       affiliateFeeRecipient: DEBRIDGE_GARDEN_AFFILIATE_ADDRESS,
     };
 
-    if (!isFromAmount) {
+    if (quoteConfig.isExactOut) {
       createTxQueryParams.dstChainTokenOutAmount = amountInDecimals.toString();
     }
 
@@ -156,16 +158,16 @@ export class Debridge implements IDebridge {
       }
 
       return Ok({
-        quote: !isFromAmount
+        quote: quoteConfig.isExactOut
           ? createTxResponse.estimation.srcChainTokenIn.amount
           : createTxResponse.estimation.dstChainTokenOut.recommendedAmount,
         tx: createTxResponse.tx,
       });
     } catch (err) {
       if ((err as Error).name === 'AbortError') {
-        return Err(DeBridgeErrorCodes.API_CALL_CANCELLED);
+        return Err(DeBridgeErrors.API_CALL_CANCELLED);
       } else {
-        return Err(DeBridgeErrorCodes.UNKNOWN_ERROR);
+        return Err(DeBridgeErrors.UNKNOWN_ERROR);
       }
     }
   }
@@ -181,7 +183,7 @@ export class Debridge implements IDebridge {
     const tenPowerDecimals = BigInt(
       isFromAmount ? swapConfig.fromToken.decimals : swapConfig.toToken.decimals
     );
-    const amount = isFromAmount ? swapConfig.fromAmount : swapConfig.toAmount;
+    const amount = swapConfig.amount;
     const amountInDecimals = BigInt(amount) * tenPowerDecimals;
 
     if (swapConfig.fromToken.address === ethers.ZeroAddress)

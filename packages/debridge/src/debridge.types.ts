@@ -1,5 +1,4 @@
 import { AsyncResult } from '@catalogfi/utils';
-import { JsonRpcSigner, Wallet } from 'ethers';
 import { DeBridgeTransaction, Estimation, Order } from './debridge.api.types';
 import { Transport, WalletClient } from 'viem';
 
@@ -7,7 +6,7 @@ export interface IDebridge {
   quote(
     quoteConfig: QuoteConfig,
     abortController: AbortController
-  ): AsyncResult<QuoteResult, DeBridgeErrorCodes>;
+  ): AsyncResult<QuoteResult, DeBridgeErrors>;
   swap(swapConfig: SwapConfig): AsyncResult<SwapResponse, string>;
   getTxs(
     getTxsConfig: GetTxsConfig
@@ -16,28 +15,27 @@ export interface IDebridge {
   getPoints(address: string): AsyncResult<DeBridgePoints, string>;
 }
 
+export type DebridgeConfig = {
+  debridgeDomain: string;
+  debridgeTxDomain: string;
+  debridgePointsDomain: string;
+  orderCount?: number;
+};
+
 export type SwapTokenMetadata = {
   chainId: number;
   address: string;
   decimals: number;
 };
 
-export type QuoteConfigWithoutAmount = {
+export type QuoteConfig = {
   fromToken: SwapTokenMetadata;
   toToken: SwapTokenMetadata;
   fromAddress: string;
   toAddress: string;
+  amount: string;
+  isExactOut: boolean; //isExactOut means that the destination amount is specified by the user
 };
-
-export type QuoteConfigWithFromAmount = QuoteConfigWithoutAmount & {
-  fromAmount: string;
-};
-
-export type QuoteConfigWithToAmount = QuoteConfigWithoutAmount & {
-  toAmount: string;
-};
-
-export type QuoteConfig = QuoteConfigWithFromAmount | QuoteConfigWithToAmount;
 
 export type QuoteResponse = {
   estimation: Estimation;
@@ -48,7 +46,7 @@ export type QuoteResponse = {
   fixFee: string;
   userPoints: number;
   integratorPoints: number;
-  errorId?: DeBridgeErrorCodes;
+  errorId?: DeBridgeErrors;
 };
 
 export type QuoteResult = {
@@ -69,7 +67,7 @@ type EthTransaction = {
   gasLimit?: number;
 };
 
-export enum DeBridgeErrorCodes {
+export enum DeBridgeErrors {
   INVALID_QUERY_PARAMETERS = 'INVALID_QUERY_PARAMETERS',
   SOURCE_AND_DESTINATION_CHAINS_ARE_EQUAL = 'SOURCE_AND_DESTINATION_CHAINS_ARE_EQUAL',
   AFFILIATE_FEE_PERCENT_NOT_SET = 'AFFILIATE_FEE_PERCENT_NOT_SET',

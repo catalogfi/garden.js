@@ -1,5 +1,3 @@
-import { SwapTokenMetadata } from './debridge.types';
-
 export const CHAINS_MAP = {
   ethereum: 1,
   optimism: 10,
@@ -9,23 +7,49 @@ export const CHAINS_MAP = {
   avalanche: 43114,
 } as const;
 
-type Chain = keyof typeof CHAINS_MAP;
-type Tokens<K extends Chain = Chain> = Record<
-  string,
-  Partial<{ [k in K]: SwapTokenMetadata & { chainId: (typeof CHAINS_MAP)[k] } }>
->;
-
 export const tokens = {
-  WBTC: {
-    ethereum: {
-      chainId: 1,
+  ethereum: {
+    WBTC: {
+      decimals: 8,
       address: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
-      decimals: 8,
+      chainId: 1,
     },
-    arbitrum: {
-      chainId: 42161,
-      address: '0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f',
+  },
+  arbitrum: {
+    WBTC: {
       decimals: 8,
+      address: '0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f',
+      chainId: 42161,
+    },
+  },
+  optimism: {
+    WBTC: {
+      decimals: 8,
+      address: '0x68f180fcCe6836688e9084f035309E29Bf0A2095',
+      chainId: 10,
+    },
+  },
+  polygon: {
+    WBTC: {
+      decimals: 8,
+      address: '0x078f358208685046a11C85e8ad32895DED33A249',
+      chainId: 137,
+    },
+  },
+
+  binance: {
+    btcb: {
+      decimals: 8,
+      address: '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c',
+      chainId: 56,
+    },
+  },
+
+  avalanche: {
+    'btc.b': {
+      decimals: 8,
+      address: '0x152b9d0FdC40C096757F570A51E494bd4b943E50',
+      chainId: 43114,
     },
   },
 } as const;

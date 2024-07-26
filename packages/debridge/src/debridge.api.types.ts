@@ -54,7 +54,7 @@ export type DeBridgeTransaction = {
     chainId: Bytes;
     inTokenAddress: Base64;
     inAmount: Bytes;
-    tokenInMetadata: TokenMetadata;
+    tokenInMetadata?: TokenMetadata;
     tokenInLogoURI: string;
     outTokenAddress: Base64;
     outAmount: Bytes;

@@ -1,8 +1,8 @@
 export { DeBridgeErrorCodes } from './src/debridge.types';
 export type {
-  CreateTxConfig,
-  CreateTxResponse,
-  CreateTxResult,
+  QuoteConfig,
+  QuoteResponse,
+  QuoteResult,
   SwapConfig,
   SwapResponse,
   GetTxsConfig,
