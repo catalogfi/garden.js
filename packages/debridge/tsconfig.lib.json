@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "jsx": "react",
     "target": "ESNext",
     "outDir": "../dist/out-tsc",
     "declaration": true,

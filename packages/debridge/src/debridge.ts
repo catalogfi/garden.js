@@ -51,8 +51,6 @@ export class Debridge implements IDebridge {
     const url = this.debridgeTxDomain.endpoint(DebridgeResources.tx);
 
     const body = {
-      giveChainIds: [],
-      takeChainIds: [],
       filter: txHash,
       skip: 0,
       take: this.orderCount,
@@ -74,8 +72,8 @@ export class Debridge implements IDebridge {
     const url = this.debridgeTxDomain.endpoint(DebridgeResources.tx);
 
     const body = {
-      giveChainIds: getTxsConfig.chainIdsFrom ?? [],
-      takeChainIds: getTxsConfig.chainIdsTo ?? [],
+      giveChainIds: getTxsConfig.chainIdsFrom,
+      takeChainIds: getTxsConfig.chainIdsTo,
       filter: getTxsConfig.address,
       skip: 0,
       take: this.orderCount,

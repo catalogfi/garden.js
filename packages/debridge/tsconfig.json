@@ -13,7 +13,7 @@
     "composite": true
   },
   "files": [],
-  "include": ["src/**/*.ts", "index.ts", "src/**/*.json"],
+  "include": ["src/**/*.ts", "index.ts", "src/**/*.json", "src/**/*.tsx"],
   "exclude": ["src/**/*.spec.ts"],
   "references": [
     {
