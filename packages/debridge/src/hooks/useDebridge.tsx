@@ -1,4 +1,4 @@
-import { IStore } from '@gardenfi/utils';
+import { IStore, MemoryStorage } from '@gardenfi/utils';
 import React, { ReactNode, useContext, useEffect, useState } from 'react';
 import { Debridge } from '../debridge';
 import { WalletClient } from 'viem';
@@ -21,7 +21,7 @@ const defaultDebridgeValue = {
     debridgeTxDomain: 'https://stats-api.dln.trade/api/Orders',
     debridgePointsDomain: 'https://points-api.debridge.finance/api/points',
   }),
-  store: localStorage,
+  store: new MemoryStorage(),
   swap: async (swapConfig: SwapConfig): AsyncResult<SwapResponse, string> =>
     Ok({} as SwapResponse),
   txs: {},
