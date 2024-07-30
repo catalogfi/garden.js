@@ -12,7 +12,7 @@ type DebridgeContextType = {
   debridge: Debridge;
   store: IStore;
   swap: (swapConfig: SwapConfig) => AsyncResult<SwapResponse, string>;
-  txs: DeBridgeTransaction[];
+  txs: Record<string, DeBridgeTransaction[]>;
 };
 
 const defaultDebridgeValue = {
@@ -24,7 +24,7 @@ const defaultDebridgeValue = {
   store: localStorage,
   swap: async (swapConfig: SwapConfig): AsyncResult<SwapResponse, string> =>
     Ok({} as SwapResponse),
-  txs: [],
+  txs: {},
 };
 
 const DebridgeContext =
@@ -41,11 +41,18 @@ export type UseDebridgeProps = {
 export const DebridgeProvider = ({
   children,
   address,
+  store,
 }: {
   children: ReactNode;
   address: `0x${string}`;
+  store: IStore;
 }) => {
-  const [txs, setTxs] = useState<DeBridgeTransaction[]>([]);
+  const [txs, oldSetTxs] = useState<Record<string, DeBridgeTransaction[]>>({});
+  const setTxs = (...args: Parameters<typeof oldSetTxs>) => {
+    store.setItem(DEBRIDGE_TXS_CACHE_KEY, JSON.stringify(txs));
+    oldSetTxs(...args);
+  };
+
   const cacheKey = DEBRIDGE_TXS_CACHE_KEY + address.toLowerCase();
   const debridge = defaultDebridgeValue.debridge;
 
@@ -55,13 +62,15 @@ export const DebridgeProvider = ({
         address,
       });
 
-      defaultDebridgeValue.store.setItem(
-        cacheKey,
-        JSON.stringify(debridgeTxs.val.orders)
-      );
+      if (debridgeTxs.error) {
+        const cachedTxs = JSON.parse(
+          store.getItem(DEBRIDGE_TXS_CACHE_KEY) || '[]'
+        );
+        setTxs({ ...txs, [`${cacheKey}`]: cachedTxs });
+        return;
+      }
 
-      if (debridgeTxs.error) return;
-      setTxs(debridgeTxs.val.orders);
+      setTxs((txs) => ({ ...txs, [`${cacheKey}`]: debridgeTxs.val.orders }));
     })();
   }, [address]); //txs change with address
 
@@ -77,7 +86,10 @@ export const DebridgeProvider = ({
 
     if (tx.error) return Err(tx.error);
 
-    setTxs((txs) => [...txs, tx.val.orders[0]]);
+    setTxs((txs) => ({
+      ...txs,
+      [`${cacheKey}`]: [...txs[cacheKey], tx.val.orders[0]],
+    }));
 
     return Ok(swapRes.val);
   };
