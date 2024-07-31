@@ -66,7 +66,7 @@ export const DebridgeProvider = ({
         const cachedTxs = JSON.parse(
           store.getItem(DEBRIDGE_TXS_CACHE_KEY) || '[]'
         );
-        setTxs({ ...txs, [`${cacheKey}`]: cachedTxs });
+        setTxs((txs) => ({ ...txs, [`${cacheKey}`]: cachedTxs }));
         return;
       }
 
