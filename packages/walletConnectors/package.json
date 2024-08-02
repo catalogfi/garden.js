@@ -26,6 +26,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
+    "@types/react": "^18",
     "@types/ws": "^8.5.7",
     "dotenv": "^16.3.1",
     "typescript": "^5.2.2",
@@ -35,6 +36,8 @@
   },
   "sideEffects": false,
   "dependencies": {
-    "@catalogfi/utils": "^0.1.10"
+    "@catalogfi/utils": "^0.1.11",
+    "@gardenfi/utils": "workspace:^",
+    "react": "^18.3.1"
   }
 }

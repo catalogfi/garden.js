@@ -6,6 +6,7 @@
     "checkJs": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
+    "jsx": "react",
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
@@ -13,7 +14,7 @@
     "composite": true
   },
   "files": [],
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["src/**/*.spec.ts"],
   "references": [
     {

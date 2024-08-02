@@ -1,1 +1,1 @@
-console.log('wallet Connectors');
+export * from './bitcoin';

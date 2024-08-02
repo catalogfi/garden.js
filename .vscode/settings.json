@@ -5,9 +5,13 @@
     "gardenfi",
     "HTLC",
     "htlcs",
+    "okxwallet",
     "paymentchannel",
+    "satoshis",
     "siwe",
     "Timelock",
-    "viem"
+    "Unisat",
+    "viem",
+    "Xverse"
   ]
 }
