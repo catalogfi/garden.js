@@ -1,9 +1,7 @@
 import { IBitcoinWallet, IHTLCWallet, Urgency } from '@catalogfi/wallets';
 import * as bitcoin from 'bitcoinjs-lib';
-import { toHashTree } from 'bitcoinjs-lib/src/payments/bip341';
-import { sha256, taggedHash } from 'bitcoinjs-lib/src/crypto';
 import * as ecc from 'tiny-secp256k1';
-import { generateInternalkey, tweakPubkey } from './internalKey';
+import { generateInternalkey } from './internalKey';
 import { Taptree } from 'bitcoinjs-lib/src/types';
 import { assert, xOnlyPubkey } from './utils';
 import { serializeScript, sortLeaves } from './utils';
@@ -268,8 +266,9 @@ export class GardenHTLC implements IHTLCWallet {
         fee?: number
     ): Promise<string> {
         assert(
-            sha256(Buffer.from(secret, 'hex')).toString('hex') ===
-                this.secretHash,
+            bitcoin.crypto
+                .sha256(Buffer.from(secret, 'hex'))
+                .toString('hex') === this.secretHash,
             htlcErrors.secretMismatch
         );
 
@@ -388,14 +387,35 @@ export class GardenHTLC implements IHTLCWallet {
      * Given a leaf, generates the control block necessary for spending the leaf
      */
     private generateControlBlockFor(leaf: Leaf) {
-        const { hash } = toHashTree(this.leaves() as Taptree);
-        const tweakedPubkey = tweakPubkey(this.internalPubkey, hash);
+        let redeemScript: Buffer;
+        switch (leaf) {
+            case Leaf.REDEEM:
+                redeemScript = this.redeemLeaf();
+                break;
+            case Leaf.REFUND:
+                redeemScript = this.redundLeaf();
+                break;
+            case Leaf.INSTANT_REFUND:
+                redeemScript = this.instantRefundLeaf();
+                break;
+            default:
+                throw new Error(htlcErrors.invalidLeaf);
+        }
 
-        return Buffer.concat([
-            Buffer.from([LEAF_VERSION | tweakedPubkey.parity]),
-            this.internalPubkey,
-            ...this.generateMerkleProofFor(leaf),
-        ]);
+        const payment = bitcoin.payments.p2tr({
+            internalPubkey: this.internalPubkey,
+            network: this.network,
+            scriptTree: this.leaves() as Taptree,
+            redeem: {
+                output: redeemScript,
+                redeemVersion: LEAF_VERSION,
+            },
+        });
+        if (!payment.witness) {
+            throw new Error(htlcErrors.controlBlockGenerationFailed);
+        }
+
+        return payment.witness[payment.witness.length - 1]!;
     }
     /**
      * Generates the hash of the leaf script
@@ -406,7 +426,10 @@ export class GardenHTLC implements IHTLCWallet {
         let leafScript = this.redeemLeaf();
         if (leaf === Leaf.REFUND) leafScript = this.redundLeaf();
         if (leaf === Leaf.INSTANT_REFUND) leafScript = this.instantRefundLeaf();
-        return taggedHash('TapLeaf', serializeScript(leafScript));
+        return bitcoin.crypto.taggedHash(
+            'TapLeaf',
+            serializeScript(leafScript)
+        );
     }
 
     private redundLeaf(): Buffer {
@@ -486,7 +509,10 @@ export class GardenHTLC implements IHTLCWallet {
                     instantRefundLeafHash
                 );
                 return [
-                    taggedHash('TapBranch', Buffer.concat(sortedRefundLeaves)),
+                    bitcoin.crypto.taggedHash(
+                        'TapBranch',
+                        Buffer.concat(sortedRefundLeaves)
+                    ),
                 ];
             }
             case Leaf.REFUND:

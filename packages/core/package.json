@@ -6,7 +6,10 @@
         "@catalogfi/utils": "^0.1.6",
         "@catalogfi/wallets": "^0.2.47",
         "@gardenfi/orderbook": "workspace:^",
-        "ethers": "6.8.0"
+        "bitcoinjs-lib": "^6.1.6",
+        "ethers": "6.8.0",
+        "tiny-secp256k1": "^2.2.3",
+        "varuint-bitcoin": "^1.1.2"
     },
     "files": [
         "dist"
