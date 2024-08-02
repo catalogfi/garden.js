@@ -2,13 +2,13 @@ import { Orders, Order, Asset, Chain } from '@gardenfi/orderbook';
 import type { IOrderbook } from '@gardenfi/orderbook';
 import { sha256 } from 'ethers';
 import { ISwapper, Swapper } from './swapper';
-import { computeSecret, isFromChainBitcoin } from './utils';
+import { computeSecret, isFromChainBitcoin, xOnlyPubkey } from './utils';
 import { IGardenJS, Wallets } from './garden.types';
 import { GardenErrors } from './errors';
 import { with0x } from '@catalogfi/utils';
 import { Connector, isCatalogWalletInstalled } from '@catalogfi/extension';
 import { catalogWalletActions } from './catalogActions';
-import { AbstractBitcoinWallet, IBaseWallet } from '@catalogfi/wallets';
+import { AbstractBitcoinWallet, IBaseWallet, IBitcoinWallet, IEVMWallet } from '@catalogfi/wallets';
 
 /**
  * GardenJS is the core component of the Garden SDK. It allows you to create orders,
@@ -96,18 +96,18 @@ export class GardenJS implements IGardenJS {
     }
 
     const fromBitcoin = isFromChainBitcoin(from.chain);
-    const evmWallet = fromBitcoin ? toWallet : fromWallet;
-    const bitcoinWallet = fromBitcoin ? fromWallet : toWallet;
+    const evmWallet = (fromBitcoin ? toWallet : fromWallet) as IEVMWallet
+    const bitcoinWallet = (fromBitcoin ? fromWallet : toWallet) as IBitcoinWallet;
 
     const address = await evmWallet.getAddress();
     const orders = await this.orderbook.getOrders(address);
 
     const sendAddress = fromBitcoin
-      ? await bitcoinWallet.getAddress()
+      ?  xOnlyPubkey(await bitcoinWallet.getPublicKey()).toString('hex')
       : await evmWallet.getAddress();
     const receiveAddress = fromBitcoin
       ? await evmWallet.getAddress()
-      : await bitcoinWallet.getAddress();
+      : xOnlyPubkey(await bitcoinWallet.getPublicKey()).toString('hex');
 
     const secret = await computeSecret(
       from.chain,
