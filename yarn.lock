@@ -1721,6 +1721,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@catalogfi/utils@npm:^0.1.10":
+  version: 0.1.10
+  resolution: "@catalogfi/utils@npm:0.1.10"
+  checksum: 10c0/b9fe8edfd9d09626d0e8a66359cb9a8ad7189de16df672f8855dfaf2aa3330a87b9892d00a18771a6ada5a723c78bbdfc04f37d16dd93674df05368615c9c4d8
+  languageName: node
+  linkType: hard
+
 "@catalogfi/utils@npm:^0.1.6":
   version: 0.1.6
   resolution: "@catalogfi/utils@npm:0.1.6"
@@ -1753,13 +1760,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@catalogfi/wallets@npm:^0.2.45":
-  version: 0.2.45
-  resolution: "@catalogfi/wallets@npm:0.2.45"
+"@catalogfi/wallets@npm:^0.2.47":
+  version: 0.2.47
+  resolution: "@catalogfi/wallets@npm:0.2.47"
   dependencies:
     "@catalogfi/encrypto": "npm:^0.1.5"
     "@catalogfi/extension": "npm:^0.1.1"
-    "@catalogfi/utils": "npm:^0.1.6"
+    "@catalogfi/utils": "npm:^0.1.10"
     "@noble/hashes": "npm:^1.4.0"
     "@typechain/ethers-v6": "npm:^0.5.1"
     bip32: "npm:^4.0.0"
@@ -1774,7 +1781,7 @@ __metadata:
     utf-8-validate: "npm:^6.0.3"
     uuid: "npm:^9.0.1"
     yup: "npm:^1.4.0"
-  checksum: 10c0/83e0068c412b667bfd05c73849d9f1f718643a28971138cf551eae997ddc52294de67b9077c8952c9aff39e553bb594cf0e6c564b814ce5e89570bb1bd72bd92
+  checksum: 10c0/2ef85ffaff2820283ebc8d11063597d5e668b5dbfc6c7aa5266610eefff3f9318638e06590abac863eb836d282e6953ac044634331d7a0b21124b30dcaa50635
   languageName: node
   linkType: hard
 
@@ -2586,7 +2593,7 @@ __metadata:
   resolution: "@gardenfi/core@workspace:packages/core"
   dependencies:
     "@catalogfi/utils": "npm:^0.1.6"
-    "@catalogfi/wallets": "npm:^0.2.45"
+    "@catalogfi/wallets": "npm:^0.2.47"
     "@gardenfi/orderbook": "workspace:^"
     dotenv: "npm:^16.3.1"
     ethers: "npm:6.8.0"

@@ -1,47 +1,89 @@
-import { IBaseWallet } from "@catalogfi/wallets";
-import { Chain } from "@gardenfi/orderbook";
-import { sha256 } from "ethers";
-import { trim0x, with0x } from "@catalogfi/utils";
+import { IBaseWallet } from '@catalogfi/wallets';
+import { trim0x, with0x } from '@catalogfi/utils';
+import { Chain } from '@gardenfi/orderbook';
+import { sha256 } from 'ethers';
+import * as varuint from 'varuint-bitcoin';
 
 export const computeSecret = async (
-    fromChain: Chain,
-    toChain: Chain,
-    wallets: Partial<Record<Chain, IBaseWallet>>,
-    nonce: number
+  fromChain: Chain,
+  toChain: Chain,
+  wallets: Partial<Record<Chain, IBaseWallet>>,
+  nonce: number
 ) => {
-    const initiatorWallet = wallets[fromChain as Chain];
-    const followerWallet = wallets[toChain as Chain];
-    if (!followerWallet) throw new Error(`No ${fromChain} wallet found`);
-    if (!initiatorWallet) throw new Error(`No ${toChain} wallet found`);
+  const initiatorWallet = wallets[fromChain as Chain];
+  const followerWallet = wallets[toChain as Chain];
+  if (!followerWallet) throw new Error(`No ${fromChain} wallet found`);
+  if (!initiatorWallet) throw new Error(`No ${toChain} wallet found`);
 
-    let sig = undefined;
-    if (isFromChainBitcoin(fromChain)) {
-        const msg = sha256(
-            with0x(
-                Buffer.from(
-                    "catalog.js" + nonce + (await followerWallet.getAddress())
-                ).toString("hex")
-            )
-        ).slice(2);
-        sig = await initiatorWallet.sign(msg);
-    } else {
-        const msg = sha256(
-            with0x(
-                Buffer.from(
-                    "catalog.js" + nonce + (await initiatorWallet.getAddress())
-                ).toString("hex")
-            )
-        ).slice(2);
-        sig = await followerWallet.sign(msg);
-    }
+  let sig = undefined;
+  if (isFromChainBitcoin(fromChain)) {
+    const msg = sha256(
+      with0x(
+        Buffer.from(
+          'catalog.js' + nonce + (await followerWallet.getAddress())
+        ).toString('hex')
+      )
+    ).slice(2);
+    sig = await initiatorWallet.sign(msg);
+  } else {
+    const msg = sha256(
+      with0x(
+        Buffer.from(
+          'catalog.js' + nonce + (await initiatorWallet.getAddress())
+        ).toString('hex')
+      )
+    ).slice(2);
+    sig = await followerWallet.sign(msg);
+  }
 
-    return trim0x(sha256(with0x(sig)));
+  return trim0x(sha256(with0x(sig)));
 };
 
 export const isFromChainBitcoin = (chain: Chain) => {
-    return (
-        chain === "bitcoin" ||
-        chain === "bitcoin_testnet" ||
-        chain === "bitcoin_regtest"
-    );
+  return (
+    chain === 'bitcoin' ||
+    chain === 'bitcoin_testnet' ||
+    chain === 'bitcoin_regtest'
+  );
 };
+
+/**
+ * Given a hex string or a buffer, return the x-only pubkey. (removes y coordinate the prefix)
+ */
+export function xOnlyPubkey(pubkey: Buffer | string): Buffer {
+  if (typeof pubkey === 'string') pubkey = Buffer.from(pubkey, 'hex');
+  return pubkey.length === 32 ? pubkey : pubkey.subarray(1, 33);
+}
+
+export function assert(condition: boolean, message: string): void {
+  if (!condition) throw new Error(message);
+}
+
+/**
+ * concats the leaf version, the length of the script, and the script itself
+ */
+export function serializeScript(leafScript: Buffer) {
+  return Buffer.concat([
+    Uint8Array.from([0xc0]),
+    prefixScriptLength(leafScript),
+  ]);
+}
+
+/**
+ * concats the length of the script and the script itself
+ */
+export function prefixScriptLength(s: Buffer): Buffer {
+  const varintLen = varuint.encodingLength(s.length);
+  const buffer = Buffer.allocUnsafe(varintLen);
+  varuint.encode(s.length, buffer);
+  return Buffer.concat([buffer, s]);
+}
+
+export function sortLeaves(leaf1: Buffer, leaf2: Buffer) {
+  if (leaf1.compare(leaf2) > 0) {
+    const temp = leaf1;
+    leaf1 = leaf2;
+    leaf2 = temp;
+  }
+  return [leaf1, leaf2];
+}

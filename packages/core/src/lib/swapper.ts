@@ -1,8 +1,14 @@
-import { Actions, Order, parseStatus } from "@gardenfi/orderbook";
-import { Chain, EvmChain, chainToId } from "@gardenfi/orderbook";
-import { IBaseWallet, IHTLCWallet } from "@catalogfi/wallets";
-import { computeSecret } from "./utils";
-import { SwapperErrors } from "./errors";
+import { Actions, Order, parseStatus } from '@gardenfi/orderbook';
+import { Chain, EvmChain, chainToId } from '@gardenfi/orderbook';
+import {
+    IBaseWallet,
+    IBitcoinWallet,
+    IHTLCWallet,
+    WalletChain,
+} from '@catalogfi/wallets';
+import { computeSecret } from './utils';
+import { SwapperErrors } from './errors';
+import { GardenHTLC } from './htlc';
 
 export interface ISwapper {
     id(): string;
@@ -84,7 +90,7 @@ export class Swapper implements ISwapper {
             }
             default: {
                 throw new Error(
-                    SwapperErrors.INVALID_ACTION("init", this.status)
+                    SwapperErrors.INVALID_ACTION('init', this.status)
                 );
             }
         }
@@ -124,7 +130,7 @@ export class Swapper implements ISwapper {
             }
             case Actions.CounterpartyCanRedeem: {
                 if (!this.order.secret)
-                    throw new Error("Secret not found in order");
+                    throw new Error('Secret not found in order');
                 const swap = await htlcWalletFromOrder(
                     initiatorWallet,
                     this.order,
@@ -139,7 +145,7 @@ export class Swapper implements ISwapper {
             }
             default: {
                 throw new Error(
-                    SwapperErrors.INVALID_ACTION("redeem", this.status)
+                    SwapperErrors.INVALID_ACTION('redeem', this.status)
                 );
             }
         }
@@ -175,10 +181,10 @@ export class Swapper implements ISwapper {
                 output: await swap.refund(this.order.userBtcWalletAddress),
             };
         }
-        throw new Error(SwapperErrors.INVALID_ACTION("refund", this.status));
+        throw new Error(SwapperErrors.INVALID_ACTION('refund', this.status));
     }
     id(): string {
-        throw new Error("Method not implemented.");
+        throw new Error('Method not implemented.');
     }
 
     private getWallet(chain: string) {
@@ -200,6 +206,18 @@ const htlcWalletFromOrder = async (
         user === User.NATIVE
             ? order.initiatorAtomicSwap
             : order.followerAtomicSwap;
+
+    if (wallet.chain() === WalletChain.Bitcoin) {
+        return GardenHTLC.from(
+            wallet as IBitcoinWallet,
+            +atomicSwap.amount,
+            order.secretHash,
+            atomicSwap.initiatorAddress,
+            atomicSwap.redeemerAddress,
+            +atomicSwap.timelock
+        );
+    }
+
     return wallet.newSwap({
         recipientAddress: atomicSwap.redeemerAddress,
         refundAddress: atomicSwap.initiatorAddress,
@@ -213,20 +231,20 @@ const htlcWalletFromOrder = async (
 };
 
 export enum SwapperRole {
-    INITIATOR = "initiator",
-    REDEEMER = "redeemer",
+    INITIATOR = 'initiator',
+    REDEEMER = 'redeemer',
 }
 
 enum User {
-    NATIVE = "native",
-    FOREIGN = "foreign",
+    NATIVE = 'native',
+    FOREIGN = 'foreign',
 }
 
 export enum SwapperActions {
-    Init = "Initiate",
-    Redeem = "Redeem",
-    Refund = "Refund",
-    None = "None",
+    Init = 'Initiate',
+    Redeem = 'Redeem',
+    Refund = 'Refund',
+    None = 'None',
 }
 const SwapperAction: Record<Actions, SwapperActions> = {
     [Actions.UserCanInitiate]: SwapperActions.Init,
@@ -247,5 +265,5 @@ export type SwapOutput = {
 const DefaultSwapOutput = {
     user: SwapperRole.INITIATOR,
     action: SwapperActions.None,
-    output: "",
+    output: '',
 };
