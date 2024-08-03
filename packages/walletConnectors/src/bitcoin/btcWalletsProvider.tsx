@@ -8,13 +8,15 @@ import React, {
 import {
   BitcoinWallet,
   IInjectedBitcoinProvider,
-  UnisatBitcoinProvider,
   XVerseBitcoinProvider,
 } from './bitcoin.types';
 import { OKXProvider } from './providers/okx/provider';
 import { OKXBitcoinProvider } from './providers/okx/okx.types';
-import { OKX_WALLET } from './providers/okx/okxWallet';
+import { OKX_WALLET } from './providers/okx/okx';
 import { AsyncResult, Err, Ok, Void } from '@catalogfi/utils';
+import { UnisatBitcoinProvider } from './providers/unisat/unisat.types';
+import { UNISAT } from './providers/unisat/unisat';
+import { UnisatProvider } from './providers/unisat/provider';
 
 declare global {
   interface Window {
@@ -81,6 +83,17 @@ export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
         }
       });
       addToWalletList(OKX_WALLET);
+    }
+    if (window.unisat) {
+      const uniProvider = new UnisatProvider(window.unisat);
+      uniProvider.getAccounts().then((accounts) => {
+        if (accounts.error) return;
+        if (accounts.val.length > 0) {
+          setAccount(accounts.val[0]);
+          setProvider(uniProvider);
+        }
+      });
+      addToWalletList(UNISAT);
     }
   }, []);
 

@@ -1,5 +1,5 @@
 import { IInjectedBitcoinProvider } from './bitcoin.types';
-import { OKX_WALLET } from './providers/okx/okxWallet';
+import { OKX_WALLET } from './providers/okx/okx';
 
 export const XVERSE_WALLET = {
   name: 'XVerse',

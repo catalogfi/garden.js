@@ -3,10 +3,10 @@ import { useBitcoinWallet } from '../../../src';
 
 export const Hello = () => {
   const { walletList, account, provider, connect } = useBitcoinWallet();
-  const [balance, setBalance] = useState();
+  const [balance, setBalance] = useState(0);
   const [network, setNetwork] = useState('');
-  console.log('provider :', provider);
-  console.log('account :', account);
+  // console.log('provider :', provider);
+  // console.log('account :', account);
 
   return (
     <>
@@ -25,6 +25,7 @@ export const Hello = () => {
           Connect {wallet.name}
         </div>
       ))}
+      <div>Account: {account}</div>
       <div>
         <div
           onClick={() => {

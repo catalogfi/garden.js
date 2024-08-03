@@ -1,18 +1,12 @@
 import { executeWithTryCatch } from '@catalogfi/utils';
-import {
-  IInjectedBitcoinProvider,
-  Network,
-  SelectedAccount,
-} from '../../bitcoin.types';
+import { IInjectedBitcoinProvider, Network } from '../../bitcoin.types';
 import { OKXBitcoinProvider } from './okx.types';
 
 export class OKXProvider implements IInjectedBitcoinProvider {
   #okxProvider: OKXBitcoinProvider;
-  public selectedAccount: SelectedAccount = {} as SelectedAccount;
 
   constructor(okxProvider: OKXBitcoinProvider) {
     this.#okxProvider = okxProvider;
-    this.selectedAccount = okxProvider.selectedAccount;
   }
 
   async connect() {

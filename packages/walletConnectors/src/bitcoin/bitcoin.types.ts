@@ -2,7 +2,7 @@ import { AsyncResult } from '@catalogfi/utils';
 
 export interface IInjectedBitcoinProvider {
   getBalance: () => AsyncResult<number, string>;
-  selectedAccount: SelectedAccount;
+  // selectedAccount: SelectedAccount;
   /**
    * requests accounts from the wallet, if not connected, it will connect first
    * @returns {AsyncResult<string[], string>}
@@ -33,21 +33,6 @@ export type SelectedAccount = {
   address: string;
   publicKey: string;
 };
-
-export interface UnisatBitcoinProvider {
-  initialize: () => Promise<{ address: string; publicKey: string }>;
-  getAccounts: () => Promise<string[]>;
-  requestAccounts: () => Promise<string[]>;
-  sendBitcoin: (toAddress: string, satoshis: number) => Promise<string>;
-  getBalance: () => Promise<{
-    confirmed: number;
-    unconfirmed: number;
-    total: number;
-  }>;
-  _selectedAddress: string;
-  on: (event: string, callback: (data: any) => void) => void;
-  off: (event: string, callback: (data: any) => void) => void;
-}
 
 export interface XVerseBitcoinProvider {
   request: (method: string, params: any) => Promise<any>;
