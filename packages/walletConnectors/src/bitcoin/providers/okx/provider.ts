@@ -1,18 +1,46 @@
-import { executeWithTryCatch } from '@catalogfi/utils';
+import { Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
 import { IInjectedBitcoinProvider, Network } from '../../bitcoin.types';
 import { OKXBitcoinProvider } from './okx.types';
 
 export class OKXProvider implements IInjectedBitcoinProvider {
   #okxProvider: OKXBitcoinProvider;
+  public address: string = '';
+  public publicKey: string = '';
 
   constructor(okxProvider: OKXBitcoinProvider) {
     this.#okxProvider = okxProvider;
   }
 
   async connect() {
+    try {
+      const result = await this.#okxProvider.connect();
+      this.address = result.address;
+      this.publicKey = result.publicKey;
+
+      if (!window.okxwallet || !window.okxwallet.bitcoin)
+        return Err('OKX wallet not found');
+
+      const provider = new OKXProvider(window.okxwallet.bitcoin);
+      this.#okxProvider = provider.#okxProvider;
+
+      const network = await this.getNetwork();
+      if (network.error) return Err('Could not get network', network.error);
+
+      return Ok({
+        address: this.address,
+        publicKey: this.publicKey,
+        provider: provider,
+        network: network.val,
+      });
+    } catch (error) {
+      return Err('Error while connecting to the OKX wallet', error);
+    }
+  }
+
+  async getPublicKey() {
     return await executeWithTryCatch(async () => {
-      await this.#okxProvider.connect();
-    }, 'Error while connecting to the OKX wallet');
+      return await this.#okxProvider.getPublicKey();
+    }, 'Error while getting public key from OKX wallet');
   }
 
   // requests accounts from the wallet, if not connected, it will connect first
@@ -38,14 +66,8 @@ export class OKXProvider implements IInjectedBitcoinProvider {
 
   async getBalance() {
     return await executeWithTryCatch(async () => {
-      if (
-        !this.#okxProvider.selectedAccount ||
-        !this.#okxProvider.selectedAccount.address
-      )
-        return 0;
       const response = await this.#okxProvider.getBalance();
-      if (!response.confirmed) return 0;
-      return response.confirmed;
+      return response;
     }, 'Error while getting balance from OKX wallet');
   }
 

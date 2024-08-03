@@ -1,18 +1,46 @@
 import { UnisatBitcoinProvider } from './unisat.types';
-import { executeWithTryCatch } from '@catalogfi/utils';
-import { IInjectedBitcoinProvider, Network } from '../../bitcoin.types';
+import { Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
+import {
+  Balance,
+  IInjectedBitcoinProvider,
+  Network,
+} from '../../bitcoin.types';
 
 export class UnisatProvider implements IInjectedBitcoinProvider {
   #unisatProvider: UnisatBitcoinProvider;
+  public address: string = '';
+  public publicKey: string = '';
 
   constructor(unisatProvider: UnisatBitcoinProvider) {
     this.#unisatProvider = unisatProvider;
   }
 
   async connect() {
-    return await executeWithTryCatch(async () => {
+    try {
       await this.#unisatProvider.requestAccounts();
-    }, 'Error while connecting to the Unisat wallet');
+
+      if (!window.unisat) return Err('unisat wallet not found');
+      const provider = new UnisatProvider(window.unisat);
+      this.#unisatProvider = provider.#unisatProvider;
+
+      const accounts = await this.#unisatProvider.getAccounts();
+      if (accounts.length > 0) this.address = accounts[0];
+
+      const pubKey = await this.#unisatProvider.getPublicKey();
+      if (pubKey) this.publicKey = pubKey;
+
+      const network = await this.getNetwork();
+      if (network.error) return Err('Could not get network', network.error);
+
+      return Ok({
+        address: this.address,
+        publicKey: this.publicKey,
+        provider: provider,
+        network: network.val,
+      });
+    } catch (error) {
+      return Err('Error while connecting to the Unisat wallet', error);
+    }
   }
 
   // requests accounts from the wallet, if not connected, it will connect first
@@ -40,8 +68,7 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
   async getBalance() {
     return await executeWithTryCatch(async () => {
       const response = await this.#unisatProvider.getBalance();
-      if (!response.confirmed) return 0;
-      return response.confirmed;
+      return response;
     }, 'Error while getting balance from Unisat wallet');
   }
 

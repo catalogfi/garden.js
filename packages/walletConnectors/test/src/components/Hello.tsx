@@ -2,15 +2,19 @@ import { useState } from 'react';
 import { useBitcoinWallet } from '../../../src';
 
 export const Hello = () => {
-  const { walletList, account, provider, connect } = useBitcoinWallet();
-  const [balance, setBalance] = useState(0);
-  const [network, setNetwork] = useState('');
+  const { walletList, account, provider, connect, publicKey, network } =
+    useBitcoinWallet();
+  const [balance, setBalance] = useState({
+    total: 0,
+    confirmed: 0,
+    unconfirmed: 0,
+  });
   // console.log('provider :', provider);
   // console.log('account :', account);
 
   return (
     <>
-      {Object.values(walletList).map((wallet) => (
+      {Object.entries(walletList).map(([name, wallet], i) => (
         <div
           onClick={async () => {
             const res = await connect(wallet);
@@ -19,13 +23,15 @@ export const Hello = () => {
               return;
             }
           }}
-          key={wallet.symbol}
+          key={i}
           style={{ cursor: 'pointer' }}
         >
-          Connect {wallet.name}
+          Connect {name}
         </div>
       ))}
       <div>Account: {account}</div>
+      <div>Public Key: {publicKey}</div>
+      <div>Network: {network}</div>
       <div>
         <div
           onClick={() => {
@@ -40,23 +46,10 @@ export const Hello = () => {
           }}
           style={{ cursor: 'pointer' }}
         >
-          balance: {balance}
+          total balance: {balance.total}
         </div>
-        <div
-          onClick={() => {
-            if (!provider) return;
-            provider.getNetwork().then((res) => {
-              if (res.error) {
-                console.error(res.error);
-                return;
-              }
-              setNetwork(res.val);
-            });
-          }}
-          style={{ cursor: 'pointer' }}
-        >
-          Network: {network}
-        </div>
+        <div>confirmed balance: {balance.confirmed}</div>
+        <div>unconfirmed balance: {balance.unconfirmed}</div>
       </div>
     </>
   );

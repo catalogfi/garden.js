@@ -5,18 +5,14 @@ import React, {
   ReactNode,
   useEffect,
 } from 'react';
-import {
-  BitcoinWallet,
-  IInjectedBitcoinProvider,
-  XVerseBitcoinProvider,
-} from './bitcoin.types';
+import { IInjectedBitcoinProvider, Network } from './bitcoin.types';
 import { OKXProvider } from './providers/okx/provider';
 import { OKXBitcoinProvider } from './providers/okx/okx.types';
-import { OKX_WALLET } from './providers/okx/okx';
 import { AsyncResult, Err, Ok, Void } from '@catalogfi/utils';
 import { UnisatBitcoinProvider } from './providers/unisat/unisat.types';
-import { UNISAT } from './providers/unisat/unisat';
 import { UnisatProvider } from './providers/unisat/provider';
+import { XverseProvider } from './providers/xverse/provider';
+import { XVerseBitcoinProvider } from './providers/xverse/xverse.types';
 
 declare global {
   interface Window {
@@ -32,42 +28,47 @@ declare global {
 
 const BTCWalletProviderContext = createContext(
   {} as {
-    walletList: { [key: string]: BitcoinWallet };
-    connect: (BitcoinWallet: BitcoinWallet) => AsyncResult<void, string>;
+    walletList: { [key: string]: IInjectedBitcoinProvider };
+    connect: (
+      BitcoinWallet: IInjectedBitcoinProvider
+    ) => AsyncResult<void, string>;
     provider: IInjectedBitcoinProvider | undefined;
-    account: string;
+    account: string | undefined;
+    publicKey: string | undefined;
+    network: Network | undefined;
   }
 );
 
 export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
   const [provider, setProvider] = useState<IInjectedBitcoinProvider>();
-  const [account, setAccount] = useState<string>('');
+  const [account, setAccount] = useState<string>();
+  const [network, setNetwork] = useState<Network>();
+  const [publicKey, setPublicKey] = useState<string>();
   const [walletList, setWalletList] = useState<{
-    [key: string]: BitcoinWallet;
+    [key: string]: IInjectedBitcoinProvider;
   }>({});
 
   //connect to the specified wallet and set the provider and account
-  const connect = async (BitcoinWallet: BitcoinWallet) => {
+  const connect = async (BitcoinWallet: IInjectedBitcoinProvider) => {
     const res = await BitcoinWallet.connect();
     if (res.error) {
       return Err(res.error);
     }
-    const provider = res.val;
-    const accounts = await provider.getAccounts();
-    if (accounts.error) return Err(accounts.error);
-    if (accounts.val.length > 0) {
-      setAccount(accounts.val[0]);
-      setProvider(provider);
-      return Ok(Void);
-    }
-    return Err('No accounts found');
+    setProvider(res.val.provider);
+    setAccount(res.val.address);
+    setPublicKey(res.val.publicKey);
+    setNetwork(res.val.network);
+
+    console.log('connected :', res.val);
+
+    return Ok(Void);
   };
 
   //adds wallet to the wallet list
-  const addToWalletList = (wallet: BitcoinWallet) => {
+  const addToWalletList = (name: string, wallet: IInjectedBitcoinProvider) => {
     setWalletList((p) => ({
       ...p,
-      [wallet.symbol]: wallet,
+      [name]: wallet,
     }));
   };
 
@@ -75,25 +76,17 @@ export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (window.okxwallet && window.okxwallet.bitcoin) {
       const okxProvider = new OKXProvider(window.okxwallet.bitcoin);
-      okxProvider.getAccounts().then((accounts) => {
-        if (accounts.error) return;
-        if (accounts.val.length > 0) {
-          setAccount(accounts.val[0]);
-          setProvider(okxProvider);
-        }
-      });
-      addToWalletList(OKX_WALLET);
+      addToWalletList('OKX_WALLET', okxProvider);
     }
     if (window.unisat) {
       const uniProvider = new UnisatProvider(window.unisat);
-      uniProvider.getAccounts().then((accounts) => {
-        if (accounts.error) return;
-        if (accounts.val.length > 0) {
-          setAccount(accounts.val[0]);
-          setProvider(uniProvider);
-        }
-      });
-      addToWalletList(UNISAT);
+      addToWalletList('UNISAT', uniProvider);
+    }
+    if (window.XverseProviders && window.XverseProviders.BitcoinProvider) {
+      const xverseProvider = new XverseProvider(
+        window.XverseProviders.BitcoinProvider
+      );
+      addToWalletList('XVERSE', xverseProvider);
     }
   }, []);
 
@@ -113,7 +106,7 @@ export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <BTCWalletProviderContext.Provider
-      value={{ walletList, connect, provider, account }}
+      value={{ walletList, connect, provider, account, publicKey, network }}
     >
       {children}
     </BTCWalletProviderContext.Provider>
