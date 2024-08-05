@@ -10,3 +10,4 @@ export type {
   DeBridgePoints,
 } from './src/debridge.types';
 export { Debridge } from './src/debridge';
+export { DebridgeProvider, useDebridge } from './src/hooks/useDebridge';

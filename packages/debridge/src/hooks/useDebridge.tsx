@@ -1,12 +1,10 @@
-import { IStore, MemoryStorage } from '@gardenfi/utils';
+import { IStore } from '@gardenfi/utils';
 import React, { ReactNode, useContext, useEffect, useState } from 'react';
 import { Debridge } from '../debridge';
-import { WalletClient } from 'viem';
 import { DEBRIDGE_TXS_CACHE_KEY } from 'src/constants';
 import { DeBridgeTransaction } from 'src/debridge.api.types';
 import { SwapConfig, SwapResponse } from 'src/debridge.types';
-import { AsyncResult, Err, Ok, Result } from '@catalogfi/utils';
-//we don't have to do all these imports just the chains we are going to support
+import { AsyncResult, Err, Ok } from '@catalogfi/utils';
 
 type DebridgeContextType = {
   debridge: Debridge;
@@ -15,27 +13,15 @@ type DebridgeContextType = {
   txs: Record<string, DeBridgeTransaction[]>;
 };
 
-const defaultDebridgeValue = {
-  debridge: new Debridge({
-    debridgeDomain: 'https://api.dln.trade/v1.0',
-    debridgeTxDomain: 'https://stats-api.dln.trade/api/Orders',
-    debridgePointsDomain: 'https://points-api.debridge.finance/api/points',
-  }),
-  store: new MemoryStorage(),
-  swap: async (swapConfig: SwapConfig): AsyncResult<SwapResponse, string> =>
-    Ok({} as SwapResponse),
-  txs: {},
-};
-
-const DebridgeContext =
-  React.createContext<DebridgeContextType>(defaultDebridgeValue);
+const DebridgeContext = React.createContext<DebridgeContextType>(
+  {} as DebridgeContextType
+);
 
 export const useDebridge = () => useContext(DebridgeContext);
 
 export type UseDebridgeProps = {
   debridge: Debridge;
   store: IStore;
-  client: WalletClient;
 };
 
 export const DebridgeProvider = ({
@@ -54,9 +40,14 @@ export const DebridgeProvider = ({
   };
 
   const cacheKey = DEBRIDGE_TXS_CACHE_KEY + address.toLowerCase();
-  const debridge = defaultDebridgeValue.debridge;
+  const debridge = new Debridge({
+    debridgeDomain: 'https://api.dln.trade/v1.0',
+    debridgeTxDomain: 'https://stats-api.dln.trade/api/Orders',
+    debridgePointsDomain: 'https://points-api.debridge.finance/api/points',
+  });
 
   useEffect(() => {
+    if (!address) return;
     (async () => {
       const debridgeTxs = await debridge.getTxs({
         address,
@@ -95,9 +86,7 @@ export const DebridgeProvider = ({
   };
 
   return (
-    <DebridgeContext.Provider
-      value={{ debridge, store: defaultDebridgeValue.store, swap, txs }}
-    >
+    <DebridgeContext.Provider value={{ debridge, store, swap, txs }}>
       {children}
     </DebridgeContext.Provider>
   );

@@ -42,9 +42,12 @@ export class Debridge implements IDebridge {
       DebridgeResources.points(address) + '?' + searchParams
     );
 
-    const response = await Fetcher.get<DeBridgePoints>(url);
-
-    return Ok(response);
+    try {
+      const response = await Fetcher.get<DeBridgePoints>(url);
+      return Ok(response);
+    } catch (err) {
+      return Err('Debridge: failed to get points: \n' + (err as Error).message);
+    }
   }
 
   async getTx(txHash: string): AsyncResult<GetDebridgeTxsResponse, string> {
@@ -56,14 +59,18 @@ export class Debridge implements IDebridge {
       take: this.orderCount,
     };
 
-    const tx = await Fetcher.post<GetDebridgeTxsResponse>(url, {
-      body: JSON.stringify(body),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    try {
+      const tx = await Fetcher.post<GetDebridgeTxsResponse>(url, {
+        body: JSON.stringify(body),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-    return Ok(tx);
+      return Ok(tx);
+    } catch (err) {
+      return Err('Debridge: failed to get tx: \n' + (err as Error).message);
+    }
   }
 
   async getTxs(
@@ -79,20 +86,24 @@ export class Debridge implements IDebridge {
       take: this.orderCount,
     };
 
-    const txs = await Fetcher.post<GetDebridgeTxsResponse>(url, {
-      body: JSON.stringify(body),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    try {
+      const txs = await Fetcher.post<GetDebridgeTxsResponse>(url, {
+        body: JSON.stringify(body),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-    return Ok(txs);
+      return Ok(txs);
+    } catch (err) {
+      return Err('Debridge: failed to get txs: \n' + (err as Error).message);
+    }
   }
 
   async quote(
     quoteConfig: QuoteConfig,
     abortController?: AbortController
-  ): AsyncResult<QuoteResult, DeBridgeErrors> {
+  ): AsyncResult<QuoteResult, DeBridgeErrors | string> {
     const url = this.debridgeDomain.endpoint(DebridgeResources.createTx);
 
     const tenPowerInputDecimals =
@@ -165,7 +176,7 @@ export class Debridge implements IDebridge {
       if ((err as Error).name === 'AbortError') {
         return Err(DeBridgeErrors.API_CALL_CANCELLED);
       } else {
-        return Err(DeBridgeErrors.UNKNOWN_ERROR);
+        return Err('Failed to get quote: \n' + (err as Error).message);
       }
     }
   }
@@ -177,12 +188,11 @@ export class Debridge implements IDebridge {
       return Err(quoteResult.error);
     }
 
-    const isFromAmount = 'fromAmount' in swapConfig;
-    const tenPowerDecimals = BigInt(
-      isFromAmount ? swapConfig.fromToken.decimals : swapConfig.toToken.decimals
-    );
-    const amount = swapConfig.amount;
-    const amountInDecimals = BigInt(amount) * tenPowerDecimals;
+    const tenPowerDecimals = swapConfig.fromToken.decimals;
+
+    const amountInDecimals = !swapConfig.isExactOut
+      ? BigInt(swapConfig.amount) * BigInt(tenPowerDecimals)
+      : quoteResult.val.quote;
 
     if (swapConfig.fromToken.address === ethers.ZeroAddress)
       return Err('Src token cannot be the zero address');
@@ -204,13 +214,10 @@ export class Debridge implements IDebridge {
 
     if (approvedAmount < Number(amountInDecimals)) {
       try {
-        const approvalTx = await erc20Contract.write.approve(
-          [tx.to as `0x{string}`, maxUint256],
-          {
-            account: swapConfig.client.account,
-            chain: swapConfig.client.chain,
-          }
-        );
+        await erc20Contract.write.approve([tx.to as `0x{string}`, maxUint256], {
+          account: swapConfig.client.account,
+          chain: swapConfig.client.chain,
+        });
       } catch (e) {
         return Err((e as Error).message);
       }

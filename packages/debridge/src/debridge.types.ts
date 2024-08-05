@@ -6,7 +6,7 @@ export interface IDebridge {
   quote(
     quoteConfig: QuoteConfig,
     abortController: AbortController
-  ): AsyncResult<QuoteResult, DeBridgeErrors>;
+  ): AsyncResult<QuoteResult, DeBridgeErrors | string>;
   swap(swapConfig: SwapConfig): AsyncResult<SwapResponse, string>;
   getTxs(
     getTxsConfig: GetTxsConfig
@@ -90,7 +90,7 @@ export enum DeBridgeErrors {
 }
 
 export type SwapConfig = QuoteConfig & {
-  client: WalletClient<Transport<'http'>>;
+  client: WalletClient;
 };
 
 export type SwapResponse = {

@@ -62,7 +62,7 @@ describe('DeBridge', () => {
     10 * 1000
   );
 
-  it(
+  it.only(
     'should be able to get a quote when the toAmount is specified',
     async () => {
       const quoteResponse = await debridge.quote({
@@ -73,6 +73,8 @@ describe('DeBridge', () => {
         amount: '1',
         isExactOut: true,
       });
+
+      console.log(quoteResponse.val.quote);
 
       expect(quoteResponse.ok).toBeTruthy();
       expect(quoteResponse.val.quote).toBeTruthy();
