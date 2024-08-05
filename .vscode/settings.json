@@ -1,10 +1,13 @@
 {
   "cSpell.words": [
     "atleast",
+    "COBI",
     "gardenfi",
     "HTLC",
+    "htlcs",
     "paymentchannel",
     "siwe",
-    "Timelock"
+    "Timelock",
+    "viem"
   ]
 }

@@ -7,7 +7,6 @@
   "scripts": {
     "echo": "yarn workspaces foreach --include \"packages/*\" run echo",
     "build": "yarn workspaces foreach -Atp --include \"packages/*\" run build",
-    "start:docs": "yarn workspace docs start",
     "test": "vitest run",
     "dev": "yarn workspaces foreach -Api -j unlimited --include \"packages/*\" run dev ",
     "patch:affected": "yarn workspaces foreach -p --topological --include \"packages/*\" --since=$0 run patch",
