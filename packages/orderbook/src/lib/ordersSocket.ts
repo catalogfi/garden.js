@@ -87,7 +87,7 @@ class Socket implements ISocket {
             if (this.pingTimeout) clearTimeout(this.pingTimeout);
             this.pingTimeout = setTimeout(() => {
                 this.socket.close(retryCode);
-            }, 70 * 1000); //retry if there is no message from the server in 70 seconds
+            }, 70 * 1000); //retry if there is no message from the server (there is a 60 second timer in the server) in 70 seconds
 
             cb(this, safeParseJson(event.data));
         };
