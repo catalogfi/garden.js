@@ -38,6 +38,7 @@
     "@catalogfi/utils": "^0.1.10",
     "@gardenfi/utils": "workspace:^",
     "axios": "^1.7.2",
+    "crypto": "^1.0.1",
     "ethers": "6.8.0"
   }
 }

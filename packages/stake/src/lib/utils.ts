@@ -1,4 +1,4 @@
-import { AsyncResult, Err, Ok, Result } from '@catalogfi/utils';
+import { AsyncResult, Err, Ok } from '@catalogfi/utils';
 import { erc20Abi, getContract, maxUint256, WalletClient } from 'viem';
 
 export const convertTo0xString = (address: string): `0x${string}` => {
