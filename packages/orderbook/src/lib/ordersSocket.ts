@@ -87,7 +87,7 @@ class Socket implements ISocket {
       if (this.pingTimeout) clearTimeout(this.pingTimeout);
       this.pingTimeout = setTimeout(() => {
         this.socket.close(retryCode);
-      }, 30 * 1000);
+      }, 70 * 1000);
 
       cb(this, safeParseJson(event.data));
     };
