@@ -72,15 +72,16 @@ export class XdefiProvider implements IInjectedBitcoinProvider {
             method: 'transfer',
             params: [
               {
-                // feeRate,
+                feeRate: 10,
                 from: this.address,
                 recipient: toAddress,
                 amount: satoshis,
-                memo: '',
+                memo: 'Send Bitcoin',
               },
             ],
           },
           (error: any, txHash: string) => {
+            console.log('here :', error);
             resolve({ error, txHash });
           }
         );

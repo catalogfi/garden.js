@@ -2,15 +2,15 @@ import { useState } from 'react';
 import { useBitcoinWallet } from '../../../src';
 
 export const Hello = () => {
-  const { walletList, account, provider, connect, publicKey, network } =
-    useBitcoinWallet();
   const [balance, setBalance] = useState({
     total: 0,
     confirmed: 0,
     unconfirmed: 0,
   });
-  // console.log('provider :', provider);
-  // console.log('account :', account);
+  const [sendAmount, setSendAmount] = useState<number>();
+  const [sendAddress, setSendAddress] = useState('');
+  const { walletList, account, provider, connect, network } =
+    useBitcoinWallet();
 
   return (
     <>
@@ -30,7 +30,6 @@ export const Hello = () => {
         </div>
       ))}
       <div>Account: {account}</div>
-      <div>Public Key: {publicKey}</div>
       <div>Network: {network}</div>
       <div>
         <div
@@ -50,6 +49,48 @@ export const Hello = () => {
         </div>
         <div>confirmed balance: {balance.confirmed}</div>
         <div>unconfirmed balance: {balance.unconfirmed}</div>
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            gap: '10px',
+          }}
+        >
+          <input
+            type="number"
+            value={sendAmount}
+            placeholder="amount"
+            onChange={(e) => setSendAmount(parseInt(e.target.value))}
+          />
+          <input
+            type="text"
+            value={sendAddress}
+            placeholder="address"
+            onChange={(e) => setSendAddress(e.target.value)}
+          />
+        </div>
+
+        <button
+          onClick={() => {
+            if (!provider || !sendAmount) return;
+            provider.sendBitcoin(sendAddress, sendAmount).then((res) => {
+              if (res.error) {
+                console.error('error while sending bitcoin ', res.error);
+                return;
+              }
+              console.log('transaction id:', res.val);
+            });
+          }}
+        >
+          Send Bitcoin
+        </button>
       </div>
     </>
   );
