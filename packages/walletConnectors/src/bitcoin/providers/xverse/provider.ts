@@ -9,7 +9,6 @@ import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
 export class XverseProvider implements IInjectedBitcoinProvider {
   #xverseProvider: XVerseBitcoinProvider;
   public address = '';
-  public publicKey = '';
 
   constructor(private provider: XVerseBitcoinProvider) {
     this.#xverseProvider = provider;
@@ -24,9 +23,7 @@ export class XverseProvider implements IInjectedBitcoinProvider {
       });
 
       const address = res.result[0].address;
-      const publicKey = res.result[0].publicKey;
       this.address = address;
-      this.publicKey = publicKey;
 
       if (!window.XverseProviders || !window.XverseProviders.BitcoinProvider) {
         return Err('XVerse wallet not found');
@@ -42,7 +39,6 @@ export class XverseProvider implements IInjectedBitcoinProvider {
 
       return Ok({
         address: this.address,
-        publicKey: this.publicKey,
         provider: provider,
         network: network.val,
       });

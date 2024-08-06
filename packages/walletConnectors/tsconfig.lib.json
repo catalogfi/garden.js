@@ -10,7 +10,13 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.json",
-    "src/bitcoin/btcWalletsProvider.tsx"
-, "src/bitcoin/constants.tsx"  ],
-  "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"]
+    "src/bitcoin/btcWalletsProvider.tsx",
+    "src/bitcoin/constants.tsx"
+  ],
+  "exclude": [
+    "jest.config.ts",
+    "src/**/*.spec.ts",
+    "src/**/*.test.ts",
+    "test/**/*"
+  ]
 }

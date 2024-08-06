@@ -8,14 +8,12 @@ export type Balance = {
 
 export type Connect = {
   address: string;
-  publicKey: string;
   provider: IInjectedBitcoinProvider;
   network: Network;
 };
 
 export interface IInjectedBitcoinProvider {
   address: string;
-  publicKey: string;
   getBalance: () => AsyncResult<Balance, string>;
   // selectedAccount: SelectedAccount;
   /**

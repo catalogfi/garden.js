@@ -13,6 +13,8 @@ import { UnisatBitcoinProvider } from './providers/unisat/unisat.types';
 import { UnisatProvider } from './providers/unisat/provider';
 import { XverseProvider } from './providers/xverse/provider';
 import { XVerseBitcoinProvider } from './providers/xverse/xverse.types';
+import { XdefiBitcoinProvider } from './providers/xdefi/xdefi.types';
+import { XdefiProvider } from './providers/xdefi/provider';
 
 declare global {
   interface Window {
@@ -23,6 +25,9 @@ declare global {
       BitcoinProvider: XVerseBitcoinProvider;
     };
     unisat?: UnisatBitcoinProvider;
+    xfi?: {
+      bitcoin: XdefiBitcoinProvider;
+    };
   }
 }
 
@@ -34,7 +39,6 @@ const BTCWalletProviderContext = createContext(
     ) => AsyncResult<void, string>;
     provider: IInjectedBitcoinProvider | undefined;
     account: string | undefined;
-    publicKey: string | undefined;
     network: Network | undefined;
   }
 );
@@ -43,7 +47,6 @@ export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
   const [provider, setProvider] = useState<IInjectedBitcoinProvider>();
   const [account, setAccount] = useState<string>();
   const [network, setNetwork] = useState<Network>();
-  const [publicKey, setPublicKey] = useState<string>();
   const [walletList, setWalletList] = useState<{
     [key: string]: IInjectedBitcoinProvider;
   }>({});
@@ -56,7 +59,6 @@ export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
     }
     setProvider(res.val.provider);
     setAccount(res.val.address);
-    setPublicKey(res.val.publicKey);
     setNetwork(res.val.network);
 
     console.log('connected :', res.val);
@@ -88,12 +90,17 @@ export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
       );
       addToWalletList('XVERSE', xverseProvider);
     }
+    if (window.xfi && window.xfi.bitcoin) {
+      const xdefiProvider = new XdefiProvider(window.xfi.bitcoin);
+      addToWalletList('XDEFI', xdefiProvider);
+    }
   }, []);
 
   //handles account change
   useEffect(() => {
     if (!provider) return;
-    provider.on('accountsChanged', () => {
+    provider.on('accountsChanged', (obj) => {
+      console.log('obj :', obj);
       console.log('accounts changed');
     });
 
@@ -106,7 +113,7 @@ export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <BTCWalletProviderContext.Provider
-      value={{ walletList, connect, provider, account, publicKey, network }}
+      value={{ walletList, connect, provider, account, network }}
     >
       {children}
     </BTCWalletProviderContext.Provider>
@@ -116,7 +123,7 @@ export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
 export const useBitcoinWallet = () => {
   const context = useContext(BTCWalletProviderContext);
   if (!context) {
-    throw new Error('useBitcoinWallet must be used within a BTCWalletProvider');
+    throw new Error('useBitcoinWallet must be used within BTCWalletProvider');
   }
   return context;
 };

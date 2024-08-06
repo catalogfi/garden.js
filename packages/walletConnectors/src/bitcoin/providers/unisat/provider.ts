@@ -1,15 +1,10 @@
 import { UnisatBitcoinProvider } from './unisat.types';
 import { Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
-import {
-  Balance,
-  IInjectedBitcoinProvider,
-  Network,
-} from '../../bitcoin.types';
+import { IInjectedBitcoinProvider, Network } from '../../bitcoin.types';
 
 export class UnisatProvider implements IInjectedBitcoinProvider {
   #unisatProvider: UnisatBitcoinProvider;
   public address: string = '';
-  public publicKey: string = '';
 
   constructor(unisatProvider: UnisatBitcoinProvider) {
     this.#unisatProvider = unisatProvider;
@@ -26,15 +21,11 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
       const accounts = await this.#unisatProvider.getAccounts();
       if (accounts.length > 0) this.address = accounts[0];
 
-      const pubKey = await this.#unisatProvider.getPublicKey();
-      if (pubKey) this.publicKey = pubKey;
-
       const network = await this.getNetwork();
       if (network.error) return Err('Could not get network', network.error);
 
       return Ok({
         address: this.address,
-        publicKey: this.publicKey,
         provider: provider,
         network: network.val,
       });

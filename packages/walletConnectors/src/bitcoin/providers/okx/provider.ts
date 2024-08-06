@@ -5,7 +5,6 @@ import { OKXBitcoinProvider } from './okx.types';
 export class OKXProvider implements IInjectedBitcoinProvider {
   #okxProvider: OKXBitcoinProvider;
   public address: string = '';
-  public publicKey: string = '';
 
   constructor(okxProvider: OKXBitcoinProvider) {
     this.#okxProvider = okxProvider;
@@ -15,7 +14,6 @@ export class OKXProvider implements IInjectedBitcoinProvider {
     try {
       const result = await this.#okxProvider.connect();
       this.address = result.address;
-      this.publicKey = result.publicKey;
 
       if (!window.okxwallet || !window.okxwallet.bitcoin)
         return Err('OKX wallet not found');
@@ -28,7 +26,6 @@ export class OKXProvider implements IInjectedBitcoinProvider {
 
       return Ok({
         address: this.address,
-        publicKey: this.publicKey,
         provider: provider,
         network: network.val,
       });
