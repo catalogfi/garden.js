@@ -62,7 +62,7 @@ describe('DeBridge', () => {
     10 * 1000
   );
 
-  it.only(
+  it(
     'should be able to get a quote when the toAmount is specified',
     async () => {
       const quoteResponse = await debridge.quote({
@@ -106,7 +106,7 @@ describe('DeBridge', () => {
     10 * 1000
   );
 
-  it(
+  it.only(
     'should be able to make a swap',
     async () => {
       const account = privateKeyToAccount(
@@ -132,6 +132,8 @@ describe('DeBridge', () => {
         isExactOut: false,
         client,
       });
+
+      console.log(swapResponse.error);
 
       expect(swapResponse.ok).toBeTruthy();
       expect(swapResponse.val.txHash).toBeTruthy();

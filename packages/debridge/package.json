@@ -1,23 +1,33 @@
 {
   "name": "@gardenfi/debridge",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
     "build": "vite build",
     "test": "vitest run"
   },
   "peerDependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react": "^18.2.0"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/react": "^18.2.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "@vitejs/plugin-react-swc": "^3.7.0",
+    "react": "^18.3.0",
     "typescript": "^5.2.2",
     "vite": "^5.1.6",
     "vite-plugin-dts": "^3.7.3",

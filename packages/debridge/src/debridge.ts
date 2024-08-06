@@ -106,24 +106,12 @@ export class Debridge implements IDebridge {
   ): AsyncResult<QuoteResult, DeBridgeErrors | string> {
     const url = this.debridgeDomain.endpoint(DebridgeResources.createTx);
 
-    const tenPowerInputDecimals =
-      10n **
-      BigInt(
-        !quoteConfig.isExactOut
-          ? quoteConfig.fromToken.decimals
-          : quoteConfig.toToken.decimals
-      );
-
     const amount = quoteConfig.amount;
-
-    const amountInDecimals = BigInt(amount) * tenPowerInputDecimals;
 
     const createTxQueryParams: QuoteQueryParams = {
       srcChainId: quoteConfig.fromToken.chainId,
       srcChainTokenIn: quoteConfig.fromToken.address,
-      srcChainTokenInAmount: !quoteConfig.isExactOut
-        ? amountInDecimals.toString()
-        : 'auto',
+      srcChainTokenInAmount: !quoteConfig.isExactOut ? amount : 'auto',
       dstChainId: quoteConfig.toToken.chainId,
       dstChainTokenOut: quoteConfig.toToken.address,
       dstChainTokenOutRecipient: quoteConfig.toAddress,
@@ -139,7 +127,7 @@ export class Debridge implements IDebridge {
     };
 
     if (quoteConfig.isExactOut) {
-      createTxQueryParams.dstChainTokenOutAmount = amountInDecimals.toString();
+      createTxQueryParams.dstChainTokenOutAmount = amount;
     }
 
     const createTxParams = new URLSearchParams(
@@ -184,14 +172,15 @@ export class Debridge implements IDebridge {
   async swap(swapConfig: SwapConfig): AsyncResult<SwapResponse, string> {
     const quoteResult = await this.quote(swapConfig);
 
+    if (!swapConfig.client.account)
+      return Err('No account provided for the client');
+
     if (quoteResult.error) {
       return Err(quoteResult.error);
     }
 
-    const tenPowerDecimals = swapConfig.fromToken.decimals;
-
-    const amountInDecimals = !swapConfig.isExactOut
-      ? BigInt(swapConfig.amount) * BigInt(tenPowerDecimals)
+    const amount = !swapConfig.isExactOut
+      ? swapConfig.amount
       : quoteResult.val.quote;
 
     if (swapConfig.fromToken.address === ethers.ZeroAddress)
@@ -209,10 +198,9 @@ export class Debridge implements IDebridge {
       swapConfig.fromAddress as `0x{string}`,
       tx.to as `0x{string}`,
     ]);
-    if (!swapConfig.client.account)
-      return Err('No account provided for the client');
 
-    if (approvedAmount < Number(amountInDecimals)) {
+    //the amount that is passed is already in it's lowest denomination
+    if (approvedAmount < Number(amount)) {
       try {
         await erc20Contract.write.approve([tx.to as `0x{string}`, maxUint256], {
           account: swapConfig.client.account,

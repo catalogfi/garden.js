@@ -2,16 +2,18 @@
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 import pkg from './package.json';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   cacheDir: '../node_modules/.vite/orderbook',
 
   plugins: [
-    // nodePolyfills(),
+    react(),
     dts({
       outDir: './dist',
       pathsToAliases: false,
       entryRoot: '.',
+      tsconfigPath: './tsconfig.lib.json',
     }),
   ],
 
@@ -32,11 +34,15 @@ export default defineConfig({
       fileName: 'index',
       // Change this to the formats you want to support.
       // Don't forget to update your package.json as well.
-      formats: ['es', 'cjs'],
+      formats: ['cjs', 'es'],
     },
     rollupOptions: {
       // External packages that should not be bundled into your library.
-      external: [...Object.keys(pkg.dependencies || {})],
+      external: [
+        'react/jsx-runtime',
+        ...Object.keys(pkg.dependencies || {}),
+        ...Object.keys(pkg.peerDependencies || {}),
+      ],
       output: {
         preserveModules: true,
       },

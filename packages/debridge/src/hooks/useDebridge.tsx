@@ -1,49 +1,74 @@
-import { IStore } from '@gardenfi/utils';
-import React, { ReactNode, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Debridge } from '../debridge';
-import { DEBRIDGE_TXS_CACHE_KEY } from 'src/constants';
+import {
+  DEBRIDGE_DOMAIN,
+  DEBRIDGE_POINTS_DOMAIN,
+  DEBRIDGE_TX_DOMAIN,
+  DEBRIDGE_TXS_CACHE_KEY,
+} from '../constants';
 import { DeBridgeTransaction } from 'src/debridge.api.types';
 import { SwapConfig, SwapResponse } from 'src/debridge.types';
 import { AsyncResult, Err, Ok } from '@catalogfi/utils';
+import {
+  DebridgeContextType,
+  DebridgeProviderProps,
+} from './useDebridge.types';
 
-type DebridgeContextType = {
-  debridge: Debridge;
-  store: IStore;
-  swap: (swapConfig: SwapConfig) => AsyncResult<SwapResponse, string>;
-  txs: Record<string, DeBridgeTransaction[]>;
-};
-
-const DebridgeContext = React.createContext<DebridgeContextType>(
+const DebridgeContext = createContext<DebridgeContextType>(
   {} as DebridgeContextType
 );
-
-export const useDebridge = () => useContext(DebridgeContext);
-
-export type UseDebridgeProps = {
-  debridge: Debridge;
-  store: IStore;
-};
 
 export const DebridgeProvider = ({
   children,
   address,
   store,
-}: {
-  children: ReactNode;
-  address: `0x${string}`;
-  store: IStore;
-}) => {
+}: DebridgeProviderProps) => {
   const [txs, oldSetTxs] = useState<Record<string, DeBridgeTransaction[]>>({});
+  //stores the tx hashes of the unconfirmed txs
+  const [unconfirmedTxs, setUnconfirmedTxs] = useState<string[]>([]);
+  const cacheKey = DEBRIDGE_TXS_CACHE_KEY + address.toLowerCase();
   const setTxs = (...args: Parameters<typeof oldSetTxs>) => {
-    store.setItem(DEBRIDGE_TXS_CACHE_KEY, JSON.stringify(txs));
+    if (!address) return;
+    store.setItem(cacheKey, JSON.stringify(txs));
     oldSetTxs(...args);
   };
 
-  const cacheKey = DEBRIDGE_TXS_CACHE_KEY + address.toLowerCase();
+  useEffect(() => {
+    if (!unconfirmedTxs || unconfirmedTxs.length === 0 || !address) return;
+
+    const confirmTxs = async () => {
+      console.log('unconfirmed transactions length', unconfirmedTxs.length);
+      const confirmedTxsIndices = new Set();
+
+      const promises = unconfirmedTxs.map(async (txHash, i) => {
+        const tx = await debridge.getTx(txHash);
+        if (tx.error || tx.val.orders.length === 0) return;
+        confirmedTxsIndices.add(i);
+        return tx.val.orders[0];
+      });
+
+      const confirmedTxs = (await Promise.all(promises)).filter((tx) => !!tx);
+      const newUnconfirmedTxs = unconfirmedTxs.filter(
+        (_, i) => !confirmedTxsIndices.has(i)
+      );
+
+      setUnconfirmedTxs(newUnconfirmedTxs);
+      setTxs((txs) => ({
+        ...txs,
+        [cacheKey]: [...txs[cacheKey], ...confirmedTxs],
+      }));
+    };
+
+    confirmTxs();
+    const interval = setInterval(confirmTxs, 5 * 1000);
+
+    return () => clearInterval(interval);
+  }, [unconfirmedTxs]);
+
   const debridge = new Debridge({
-    debridgeDomain: 'https://api.dln.trade/v1.0',
-    debridgeTxDomain: 'https://stats-api.dln.trade/api/Orders',
-    debridgePointsDomain: 'https://points-api.debridge.finance/api/points',
+    debridgeDomain: DEBRIDGE_DOMAIN,
+    debridgeTxDomain: DEBRIDGE_TX_DOMAIN,
+    debridgePointsDomain: DEBRIDGE_POINTS_DOMAIN,
   });
 
   useEffect(() => {
@@ -54,14 +79,12 @@ export const DebridgeProvider = ({
       });
 
       if (debridgeTxs.error) {
-        const cachedTxs = JSON.parse(
-          store.getItem(DEBRIDGE_TXS_CACHE_KEY) || '[]'
-        );
-        setTxs((txs) => ({ ...txs, [`${cacheKey}`]: cachedTxs }));
+        const cachedTxs = JSON.parse(store.getItem(cacheKey) || '[]');
+        setTxs((txs) => ({ ...txs, [cacheKey]: cachedTxs }));
         return;
       }
 
-      setTxs((txs) => ({ ...txs, [`${cacheKey}`]: debridgeTxs.val.orders }));
+      setTxs((txs) => ({ ...txs, [cacheKey]: debridgeTxs.val.orders }));
     })();
   }, [address]); //txs change with address
 
@@ -76,13 +99,17 @@ export const DebridgeProvider = ({
     const tx = await debridge.getTx(txHash);
 
     if (tx.error) return Err(tx.error);
+    if (tx.val.orders.length === 0) {
+      setUnconfirmedTxs((txs) => [...txs, txHash]);
+      return Ok({ ...swapRes.val });
+    }
 
     setTxs((txs) => ({
       ...txs,
-      [`${cacheKey}`]: [...txs[cacheKey], tx.val.orders[0]],
+      [cacheKey]: [...txs[cacheKey], tx.val.orders[0]],
     }));
 
-    return Ok(swapRes.val);
+    return Ok({ ...swapRes.val });
   };
 
   return (
@@ -90,4 +117,12 @@ export const DebridgeProvider = ({
       {children}
     </DebridgeContext.Provider>
   );
+};
+
+export const useDebridge = () => {
+  const context = useContext(DebridgeContext);
+  if (context === undefined) {
+    throw new Error('useDebridge must be used within a DebridgeProvider');
+  }
+  return context;
 };
