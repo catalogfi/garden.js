@@ -51,7 +51,7 @@ describe('DeBridge', () => {
         toAddress: '0x9f2218D53A94ff958EF71166243ad10c4C462987',
         fromToken: tokens.ethereum.WBTC,
         toToken: tokens.arbitrum.WBTC,
-        amount: '1',
+        amount: '100000',
         isExactOut: false,
       });
 
@@ -70,7 +70,7 @@ describe('DeBridge', () => {
         toAddress: '0x9f2218D53A94ff958EF71166243ad10c4C462987',
         fromToken: tokens.ethereum.WBTC,
         toToken: tokens.avalanche['btc.b'],
-        amount: '1',
+        amount: '100000',
         isExactOut: true,
       });
 
@@ -94,7 +94,7 @@ describe('DeBridge', () => {
           toAddress: '0x9f2218D53A94ff958EF71166243ad10c4C462987',
           fromToken: tokens.ethereum.WBTC,
           toToken: tokens.arbitrum.WBTC,
-          amount: '1',
+          amount: '100000',
           isExactOut: false,
         },
         abortController
@@ -128,7 +128,7 @@ describe('DeBridge', () => {
         toAddress: address,
         fromToken: tokens.ethereum.WBTC,
         toToken: tokens.arbitrum.WBTC,
-        amount: '1',
+        amount: '100000',
         isExactOut: false,
         client,
       });

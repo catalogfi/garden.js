@@ -37,7 +37,6 @@ export const DebridgeProvider = ({
     if (!unconfirmedTxs || unconfirmedTxs.length === 0 || !address) return;
 
     const confirmTxs = async () => {
-      console.log('unconfirmed transactions length', unconfirmedTxs.length);
       const confirmedTxsIndices = new Set();
 
       const promises = unconfirmedTxs.map(async (txHash, i) => {
@@ -51,6 +50,8 @@ export const DebridgeProvider = ({
       const newUnconfirmedTxs = unconfirmedTxs.filter(
         (_, i) => !confirmedTxsIndices.has(i)
       );
+
+      if (newUnconfirmedTxs.length === 0) return;
 
       setUnconfirmedTxs(newUnconfirmedTxs);
       setTxs((txs) => ({
@@ -95,21 +96,9 @@ export const DebridgeProvider = ({
 
     if (swapRes.error) return Err(swapRes.error);
 
-    const txHash = swapRes.val.txHash;
-    const tx = await debridge.getTx(txHash);
+    setUnconfirmedTxs((txs) => [...txs, swapRes.val.txHash]);
 
-    if (tx.error) return Err(tx.error);
-    if (tx.val.orders.length === 0) {
-      setUnconfirmedTxs((txs) => [...txs, txHash]);
-      return Ok({ ...swapRes.val });
-    }
-
-    setTxs((txs) => ({
-      ...txs,
-      [cacheKey]: [...txs[cacheKey], tx.val.orders[0]],
-    }));
-
-    return Ok({ ...swapRes.val });
+    return Ok(swapRes.val);
   };
 
   return (
