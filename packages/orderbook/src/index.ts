@@ -9,3 +9,4 @@ export { chainToId, idToChain, orderPairGenerator } from './lib/orderpair';
 export type { Chain, EvmChain, Asset, ChainData } from './lib/asset';
 export { Chains, Assets, ChainsData, isMainnet } from './lib/asset';
 export { parseStatus, Actions } from './lib/utils';
+export { MAINNET_ORDERBOOK_API, TESTNET_ORDERBOOK_API } from './lib/api';

@@ -1,20 +1,22 @@
 {
-  "cSpell.words": [
-    "atleast",
-    "Blockstream",
-    "COBI",
-    "gardenfi",
-    "HTLC",
-    "htlcs",
-    "livenet",
-    "okxwallet",
-    "paymentchannel",
-    "satoshis",
-    "siwe",
-    "Timelock",
-    "Unisat",
-    "viem",
-    "Xdefi",
-    "Xverse"
-  ]
+    "cSpell.words": [
+        "atleast",
+        "Blockstream",
+        "bufferutil",
+        "COBI",
+        "gardenfi",
+        "HTLC",
+        "htlcs",
+        "livenet",
+        "okxwallet",
+        "orderpair",
+        "paymentchannel",
+        "satoshis",
+        "siwe",
+        "Timelock",
+        "Unisat",
+        "viem",
+        "Xdefi",
+        "Xverse"
+    ]
 }
