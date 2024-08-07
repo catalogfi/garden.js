@@ -1,32 +1,32 @@
 name: Node.js Package
 
 on:
-    push:
-        branches:
-            - main
+  push:
+    branches:
+      - main
 
 jobs:
-    build-and-publish-npm:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
-            - uses: actions/setup-node@v3
-              with:
-                  node-version: 20
-                  registry-url: https://registry.npmjs.org/
-              env:
-                  NODE_AUTH_TOKEN: ${{secrets.npm_token}}
-            - name: install dependencies
-              run: |
-                  corepack enable
-                  yarn set version 4.3.1
-                  yarn install
-            - name: Build
-              run: yarn build
-            - name: Publish
-              run: | 
-                  for package in packages/*; do
-                      node scripts/publish.js "${package##*/}"
-                  done
+  build-and-publish-npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org/
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+      - name: install dependencies
+        run: |
+          corepack enable
+          yarn set version 4.3.1
+          yarn install
+      - name: Build
+        run: yarn build
+      - name: Publish
+        run: |
+          for package in packages/*; do
+              node scripts/publish.js "${package##*/}"
+          done

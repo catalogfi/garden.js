@@ -1,7 +1,7 @@
 import { MarkNonNullable } from '@catalogfi/utils';
 import { Asset, SupportedContracts } from './asset';
 import { JsonRpcSigner, Wallet } from 'ethers';
-import { IStore } from './store/store.interface';
+import { IStore } from '@gardenfi/utils';
 
 /**
  * Configuration for the orders you want to receive
