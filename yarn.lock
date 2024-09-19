@@ -67,6 +67,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@catalogfi/utils@npm:^0.1.11":
+  version: 0.1.11
+  resolution: "@catalogfi/utils@npm:0.1.11"
+  checksum: 10c0/a22fa6feee01643b5a1f59df5f86d61324c908845ec54e4424187b2e78fa9810a02160b1a69613cabcad905c012de43f8d7965a1ef67e441a7b1feeac471ae8e
+  languageName: node
+  linkType: hard
+
 "@catalogfi/utils@npm:^0.1.6":
   version: 0.1.6
   resolution: "@catalogfi/utils@npm:0.1.6"
@@ -406,12 +413,14 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@gardenfi/utils@workspace:packages/utils"
   dependencies:
+    "@catalogfi/utils": "npm:^0.1.11"
     "@types/ws": "npm:^8.5.7"
     axios: "npm:^1.7.2"
     dotenv: "npm:^16.3.1"
     ethers: "npm:6.8.0"
     siwe: "npm:^2.3.2"
     typescript: "npm:^5.2.2"
+    viem: "npm:^2.21.9"
     vite: "npm:^5.1.6"
     vite-plugin-dts: "npm:^3.7.3"
     vitest: "npm:^1.6.0"
@@ -4695,7 +4704,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"viem@npm:^2.20.1":
+"viem@npm:^2.20.1, viem@npm:^2.21.9":
   version: 2.21.9
   resolution: "viem@npm:2.21.9"
   dependencies:
