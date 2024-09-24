@@ -23,8 +23,7 @@ export class Siwe implements IAuth {
     if (this.domain.startsWith('https://')) {
       this.domain = this.domain.split('https://')[1];
     }
-    this.signingStatement =
-      opts?.signingStatement ?? 'Sign into garden.finance';
+    this.signingStatement = opts?.signingStatement ?? 'Garden.fi';
 
     this.store = opts?.store ?? new MemoryStorage();
   }
@@ -37,7 +36,7 @@ export class Siwe implements IAuth {
       const utcTimestampNow = Math.floor(Date.now() / 1000) + 120; // auth should be valid for atleast 2 minutes
       return Ok(
         parsedToken.exp > utcTimestampNow &&
-          parsedToken.userWallet.toLowerCase() === account.toLowerCase(),
+          parsedToken.address.toLowerCase() === account.toLowerCase(),
       );
     } catch (error) {
       return Ok(false);
@@ -63,19 +62,27 @@ export class Siwe implements IAuth {
       return Err(res.error);
     }
 
-    const { token } = await Fetcher.post<{ token: string }>(
+    const tokenRes = await Fetcher.post<APIResponse<string>>(
       this.url.endpoint('verify'),
       {
         body: JSON.stringify({
           ...res.val,
         }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       },
     );
+    if (tokenRes.error) return Err(tokenRes.error);
+
+    const token = tokenRes.result;
+    if (!token) return Err('Failed to get token');
 
     const verify = this.verifyToken(token, this.walletClient.account.address);
     if (!verify.val) {
       throw new Error('Token verification failed');
     }
+
     this.store.setItem(StoreKeys.AUTH_TOKEN, token);
     return Ok(token);
   }
@@ -84,6 +91,7 @@ export class Siwe implements IAuth {
     {
       message: string;
       signature: string;
+      nonce: string;
     },
     string
   > {
@@ -97,6 +105,9 @@ export class Siwe implements IAuth {
       this.url.endpoint('nonce'),
     );
     const nonce = res.result;
+    if (!nonce) {
+      return Err('Failed to get nonce');
+    }
 
     const chainID = this.walletClient.chain?.id;
     const message = new SiweMessage({
@@ -118,6 +129,7 @@ export class Siwe implements IAuth {
     return Ok({
       message: preparedMessage,
       signature,
+      nonce,
     });
   }
 }

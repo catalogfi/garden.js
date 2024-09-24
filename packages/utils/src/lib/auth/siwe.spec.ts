@@ -31,7 +31,6 @@ describe('Siwe', () => {
   it('should generate a valid token', async () => {
     const siwe = new Siwe(url, walletClient, {
       domain: 'https://random-domain.com',
-      signingStatement: 'From siwe test case',
     });
     const token = await siwe.getToken();
     expect(token).toBeTruthy();

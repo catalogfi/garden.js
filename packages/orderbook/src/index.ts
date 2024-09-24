@@ -1,12 +1,14 @@
-export { Orderbook } from './lib/orderbook';
+export { Orderbook } from './lib/orderbook/orderbook';
 export type {
-  Order,
-  Orders,
-  AtomicSwap,
+  CreateOrderConfig,
+  CreateOrderRequest,
+  CreateOrderResponse,
   IOrderbook,
-} from './lib/orderbook.types';
-export { chainToId, idToChain, orderPairGenerator } from './lib/orderpair';
-export type { Chain, EvmChain, Asset, ChainData } from './lib/asset';
-export { Chains, Assets, ChainsData, isMainnet } from './lib/asset';
-export { parseStatus, Actions } from './lib/utils';
+  MatchedOrder,
+  OrderbookConfig,
+  PaginatedData,
+  PaginationConfig,
+} from './lib/orderbook/orderbook.types';
+export type { Chain, EvmChain, Asset } from './lib/asset';
+export { Chains, isMainnet } from './lib/asset';
 export { MAINNET_ORDERBOOK_API, TESTNET_ORDERBOOK_API } from './lib/api';

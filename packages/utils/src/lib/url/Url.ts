@@ -2,11 +2,19 @@ export class Url extends URL {
   constructor(endpoint: string, base?: string | Url) {
     super(endpoint, base);
   }
+
   endpoint(endpoint: string) {
-    return new Url(endpoint, this);
+    // Ensure the endpoint starts with a slash
+    if (!endpoint.startsWith('/')) {
+      endpoint = `/${endpoint}`;
+    }
+    // Append the new endpoint to the existing pathname
+    const newPathname = `${this.pathname}${endpoint}`;
+    return new Url(newPathname, this.origin);
   }
+
   socket() {
-    // is it https or http?
+    // Determine if it is https or http
     if (this.protocol === 'https:') {
       return this.origin.replace('https', 'wss');
     } else if (this.protocol === 'http:') {
