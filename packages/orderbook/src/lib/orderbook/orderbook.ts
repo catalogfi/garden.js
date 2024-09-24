@@ -42,7 +42,10 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
    * @param {OrderbookConfig} orderbookConfig - The configuration object for the orderbook.
    */
   constructor(orderbookConfig: OrderbookConfig) {
-    const url = new Url('/', orderbookConfig.url ?? MAINNET_ORDERBOOK_API);
+    const url = new Url(
+      '/relayer',
+      orderbookConfig.url ?? MAINNET_ORDERBOOK_API,
+    );
     super(url);
 
     this.Url = url;
@@ -60,7 +63,7 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
    */
   static async init(orderbookConfig: OrderbookConfig) {
     const auth = new Siwe(
-      new Url('/', orderbookConfig.url ?? MAINNET_ORDERBOOK_API),
+      new Url('/relayer', orderbookConfig.url ?? MAINNET_ORDERBOOK_API),
       orderbookConfig.walletClient,
       orderbookConfig.opts,
     );

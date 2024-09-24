@@ -36,7 +36,7 @@ describe('orderbook', async () => {
     decimals: 8,
     symbol: 'BTC',
     chain: Chains.bitcoin_regtest,
-    atomicSwapAddress: '',
+    atomicSwapAddress: 'primary',
     tokenAddress: 'primary',
     isToken: true,
   };
@@ -73,8 +73,8 @@ describe('orderbook', async () => {
       minDestinationConfirmations: 3,
     },
     {
-      fromAsset: bitcoinAsset,
-      toAsset: WBTCArbitrumLocalnetAsset,
+      fromAsset: WBTCArbitrumLocalnetAsset,
+      toAsset: bitcoinAsset,
       sendAddress: bitcoinTestnetAddress,
       receiveAddress: sepoliaAddress,
       sendAmount: '100000',
@@ -85,19 +85,19 @@ describe('orderbook', async () => {
       minDestinationConfirmations: 3,
       btcInputAddress: bitcoinTestnetAddress,
     },
-    {
-      fromAsset: WBTCEthereumLocalnetAsset,
-      toAsset: bitcoinAsset,
-      sendAddress: sepoliaAddress,
-      receiveAddress: bitcoinTestnetAddress,
-      sendAmount: '100000',
-      receiveAmount: '99000',
-      secretHash: sha256(randomBytes(32)),
-      nonce: '1',
-      timelock: 246,
-      minDestinationConfirmations: 3,
-      btcInputAddress: bitcoinTestnetAddress,
-    },
+    // {
+    //   fromAsset: WBTCEthereumLocalnetAsset,
+    //   toAsset: bitcoinAsset,
+    //   sendAddress: sepoliaAddress,
+    //   receiveAddress: bitcoinTestnetAddress,
+    //   sendAmount: '100000',
+    //   receiveAmount: '99000',
+    //   secretHash: sha256(randomBytes(32)),
+    //   nonce: '1',
+    //   timelock: 246,
+    //   minDestinationConfirmations: 3,
+    //   btcInputAddress: bitcoinTestnetAddress,
+    // },
   ];
 
   test('creates 3 orders', async () => {

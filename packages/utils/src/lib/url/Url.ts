@@ -8,9 +8,12 @@ export class Url extends URL {
     if (!endpoint.startsWith('/')) {
       endpoint = `/${endpoint}`;
     }
+
     // Append the new endpoint to the existing pathname
-    const newPathname = `${this.pathname}${endpoint}`;
-    return new Url(newPathname, this.origin);
+    const newPathname = `${
+      this.pathname !== '/' ? this.pathname : ''
+    }${endpoint}`;
+    return new Url(newPathname, this);
   }
 
   socket() {
