@@ -4,8 +4,6 @@ import dts from 'vite-plugin-dts';
 import pkg from './package.json';
 
 export default defineConfig({
-  cacheDir: '../node_modules/.vite/stake',
-
   plugins: [
     // nodePolyfills(),
     dts({

@@ -13,9 +13,7 @@
     "publish:affected": "yarn workspaces foreach -p --include \"packages/*\" --since=main npm publish"
   },
   "workspaces": [
-    "packages/*",
-    "packages/walletConnectors/test",
-    "packages/utils"
+    "packages/*"
   ],
   "devDependencies": {
     "@eslint/js": "^9.6.0",
