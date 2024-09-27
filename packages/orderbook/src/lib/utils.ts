@@ -11,13 +11,6 @@ export const isBitcoin = (chain: Chain) => {
 };
 
 /**
- * Includes `Bearer ` in the Authorization header
- * @param authToken authToken
- * @returns Authorization header
- */
-export const Authorization = (authToken: string) => `Bearer ${authToken}`;
-
-/**
  * Constructs a URL with the given base URL, endpoint and parameters (query params)
  * @param baseUrl Base URL
  * @param params Query params

@@ -21,8 +21,14 @@ import {
 } from './orderbook.types';
 import { OrderbookErrors } from '../errors';
 import { MAINNET_ORDERBOOK_API } from '../api';
-import { IAuth, MemoryStorage, Siwe, Url } from '@gardenfi/utils';
-import { isBitcoin, Authorization } from '../utils';
+import {
+  Authorization,
+  IAuth,
+  MemoryStorage,
+  Siwe,
+  Url,
+} from '@gardenfi/utils';
+import { isBitcoin } from '../utils';
 import { OrdersProvider } from '../orders/ordersProvider';
 
 /**
@@ -107,11 +113,11 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
       nonce: createOrderConfig.nonce,
       source_amount: sendAmount,
       destination_amount: receiveAmount,
-      source_asset: toAsset.atomicSwapAddress,
-      destination_asset: fromAsset.atomicSwapAddress,
+      source_asset: fromAsset.atomicSwapAddress,
+      destination_asset: toAsset.atomicSwapAddress,
       secret_hash: trim0x(secretHash),
-      source_chain: toAsset.chain,
-      destination_chain: fromAsset.chain,
+      source_chain: fromAsset.chain,
+      destination_chain: toAsset.chain,
       initiator_source_address: sendAddress,
       initiator_destination_address: receiveAddress,
       min_destination_confirmations: minDestinationConfirmations,
