@@ -1,8 +1,8 @@
-import { checkAllowanceAndApprove } from '@gardenfi/utils';
+import { checkAllowanceAndApprove, MemoryStorage, Siwe } from '@gardenfi/utils';
 import { WalletClient, getContract } from 'viem';
-import { Asset, MatchedOrder } from '@gardenfi/orderbook';
-import { IEVMRelay } from './evmRelay.types';
-import { AsyncResult, Err, Fetcher, Ok } from '@catalogfi/utils';
+import { MatchedOrder } from '@gardenfi/orderbook';
+import { EVMRelayOpts, IEVMRelay } from './evmRelay.types';
+import { AsyncResult, Err, Fetcher, Ok, trim0x } from '@catalogfi/utils';
 import {
   APIResponse,
   Authorization,
@@ -11,23 +11,25 @@ import {
   with0x,
 } from '@gardenfi/utils';
 import { AtomicSwapABI } from './abi';
-import { ParseSwapStatus } from '../order/parseOrderStatus';
-import { SwapStatus } from '../order/order.types';
+import { ParseSwapStatus } from '../orderExecutor/orderStatusParser';
+import { SwapStatus } from '../orderExecutor/order.types';
 
 export class EvmRelay implements IEVMRelay {
   private walletClient: WalletClient;
   private url: Url;
   private auth: IAuth;
 
-  constructor(url: string, walletClient: WalletClient, auth: IAuth) {
+  constructor(url: string, walletClient: WalletClient, opts?: EVMRelayOpts) {
     this.walletClient = walletClient;
     this.url = new Url('/relayer', url);
-    this.auth = auth;
+    this.auth = new Siwe(this.url, walletClient, {
+      ...opts,
+      store: opts?.store || new MemoryStorage(),
+    });
   }
 
   async init(
     order: MatchedOrder,
-    asset: Asset,
     currentL1BlockNumber: number,
   ): AsyncResult<string, string> {
     if (!this.walletClient.account) return Err('No account found');
@@ -36,11 +38,6 @@ export class EvmRelay implements IEVMRelay {
       order.source_swap.initiator.toLowerCase()
     )
       return Err('Account and order initiator mismatch');
-    if (
-      order.source_swap.asset.toLowerCase() !==
-      asset.atomicSwapAddress.toLowerCase()
-    )
-      return Err('Asset and order asset mismatch');
 
     const swapStatus = ParseSwapStatus(order.source_swap, currentL1BlockNumber);
     if (swapStatus !== SwapStatus.Idle) return Err('Invalid swap status');
@@ -69,15 +66,18 @@ export class EvmRelay implements IEVMRelay {
         abi: AtomicSwapABI,
         client: this.walletClient,
       });
-      const domain = await atomicSwap.read.eip712Domain();
+      const token = await atomicSwap.read.token();
 
       const approval = await checkAllowanceAndApprove(
         Number(amount),
-        asset.tokenAddress,
+        token,
         order.source_swap.asset,
         this.walletClient,
       );
       if (approval.error) return Err(approval.error);
+      console.log('approval :', approval.val);
+
+      const domain = await atomicSwap.read.eip712Domain();
 
       const signature = await this.walletClient.signTypedData({
         account: this.walletClient.account,
@@ -128,6 +128,7 @@ export class EvmRelay implements IEVMRelay {
 
   async redeem(orderId: string, secret: string): AsyncResult<string, string> {
     if (!this.walletClient.account) return Err('No account found');
+
     try {
       const auth = await this.auth.getToken();
       if (auth.error) return Err(auth.error);
@@ -137,7 +138,7 @@ export class EvmRelay implements IEVMRelay {
         {
           body: JSON.stringify({
             order_id: orderId,
-            secret,
+            secret: trim0x(secret),
             perform_on: 'Destination',
           }),
           headers: {
@@ -146,6 +147,7 @@ export class EvmRelay implements IEVMRelay {
           },
         },
       );
+
       if (res.error) return Err(res.error);
       return res.result ? Ok(res.result) : Err('Redeem: No result found');
     } catch (error) {

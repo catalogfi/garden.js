@@ -42,4 +42,10 @@ describe('orders provider', async () => {
     );
     expectTypeOf(unsubscribe).toEqualTypeOf<() => void>();
   });
+
+  test('order count', async () => {
+    const count = await ordersProvider.getOrdersCount(address);
+    expect(count.error).toBeUndefined();
+    expect(count.val).toBe(0);
+  });
 });

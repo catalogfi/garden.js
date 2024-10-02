@@ -3,19 +3,17 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { createWalletClient, http, sha256 } from 'viem';
 import { randomBytes } from 'crypto';
 import { describe, expect, expectTypeOf, test } from 'vitest';
-import { withOx } from '@gardenfi/utils';
+import { sleep, with0x } from '@gardenfi/utils';
 import { Orderbook } from './orderbook';
 import { CreateOrderConfig, MatchedOrder } from './orderbook.types';
 import { Asset, Chains } from '../asset';
-import { sleep } from '../utils';
 
 describe('orderbook', async () => {
   const OrderbookApi = 'localhost:4426';
 
   const pk =
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
-
-  const account = privateKeyToAccount(withOx(pk));
+  const account = privateKeyToAccount(with0x(pk));
   const walletClient = createWalletClient({
     account,
     chain: sepolia,

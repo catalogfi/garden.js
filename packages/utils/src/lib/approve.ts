@@ -1,6 +1,7 @@
 import { AsyncResult, Err, Ok } from '@catalogfi/utils';
 import { erc20Abi, getContract, maxUint256, WalletClient } from 'viem';
 import { with0x } from './utils';
+import { waitForTransactionReceipt } from 'viem/actions';
 
 /**
  * @description approves the staking contract to spend the SEED tokens.
@@ -36,6 +37,11 @@ export const checkAllowanceAndApprove = async (
           chain: walletClient.chain,
         },
       );
+      const receipt = await waitForTransactionReceipt(walletClient, {
+        hash: res,
+      });
+      if (receipt.status !== 'success') return Err('Failed to approve');
+
       return Ok(res);
     }
     return Ok('Already approved');

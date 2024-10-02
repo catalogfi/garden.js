@@ -28,8 +28,8 @@ import {
   Siwe,
   Url,
 } from '@gardenfi/utils';
-import { isBitcoin } from '../utils';
 import { OrdersProvider } from '../orders/ordersProvider';
+import { isBitcoin } from '../asset';
 
 /**
  * A class that allows you to create and manage orders with the orderbook url.
@@ -147,14 +147,9 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
     }
   }
 
-  /**
-   * Wrapper for the getOrder method in the OrdersProvider class to abstract the address parameter.
-   * @param matched - Whether to get matched or unmatched orders
-   * @param paginationConfig - The pagination configuration
-   * @returns {AsyncResult<PaginatedData<T extends true ? MatchedOrder : CreateOrder>, string>}
-   */
-  async _getOrders<T extends boolean>(
+  async fetchOrders<T extends boolean>(
     matched: T,
+    pending: boolean = false,
     paginationConfig?: PaginationConfig,
   ): AsyncResult<
     PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
@@ -163,7 +158,23 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
     const address = this.walletClient.account?.address;
     if (!address) return Err('Wallet client does not have an account');
 
-    return super.getOrders(address, matched, paginationConfig);
+    if (matched)
+      return (await super.getMatchedOrders(
+        address,
+        pending,
+        paginationConfig,
+      )) as Result<
+        PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
+        string
+      >;
+
+    return (await super.getUnMatchedOrders(
+      address,
+      paginationConfig,
+    )) as Result<
+      PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
+      string
+    >;
   }
 
   /**
@@ -174,12 +185,13 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
    * @param paginationConfig - The configuration for the pagination
    * @returns {() => void} A function to unsubscribe from the order updates
    */
-  async _subscribeOrders<T extends boolean>(
+  async subscribeToOrders<T extends boolean>(
     matched: T,
     interval: number,
     cb: (
       orders: PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
     ) => void,
+    pending?: boolean,
     paginationConfig?: PaginationConfig,
   ): Promise<() => void> {
     const address = this.walletClient.account?.address;
@@ -190,8 +202,16 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
       matched,
       interval,
       cb,
+      pending,
       paginationConfig,
     );
+  }
+
+  async getUserOrdersCount(): AsyncResult<number, string> {
+    const address = this.walletClient.account?.address;
+    if (!address) return Err('Wallet client does not have an account');
+
+    return super.getOrdersCount(address);
   }
 
   private validateConfig(config: CreateOrderConfig): Result<undefined, string> {

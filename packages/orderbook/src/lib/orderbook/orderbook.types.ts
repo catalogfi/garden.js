@@ -1,7 +1,8 @@
 import { WalletClient } from 'viem';
 import { AsyncResult } from '@catalogfi/utils';
 import { APIResponse, IStore } from '@gardenfi/utils';
-import { Asset } from '../asset';
+import { Asset, Chain } from '../asset';
+import { IOrderProvider } from '../orders/orders.types';
 
 /**
  * Configuration for creating an order
@@ -96,13 +97,53 @@ export type OrderConfig = {
   };
 };
 
-export interface IOrderbook {
+export interface IOrderbook extends IOrderProvider {
   /**
    * Creates an order
    * @param {CreateOrderConfig} orderConfig - The configuration for the creating the order.
    * @returns {number} The create order ID.
    */
   createOrder(orderConfig: CreateOrderConfig): AsyncResult<string, string>;
+
+  /**
+   * Wrapper for the getOrder method in the OrdersProvider class to abstract the address parameter.
+   * @param matched - Whether to get matched or unmatched orders
+   * @param paginationConfig - The pagination configuration
+   * @param pending - Whether to get pending orders
+   * @returns {AsyncResult<PaginatedData<T extends true ? MatchedOrder : CreateOrder>, string>}
+   */
+  fetchOrders<T extends boolean>(
+    matched: T,
+    pending?: boolean,
+    paginationConfig?: PaginationConfig,
+  ): AsyncResult<
+    PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
+    string
+  >;
+
+  /**
+   * Wrapper for the subscribeOrders method in the OrdersProvider class to abstract the address parameter.
+   * @param matched - Whether to get matched or unmatched orders
+   * @param interval - The interval to poll for updates
+   * @param cb - The callback to be called when the orders are updated
+   * @param paginationConfig - The configuration for the pagination
+   * @returns {() => void} A function to unsubscribe from the order updates
+   */
+  subscribeToOrders<T extends boolean>(
+    matched: T,
+    interval: number,
+    cb: (
+      orders: PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
+    ) => void,
+    pending?: boolean,
+    paginationConfig?: PaginationConfig,
+  ): Promise<() => void>;
+
+  /**
+   * Get the current orders count associated with the provided address. Used to calculate nonce for secret generation.
+   * @returns {AsyncResult<number, string>} A promise that resolves to the orders count.
+   */
+  getUserOrdersCount(): AsyncResult<number, string>;
 }
 
 export type DecodedAuthToken = {
@@ -148,7 +189,7 @@ export type Swap = {
   updated_at: string;
   deleted_at: string | null;
   swap_id: string;
-  chain: string;
+  chain: Chain;
   asset: string;
   initiator: string;
   redeemer: string;

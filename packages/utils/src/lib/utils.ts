@@ -9,3 +9,6 @@ export const with0x = (str: string): `0x${string}` => {
  * @returns Authorization header
  */
 export const Authorization = (authToken: string) => `Bearer ${authToken}`;
+
+export const sleep = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));

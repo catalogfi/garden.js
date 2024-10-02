@@ -6,7 +6,7 @@ import {
   PaginatedData,
   PaginationConfig,
 } from '../orderbook/orderbook.types';
-import { APIResponse, Url } from '@gardenfi/utils';
+import { APIResponse, ApiStatus, Url } from '@gardenfi/utils';
 import { ConstructUrl } from '../utils';
 
 export class OrdersProvider implements IOrderProvider {
@@ -37,36 +37,55 @@ export class OrdersProvider implements IOrderProvider {
     }
   }
 
-  async getOrders<T extends boolean>(
+  async getMatchedOrders(
     address: string,
-    matched: T,
+    pending: boolean,
     paginationConfig?: PaginationConfig,
-  ): AsyncResult<
-    PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
-    string
-  > {
-    const endpoint = matched ? 'matched' : 'unmatched';
-    const url = ConstructUrl(
-      this.url,
-      `/user/${endpoint}/${address}`,
-      paginationConfig,
-    );
+  ): AsyncResult<PaginatedData<MatchedOrder>, string> {
+    const url = ConstructUrl(this.url, `/user/matched/${address}`, {
+      ...paginationConfig,
+      pending,
+    });
 
     try {
-      const res = await Fetcher.get<
-        APIResponse<PaginatedData<T extends true ? MatchedOrder : CreateOrder>>
-      >(url);
+      const res = await Fetcher.get<APIResponse<PaginatedData<MatchedOrder>>>(
+        url,
+      );
 
       if (res.error) return Err(res.error);
       return res.result
         ? Ok(res.result)
-        : Err('GetOrders: Unexpected error, result is undefined');
+        : Err('GetMatchedOrders: Unexpected error, result is undefined');
     } catch (error) {
-      return Err('GetOrders:', String(error));
+      return Err('GetMatchedOrders:', String(error));
     }
   }
 
-  async getAllOrders<T extends boolean>(
+  async getUnMatchedOrders(
+    address: string,
+    paginationConfig?: PaginationConfig,
+  ): AsyncResult<PaginatedData<CreateOrder>, string> {
+    const url = ConstructUrl(
+      this.url,
+      `/user/unmatched/${address}`,
+      paginationConfig,
+    );
+
+    try {
+      const res = await Fetcher.get<APIResponse<PaginatedData<CreateOrder>>>(
+        url,
+      );
+
+      if (res.error) return Err(res.error);
+      return res.result
+        ? Ok(res.result)
+        : Err('GetUnMatchedOrders: Unexpected error, result is undefined');
+    } catch (error) {
+      return Err('GetUnMatchedOrders:', String(error));
+    }
+  }
+
+  async getOrders<T extends boolean>(
     matched: T,
     paginationConfig?: PaginationConfig,
   ): AsyncResult<
@@ -97,13 +116,21 @@ export class OrdersProvider implements IOrderProvider {
     cb: (
       orders: PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
     ) => void,
+    pending: boolean = false,
     paginationConfig?: PaginationConfig,
   ): Promise<() => void> {
     const fetchOrders = async () => {
       try {
-        const result = await this.getOrders(account, matched, paginationConfig);
+        // const result = await this.getOrders(account, matched, paginationConfig);
+        const result = matched
+          ? await this.getMatchedOrders(account, pending, paginationConfig)
+          : await this.getUnMatchedOrders(account, paginationConfig);
         if (result.ok) {
-          cb(result.val);
+          cb(
+            result.val as PaginatedData<
+              T extends true ? MatchedOrder : CreateOrder
+            >,
+          );
         } else {
           console.error('Error fetching orders:', result.error);
         }
@@ -119,5 +146,20 @@ export class OrdersProvider implements IOrderProvider {
     return () => {
       clearInterval(intervalId);
     };
+  }
+
+  async getOrdersCount(address: string): AsyncResult<number, string> {
+    const url = this.url.endpoint(`/user/count/${address}`);
+
+    try {
+      const res = await Fetcher.get<APIResponse<number>>(url);
+
+      if (res.error) return Err(res.error);
+      return res.status === ApiStatus.Ok && res.result !== undefined
+        ? Ok(res.result)
+        : Err('GetOrdersCount: Unexpected error, result is undefined');
+    } catch (error) {
+      return Err('GetOrdersCount:', String(error));
+    }
   }
 }

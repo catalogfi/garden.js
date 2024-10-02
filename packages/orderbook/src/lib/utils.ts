@@ -1,14 +1,4 @@
 import { Url } from '@gardenfi/utils';
-import { Chain, Chains } from './asset';
-import { PaginationConfig } from './orderbook/orderbook.types';
-
-export const isBitcoin = (chain: Chain) => {
-  return (
-    chain === Chains.bitcoin ||
-    chain === Chains.bitcoin_testnet ||
-    chain === Chains.bitcoin_regtest
-  );
-};
 
 /**
  * Constructs a URL with the given base URL, endpoint and parameters (query params)
@@ -19,7 +9,9 @@ export const isBitcoin = (chain: Chain) => {
 export const ConstructUrl = (
   baseUrl: Url,
   endPoint: string,
-  params?: PaginationConfig,
+  params?: {
+    [key: string]: string | number | boolean | undefined;
+  },
 ): URL => {
   const url = baseUrl.endpoint(endPoint);
   if (params) {
@@ -31,6 +23,3 @@ export const ConstructUrl = (
   }
   return url;
 };
-
-export const sleep = (ms: number) =>
-  new Promise((resolve) => setTimeout(resolve, ms));

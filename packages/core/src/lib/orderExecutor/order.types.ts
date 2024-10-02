@@ -1,6 +1,8 @@
-export interface Order {
-  parseStatus(): string;
-}
+import { AsyncResult } from '@catalogfi/utils';
+import { IBitcoinWallet } from '@catalogfi/wallets';
+import { WalletClient } from 'viem';
+import { ISecretManager } from '../secretManager/secretManager.types';
+import { MatchedOrder } from '@gardenfi/orderbook';
 
 /**
  * Order statuses
@@ -130,4 +132,61 @@ export enum SwapStatus {
    * - Should refund.
    */
   Expired = 'Expired',
+}
+
+export enum OrderActions {
+  Idle = 'Idle',
+  Initiate = 'Initiate',
+  Redeem = 'Redeem',
+  Refund = 'Refund',
+}
+
+export type executeParams = {
+  wallets: {
+    source: IBitcoinWallet | WalletClient;
+    destination: IBitcoinWallet | WalletClient;
+  };
+  secretManager: ISecretManager;
+  blockNumbers?: {
+    source: number;
+    destination: number;
+  };
+};
+
+/**
+ * This is a generic interface for Order. Use this interface to perform operations on the order (init, redeem, refund, execute).
+ */
+export interface IOrder {
+  /**
+   * Get the order details.
+   * @returns MatchedOrder
+   */
+  getOrder(): MatchedOrder;
+  /**
+   * Initialize the order.
+   * Deposit funds into the atomic swap contract.
+   */
+  init(
+    walletClient: WalletClient,
+    currentBlockNumber: number,
+  ): AsyncResult<string, string>;
+  /**
+   * Redeem the funds from the atomic swap contract.
+   */
+  redeem(
+    wallet: WalletClient | IBitcoinWallet,
+    secret: string,
+  ): AsyncResult<string, string>;
+  /**
+   * Refund the funds from the atomic swap contract after expiry.
+   */
+  refund(): AsyncResult<string, string>;
+  /**
+   * This will take care of order execution according to its current status, i.e., init, redeem, refund.
+   *
+   * Initiate:- BTC should be done manually, EVM will be automated.
+   * Redeem:- Automated for both BTC and EVM.
+   * Refund:- Automated for BTC, EVM will be done by the relayer service automatically after expiry.
+   */
+  execute(params: executeParams): AsyncResult<string | void, string>;
 }
