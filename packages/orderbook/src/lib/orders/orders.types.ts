@@ -19,20 +19,28 @@ export interface IOrderProvider {
   ): AsyncResult<T extends true ? MatchedOrder : CreateOrder, string>;
 
   /**
-   * Get all orders from the orderbook associated with the `address` based on the match status.
+   * Get all matched orders from the orderbook associated with the `address`.
    * @param address The address to get the orders for.
-   * @param matched if true, returns matched orders, else returns unmatched orders.
+   * @param pending If true, returns pending orders, else returns all matched orders.
    * @param paginationConfig - The configuration for the pagination.
-   * @returns {AsyncResult<PaginatedData<T extends true ? MatchedOrder : CreateOrder>, string>} A promise that resolves to the orders.
+   * @returns {AsyncResult<PaginatedData<MatchedOrder>, string>} A promise that resolves to the orders.
    */
-  getOrders<T extends boolean>(
+  getMatchedOrders(
     address: string,
-    matched: T,
+    pending: boolean,
     paginationConfig?: PaginationConfig,
-  ): AsyncResult<
-    PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
-    string
-  >;
+  ): AsyncResult<PaginatedData<MatchedOrder>, string>;
+
+  /**
+   * Get all unmatched orders from the orderbook associated with the `address`.
+   * @param address The address to get the orders for.
+   * @param paginationConfig - The configuration for the pagination.
+   * @returns {AsyncResult<PaginatedData<CreateOrder>, string>} A promise that resolves to the orders.
+   */
+  getUnMatchedOrders(
+    address: string,
+    paginationConfig?: PaginationConfig,
+  ): AsyncResult<PaginatedData<CreateOrder>, string>;
 
   /**
    * Get all orders from the orderbook based on the match status.
@@ -40,7 +48,7 @@ export interface IOrderProvider {
    * @param paginationConfig - The configuration for the pagination.
    * @returns {AsyncResult<PaginatedData<T extends true ? MatchedOrder : CreateOrder>, string>} A promise that resolves to the orders.
    */
-  getAllOrders<T extends boolean>(
+  getOrders<T extends boolean>(
     matched: T,
     paginationConfig?: PaginationConfig,
   ): AsyncResult<
@@ -52,7 +60,7 @@ export interface IOrderProvider {
    * Polls for every provided interval and returns matched and unmatched orders associated on the account.
    * @param account The account to subscribe to
    * @param matched If true, returns matched orders, else returns unmatched orders
-   * @param cb The callback to be called when the orders are updated
+   * @param cb Th ack to be called when the orders are updated
    * @param interval The interval to poll for updates
    *
    * Example usage:
@@ -74,6 +82,14 @@ export interface IOrderProvider {
     cb: (
       orders: PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
     ) => void,
+    pending?: boolean,
     paginationConfig?: PaginationConfig,
   ): Promise<() => void>;
+
+  /**
+   * Returns the current orders count associated with the provided address. Used to calculate nonce for secret generation.
+   * @param address The address to get the orders count for.
+   * @returns {AsyncResult<number, string>} A promise that resolves to the orders count.
+   */
+  getOrdersCount(address: string): AsyncResult<number, string>;
 }

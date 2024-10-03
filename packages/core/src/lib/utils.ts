@@ -8,7 +8,7 @@ export const computeSecret = async (
   fromChain: Chain,
   toChain: Chain,
   wallets: Partial<Record<Chain, IBaseWallet>>,
-  nonce: number
+  nonce: number,
 ) => {
   const initiatorWallet = wallets[fromChain as Chain];
   const followerWallet = wallets[toChain as Chain];
@@ -20,18 +20,18 @@ export const computeSecret = async (
     const msg = sha256(
       with0x(
         Buffer.from(
-          'catalog.js' + nonce + (await followerWallet.getAddress())
-        ).toString('hex')
-      )
+          'catalog.js' + nonce + (await followerWallet.getAddress()),
+        ).toString('hex'),
+      ),
     ).slice(2);
     sig = await initiatorWallet.sign(msg);
   } else {
     const msg = sha256(
       with0x(
         Buffer.from(
-          'catalog.js' + nonce + (await initiatorWallet.getAddress())
-        ).toString('hex')
-      )
+          'catalog.js' + nonce + (await initiatorWallet.getAddress()),
+        ).toString('hex'),
+      ),
     ).slice(2);
     sig = await followerWallet.sign(msg);
   }
@@ -87,3 +87,6 @@ export function sortLeaves(leaf1: Buffer, leaf2: Buffer) {
   }
   return [leaf1, leaf2];
 }
+
+export const toXOnly = (pubKey: string) =>
+  pubKey.length === 64 ? pubKey : pubKey.slice(2);

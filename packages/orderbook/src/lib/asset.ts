@@ -58,3 +58,21 @@ export const isMainnet = (chain: Chain) => {
     chain === Chains.ethereum_localnet
   );
 };
+
+export const isBitcoin = (chain: Chain) => {
+  return (
+    chain === Chains.bitcoin ||
+    chain === Chains.bitcoin_testnet ||
+    chain === Chains.bitcoin_regtest
+  );
+};
+
+export const isEVM = (chain: Chain) => {
+  return (
+    chain === Chains.ethereum ||
+    chain === Chains.ethereum_arbitrum ||
+    chain === Chains.ethereum_sepolia ||
+    chain === Chains.ethereum_localnet ||
+    chain === Chains.arbitrum_localnet
+  );
+};
