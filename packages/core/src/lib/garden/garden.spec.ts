@@ -9,7 +9,7 @@ import {
   createOrderObject,
   EthereumLocalnet,
 } from '../testUtils';
-import { Chain, Chains, Orderbook } from '@gardenfi/orderbook';
+import { Chain, Chains, MatchedOrder, Orderbook } from '@gardenfi/orderbook';
 import { ISecretManager } from '../secretManager/secretManager.types';
 import {
   BitcoinNetwork,
@@ -128,16 +128,19 @@ describe('garden', () => {
     if (!orderId) {
       throw new Error('Order id not found');
     }
-    let res = await orderBook.getOrder(orderId, true);
-    let order = res.val;
+
+    let order: MatchedOrder | null = null;
     while (!order) {
-      res = await orderBook.getOrder(orderId, true);
+      const res = await orderBook.getOrder(orderId, true);
       order = res.val;
-      console.log('unmatched');
-      await sleep(1000);
+      if (!order) {
+        console.log('unmatched');
+        await sleep(1000);
+      }
     }
+
     console.log('matched');
-  }, 10000);
+  }, 20000);
 
   it('subscribe to orders and execute', async () => {
     await garden.subscribeOrders(async (orderExecutor) => {

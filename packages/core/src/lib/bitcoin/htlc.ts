@@ -330,7 +330,7 @@ export class GardenHTLC implements IHTLCWallet {
 
       tx.setWitness(i, [
         signature,
-        this.redundLeaf(),
+        this.refundLeaf(),
         this.generateControlBlockFor(Leaf.REFUND),
       ]);
     }
@@ -376,7 +376,7 @@ export class GardenHTLC implements IHTLCWallet {
         redeemScript = this.redeemLeaf();
         break;
       case Leaf.REFUND:
-        redeemScript = this.redundLeaf();
+        redeemScript = this.refundLeaf();
         break;
       case Leaf.INSTANT_REFUND:
         redeemScript = this.instantRefundLeaf();
@@ -407,12 +407,12 @@ export class GardenHTLC implements IHTLCWallet {
    */
   leafHash(leaf: Leaf): Buffer {
     let leafScript = this.redeemLeaf();
-    if (leaf === Leaf.REFUND) leafScript = this.redundLeaf();
+    if (leaf === Leaf.REFUND) leafScript = this.refundLeaf();
     if (leaf === Leaf.INSTANT_REFUND) leafScript = this.instantRefundLeaf();
     return bitcoin.crypto.taggedHash('TapLeaf', serializeScript(leafScript));
   }
 
-  private redundLeaf(): Buffer {
+  private refundLeaf(): Buffer {
     return bitcoin.script.fromASM(
       `
 			${bitcoin.script.number.encode(this.expiry).toString('hex')}
@@ -465,7 +465,7 @@ export class GardenHTLC implements IHTLCWallet {
       [
         {
           version: LEAF_VERSION,
-          output: this.redundLeaf(),
+          output: this.refundLeaf(),
         },
         {
           version: LEAF_VERSION,

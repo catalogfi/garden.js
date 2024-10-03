@@ -1,15 +1,22 @@
 import { WalletClient } from 'viem';
-import { executeParams, IOrder, OrderActions } from './order.types';
+import {
+  executeParams,
+  IOrder,
+  IOrderCache,
+  OrderActions,
+  OrderCacheAction,
+} from './order.types';
 import { IBitcoinWallet } from '@catalogfi/wallets';
 import { isBitcoin, MatchedOrder } from '@gardenfi/orderbook';
-import { IStore } from '@gardenfi/utils';
+import { IStore, MemoryStorage } from '@gardenfi/utils';
 import { parseAction } from './orderStatusParser';
 import { fetchBitcoinBlockNumber, fetchEVMBlockNumber } from './blockNumber';
-import { AsyncResult, Err, Ok, Void } from '@catalogfi/utils';
+import { AsyncResult, Err, Ok, trim0x, Void } from '@catalogfi/utils';
 import { EvmRelay } from '../evmRelay/evmRelay';
 import { GardenHTLC } from '../bitcoin/htlc';
 import { toXOnly } from '../utils';
 import { ISecretManager } from '../secretManager/secretManager.types';
+import { OrderCache } from './orderCache';
 
 //orderBook will return orderExecutorInstance
 export class Order implements IOrder {
@@ -17,6 +24,7 @@ export class Order implements IOrder {
   private relayURL: string;
   private secretManager: ISecretManager;
   private opts;
+  private orderCache: IOrderCache;
 
   constructor(
     order: MatchedOrder,
@@ -31,6 +39,7 @@ export class Order implements IOrder {
     this.relayURL = relayURL;
     this.secretManager = secretManager;
     this.opts = opts;
+    this.orderCache = new OrderCache(order, opts?.store || new MemoryStorage());
   }
 
   getOrder(): MatchedOrder {
@@ -41,28 +50,40 @@ export class Order implements IOrder {
     walletClient: WalletClient,
     currentBlockNumber: number,
   ): AsyncResult<string, string> {
+    const initHash = this.orderCache.get(OrderCacheAction.init);
+    if (initHash) return Ok(initHash.txHash);
     if (isBitcoin(this.order.source_swap.chain))
       return Ok('Bitcoin initiation is not automated');
 
     const evmRelayer = new EvmRelay(this.relayURL, walletClient, this.opts);
-    return await evmRelayer.init(this.order, currentBlockNumber);
+    const res = await evmRelayer.init(this.order, currentBlockNumber);
+    if (!res.error && res.val) {
+      this.orderCache.set(OrderCacheAction.init, res.val);
+    }
+    return res;
   }
 
   async redeem(
     wallet: WalletClient | IBitcoinWallet,
     secret: string,
   ): AsyncResult<string, string> {
+    const redeemHash = this.orderCache.get(OrderCacheAction.redeem);
+    if (redeemHash) return Ok(redeemHash.txHash);
     if (isBitcoin(this.order.destination_swap.chain)) {
       try {
         const bitcoinExecutor = await GardenHTLC.from(
           wallet as IBitcoinWallet,
           Number(this.order.destination_swap.amount),
           this.order.create_order.secret_hash,
-          toXOnly(this.order.source_swap.initiator),
-          toXOnly(this.order.source_swap.redeemer),
+          toXOnly(this.order.destination_swap.initiator),
+          toXOnly(this.order.destination_swap.redeemer),
           this.order.destination_swap.timelock,
         );
-        const res = await bitcoinExecutor.redeem(secret);
+        const res = await bitcoinExecutor.redeem(
+          trim0x(secret),
+          this.order.create_order.additional_data?.bitcoin_optional_recipient,
+        );
+        this.orderCache.set(OrderCacheAction.redeem, res);
         return Ok(res);
       } catch (error) {
         return Err('Failed btc redeem: ' + error);
@@ -74,14 +95,40 @@ export class Order implements IOrder {
       wallet as WalletClient,
       this.opts,
     );
-    return await evmRelay.redeem(this.order.create_order.create_id, secret);
+    const res = await evmRelay.redeem(
+      this.order.create_order.create_id,
+      secret,
+    );
+
+    if (!res.error && res.val)
+      this.orderCache.set(OrderCacheAction.redeem, res.val);
+    return res;
   }
 
-  async refund() {
+  async refund(wallet: IBitcoinWallet): AsyncResult<string, string> {
+    const refundHash = this.orderCache.get(OrderCacheAction.refund);
+    if (refundHash) return Ok(refundHash.txHash);
     if (!isBitcoin(this.order.source_swap.chain)) {
       return Ok('EVM refund is automatically done by relayer service');
     }
-    return Err('Not implemented');
+
+    try {
+      const bitcoinExecutor = await GardenHTLC.from(
+        wallet,
+        Number(this.order.source_swap.amount),
+        this.order.create_order.secret_hash,
+        toXOnly(this.order.source_swap.initiator),
+        toXOnly(this.order.source_swap.redeemer),
+        this.order.source_swap.timelock,
+      );
+      const res = await bitcoinExecutor.refund(
+        this.order.create_order.additional_data?.bitcoin_optional_recipient,
+      );
+      this.orderCache.set(OrderCacheAction.refund, res);
+      return Ok(res);
+    } catch (error) {
+      return Err('Failed btc refund: ' + error);
+    }
   }
 
   async execute(params: executeParams) {
@@ -125,7 +172,7 @@ export class Order implements IOrder {
       case OrderActions.Refund:
         if (!isBitcoin(this.order.source_swap.chain))
           return Ok('EVM refund is automatically done by relayer service');
-        return await this.refund();
+        return await this.refund(wallets.source as IBitcoinWallet);
 
       default:
         return Ok(Void);

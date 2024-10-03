@@ -119,9 +119,12 @@ export class OrdersProvider implements IOrderProvider {
     pending: boolean = false,
     paginationConfig?: PaginationConfig,
   ): Promise<() => void> {
+    let isProcessing = false;
+
     const fetchOrders = async () => {
+      if (isProcessing) return;
+
       try {
-        // const result = await this.getOrders(account, matched, paginationConfig);
         const result = matched
           ? await this.getMatchedOrders(account, pending, paginationConfig)
           : await this.getUnMatchedOrders(account, paginationConfig);
@@ -136,6 +139,8 @@ export class OrdersProvider implements IOrderProvider {
         }
       } catch (error) {
         console.error('Error fetching orders:', error);
+      } finally {
+        isProcessing = false;
       }
     };
 

@@ -180,7 +180,7 @@ export interface IOrder {
   /**
    * Refund the funds from the atomic swap contract after expiry.
    */
-  refund(): AsyncResult<string, string>;
+  refund(wallet: IBitcoinWallet): AsyncResult<string, string>;
   /**
    * This will take care of order execution according to its current status, i.e., init, redeem, refund.
    *
@@ -189,4 +189,23 @@ export interface IOrder {
    * Refund:- Automated for BTC, EVM will be done by the relayer service automatically after expiry.
    */
   execute(params: executeParams): AsyncResult<string | void, string>;
+}
+
+export enum OrderCacheAction {
+  init = 'init',
+  redeem = 'redeem',
+  refund = 'refund',
+}
+
+export type OrderCacheValue = {
+  txHash: string;
+  timeStamp: number;
+};
+
+export interface IOrderCache {
+  getOrder(): MatchedOrder;
+  set(action: OrderCacheAction, txHash: string): void;
+  get(action: OrderCacheAction): OrderCacheValue | null;
+  remove(action: OrderCacheAction): void;
+  deleteHistory(): void;
 }
