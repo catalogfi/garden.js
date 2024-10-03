@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ESNext",
+    "outDir": "../dist/out-tsc",
+    "declaration": true,
+    "types": ["node", "vite/client"],
+    "jsx": "react"
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": [
+    "jest.config.ts",
+    "src/**/*.spec.ts",
+    "src/**/*.test.ts",
+    "src/test/**/*"
+  ]
+}
