@@ -12,7 +12,7 @@ import {
 } from '@gardenfi/utils';
 import { AtomicSwapABI } from './abi';
 import { ParseSwapStatus } from '../orderExecutor/orderStatusParser';
-import { SwapStatus } from '../orderExecutor/order.types';
+import { SwapStatus } from '../orderExecutor/orderExecutor.types';
 
 export class EvmRelay implements IEVMRelay {
   private walletClient: WalletClient;
@@ -75,7 +75,6 @@ export class EvmRelay implements IEVMRelay {
         this.walletClient,
       );
       if (approval.error) return Err(approval.error);
-      console.log('approval :', approval.val);
 
       const domain = await atomicSwap.read.eip712Domain();
 
@@ -127,8 +126,6 @@ export class EvmRelay implements IEVMRelay {
   }
 
   async redeem(orderId: string, secret: string): AsyncResult<string, string> {
-    if (!this.walletClient.account) return Err('No account found');
-
     try {
       const auth = await this.auth.getToken();
       if (auth.error) return Err(auth.error);

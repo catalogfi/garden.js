@@ -1,6 +1,6 @@
 {
   "name": "@gardenfi/core",
-  "version": "0.2.0",
+  "version": "0.2.0-beta.3",
   "type": "module",
   "files": [
     "dist"
@@ -30,20 +30,15 @@
     "@catalogfi/wallets": "^0.2.49",
     "@gardenfi/orderbook": "workspace:^",
     "bitcoinjs-lib": "^6.1.6",
-    "crypto": "^1.0.1",
-    "ethers": "6.8.0",
     "tiny-secp256k1": "^2.2.3",
     "varuint-bitcoin": "^1.1.2",
-    "viem": "^2.21.15",
-    "vite-plugin-node-polyfills": "^0.22.0"
+    "viem": "^2.21.15"
   },
   "devDependencies": {
     "dotenv": "^16.3.1",
     "typescript": "^5.2.2",
     "vite": "^5.1.6",
     "vite-plugin-dts": "^3.7.3",
-    "vite-plugin-top-level-await": "^1.4.1",
-    "vite-plugin-wasm": "^3.3.0",
     "vitest": "^1.6.0"
   },
   "sideEffects": false

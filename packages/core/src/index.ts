@@ -1,16 +1,20 @@
 export { Garden } from './lib/garden/garden';
-export type { IGardenJS } from './lib/garden/garden.types';
+export type {
+  IGardenJS,
+  SwapParams,
+  TimeLocks,
+} from './lib/garden/garden.types';
 
 export { EvmRelay } from './lib/evmRelay/evmRelay';
 export type { IEVMRelay } from './lib/evmRelay/evmRelay.types';
 
-export { Order } from './lib/orderExecutor/order';
+export { OrderExecutor } from './lib/orderExecutor/orderExecutor';
 export type {
-  IOrder,
+  IOrderExecutor,
   OrderStatus,
   SwapStatus,
   OrderActions,
-} from './lib/orderExecutor/order.types';
+} from './lib/orderExecutor/orderExecutor.types';
 export {
   fetchBitcoinBlockNumber,
   fetchL1BlockNumber,

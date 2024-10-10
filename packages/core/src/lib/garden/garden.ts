@@ -3,8 +3,8 @@ import { AsyncResult, Err } from '@catalogfi/utils';
 import { IGardenJS, SwapParams, TimeLocks } from './garden.types';
 import { IOrderbook, isBitcoin, isEVM } from '@gardenfi/orderbook';
 import { IStore, Url } from '@gardenfi/utils';
-import { IOrder } from '../orderExecutor/order.types';
-import { Order } from '../orderExecutor/order';
+import { IOrderExecutor } from '../orderExecutor/orderExecutor.types';
+import { OrderExecutor } from '../orderExecutor/orderExecutor';
 
 export class Garden implements IGardenJS {
   private secretManager: ISecretManager;
@@ -66,19 +66,24 @@ export class Garden implements IGardenJS {
   }
 
   async subscribeOrders(
-    cb: (executor: IOrder) => void,
+    cb: (executor: IOrderExecutor) => Promise<void>,
     interval: number = 5000,
   ): Promise<() => void> {
-    return await this.orderBook.subscribeToOrders(true, interval, (order) => {
-      order.data.map((o) => {
-        const orderExecutor = new Order(
-          o,
-          this.relayURL.toString(),
-          this.secretManager,
-          this.opts,
-        );
-        cb(orderExecutor);
-      });
-    });
+    return await this.orderBook.subscribeToOrders(
+      true,
+      interval,
+      async (order) => {
+        for (let i = 0; i < order.data.length; i++) {
+          const orderExecutor = new OrderExecutor(
+            order.data[i],
+            this.relayURL.toString(),
+            this.secretManager,
+            this.opts,
+          );
+          await cb(orderExecutor);
+        }
+      },
+      true,
+    );
   }
 }

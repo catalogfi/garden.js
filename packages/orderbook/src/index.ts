@@ -4,3 +4,11 @@ export type { Chain, EvmChain, Asset } from './lib/asset';
 export { Chains, isMainnet, isBitcoin, isEVM } from './lib/asset';
 export { OrdersProvider } from './lib/orders/ordersProvider';
 export type { IOrderProvider } from './lib/orders/orders.types';
+
+export {
+  WBTCArbitrumLocalnetAsset,
+  WBTCEthereumLocalnetAsset,
+  ArbitrumLocalnet,
+  EthereumLocalnet,
+  bitcoinRegtestAsset,
+} from './lib/constants';

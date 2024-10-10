@@ -1,8 +1,9 @@
 import { IBaseWallet } from '@catalogfi/wallets';
-import { trim0x, with0x } from '@catalogfi/utils';
+import { with0x } from '@gardenfi/utils';
 import { Chain } from '@gardenfi/orderbook';
-import { sha256 } from 'ethers';
+import { sha256 } from 'viem';
 import * as varuint from 'varuint-bitcoin';
+import { trim0x } from '@catalogfi/utils';
 
 export const computeSecret = async (
   fromChain: Chain,

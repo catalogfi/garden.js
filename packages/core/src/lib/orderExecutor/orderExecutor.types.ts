@@ -1,7 +1,6 @@
 import { AsyncResult } from '@catalogfi/utils';
 import { IBitcoinWallet } from '@catalogfi/wallets';
 import { WalletClient } from 'viem';
-import { ISecretManager } from '../secretManager/secretManager.types';
 import { MatchedOrder } from '@gardenfi/orderbook';
 
 /**
@@ -141,12 +140,11 @@ export enum OrderActions {
   Refund = 'Refund',
 }
 
-export type executeParams = {
+export type ExecuteParams = {
   wallets: {
     source: IBitcoinWallet | WalletClient;
     destination: IBitcoinWallet | WalletClient;
   };
-  secretManager: ISecretManager;
   blockNumbers?: {
     source: number;
     destination: number;
@@ -156,20 +154,13 @@ export type executeParams = {
 /**
  * This is a generic interface for Order. Use this interface to perform operations on the order (init, redeem, refund, execute).
  */
-export interface IOrder {
+export interface IOrderExecutor {
   /**
    * Get the order details.
    * @returns MatchedOrder
    */
   getOrder(): MatchedOrder;
-  /**
-   * Initialize the order.
-   * Deposit funds into the atomic swap contract.
-   */
-  init(
-    walletClient: WalletClient,
-    currentBlockNumber: number,
-  ): AsyncResult<string, string>;
+
   /**
    * Redeem the funds from the atomic swap contract.
    */
@@ -182,13 +173,12 @@ export interface IOrder {
    */
   refund(wallet: IBitcoinWallet): AsyncResult<string, string>;
   /**
-   * This will take care of order execution according to its current status, i.e., init, redeem, refund.
+   * This will take care of order execution according to its current status, i.e., redeem or refund.
    *
-   * Initiate:- BTC should be done manually, EVM will be automated.
-   * Redeem:- Automated for both BTC and EVM.
-   * Refund:- Automated for BTC, EVM will be done by the relayer service automatically after expiry.
+   * Redeem:- Both EVM and BTC redeems are done by executor, and only BTC refund is done by executor.
+   * EVM refund is done automatically by the relayer service.
    */
-  execute(params: executeParams): AsyncResult<string | void, string>;
+  execute(params: ExecuteParams): AsyncResult<string | void, string>;
 }
 
 export enum OrderCacheAction {

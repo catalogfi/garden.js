@@ -6,11 +6,11 @@
   "license": "MIT",
   "scripts": {
     "echo": "yarn workspaces foreach --include \"packages/*\" run echo",
-    "build": "yarn workspaces foreach -Atp --include \"packages/*\" run build",
+    "build": "yarn workspaces foreach -Atp --include \"packages/*\" --exclude \"packages/test\" run build",
     "test": "vitest run",
     "dev": "yarn workspaces foreach -Api -j unlimited --include \"packages/*\" run dev ",
     "patch:affected": "yarn workspaces foreach -p --topological --include \"packages/*\" --since=$0 run patch",
-    "publish:affected": "yarn workspaces foreach -p --include \"packages/*\" --since=main npm publish"
+    "publish:affected": "yarn workspaces foreach -p --include \"packages/*\" --since=main --no-private npm publish --tag beta"
   },
   "workspaces": [
     "packages/*"
@@ -18,7 +18,7 @@
   "devDependencies": {
     "@eslint/js": "^9.6.0",
     "@types/chrome": "^0.0.268",
-    "@types/node": "^20.11.30",
+    "@types/node": "^22.7.4",
     "eslint": "9.x",
     "globals": "^15.8.0",
     "ts-node": "^10.9.2",

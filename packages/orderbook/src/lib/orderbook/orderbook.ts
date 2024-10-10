@@ -123,6 +123,7 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
       min_destination_confirmations: minDestinationConfirmations,
       timelock,
       ...additional_data,
+      //signature:''
       fee: '1',
     };
 
@@ -190,14 +191,14 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
     interval: number,
     cb: (
       orders: PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
-    ) => void,
+    ) => Promise<void>,
     pending?: boolean,
     paginationConfig?: PaginationConfig,
   ): Promise<() => void> {
     const address = this.walletClient.account?.address;
     if (!address) return () => {};
 
-    return super.subscribeOrders(
+    return await super.subscribeOrders(
       address,
       matched,
       interval,

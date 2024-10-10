@@ -1,11 +1,11 @@
 import { WalletClient } from 'viem';
 import {
-  executeParams,
-  IOrder,
+  ExecuteParams,
+  IOrderExecutor,
   IOrderCache,
   OrderActions,
   OrderCacheAction,
-} from './order.types';
+} from './orderExecutor.types';
 import { IBitcoinWallet } from '@catalogfi/wallets';
 import { isBitcoin, MatchedOrder } from '@gardenfi/orderbook';
 import { IStore, MemoryStorage } from '@gardenfi/utils';
@@ -18,8 +18,7 @@ import { toXOnly } from '../utils';
 import { ISecretManager } from '../secretManager/secretManager.types';
 import { OrderCache } from './orderCache';
 
-//orderBook will return orderExecutorInstance
-export class Order implements IOrder {
+export class OrderExecutor implements IOrderExecutor {
   private order: MatchedOrder;
   private relayURL: string;
   private secretManager: ISecretManager;
@@ -52,6 +51,7 @@ export class Order implements IOrder {
   ): AsyncResult<string, string> {
     const initHash = this.orderCache.get(OrderCacheAction.init);
     if (initHash) return Ok(initHash.txHash);
+
     if (isBitcoin(this.order.source_swap.chain))
       return Ok('Bitcoin initiation is not automated');
 
@@ -68,7 +68,9 @@ export class Order implements IOrder {
     secret: string,
   ): AsyncResult<string, string> {
     const redeemHash = this.orderCache.get(OrderCacheAction.redeem);
+    // already redeemed
     if (redeemHash) return Ok(redeemHash.txHash);
+
     if (isBitcoin(this.order.destination_swap.chain)) {
       try {
         const bitcoinExecutor = await GardenHTLC.from(
@@ -131,11 +133,15 @@ export class Order implements IOrder {
     }
   }
 
-  async execute(params: executeParams) {
-    const { wallets } = params;
-
+  async execute(params: ExecuteParams): AsyncResult<string | void, string> {
     // fetch the current block number of the source and destination chains if not provided
+    const { wallets } = params;
     let { blockNumbers } = params;
+    if (!blockNumbers && !wallets)
+      return Err(
+        'Provide wallets or blockNumbers to calculate the order status.',
+      );
+
     if (!blockNumbers) {
       const currentBlockNumber = await this.fetchCurrentBlockNumber(wallets);
       if (currentBlockNumber.error) {
@@ -152,15 +158,6 @@ export class Order implements IOrder {
     );
 
     switch (action) {
-      case OrderActions.Initiate:
-        if (isBitcoin(this.order.source_swap.chain))
-          return Ok('Bitcoin initiation is not automated');
-
-        return await this.init(
-          wallets.source as WalletClient,
-          blockNumbers.source,
-        );
-
       case OrderActions.Redeem: {
         const secret = this.secretManager.generateSecret(
           Number(this.order.create_order.nonce),
@@ -169,6 +166,7 @@ export class Order implements IOrder {
 
         return await this.redeem(wallets.destination, secret.val.secret);
       }
+
       case OrderActions.Refund:
         if (!isBitcoin(this.order.source_swap.chain))
           return Ok('EVM refund is automatically done by relayer service');
@@ -178,7 +176,11 @@ export class Order implements IOrder {
         return Ok(Void);
     }
   }
-  private async fetchCurrentBlockNumber(wallets: executeParams['wallets']) {
+
+  private async fetchCurrentBlockNumber(wallets: ExecuteParams['wallets']) {
+    if (!wallets || !wallets.source || !wallets.destination)
+      return Err('Provide wallets to fetch the current block number');
+
     const sourceBlockNumber = isBitcoin(this.order.source_swap.chain)
       ? await fetchBitcoinBlockNumber(
           await (wallets.source as IBitcoinWallet).getProvider(),

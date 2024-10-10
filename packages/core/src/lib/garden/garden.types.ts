@@ -1,6 +1,6 @@
 import { AsyncResult } from '@catalogfi/utils';
 import { Asset } from '@gardenfi/orderbook';
-import { IOrder } from '../orderExecutor/order.types';
+import { IOrderExecutor } from '../orderExecutor/orderExecutor.types';
 
 export type SwapParams = {
   fromAsset: Asset;
@@ -30,5 +30,8 @@ export interface IGardenJS {
    * @param cb - Callback function to be called for each order. This callback will take orderExecutor as an argument.
    * @param interval - Polling interval in milliseconds.
    */
-  subscribeOrders(cb: (orderExecutor: IOrder) => void, interval: number): void;
+  subscribeOrders(
+    cb: (orderExecutor: IOrderExecutor) => Promise<void>,
+    interval?: number,
+  ): Promise<() => void>;
 }
