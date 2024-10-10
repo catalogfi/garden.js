@@ -1,13 +1,6 @@
 import { exec } from 'child_process';
 import { Asset, Chains, Chain as Network } from '@gardenfi/orderbook';
-import {
-  Contract,
-  Interface,
-  AbiCoder,
-  Wallet,
-  sha256,
-  JsonRpcProvider,
-} from 'ethers';
+
 import { Fetcher } from '@catalogfi/utils';
 import { Chain } from 'viem';
 import { SwapParams } from './garden/garden.types';
@@ -20,85 +13,6 @@ export const fund = async (address: string) => {
       resolve(true);
     }, 5000);
   });
-};
-
-const abi = [
-  {
-    inputs: [
-      {
-        internalType: 'bytes32',
-        name: '',
-        type: 'bytes32',
-      },
-    ],
-    name: 'orders',
-    outputs: [
-      {
-        internalType: 'address',
-        name: 'redeemer',
-        type: 'address',
-      },
-      {
-        internalType: 'address',
-        name: 'initiator',
-        type: 'address',
-      },
-      {
-        internalType: 'uint256',
-        name: 'expiry',
-        type: 'uint256',
-      },
-      {
-        internalType: 'uint256',
-        name: 'initiatedAt',
-        type: 'uint256',
-      },
-      {
-        internalType: 'uint256',
-        name: 'amount',
-        type: 'uint256',
-      },
-      {
-        internalType: 'bool',
-        name: 'isFulfilled',
-        type: 'bool',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-];
-
-export const atomicSwapStatus = async (
-  secretHash: string,
-  initiator: Wallet,
-  contractAddress: string,
-) => {
-  const atomicSwap = new Contract(
-    contractAddress,
-    new Interface(JSON.stringify(abi)),
-    initiator,
-  );
-
-  const abiCoder = new AbiCoder();
-
-  const orderId = sha256(
-    abiCoder.encode(
-      ['bytes32', 'address'],
-      [secretHash, await initiator.getAddress()],
-    ),
-  );
-
-  const orderResult = JSON.parse(
-    JSON.stringify(await atomicSwap['orders'](orderId), (key, value) =>
-      typeof value === 'bigint' ? value.toString() : value,
-    ),
-  );
-
-  return {
-    initiator: orderResult[1],
-    fulfilled: orderResult[4],
-  };
 };
 
 export const mineBtcBlocks = async (blocks: number, address: string) => {
@@ -121,14 +35,14 @@ export const mineBtcBlocks = async (blocks: number, address: string) => {
   return response;
 };
 
-export const mineEvmBlocks = async (
-  provider: JsonRpcProvider,
-  blocks: number,
-) => {
-  return await provider.send('anvil_mine', [
-    '0x' + Number(blocks).toString(16),
-  ]);
-};
+// export const mineEvmBlocks = async (
+//   provider: JSOnP,
+//   blocks: number,
+// ) => {
+//   return await provider.send('anvil_mine', [
+//     '0x' + Number(blocks).toString(16),
+//   ]);
+// };
 
 export const ArbitrumLocalnet: Chain = {
   id: 31338,
@@ -161,7 +75,7 @@ export const EthereumLocalnet: Chain = {
   testnet: true,
 };
 
-export const bitcoinAsset: Asset = {
+export const bitcoinRegtestAsset: Asset = {
   name: 'Bitcoin Regtest',
   decimals: 8,
   symbol: 'BTC',
@@ -208,13 +122,13 @@ export const createOrderObject = (
       ? WBTCArbitrumLocalnetAsset
       : fromChain === Chains.ethereum_localnet
       ? WBTCEthereumLocalnetAsset
-      : bitcoinAsset;
+      : bitcoinRegtestAsset;
   const toAsset =
     toChain === Chains.arbitrum_localnet
       ? WBTCArbitrumLocalnetAsset
       : toChain === Chains.ethereum_localnet
       ? WBTCEthereumLocalnetAsset
-      : bitcoinAsset;
+      : bitcoinRegtestAsset;
   const additionalData = btcAddress ? { btcAddress } : undefined;
 
   const order: SwapParams = {

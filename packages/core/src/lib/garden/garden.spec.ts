@@ -162,7 +162,6 @@ describe('garden', () => {
             source: sourceWallet,
             destination: destWallet,
           },
-          secretManager,
         });
         console.log('execute result :', res.val);
         console.log('execute error: ', res.error);

@@ -1,6 +1,6 @@
 {
   "name": "@gardenfi/utils",
-  "version": "0.0.1",
+  "version": "0.0.1-beta.3",
   "type": "module",
   "scripts": {
     "build": "vite build",
@@ -37,7 +37,6 @@
   "dependencies": {
     "@catalogfi/utils": "^0.1.11",
     "axios": "^1.7.2",
-    "ethers": "6.8.0",
     "siwe": "^2.3.2",
     "viem": "^2.21.15"
   }

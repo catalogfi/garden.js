@@ -1,18 +1,12 @@
 /// <reference types='vitest' />
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
-import wasm from 'vite-plugin-wasm';
-import topLevelAwait from 'vite-plugin-top-level-await';
 import pkg from './package.json';
 import eslint from 'vite-plugin-eslint';
-import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 export default defineConfig({
   plugins: [
     eslint(),
-    wasm(),
-    topLevelAwait(),
-    nodePolyfills(),
     dts({
       outDir: './dist',
       pathsToAliases: false,

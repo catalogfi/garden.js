@@ -1,6 +1,10 @@
 import { MatchedOrder } from '@gardenfi/orderbook';
 import { IStore } from '@gardenfi/utils';
-import { IOrderCache, OrderCacheAction, OrderCacheValue } from './order.types';
+import {
+  IOrderCache,
+  OrderCacheAction,
+  OrderCacheValue,
+} from './orderExecutor.types';
 
 export class OrderCache implements IOrderCache {
   private order: MatchedOrder;

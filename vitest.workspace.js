@@ -5,4 +5,5 @@ export default defineWorkspace([
   './packages/orderbook/vite.config.ts',
   './packages/utils/vite.config.ts',
   './packages/react-hooks/vite.config.ts',
+  './packages/test/vite.config.ts',
 ]);

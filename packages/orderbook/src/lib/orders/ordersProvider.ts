@@ -115,7 +115,7 @@ export class OrdersProvider implements IOrderProvider {
     interval: number,
     cb: (
       orders: PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
-    ) => void,
+    ) => Promise<void>,
     pending: boolean = false,
     paginationConfig?: PaginationConfig,
   ): Promise<() => void> {
@@ -123,13 +123,14 @@ export class OrdersProvider implements IOrderProvider {
 
     const fetchOrders = async () => {
       if (isProcessing) return;
+      isProcessing = true;
 
       try {
         const result = matched
           ? await this.getMatchedOrders(account, pending, paginationConfig)
           : await this.getUnMatchedOrders(account, paginationConfig);
         if (result.ok) {
-          cb(
+          await cb(
             result.val as PaginatedData<
               T extends true ? MatchedOrder : CreateOrder
             >,
