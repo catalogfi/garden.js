@@ -17,14 +17,17 @@ import {
   BitcoinWallet,
   IBitcoinProvider,
 } from '@catalogfi/wallets';
+import { OrderExecutor } from '../orderExecutor/orderExecutor';
 // import { toXOnly } from '../utils';
 
 describe('garden', () => {
   const orderBookApi = 'http://localhost:4426';
+  const quoteApi = 'http://localhost:6969';
   const bitcoinProviderApi = 'http://localhost:30000';
   const pk =
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
   const account = privateKeyToAccount(with0x(pk));
+  console.log('account :', account.address);
 
   const arbitrumWalletClient = createWalletClient({
     account,
@@ -59,7 +62,7 @@ describe('garden', () => {
     expect(result.val).toBeTruthy();
 
     secretManager = result.val;
-    garden = new Garden(orderBook, orderBookApi, secretManager);
+    garden = new Garden(orderBook, secretManager, orderBookApi, quoteApi);
     evmAddress = arbitrumWalletClient.account.address;
     bitcoinProvider = new BitcoinProvider(
       BitcoinNetwork.Regtest,
@@ -89,7 +92,7 @@ describe('garden', () => {
     };
   });
 
-  let orderId: string;
+  let order: MatchedOrder;
 
   it('should create an order', async () => {
     // const order = createOrderObject(
@@ -106,41 +109,44 @@ describe('garden', () => {
     //   evmAddress,
     //   btcAddress,
     // );
-    const order = createOrderObject(
+    const orderObj = createOrderObject(
       Chains.arbitrum_localnet,
       Chains.ethereum_localnet,
       arbitrumWalletClient.account.address,
       ethereumWalletClient.account.address,
+      'alel12',
     );
 
-    const result = await garden.swap(order);
+    const result = await garden.swap(orderObj);
+    if (result.error) {
+      console.log('error while creating order ❌ :', result.error);
+      throw new Error(result.error);
+    }
 
-    orderId = result.val;
-    console.log('orderIds :', orderId);
-    if (!orderId) {
+    order = result.val;
+    console.log('orderCreated and matched ✅ ', order.create_order.create_id);
+    if (!order) {
       throw new Error('Order id not found');
     }
+
     expect(result.error).toBeFalsy();
     expect(result.val).toBeTruthy();
-  });
+  }, 60000);
 
-  it('order should be matched', async () => {
-    if (!orderId) {
-      throw new Error('Order id not found');
+  it('Initiate the swap', async () => {
+    const orderExecutor = new OrderExecutor(order, orderBookApi, secretManager);
+    if (order.source_swap.chain === Chains.bitcoin_regtest) {
+      expect(order.source_swap.chain).toBe(Chains.bitcoin_regtest);
+    } else {
+      const sourceWallet = wallets[order.source_swap.chain];
+      const res = await orderExecutor.init(sourceWallet as WalletClient);
+
+      console.log('init result ✅ :', res.val);
+      if (res.error) console.log('init error ❌ :', res.error);
+      expect(res.error).toBeFalsy();
+      expect(res.val).toBeTruthy();
     }
-
-    let order: MatchedOrder | null = null;
-    while (!order) {
-      const res = await orderBook.getOrder(orderId, true);
-      order = res.val;
-      if (!order) {
-        console.log('unmatched');
-        await sleep(1000);
-      }
-    }
-
-    console.log('matched');
-  }, 20000);
+  }, 60000);
 
   it('subscribe to orders and execute', async () => {
     await garden.subscribeOrders(async (orderExecutor) => {
@@ -152,7 +158,10 @@ describe('garden', () => {
         throw new Error('Wallets not found');
       }
 
-      if (orderExecutor.getOrder().create_order.create_id === orderId) {
+      if (
+        orderExecutor.getOrder().create_order.create_id ===
+        order.create_order.create_id
+      ) {
         console.log(
           'executing order ',
           orderExecutor.getOrder().create_order.create_id,
@@ -164,7 +173,7 @@ describe('garden', () => {
           },
         });
         console.log('execute result :', res.val);
-        console.log('execute error: ', res.error);
+        if (res.error) console.log('execute error: ', res.error);
       }
     });
     await sleep(150000);

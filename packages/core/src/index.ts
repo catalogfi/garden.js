@@ -17,7 +17,6 @@ export type {
 } from './lib/orderExecutor/orderExecutor.types';
 export {
   fetchBitcoinBlockNumber,
-  fetchL1BlockNumber,
   fetchEVMBlockNumber,
 } from './lib/orderExecutor/blockNumber';
 export {
@@ -31,3 +30,6 @@ export type {
   ISecretManager,
   Secret,
 } from './lib/secretManager/secretManager.types';
+
+export { Quote } from './lib/quote/quote';
+export type { IQuote } from './lib/quote/quote.types';

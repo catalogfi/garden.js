@@ -113,10 +113,11 @@ export const createOrderObject = (
   toChain: Network,
   fromAddress: string,
   toAddress: string,
+  strategyId: string,
   btcAddress?: string,
 ) => {
   const sendAmount = '100000';
-  const receiveAmount = '99000';
+  const receiveAmount = '99990';
   const fromAsset =
     fromChain === Chains.arbitrum_localnet
       ? WBTCArbitrumLocalnetAsset
@@ -129,7 +130,8 @@ export const createOrderObject = (
       : toChain === Chains.ethereum_localnet
       ? WBTCEthereumLocalnetAsset
       : bitcoinRegtestAsset;
-  const additionalData = btcAddress ? { btcAddress } : undefined;
+
+  const additionalData = { btcAddress, strategyId };
 
   const order: SwapParams = {
     fromAsset,

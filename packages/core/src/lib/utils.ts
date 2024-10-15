@@ -4,6 +4,7 @@ import { Chain } from '@gardenfi/orderbook';
 import { sha256 } from 'viem';
 import * as varuint from 'varuint-bitcoin';
 import { trim0x } from '@catalogfi/utils';
+import * as secp256k1 from 'tiny-secp256k1';
 
 export const computeSecret = async (
   fromChain: Chain,
@@ -91,3 +92,14 @@ export function sortLeaves(leaf1: Buffer, leaf2: Buffer) {
 
 export const toXOnly = (pubKey: string) =>
   pubKey.length === 64 ? pubKey : pubKey.slice(2);
+
+export const isValidBitcoinPubKey = (pubKey: string): boolean => {
+  if (!pubKey) return false;
+
+  try {
+    const pubKeyBuffer = Buffer.from(pubKey, 'hex');
+    return secp256k1.isPoint(pubKeyBuffer);
+  } catch (e) {
+    return false;
+  }
+};

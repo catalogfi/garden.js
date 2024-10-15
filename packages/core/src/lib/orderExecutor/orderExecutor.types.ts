@@ -162,6 +162,16 @@ export interface IOrderExecutor {
   getOrder(): MatchedOrder;
 
   /**
+   * Initiate the atomic swap contract.
+   * @param wallet - Wallet to initiate the swap.
+   * @param currentBlockNumber - Current block number of the chain. Provide L1 block number if chain is arbitrum or arbitrum_sepolia.
+   */
+  init(
+    wallet: WalletClient | IBitcoinWallet,
+    currentBlockNumber?: number,
+  ): AsyncResult<string, string>;
+
+  /**
    * Redeem the funds from the atomic swap contract.
    */
   redeem(
@@ -197,5 +207,4 @@ export interface IOrderCache {
   set(action: OrderCacheAction, txHash: string): void;
   get(action: OrderCacheAction): OrderCacheValue | null;
   remove(action: OrderCacheAction): void;
-  deleteHistory(): void;
 }

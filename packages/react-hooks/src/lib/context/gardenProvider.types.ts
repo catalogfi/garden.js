@@ -20,6 +20,7 @@ export type GardenProviderProps = {
   children: React.ReactNode;
   config: {
     orderBookUrl: string;
+    quoteUrl: string;
     store: IStore;
     bitcoinNetwork: BitcoinNetwork;
     bitcoinRPCUrl?: string;

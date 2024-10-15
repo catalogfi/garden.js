@@ -8,7 +8,7 @@ import {
 } from './orderExecutor.types';
 import { IBitcoinWallet } from '@catalogfi/wallets';
 import { isBitcoin, MatchedOrder } from '@gardenfi/orderbook';
-import { IStore, MemoryStorage } from '@gardenfi/utils';
+import { IStore } from '@gardenfi/utils';
 import { parseAction } from './orderStatusParser';
 import { fetchBitcoinBlockNumber, fetchEVMBlockNumber } from './blockNumber';
 import { AsyncResult, Err, Ok, trim0x, Void } from '@catalogfi/utils';
@@ -38,7 +38,7 @@ export class OrderExecutor implements IOrderExecutor {
     this.relayURL = relayURL;
     this.secretManager = secretManager;
     this.opts = opts;
-    this.orderCache = new OrderCache(order, opts?.store || new MemoryStorage());
+    this.orderCache = new OrderCache(order, opts?.store);
   }
 
   getOrder(): MatchedOrder {
@@ -47,7 +47,7 @@ export class OrderExecutor implements IOrderExecutor {
 
   async init(
     walletClient: WalletClient,
-    currentBlockNumber: number,
+    currentBlockNumber?: number,
   ): AsyncResult<string, string> {
     const initHash = this.orderCache.get(OrderCacheAction.init);
     if (initHash) return Ok(initHash.txHash);
@@ -55,11 +55,16 @@ export class OrderExecutor implements IOrderExecutor {
     if (isBitcoin(this.order.source_swap.chain))
       return Ok('Bitcoin initiation is not automated');
 
+    if (!currentBlockNumber) {
+      const blockNumber = await fetchEVMBlockNumber(walletClient);
+      if (blockNumber.error) return Err(blockNumber.error);
+      currentBlockNumber = blockNumber.val;
+    }
+
     const evmRelayer = new EvmRelay(this.relayURL, walletClient, this.opts);
     const res = await evmRelayer.init(this.order, currentBlockNumber);
-    if (!res.error && res.val) {
+    if (!res.error && res.val)
       this.orderCache.set(OrderCacheAction.init, res.val);
-    }
     return res;
   }
 
@@ -68,6 +73,7 @@ export class OrderExecutor implements IOrderExecutor {
     secret: string,
   ): AsyncResult<string, string> {
     const redeemHash = this.orderCache.get(OrderCacheAction.redeem);
+    console.log('redeemHash from hash: ', redeemHash);
     // already redeemed
     if (redeemHash) return Ok(redeemHash.txHash);
 
@@ -85,6 +91,7 @@ export class OrderExecutor implements IOrderExecutor {
           trim0x(secret),
           this.order.create_order.additional_data?.bitcoin_optional_recipient,
         );
+
         this.orderCache.set(OrderCacheAction.redeem, res);
         return Ok(res);
       } catch (error) {

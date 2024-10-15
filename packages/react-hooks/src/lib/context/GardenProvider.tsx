@@ -14,7 +14,7 @@ import type {
   GardenContextType,
   GardenProviderProps,
 } from './gardenProvider.types';
-import { Err, Ok, sleep } from '@catalogfi/utils';
+import { Err, Ok } from '@catalogfi/utils';
 import { isBitcoin } from '@gardenfi/orderbook';
 import {
   BitcoinProvider,
@@ -44,28 +44,8 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     if (!garden || !orderbook || !secretManager || !walletClient)
       return Err('Garden not initialized');
 
-    const res = await garden.swap(params);
-    if (res.error) return Err(res.error);
-
-    const createOrderId = res.val;
-    const matchOrderThreshold = 20;
-    const sleepDuration = 1000;
-
-    let order = await orderbook.getOrder(createOrderId, true);
-
-    for (let attempts = 0; attempts < matchOrderThreshold; attempts++) {
-      order = await orderbook.getOrder(createOrderId, true);
-      if (order.error) {
-        if (!order.error.includes('result is undefined'))
-          return Err(order.error);
-      } else if (
-        order.val &&
-        order.val.create_order.create_id === createOrderId
-      )
-        break;
-
-      await sleep(sleepDuration);
-    }
+    const order = await garden.swap(params);
+    if (order.error) return Err(order.error);
 
     if (isBitcoin(order.val.source_swap.chain)) return Ok(order.val);
 
@@ -96,9 +76,15 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   //initialize gardenInstance
   useEffect(() => {
     if (!secretManager || !walletClient || !orderbook) return;
-    const garden = new Garden(orderbook, config.orderBookUrl, secretManager, {
-      store: config.store,
-    });
+    const garden = new Garden(
+      orderbook,
+      secretManager,
+      config.orderBookUrl,
+      config.quoteUrl,
+      {
+        store: config.store,
+      },
+    );
     setGarden(garden);
   }, [secretManager, walletClient, orderbook]);
 
