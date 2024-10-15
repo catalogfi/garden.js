@@ -9,6 +9,7 @@ export const Hello = () => {
   });
   const [sendAmount, setSendAmount] = useState<number>();
   const [sendAddress, setSendAddress] = useState('');
+  const [hash, setHash] = useState<string | null>(null);
   const { walletList, account, provider, connect, network, updateAccount } =
     useBitcoinWallet();
 
@@ -57,6 +58,7 @@ export const Hello = () => {
         </div>
         <div>confirmed balance: {balance.confirmed}</div>
         <div>unconfirmed balance: {balance.unconfirmed}</div>
+        {hash && <div>hash: <a href={`https://mempool.space/testnet/tx/${hash}`} target='_blank'>{hash}</a></div>}
       </div>
       <div
         style={{
@@ -93,7 +95,7 @@ export const Hello = () => {
                 console.error('error while sending bitcoin ', res.error);
                 return;
               }
-              console.log('transaction id:', res.val);
+              setHash(res.val);
             });
           }}
         >
