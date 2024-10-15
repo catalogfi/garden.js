@@ -108,12 +108,12 @@ export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
       const uniProvider = new UnisatProvider(window.unisat);
       addToWalletList('UNISAT', uniProvider);
     }
-    if (window.XverseProviders && window.XverseProviders.BitcoinProvider) {
-      const xverseProvider = new XverseProvider(
-        window.XverseProviders.BitcoinProvider
-      );
-      addToWalletList('XVERSE', xverseProvider);
-    }
+    // if (window.XverseProviders && window.XverseProviders.BitcoinProvider) {
+    //   const xverseProvider = new XverseProvider(
+    //     window.XverseProviders.BitcoinProvider
+    //   );
+    //   addToWalletList('XVERSE', xverseProvider);
+    // }
     if (window.xfi && window.xfi.bitcoin) {
       const xdefiProvider = new XdefiProvider(window.xfi.bitcoin);
       addToWalletList('XDEFI', xdefiProvider);

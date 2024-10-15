@@ -57,7 +57,7 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
   }
 
   async switchNetwork(): AsyncResult<Network, string> {
-    return await executeWithTryCatch(async () => {
+    try {
       const currentNetwork = await this.getNetwork();
       if (currentNetwork.error) {
         return Err('Failed to get current network');
@@ -78,7 +78,9 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
       }
 
       return Ok(toNetwork);
-    }, 'Error while switching network in Unisat')
+    } catch (error) {
+      return Err('Error while switching network in Unisat:', error);
+    }
   }
 
   async getBalance() {

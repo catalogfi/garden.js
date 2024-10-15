@@ -55,19 +55,18 @@ export class XdefiProvider implements IInjectedBitcoinProvider {
   }
 
   async switchNetwork(): AsyncResult<Network, string> {
-    return await executeWithTryCatch(
-      async () => {
-        const currentNetwork = await this.getNetwork();
-        const newNetwork = currentNetwork.val === Network.MAINNET ? Network.TESTNET : Network.MAINNET;
-        await this.#xdefiProvider.changeNetwork(newNetwork);
-        console.log("switched to", newNetwork, "from provider.ts");
-        const accounts = await this.getAccounts();
-        console.log("xdefi accounts:", accounts.val[0]);
-        this.address = accounts.val[0];
-        return Ok(newNetwork);
-      },
-      'Error while switching networks in the Xdefi wallet'
-    );
+    try {
+      const currentNetwork = await this.getNetwork();
+      const newNetwork = currentNetwork.val === Network.MAINNET ? Network.TESTNET : Network.MAINNET;
+      await this.#xdefiProvider.changeNetwork(newNetwork);
+      console.log("switched to", newNetwork, "from provider.ts");
+      const accounts = await this.getAccounts();
+      console.log("xdefi accounts:", accounts.val[0]);
+      this.address = accounts.val[0];
+      return Ok(newNetwork);
+    } catch (error) {
+      return Err('Error while switching networks in the Xdefi wallet:', error)
+    }
   }
 
   async getPublicKey() {
