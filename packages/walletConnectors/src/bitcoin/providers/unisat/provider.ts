@@ -92,7 +92,6 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
 
   async sendBitcoin(toAddress: string, satoshis: number) {
     return await executeWithTryCatch(async () => {
-      console.log("unisat sending bitcoin:", this.address, toAddress, satoshis);
       return await this.#unisatProvider.sendBitcoin(toAddress, satoshis);
     }, 'Error while sending bitcoin from Unisat wallet');
   }

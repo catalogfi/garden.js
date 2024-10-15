@@ -59,9 +59,7 @@ export class XdefiProvider implements IInjectedBitcoinProvider {
       const currentNetwork = await this.getNetwork();
       const newNetwork = currentNetwork.val === Network.MAINNET ? Network.TESTNET : Network.MAINNET;
       await this.#xdefiProvider.changeNetwork(newNetwork);
-      console.log("switched to", newNetwork, "from provider.ts");
       const accounts = await this.getAccounts();
-      console.log("xdefi accounts:", accounts.val[0]);
       this.address = accounts.val[0];
       return Ok(newNetwork);
     } catch (error) {
@@ -81,7 +79,6 @@ export class XdefiProvider implements IInjectedBitcoinProvider {
   }
 
   sendBitcoin = async (toAddress: string, satoshis: number) => {
-    console.log("sending bitcoin", this.address, toAddress, satoshis);
     const res = await new Promise<{ error: any; txHash: string }>(
       (resolve, reject) => {
         this.#xdefiProvider.request(

@@ -16,7 +16,6 @@ export const Hello = () => {
   const updateInfo = async () => {
     if (!provider) return;
     await updateAccount();
-    console.log("account:", account);
     provider.getBalance().then((res) => {
       if (res.error) {
         console.error(res.error);
@@ -113,7 +112,6 @@ export const Hello = () => {
               console.error('error while switching network:', res.error);
               return;
             }
-            console.log('switched network to:', network);
             await updateInfo();
           }}
           
