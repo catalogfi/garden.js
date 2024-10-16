@@ -1,4 +1,4 @@
-import { withOx } from './../utils';
+import { with0x } from './../utils';
 import { Siwe } from './siwe';
 import { describe, it, expect } from 'vitest';
 import { Url } from '../url';
@@ -8,10 +8,11 @@ import { privateKeyToAccount } from 'viem/accounts';
 
 describe('Siwe', () => {
   //Provide a valid OrderbookApi and pk before running the test
-  const OrderbookApi = '';
-  const pk = '';
+  const OrderbookApi = 'http://localhost:4426';
+  const pk =
+    '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
 
-  const account = privateKeyToAccount(withOx(pk));
+  const account = privateKeyToAccount(with0x(pk));
   const walletClient = createWalletClient({
     account,
     chain: sepolia,

@@ -1,11 +1,11 @@
 import { IAuth, SiweOpts } from './auth.types';
-import { SiweMessage } from 'siwe';
 import { AsyncResult, Err, Fetcher, Ok, Result } from '@catalogfi/utils';
 import { Url } from '../url';
 import { MemoryStorage } from '../store/memoryStorage';
 import { IStore, StoreKeys } from '../store/store.interface';
 import { APIResponse } from '../apiResponse.types';
 import { WalletClient } from 'viem';
+import { createSiweMessage } from 'viem/siwe';
 
 export class Siwe implements IAuth {
   private readonly API = 'https://api.garden.finance';
@@ -110,7 +110,8 @@ export class Siwe implements IAuth {
     }
 
     const chainID = this.walletClient.chain?.id;
-    const message = new SiweMessage({
+
+    const message = createSiweMessage({
       domain: this.domain,
       address: this.walletClient.account.address,
       statement: this.signingStatement,
@@ -118,16 +119,16 @@ export class Siwe implements IAuth {
       uri: 'https://' + this.domain,
       version: '1',
       chainId: chainID,
-      expirationTime: expirationTime.toISOString(),
+      notBefore: expirationTime,
     });
-    const preparedMessage = message.prepareMessage();
+
     const signature = await this.walletClient.signMessage({
       account: this.walletClient.account,
-      message: preparedMessage,
+      message,
     });
 
     return Ok({
-      message: preparedMessage,
+      message,
       signature,
       nonce,
     });
