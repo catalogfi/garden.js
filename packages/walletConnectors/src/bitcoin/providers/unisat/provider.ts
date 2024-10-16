@@ -1,5 +1,5 @@
 import { UnisatBitcoinProvider } from './unisat.types';
-import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
+import { AsyncResult, Err, executeWithTryCatch, Ok, Void } from '@catalogfi/utils';
 import { IInjectedBitcoinProvider, Network } from '../../bitcoin.types';
 
 export class UnisatProvider implements IInjectedBitcoinProvider {
@@ -100,5 +100,10 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
 
   off(event: string, callback: (data: any) => void) {
     this.#unisatProvider.removeListener(event, callback);
+  }
+
+  disconnect = () => {
+    this.address = '';
+    return Ok(Void);
   }
 }

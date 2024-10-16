@@ -4,7 +4,7 @@ import {
   Network,
 } from '../../bitcoin.types';
 import { XVerseBitcoinProvider } from './xverse.types';
-import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
+import { AsyncResult, Err, executeWithTryCatch, Ok, Void } from '@catalogfi/utils';
 
 export class XverseProvider implements IInjectedBitcoinProvider {
   #xverseProvider: XVerseBitcoinProvider;
@@ -125,4 +125,9 @@ export class XverseProvider implements IInjectedBitcoinProvider {
    * not available in XVerse wallet
    */
   off = () => {};
+
+  disconnect = () => {
+    this.address = '';
+    return Ok(Void);
+  }
 }

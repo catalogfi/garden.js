@@ -24,4 +24,5 @@ export interface OKXBitcoinProvider {
   }) => Promise<{ txhash: string }>;
   on: (event: string, callback: (data: any) => void) => void;
   off: (event: string, callback: (data: any) => void) => void;
+  disconnect: () => void;
 }

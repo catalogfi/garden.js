@@ -1,4 +1,4 @@
-import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
+import { AsyncResult, Err, executeWithTryCatch, Ok, Void } from '@catalogfi/utils';
 import { IInjectedBitcoinProvider, Network } from '../../bitcoin.types';
 import { OKXBitcoinProvider } from './okx.types';
 
@@ -93,5 +93,10 @@ export class OKXProvider implements IInjectedBitcoinProvider {
   off(event: string, callback: (data: any) => void): void {
     this.#mainnetProvider.off(event, callback);
     this.#testnetProvider.off(event, callback);
+  }
+
+  disconnect = () => {
+    this.address = '';
+    return Ok(Void);
   }
 }

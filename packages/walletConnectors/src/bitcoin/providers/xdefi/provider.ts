@@ -1,4 +1,4 @@
-import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
+import { AsyncResult, Err, executeWithTryCatch, Ok, Void } from '@catalogfi/utils';
 import { IInjectedBitcoinProvider, Network } from '../../bitcoin.types';
 import { XdefiBitcoinProvider } from './xdefi.types';
 import { getBalance } from '../../utils';
@@ -112,4 +112,9 @@ export class XdefiProvider implements IInjectedBitcoinProvider {
 
   off = (event: string, callback: (data: any) => void) =>
     this.#xdefiProvider.off(event, callback);
+
+  disconnect = () => {
+    this.address = '';
+    return Ok(Void);
+  }
 }

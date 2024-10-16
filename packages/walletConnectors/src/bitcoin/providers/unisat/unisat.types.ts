@@ -15,4 +15,5 @@ export interface UnisatBitcoinProvider {
   getPublicKey(): Promise<string>;
   on: (event: string, callback: (data: any) => void) => void;
   removeListener: (event: string, callback: (data: any) => void) => void;
+  disconnect: () => void;
 }
