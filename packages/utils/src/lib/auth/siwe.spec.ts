@@ -1,5 +1,5 @@
 import { with0x } from './../utils';
-import { Siwe } from './siwe';
+import { parseJwt, Siwe } from './siwe';
 import { describe, it, expect } from 'vitest';
 import { Url } from '../url';
 import { createWalletClient, http } from 'viem';
@@ -45,5 +45,13 @@ describe('Siwe', () => {
     const secondToken = await siwe.getToken();
 
     expect(firstToken).toEqual(secondToken);
+  });
+
+  it('test parseJWT', async () => {
+    const parsedToken = parseJwt(
+      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhZGRyZXNzIjoiMHgzMTM5QzMzYjcyMTgyMzdCYmQyMjIzNUM3ODA3ODczMTIxNmZEMDViIiwiZXhwIjoxNzI5MjQ1MDA4fQ.Bqe0GYxzww498G0CRYnMfx8x68tmJ_fq59imIZGO54U',
+    );
+    console.log('parsedToken :', parsedToken);
+    expect(parsedToken).toBeTruthy();
   });
 });
