@@ -112,6 +112,10 @@ export class XverseProvider implements IInjectedBitcoinProvider {
     return Ok(Network.TESTNET);
   };
 
+  async switchNetwork() {
+    return Err('Not available in xverse wallet');
+  }
+
   /**
    * not available in XVerse wallet
    */
