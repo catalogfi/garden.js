@@ -65,8 +65,6 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
 
       const toNetwork = (currentNetwork.val === Network.MAINNET) ? Network.TESTNET : Network.MAINNET;
       
-      console.log("current:", currentNetwork.val, "switching to:", toNetwork);
-      
       await this.#unisatProvider.switchNetwork(toNetwork);
 
       const newNetwork = await this.getNetwork();

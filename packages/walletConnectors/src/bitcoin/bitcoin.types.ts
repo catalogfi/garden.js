@@ -53,3 +53,10 @@ export interface BitcoinWallet {
   symbol: string;
   connect: () => AsyncResult<IInjectedBitcoinProvider, string>;
 }
+
+export enum BitcoinWallets {
+  OKX_WALLET = 'OKX_WALLET',
+  UNISAT = 'UNISAT',
+  XVERSE = 'XVERSE',
+  XDEFI = 'XDEFI',
+}

@@ -98,7 +98,6 @@ export class XdefiProvider implements IInjectedBitcoinProvider {
             ],
           },
           (error: any, txHash: string) => {
-            console.log('here :', error);
             resolve({ error, txHash });
           }
         );

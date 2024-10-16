@@ -6,7 +6,7 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
-import { IInjectedBitcoinProvider, Network } from './bitcoin.types';
+import { BitcoinWallets, IInjectedBitcoinProvider, Network } from './bitcoin.types';
 import { OKXProvider } from './providers/okx/provider';
 import { OKXBitcoinProvider } from './providers/okx/okx.types';
 import { AsyncResult, Err, Ok, Void } from '@catalogfi/utils';
@@ -64,8 +64,6 @@ export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
     setAccount(res.val.address);
     setNetwork(res.val.network);
 
-    console.log('connected :', res.val);
-
     return Ok(Void);
   };
 
@@ -78,7 +76,6 @@ export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    console.log('switching account to:', accounts.val[0]);
     setAccount(accounts.val[0]);
 
     const network = await provider.getNetwork();
@@ -102,38 +99,38 @@ export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (window.okxwallet && window.okxwallet.bitcoin && window.okxwallet.bitcoinTestnet) {
       const okxProvider = new OKXProvider(window.okxwallet.bitcoin, window.okxwallet.bitcoinTestnet);
-      addToWalletList('OKX_WALLET', okxProvider);
+      addToWalletList(BitcoinWallets.OKX_WALLET, okxProvider);
     }
     if (window.unisat) {
       const uniProvider = new UnisatProvider(window.unisat);
-      addToWalletList('UNISAT', uniProvider);
+      addToWalletList(BitcoinWallets.UNISAT, uniProvider);
     }
     if (window.XverseProviders && window.XverseProviders.BitcoinProvider) {
       const xverseProvider = new XverseProvider(
         window.XverseProviders.BitcoinProvider
       );
-      addToWalletList('XVERSE', xverseProvider);
+      addToWalletList(BitcoinWallets.XVERSE, xverseProvider);
     }
     if (window.xfi && window.xfi.bitcoin) {
       const xdefiProvider = new XdefiProvider(window.xfi.bitcoin);
-      addToWalletList('XDEFI', xdefiProvider);
+      addToWalletList(BitcoinWallets.XDEFI, xdefiProvider);
     }
   }, []);
 
-  //handles account change
-  useEffect(() => {
-    if (!provider) return;
-    provider.on('accountsChanged', (obj) => {
-      console.log('obj :', obj);
-      console.log('accounts changed');
-    });
+  // currently don't require these functions
+  // useEffect(() => {
+  //   if (!provider) return;
+  //   provider.on('accountsChanged', (obj) => {
+  //     console.log('obj :', obj);
+  //     console.log('accounts changed');
+  //   });
 
-    return () => {
-      provider.off('accountsChanged', () => {
-        console.log('accounts changed');
-      });
-    };
-  }, [provider]);
+  //   return () => {
+  //     provider.off('accountsChanged', () => {
+  //       console.log('accounts changed');
+  //     });
+  //   };
+  // }, [provider]);
 
   return (
     <BTCWalletProviderContext.Provider

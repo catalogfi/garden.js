@@ -104,7 +104,7 @@ export const Hello = () => {
         <button
           onClick={async () => {
             if (!provider) {
-              console.log("could not find provider");
+              console.error("could not find provider");
               return;
             }
             const res = await provider.switchNetwork();
