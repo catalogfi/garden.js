@@ -67,6 +67,12 @@ export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
     return Ok(Void);
   };
 
+  const disconnect = () => {
+    if (!provider) return;
+    provider.disconnect();
+    return Ok(Void);
+  }
+
   const updateAccount = useCallback(async () => {
     if (!provider) return;
     

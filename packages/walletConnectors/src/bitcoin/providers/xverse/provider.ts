@@ -126,8 +126,8 @@ export class XverseProvider implements IInjectedBitcoinProvider {
    */
   off = () => {};
 
-  disconnect = () => {
+  disconnect = (): AsyncResult<string, string> => {
     this.address = '';
-    return Ok(Void);
+    return Promise.resolve(Ok('Disconnected'));
   }
 }

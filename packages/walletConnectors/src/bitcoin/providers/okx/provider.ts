@@ -95,8 +95,8 @@ export class OKXProvider implements IInjectedBitcoinProvider {
     this.#testnetProvider.off(event, callback);
   }
 
-  disconnect = () => {
+  disconnect = (): AsyncResult<string, string> => {
     this.address = '';
-    return Ok(Void);
+    return Promise.resolve(Ok('Disconnected okx wallet'));
   }
 }

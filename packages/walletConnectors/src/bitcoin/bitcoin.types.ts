@@ -34,6 +34,7 @@ export interface IInjectedBitcoinProvider {
   getNetwork: () => AsyncResult<Network, string>;
   switchNetwork: () => AsyncResult<Network, string>;
   connect: () => AsyncResult<Connect, string>;
+  disconnect: () => AsyncResult<string, string>;
   on: (event: string, callback: (data: any) => void) => void;
   off: (event: string, callback: (data: any) => void) => void;
 }

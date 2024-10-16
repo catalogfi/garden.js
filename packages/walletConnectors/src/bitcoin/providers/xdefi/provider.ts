@@ -113,8 +113,8 @@ export class XdefiProvider implements IInjectedBitcoinProvider {
   off = (event: string, callback: (data: any) => void) =>
     this.#xdefiProvider.off(event, callback);
 
-  disconnect = () => {
+  disconnect = (): AsyncResult<string, string> => {
     this.address = '';
-    return Ok(Void);
+    return Promise.resolve(Ok('Disconnected xdefi wallet'));
   }
 }

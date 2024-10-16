@@ -102,8 +102,8 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
     this.#unisatProvider.removeListener(event, callback);
   }
 
-  disconnect = () => {
+  disconnect = (): AsyncResult<string, string> => {
     this.address = '';
-    return Ok(Void);
+    return Promise.resolve(Ok('Disconnected unisat wallet'));
   }
 }
