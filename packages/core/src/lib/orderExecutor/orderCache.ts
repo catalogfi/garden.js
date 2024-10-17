@@ -1,5 +1,5 @@
 import { MatchedOrder } from '@gardenfi/orderbook';
-import { IStore, MemoryStorage } from '@gardenfi/utils';
+import { IStore } from '@gardenfi/utils';
 import {
   IOrderCache,
   OrderCacheAction,
@@ -10,9 +10,9 @@ export class OrderCache implements IOrderCache {
   private order: MatchedOrder;
   private store: IStore;
 
-  constructor(order: MatchedOrder, store?: IStore) {
+  constructor(order: MatchedOrder, store: IStore) {
     this.order = order;
-    this.store = store ?? new MemoryStorage();
+    this.store = store;
   }
 
   getOrder(): MatchedOrder {
@@ -24,7 +24,10 @@ export class OrderCache implements IOrderCache {
       txHash,
       timeStamp: Date.now(),
     };
-    this.store.setItem(`${action}_${this.order.create_order.create_id}`, value);
+    this.store.setItem(
+      `${action}_${this.order.create_order.create_id}`,
+      JSON.stringify(value),
+    );
     return;
   }
 

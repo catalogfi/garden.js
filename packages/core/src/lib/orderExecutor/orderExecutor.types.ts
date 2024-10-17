@@ -162,8 +162,8 @@ export interface IOrderExecutor {
   getOrder(): MatchedOrder;
 
   /**
-   * Initiate the atomic swap contract.
-   * @param wallet - Wallet to initiate the swap.
+   * Initiate into atomic swap contract. (EVM Initiate)
+   * @param {WalletClient} wallet - Wallet to initiate the swap.
    * @param currentBlockNumber - Current block number of the chain. Provide L1 block number if chain is arbitrum or arbitrum_sepolia.
    */
   init(

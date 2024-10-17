@@ -29,8 +29,8 @@ export class OrderExecutor implements IOrderExecutor {
     order: MatchedOrder,
     relayURL: string,
     secretManager: ISecretManager,
-    opts?: {
-      store?: IStore;
+    opts: {
+      store: IStore;
       domain?: string;
     },
   ) {
@@ -38,7 +38,7 @@ export class OrderExecutor implements IOrderExecutor {
     this.relayURL = relayURL;
     this.secretManager = secretManager;
     this.opts = opts;
-    this.orderCache = new OrderCache(order, opts?.store);
+    this.orderCache = new OrderCache(order, opts.store);
   }
 
   getOrder(): MatchedOrder {
@@ -49,9 +49,6 @@ export class OrderExecutor implements IOrderExecutor {
     walletClient: WalletClient,
     currentBlockNumber?: number,
   ): AsyncResult<string, string> {
-    const initHash = this.orderCache.get(OrderCacheAction.init);
-    if (initHash) return Ok(initHash.txHash);
-
     if (isBitcoin(this.order.source_swap.chain))
       return Ok('Bitcoin initiation is not automated');
 
@@ -63,8 +60,7 @@ export class OrderExecutor implements IOrderExecutor {
 
     const evmRelayer = new EvmRelay(this.relayURL, walletClient, this.opts);
     const res = await evmRelayer.init(this.order, currentBlockNumber);
-    if (!res.error && res.val)
-      this.orderCache.set(OrderCacheAction.init, res.val);
+
     return res;
   }
 

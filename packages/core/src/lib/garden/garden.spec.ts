@@ -1,6 +1,6 @@
 import { Garden } from './garden';
 import { SecretManager } from './../secretManager/secretManager';
-import { sleep, with0x } from '@gardenfi/utils';
+import { MemoryStorage, sleep, with0x } from '@gardenfi/utils';
 import { createWalletClient, http, WalletClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -134,7 +134,14 @@ describe('garden', () => {
   }, 60000);
 
   it('Initiate the swap', async () => {
-    const orderExecutor = new OrderExecutor(order, orderBookApi, secretManager);
+    const orderExecutor = new OrderExecutor(
+      order,
+      orderBookApi,
+      secretManager,
+      {
+        store: new MemoryStorage(),
+      },
+    );
     if (order.source_swap.chain === Chains.bitcoin_regtest) {
       expect(order.source_swap.chain).toBe(Chains.bitcoin_regtest);
     } else {
@@ -154,16 +161,14 @@ describe('garden', () => {
       const destWallet =
         wallets[orderExecutor.getOrder().destination_swap.chain];
 
-      if (!sourceWallet || !destWallet) {
-        throw new Error('Wallets not found');
-      }
+      if (!sourceWallet || !destWallet) throw new Error('Wallets not found');
 
       if (
         orderExecutor.getOrder().create_order.create_id ===
         order.create_order.create_id
       ) {
         console.log(
-          'executing order ',
+          'executing order.... ',
           orderExecutor.getOrder().create_order.create_id,
         );
         const res = await orderExecutor.execute({

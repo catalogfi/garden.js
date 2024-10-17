@@ -8,7 +8,7 @@ import {
   isEVM,
   MatchedOrder,
 } from '@gardenfi/orderbook';
-import { IStore, sleep, Url } from '@gardenfi/utils';
+import { IStore, MemoryStorage, sleep, Url } from '@gardenfi/utils';
 import { IOrderExecutor } from '../orderExecutor/orderExecutor.types';
 import { OrderExecutor } from '../orderExecutor/orderExecutor';
 import { IQuote } from '../quote/quote.types';
@@ -37,7 +37,10 @@ export class Garden implements IGardenJS {
     this.relayURL = new Url(relayUrl);
     this.quote = new Quote(quoteUrl);
     this.secretManager = secretManager;
-    this.opts = opts;
+    this.opts = {
+      store: opts?.store ?? new MemoryStorage(),
+      domain: opts?.domain,
+    };
   }
 
   async swap(params: SwapParams): AsyncResult<MatchedOrder, string> {
