@@ -50,7 +50,6 @@ export const Hello = () => {
       <div>Network: {network}</div>
       <div>
         <div
-          onClick={updateInfo}
           style={{ cursor: 'pointer' }}
         >
           total balance: {balance.total}

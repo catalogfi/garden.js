@@ -123,20 +123,18 @@ export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  // currently don't require these functions
-  // useEffect(() => {
-  //   if (!provider) return;
-  //   provider.on('accountsChanged', (obj) => {
-  //     console.log('obj :', obj);
-  //     console.log('accounts changed');
-  //   });
+  useEffect(() => {
+    if (!provider) return;
+    provider.on('accountsChanged', (obj) => {
+      setAccount(obj.val);
+    });
 
-  //   return () => {
-  //     provider.off('accountsChanged', () => {
-  //       console.log('accounts changed');
-  //     });
-  //   };
-  // }, [provider]);
+    return () => {
+      provider.off('accountsChanged', (obj) => {
+        setAccount(obj.val);
+      });
+    };
+  }, [provider]);
 
   return (
     <BTCWalletProviderContext.Provider
