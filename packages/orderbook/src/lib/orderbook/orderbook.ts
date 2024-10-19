@@ -11,13 +11,7 @@ import {
   PaginationConfig,
 } from './orderbook.types';
 import { MAINNET_ORDERBOOK_API } from '../api';
-import {
-  Authorization,
-  IAuth,
-  MemoryStorage,
-  Siwe,
-  Url,
-} from '@gardenfi/utils';
+import { Authorization, IAuth, Url } from '@gardenfi/utils';
 import { OrdersProvider } from '../orders/ordersProvider';
 
 /**
@@ -46,10 +40,7 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
     this.Url = url;
     this.walletClient = orderbookConfig.walletClient;
 
-    this.auth = new Siwe(this.Url, orderbookConfig.walletClient, {
-      ...orderbookConfig.opts,
-      store: orderbookConfig.opts?.store || new MemoryStorage(),
-    });
+    this.auth = orderbookConfig.auth;
   }
 
   /**
@@ -57,12 +48,7 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
    * @param {OrderbookConfig} orderbookConfig - The configuration object for the orderbook.
    */
   static async init(orderbookConfig: OrderbookConfig) {
-    const auth = new Siwe(
-      new Url('/relayer', orderbookConfig.url ?? MAINNET_ORDERBOOK_API),
-      orderbookConfig.walletClient,
-      orderbookConfig.opts,
-    );
-    await auth.getToken();
+    await orderbookConfig.auth.getToken();
 
     return new Orderbook(orderbookConfig);
   }

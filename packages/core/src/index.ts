@@ -3,27 +3,23 @@ export type {
   IGardenJS,
   SwapParams,
   TimeLocks,
+  OrderActions,
+  GardenEvents,
+  IOrderCache,
+  OrderCacheValue,
+  EventCallback,
 } from './lib/garden/garden.types';
 
-export { EvmRelay } from './lib/evmRelay/evmRelay';
-export type { IEVMRelay } from './lib/evmRelay/evmRelay.types';
+export { EvmRelay } from './lib/evm/relay/evmRelay';
+export type { IEVMRelay } from './lib/evm/relay/evmRelay.types';
 
-export { OrderExecutor } from './lib/orderExecutor/orderExecutor';
-export type {
-  IOrderExecutor,
-  OrderStatus,
-  SwapStatus,
-  OrderActions,
-} from './lib/orderExecutor/orderExecutor.types';
-export {
-  fetchBitcoinBlockNumber,
-  fetchEVMBlockNumber,
-} from './lib/orderExecutor/blockNumber';
+export type { OrderStatus, SwapStatus } from './lib/status';
+
 export {
   parseAction,
   ParseOrderStatus,
   ParseSwapStatus,
-} from './lib/orderExecutor/orderStatusParser';
+} from './lib/garden/orderStatusParser';
 
 export { SecretManager } from './lib/secretManager/secretManager';
 export type {

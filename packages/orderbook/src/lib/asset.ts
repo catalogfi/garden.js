@@ -14,6 +14,11 @@ export type AssetToken = AssetCommon & {
 
 export type Asset = AssetToken;
 
+export enum BlockchainType {
+  Bitcoin = 'Bitcoin',
+  EVM = 'EVM',
+}
+
 export enum NetworkType {
   mainnet = 'mainnet',
   testnet = 'testnet',
@@ -75,4 +80,10 @@ export const isEVM = (chain: Chain) => {
     chain === Chains.ethereum_localnet ||
     chain === Chains.arbitrum_localnet
   );
+};
+
+export const getBlockchainType = (chain: Chain) => {
+  if (isBitcoin(chain)) return BlockchainType.Bitcoin;
+  if (isEVM(chain)) return BlockchainType.EVM;
+  throw new Error('Invalid or unsupported chain');
 };

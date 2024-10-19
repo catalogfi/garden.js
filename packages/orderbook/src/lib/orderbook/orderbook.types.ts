@@ -1,6 +1,6 @@
 import { WalletClient } from 'viem';
 import { AsyncResult } from '@catalogfi/utils';
-import { APIResponse, IStore } from '@gardenfi/utils';
+import { APIResponse, IAuth, IStore } from '@gardenfi/utils';
 import { Asset, Chain } from '../asset';
 import { IOrderProvider } from '../orders/orders.types';
 
@@ -80,7 +80,7 @@ export type OrderbookOpts = {
 export interface OrderbookConfig {
   url?: string;
   walletClient: WalletClient;
-  opts?: OrderbookOpts;
+  auth: IAuth;
 }
 
 /**

@@ -111,8 +111,6 @@ export const getBitcoinCurrentBlock = async (api: string) => {
 export const createOrderObject = (
   fromChain: Network,
   toChain: Network,
-  fromAddress: string,
-  toAddress: string,
   strategyId: string,
   btcAddress?: string,
 ) => {
@@ -136,8 +134,6 @@ export const createOrderObject = (
   const order: SwapParams = {
     fromAsset,
     toAsset,
-    sendAddress: fromAddress,
-    receiveAddress: toAddress,
     sendAmount,
     receiveAmount,
     additionalData,

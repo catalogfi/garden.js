@@ -10,7 +10,8 @@ import {
   // EthereumLocalnet,
   WBTCArbitrumLocalnetAsset,
   WBTCEthereumLocalnetAsset,
-} from '../testUtils';
+} from '../../testUtils';
+import { Siwe, Url } from 'gardenfi/utils';
 // import { ParseOrderStatus } from '../order/parseOrderStatus';
 // import { OrderStatus } from '../order/order.types';
 
@@ -39,8 +40,8 @@ describe('evmRelay', () => {
   //   chain: ethereumClient.chain,
   //   transport: http(),
   // });
-
-  const relayer = new EvmRelay(relayUrl, arbitrumWalletClient);
+  const auth = new Siwe(new Url(relayUrl), arbitrumWalletClient);
+  const relayer = new EvmRelay(relayUrl, arbitrumWalletClient, auth);
   const orderBook = new Orderbook({
     url: relayUrl,
     walletClient: arbitrumWalletClient,

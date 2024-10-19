@@ -1,7 +1,7 @@
-import { checkAllowanceAndApprove, MemoryStorage, Siwe } from '@gardenfi/utils';
+import { checkAllowanceAndApprove, fetchEVMBlockNumber } from '@gardenfi/utils';
 import { WalletClient, getContract } from 'viem';
 import { MatchedOrder } from '@gardenfi/orderbook';
-import { EVMRelayOpts, IEVMRelay } from './evmRelay.types';
+import { IEVMRelay } from './evmRelay.types';
 import { AsyncResult, Err, Fetcher, Ok, trim0x } from '@catalogfi/utils';
 import {
   APIResponse,
@@ -10,39 +10,45 @@ import {
   Url,
   with0x,
 } from '@gardenfi/utils';
-import { AtomicSwapABI } from './abi';
-import { ParseSwapStatus } from '../orderExecutor/orderStatusParser';
-import { SwapStatus } from '../orderExecutor/orderExecutor.types';
+import { ParseSwapStatus } from '../../garden/orderStatusParser';
+import { AtomicSwapABI } from '../abi/atomicSwap';
+import { SwapStatus } from 'src/lib/status';
 
 export class EvmRelay implements IEVMRelay {
-  private walletClient: WalletClient;
   private url: Url;
   private auth: IAuth;
+  private order: MatchedOrder;
 
-  constructor(url: string, walletClient: WalletClient, opts?: EVMRelayOpts) {
-    this.walletClient = walletClient;
+  constructor(order: MatchedOrder, url: string, auth: IAuth) {
     this.url = new Url('/relayer', url);
-    this.auth = new Siwe(this.url, walletClient, {
-      ...opts,
-      store: opts?.store || new MemoryStorage(),
-    });
+    this.auth = auth;
+    this.order = order;
   }
 
   async init(
-    order: MatchedOrder,
-    currentL1BlockNumber: number,
+    walletClient: WalletClient,
+    currentL1BlockNumber?: number,
   ): AsyncResult<string, string> {
-    if (!this.walletClient.account) return Err('No account found');
+    if (!walletClient.account) return Err('No account found');
     if (
-      this.walletClient.account.address.toLowerCase() !==
-      order.source_swap.initiator.toLowerCase()
+      walletClient.account.address.toLowerCase() !==
+      this.order.source_swap.initiator.toLowerCase()
     )
       return Err('Account and order initiator mismatch');
 
-    const swapStatus = ParseSwapStatus(order.source_swap, currentL1BlockNumber);
+    if (!currentL1BlockNumber) {
+      const blockNumber = await fetchEVMBlockNumber(walletClient);
+      if (blockNumber.error) return Err(blockNumber.error);
+      currentL1BlockNumber = blockNumber.val;
+    }
+
+    const swapStatus = ParseSwapStatus(
+      this.order.source_swap,
+      currentL1BlockNumber,
+    );
     if (swapStatus !== SwapStatus.Idle) return Err('Invalid swap status');
 
-    const { create_order, source_swap } = order;
+    const { create_order, source_swap } = this.order;
 
     if (
       !source_swap.amount ||
@@ -62,24 +68,24 @@ export class EvmRelay implements IEVMRelay {
       if (auth.error) return Err(auth.error);
 
       const atomicSwap = getContract({
-        address: with0x(order.source_swap.asset),
+        address: with0x(this.order.source_swap.asset),
         abi: AtomicSwapABI,
-        client: this.walletClient,
+        client: walletClient,
       });
       const token = await atomicSwap.read.token();
 
       const approval = await checkAllowanceAndApprove(
         Number(amount),
         token,
-        order.source_swap.asset,
-        this.walletClient,
+        this.order.source_swap.asset,
+        walletClient,
       );
       if (approval.error) return Err(approval.error);
 
       const domain = await atomicSwap.read.eip712Domain();
 
-      const signature = await this.walletClient.signTypedData({
-        account: this.walletClient.account,
+      const signature = await walletClient.signTypedData({
+        account: walletClient.account,
         domain: {
           name: domain[1],
           version: domain[2],

@@ -1,6 +1,7 @@
 import { MatchedOrder } from '@gardenfi/orderbook';
-import { OrderActions, OrderStatus, SwapStatus } from './orderExecutor.types';
 import { Swap } from '@gardenfi/orderbook';
+import { OrderActions } from './garden.types';
+import { OrderStatus, SwapStatus } from '../status';
 
 /**
  * Parse the order status based on the current block number and checks if its expired or initiated or redeemed or refunded
@@ -110,7 +111,6 @@ export const parseAction = (
     sourceChainCurrentBlockNumber,
     destChainCurrentBlockNumber,
   );
-  console.log('orderStatus :', orderStatus);
   switch (orderStatus) {
     case OrderStatus.Matched:
       return OrderActions.Initiate;

@@ -1,10 +1,6 @@
 import { MatchedOrder } from '@gardenfi/orderbook';
 import { IStore } from '@gardenfi/utils';
-import {
-  IOrderCache,
-  OrderCacheAction,
-  OrderCacheValue,
-} from './orderExecutor.types';
+import { IOrderCache, OrderActions, OrderCacheValue } from './garden.types';
 
 export class OrderCache implements IOrderCache {
   private order: MatchedOrder;
@@ -19,7 +15,7 @@ export class OrderCache implements IOrderCache {
     return this.order;
   }
 
-  set(action: OrderCacheAction, txHash: string): void {
+  set(action: OrderActions, txHash: string): void {
     const value: OrderCacheValue = {
       txHash,
       timeStamp: Date.now(),
@@ -31,7 +27,7 @@ export class OrderCache implements IOrderCache {
     return;
   }
 
-  get(action: OrderCacheAction): OrderCacheValue | null {
+  get(action: OrderActions): OrderCacheValue | null {
     const value = this.store.getItem(
       `${action}_${this.order.create_order.create_id}`,
     );
@@ -43,7 +39,7 @@ export class OrderCache implements IOrderCache {
     return parsedValue;
   }
 
-  remove(action: OrderCacheAction): void {
+  remove(action: OrderActions): void {
     this.store.removeItem(`${action}_${this.order.create_order.create_id}`);
     return;
   }

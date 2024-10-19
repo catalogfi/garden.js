@@ -1,6 +1,5 @@
 import { AsyncResult } from '@catalogfi/utils';
 import { Asset, MatchedOrder } from '@gardenfi/orderbook';
-import { IOrderExecutor } from '../orderExecutor/orderExecutor.types';
 
 export type SwapParams = {
   /**
@@ -19,18 +18,6 @@ export type SwapParams = {
    * Amount in lowest denomination of the asset.
    */
   receiveAmount: string;
-  /**
-   * EVM - The address from the which the user is sending funds from.
-   *
-   * Bitcoin - Provide public key if the source chain is bitcoin.
-   */
-  sendAddress: string;
-  /**
-   * EVM - The address at which the user wants to receive funds.
-   *
-   * Bitcoin - Provide public key if the destination chain is bitcoin.
-   */
-  receiveAddress: string;
   /**
    * Time lock for the swap.
    */
@@ -59,6 +46,13 @@ export enum TimeLocks {
   btc = 288,
 }
 
+export type GardenEvents = {
+  error: (order: MatchedOrder, error: string) => void;
+  success: (order: MatchedOrder, action: OrderActions, result: string) => void;
+};
+
+export type EventCallback = (...args: any[]) => void;
+
 export interface IGardenJS {
   /**
    * Create Order
@@ -70,8 +64,34 @@ export interface IGardenJS {
    * @param cb - Callback function to be called for each order. This callback will take orderExecutor as an argument.
    * @param interval - Polling interval in milliseconds.
    */
-  subscribeOrders(
-    cb: (orderExecutor: IOrderExecutor) => Promise<void>,
-    interval?: number,
-  ): Promise<() => void>;
+  // subscribeOrders(
+  //   cb: (orderExecutor: IOrderExecutor) => Promise<void>,
+  //   interval?: number,
+  // ): Promise<() => void>;
+
+  execute(): Promise<() => void>;
+  getPendingOrderCount(): number;
+  on<E extends keyof GardenEvents>(event: E, cb: GardenEvents[E]): void;
+}
+
+export type OrderCacheValue = {
+  txHash: string;
+  timeStamp: number;
+};
+
+export interface IOrderCache {
+  getOrder(): MatchedOrder;
+  set(action: OrderActions, txHash: string): void;
+  get(action: OrderActions): OrderCacheValue | null;
+  remove(action: OrderActions): void;
+}
+
+/**
+ * Actions that can be performed on the order.
+ */
+export enum OrderActions {
+  Idle = 'Idle',
+  Initiate = 'Initiate',
+  Redeem = 'Redeem',
+  Refund = 'Refund',
 }
