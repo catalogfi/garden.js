@@ -12,7 +12,7 @@ import {
 } from '@gardenfi/utils';
 import { ParseSwapStatus } from '../../garden/orderStatusParser';
 import { AtomicSwapABI } from '../abi/atomicSwap';
-import { SwapStatus } from 'src/lib/status';
+import { SwapStatus } from './../../status';
 
 export class EvmRelay implements IEVMRelay {
   private url: Url;
