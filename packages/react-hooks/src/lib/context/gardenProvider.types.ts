@@ -1,6 +1,6 @@
 import { AsyncResult } from '@catalogfi/utils';
 import { BitcoinNetwork } from '@catalogfi/wallets';
-import { SecretManager, SwapParams } from '@gardenfi/core';
+import { IQuote, SecretManager, SwapParams } from '@gardenfi/core';
 import { IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
 import { IStore } from '@gardenfi/utils';
 
@@ -14,6 +14,9 @@ export type GardenContextType = {
    * @returns {AsyncResult<string, string>} - create order ID.
    */
   swap?: (params: SwapParams) => AsyncResult<MatchedOrder, string>;
+  pendingOrders?: number;
+  quote?: IQuote;
+  pendingOrdersCount?: number;
 };
 
 export type GardenProviderProps = {
