@@ -267,7 +267,8 @@ export class Garden implements IGardenJS {
       interval,
       async (pendingOrders) => {
         this.pendingOrdersCount = pendingOrders.data.length;
-        console.log('pendingOrdersCount ℹ️ :', this.pendingOrdersCount);
+        this.emit('pendingOrdersCount', this.pendingOrdersCount);
+
         //initialize swappers and execute swap
         for (let i = 0; i < pendingOrders.data.length; i++) {
           const order = pendingOrders.data[i];

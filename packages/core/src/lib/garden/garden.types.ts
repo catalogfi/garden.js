@@ -49,6 +49,7 @@ export enum TimeLocks {
 export type GardenEvents = {
   error: (order: MatchedOrder, error: string) => void;
   success: (order: MatchedOrder, action: OrderActions, result: string) => void;
+  pendingOrdersCount: (count: number) => void;
 };
 
 export type EventCallback = (...args: any[]) => void;
