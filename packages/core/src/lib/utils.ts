@@ -1,9 +1,21 @@
+import {
+  arbitrum,
+  arbitrumSepolia,
+  mainnet,
+  sepolia,
+  Chain as viemChain,
+} from 'viem/chains';
 import { IBaseWallet } from '@catalogfi/wallets';
 import { with0x } from '@gardenfi/utils';
-import { Chain } from '@gardenfi/orderbook';
-import { sha256 } from 'viem';
+import {
+  ArbitrumLocalnet,
+  Chain,
+  EthereumLocalnet,
+  EvmChain,
+} from '@gardenfi/orderbook';
+import { sha256, WalletClient } from 'viem';
 import * as varuint from 'varuint-bitcoin';
-import { trim0x } from '@catalogfi/utils';
+import { Err, Ok, trim0x } from '@catalogfi/utils';
 import * as secp256k1 from 'tiny-secp256k1';
 
 export const computeSecret = async (
@@ -102,4 +114,60 @@ export const isValidBitcoinPubKey = (pubKey: string): boolean => {
   } catch (e) {
     return false;
   }
+};
+
+export const ChainToID: Record<EvmChain, viemChain> = {
+  ethereum: mainnet,
+  ethereum_arbitrum: arbitrum,
+  ethereum_sepolia: sepolia,
+  arbitrum_sepolia: arbitrumSepolia,
+  ethereum_localnet: EthereumLocalnet,
+  arbitrum_localnet: ArbitrumLocalnet,
+};
+
+/**
+ * Switches or adds a network to the wallet
+ * @param chain Garden supported chain
+ * @param walletClient
+ * @returns
+ */
+export const switchOrAddNetwork = async (
+  chain: Chain,
+  walletClient: WalletClient,
+) => {
+  const chainID = ChainToID[chain as EvmChain];
+  if (chainID) {
+    try {
+      if (chainID.id === walletClient.chain?.id) {
+        return Ok('Already on chain');
+      }
+      // switch the chain first
+      await walletClient.switchChain({ id: chainID.id });
+      return Ok('Switched chain');
+    } catch (error) {
+      // If switching fails, attempt to add the network
+      if (isChainNotFoundError(error)) {
+        try {
+          await walletClient.addChain({ chain: chainID });
+          return Ok('Added and switched chain');
+        } catch (addError) {
+          return Err('Failed to add network');
+        }
+      } else {
+        return Err('Failed to switch network');
+      }
+    }
+  } else {
+    return Err('Chain not supported');
+  }
+};
+
+const isChainNotFoundError = (error: unknown): error is { code: number } => {
+  // Error code 4902 indicates the chain is not available in the wallet
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as any).code === 4902
+  );
 };

@@ -1,5 +1,5 @@
 import { SecretManager } from './secretManager';
-import { sepolia } from 'viem/chains';
+import { arbitrumSepolia, sepolia } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 import { createWalletClient, http } from 'viem';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -15,20 +15,31 @@ describe('secret manager', () => {
     chain: sepolia,
     transport: http(),
   });
+  const walletClient2 = createWalletClient({
+    account,
+    chain: arbitrumSepolia,
+    transport: http(),
+  });
 
   let secretManager: SecretManager;
+  let secretManager2: SecretManager;
 
   beforeAll(async () => {
     const instance = await SecretManager.fromWalletClient(walletClient);
-    if (instance.error) {
+    const instance2 = await SecretManager.fromWalletClient(walletClient2);
+    if (instance.error || instance2.error) {
       throw new Error(instance.error);
     }
     secretManager = instance.val;
+    secretManager2 = instance2.val;
   });
 
   it('should return master private key', () => {
     const pk = secretManager.getMasterPrivKey();
+    const pk2 = secretManager2.getMasterPrivKey();
     console.log('pk :', pk);
+    console.log('pk :', pk2);
+    expect(pk).toEqual(pk2);
     expect(pk).toBeTruthy();
   });
 

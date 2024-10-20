@@ -18,4 +18,5 @@ export {
   ArbitrumLocalnet,
   EthereumLocalnet,
   bitcoinRegtestAsset,
+  SupportedAssets,
 } from './lib/constants';

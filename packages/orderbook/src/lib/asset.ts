@@ -9,7 +9,6 @@ export type AssetCommon = {
 
 export type AssetToken = AssetCommon & {
   tokenAddress: string;
-  isToken: true;
 };
 
 export type Asset = AssetToken;
@@ -44,6 +43,7 @@ export const Chains = {
   ethereum_arbitrum: 'ethereum_arbitrum',
   ethereum_sepolia: 'ethereum_sepolia',
   arbitrum_localnet: 'arbitrum_localnet',
+  arbitrum_sepolia: 'arbitrum_sepolia',
   ethereum_localnet: 'ethereum_localnet',
 } as const;
 

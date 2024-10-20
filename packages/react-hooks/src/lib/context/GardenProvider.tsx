@@ -8,6 +8,7 @@ import {
   IGardenJS,
   ISecretManager,
   Quote,
+  switchOrAddNetwork,
 } from '@gardenfi/core';
 import { SwapParams } from '@gardenfi/core';
 import type {
@@ -47,16 +48,28 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   );
 
   const swap = async (params: SwapParams) => {
-    if (!garden || !orderbook || !secretManager || !walletClient || !auth)
+    if (!garden || !orderbook || !walletClient || !auth)
       return Err('Garden not initialized');
+
+    if (!secretManager) {
+      const res = await initializeSecretManager();
+      if (res.error) return Err(res.error);
+    }
 
     const order = await garden.swap(params);
     if (order.error) return Err(order.error);
 
     if (isBitcoin(order.val.source_swap.chain)) return Ok(order.val);
 
+    // switch network if needed
+    const switchRes = await switchOrAddNetwork(
+      params.fromAsset.chain,
+      walletClient,
+    );
+    if (switchRes.error)
+      return Err('Failed to switch network: ' + switchRes.error);
+
     //only initiate if EVM
-    //TODO: switch or add network
     const evmRelay = new EvmRelay(order.val, config.orderBookUrl, auth);
     const res = await evmRelay.init(walletClient);
     if (res.error) return Err(res.error);
