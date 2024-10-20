@@ -40,6 +40,7 @@ createRoot(document.getElementById('root')!).render(
           config={{
             orderBookUrl: 'http://localhost:4426',
             store: localStorage,
+            quoteUrl: 'http://localhost:4426',
             bitcoinNetwork: BitcoinNetwork.Regtest,
             bitcoinRPCUrl: 'http://localhost:30000',
           }}
