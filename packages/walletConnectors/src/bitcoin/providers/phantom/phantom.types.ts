@@ -2,7 +2,12 @@ import { Network } from "src/bitcoin/bitcoin.types";
 
 export interface PhantomBitcoinProvider {
   connect: (network: Network) => Promise<{ address: string; publicKey: string}>;
-  requestAccounts: () => Promise<string[]>;
+  requestAccounts: () => Promise<{ 
+    address: string; 
+    addressType: string; 
+    publicKey: string;
+    purpose: string; 
+  }[]>;
   getBalance: () => Promise<{
     confirmed: number;
     unconfirmed: number;

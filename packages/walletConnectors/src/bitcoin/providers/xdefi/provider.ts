@@ -1,4 +1,4 @@
-import { AsyncResult, Err, executeWithTryCatch, Ok, Void } from '@catalogfi/utils';
+import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
 import { IInjectedBitcoinProvider, Network } from '../../bitcoin.types';
 import { XdefiBitcoinProvider } from './xdefi.types';
 import { getBalance } from '../../utils';

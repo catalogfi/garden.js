@@ -10,14 +10,8 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
     this.#unisatProvider = unisatProvider;
   }
 
-  async connect(network: Network) {
+  async connect(network: Network): AsyncResult<{ address: string; provider: IInjectedBitcoinProvider; network: Network }, string> {
     try {
-      await this.#unisatProvider.requestAccounts();
-
-      if (!window.unisat) return Err('unisat wallet not found');
-      const provider = new UnisatProvider(window.unisat);
-      this.#unisatProvider = provider.#unisatProvider;
-
       const accounts = await this.#unisatProvider.getAccounts();
       if (accounts.length > 0) this.address = accounts[0];
 
@@ -28,7 +22,7 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
 
       return Ok({
         address: this.address,
-        provider: provider,
+        provider: this,
         network: network,
       });
     } catch (error) {
