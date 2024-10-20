@@ -18,8 +18,10 @@ export class OKXProvider implements IInjectedBitcoinProvider {
     return this.#currentNetwork === Network.MAINNET ? this.#mainnetProvider : this.#testnetProvider;
   }
 
-  async connect(): AsyncResult<{ address: string; provider: IInjectedBitcoinProvider; network: Network }, string> {
+  async connect(network: Network): AsyncResult<{ address: string; provider: IInjectedBitcoinProvider; network: Network }, string> {
     try {
+      this.#currentNetwork = network;
+
       const result = await this.#currentProvider.connect();
       if (!result || !result.address) {
         return Err('Failed to connect to OKX wallet');
@@ -43,7 +45,7 @@ export class OKXProvider implements IInjectedBitcoinProvider {
   }
 
   async requestAccounts(): AsyncResult<string[], string> {
-    const connectResult = await this.connect();
+    const connectResult = await this.connect(this.#currentNetwork);
     if (connectResult.error) {
       return Err(connectResult.error);
     }
@@ -66,7 +68,7 @@ export class OKXProvider implements IInjectedBitcoinProvider {
   async switchNetwork(): AsyncResult<Network, string> {
     this.#currentNetwork = this.#currentNetwork === Network.MAINNET ? Network.TESTNET : Network.MAINNET;
     // Re-connect with the new network provider
-    const connectResult = await this.connect();
+    const connectResult = await this.connect(this.#currentNetwork);
     if (connectResult.error) {
       return Err(`Failed to connect to ${this.#currentNetwork}: ${connectResult.error}`);
     }
@@ -97,6 +99,6 @@ export class OKXProvider implements IInjectedBitcoinProvider {
 
   disconnect = (): AsyncResult<string, string> => {
     this.address = '';
-    return Promise.resolve(Ok('Disconnected okx wallet'));
+    return Promise.resolve(Ok('Disconnected OKX wallet'));
   }
 }

@@ -33,7 +33,7 @@ export interface IInjectedBitcoinProvider {
   ) => AsyncResult<string, string>;
   getNetwork: () => AsyncResult<Network, string>;
   switchNetwork: () => AsyncResult<Network, string>;
-  connect: () => AsyncResult<Connect, string>;
+  connect: (network: Network) => AsyncResult<Connect, string>;
   disconnect: () => AsyncResult<string, string>;
   on: (event: string, callback: (data: any) => void) => void;
   off: (event: string, callback: (data: any) => void) => void;
@@ -60,4 +60,5 @@ export enum BitcoinWallets {
   UNISAT = 'UNISAT',
   XVERSE = 'XVERSE',
   XDEFI = 'XDEFI',
+  PHANTOM = 'PHANTOM',
 }

@@ -19,4 +19,9 @@ export const SupportedWallets = {
     icon: 'https://garden-finance.s3.ap-south-2.amazonaws.com/wallets/xdefi.svg',
     description: 'Xdefi wallet',
   },
+  Phantom: {
+    name: 'Phantom',
+    icon: '',
+    description: 'Phantom wallet',
+  }
 };

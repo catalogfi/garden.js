@@ -10,7 +10,7 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
     this.#unisatProvider = unisatProvider;
   }
 
-  async connect() {
+  async connect(network: Network) {
     try {
       await this.#unisatProvider.requestAccounts();
 
@@ -21,13 +21,15 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
       const accounts = await this.#unisatProvider.getAccounts();
       if (accounts.length > 0) this.address = accounts[0];
 
-      const network = await this.getNetwork();
-      if (network.error) return Err('Could not get network', network.error);
+      const currentNetwork = await this.getNetwork();
+      if (currentNetwork.error) return Err('Could not get network', currentNetwork.error);
+
+      if (currentNetwork.val !== network) await this.switchNetwork();
 
       return Ok({
         address: this.address,
         provider: provider,
-        network: network.val,
+        network: network,
       });
     } catch (error) {
       return Err('Error while connecting to the Unisat wallet', error);

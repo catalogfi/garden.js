@@ -16,6 +16,8 @@ import { XverseProvider } from './providers/xverse/provider';
 import { XVerseBitcoinProvider } from './providers/xverse/xverse.types';
 import { XdefiBitcoinProvider } from './providers/xdefi/xdefi.types';
 import { XdefiProvider } from './providers/xdefi/provider';
+import { PhantomBitcoinProvider } from './providers/phantom/phantom.types';
+import { PhantomProvider } from './providers/phantom/provider';
 
 declare global {
   interface Window {
@@ -30,6 +32,9 @@ declare global {
     xfi?: {
       bitcoin: XdefiBitcoinProvider;
     };
+    phantom?: {
+      bitcoin: PhantomBitcoinProvider;
+    }
   }
 }
 
@@ -37,7 +42,8 @@ const BTCWalletProviderContext = createContext(
   {} as {
     walletList: { [key: string]: IInjectedBitcoinProvider };
     connect: (
-      BitcoinWallet: IInjectedBitcoinProvider
+      BitcoinWallet: IInjectedBitcoinProvider,
+      network: Network
     ) => AsyncResult<void, string>;
     updateAccount: () => Promise<void>;
     provider: IInjectedBitcoinProvider | undefined;
@@ -55,8 +61,8 @@ export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
   }>({});
 
   //connect to the specified wallet and set the provider and account
-  const connect = async (BitcoinWallet: IInjectedBitcoinProvider) => {
-    const res = await BitcoinWallet.connect();
+  const connect = async (BitcoinWallet: IInjectedBitcoinProvider, network: Network) => {
+    const res = await BitcoinWallet.connect(network);
     if (res.error) {
       return Err(res.error);
     }
@@ -106,20 +112,29 @@ export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
     if (window.okxwallet && window.okxwallet.bitcoin && window.okxwallet.bitcoinTestnet) {
       const okxProvider = new OKXProvider(window.okxwallet.bitcoin, window.okxwallet.bitcoinTestnet);
       addToWalletList(BitcoinWallets.OKX_WALLET, okxProvider);
+      okxProvider.getAccounts();
     }
     if (window.unisat) {
       const uniProvider = new UnisatProvider(window.unisat);
       addToWalletList(BitcoinWallets.UNISAT, uniProvider);
+      uniProvider.getAccounts();
     }
     if (window.XverseProviders && window.XverseProviders.BitcoinProvider) {
       const xverseProvider = new XverseProvider(
         window.XverseProviders.BitcoinProvider
       );
       addToWalletList(BitcoinWallets.XVERSE, xverseProvider);
+      xverseProvider.getAccounts();
     }
     if (window.xfi && window.xfi.bitcoin) {
       const xdefiProvider = new XdefiProvider(window.xfi.bitcoin);
       addToWalletList(BitcoinWallets.XDEFI, xdefiProvider);
+      xdefiProvider.getAccounts();
+    }
+    if (window.phantom && window.phantom.bitcoin) {
+      const phantomProvider = new PhantomProvider(window.phantom.bitcoin);
+      addToWalletList(BitcoinWallets.PHANTOM, phantomProvider);
+      phantomProvider.getAccounts();
     }
   }, []);
 
