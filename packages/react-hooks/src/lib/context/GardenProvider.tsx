@@ -38,7 +38,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
 
   const { data: walletClient } = useWalletClient();
   const { initializeSecretManager } = useSecretManager(setSecretManager);
-  const { orderbook } = useOrderbook(config.orderBookUrl, config.store);
+  const { orderbook } = useOrderbook(config.orderBookUrl, auth);
 
   const quote = new Quote(config.quoteUrl);
 
@@ -77,6 +77,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     return Ok(order.val);
   };
 
+  // initialize auth
   useEffect(() => {
     if (!walletClient) return;
     const auth = new Siwe(new Url(config.orderBookUrl), walletClient, {
