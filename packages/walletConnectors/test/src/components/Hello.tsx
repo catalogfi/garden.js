@@ -7,7 +7,7 @@ export const Hello = () => {
     confirmed: 0,
     unconfirmed: 0,
   });
-  const [sendAmount, setSendAmount] = useState<number>();
+  const [sendAmount, setSendAmount] = useState<number>(0);
   const [sendAddress, setSendAddress] = useState('');
   const [hash, setHash] = useState<string | null>(null);
   const { walletList, account, provider, connect, network, updateAccount } =

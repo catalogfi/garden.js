@@ -11,10 +11,12 @@ export class XdefiProvider implements IInjectedBitcoinProvider {
     this.#xdefiProvider = xdefiProvider;
   }
 
-  async connect(network: Network): AsyncResult<{ address: string; provider: IInjectedBitcoinProvider; network: Network }, string> {
+  async connect(network?: Network): AsyncResult<{ address: string; provider: IInjectedBitcoinProvider; network: Network }, string> {
     try {
       if (!window.xfi || !window.xfi.bitcoin)
         return Err('Xdefi wallet not found');
+
+      if (!network) network = Network.MAINNET;
 
       const res = await this.#xdefiProvider.getAccounts();
       if (res.length === 0) return Err('No accounts found in Xdefi wallet');

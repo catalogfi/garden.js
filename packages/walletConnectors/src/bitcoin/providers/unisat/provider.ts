@@ -10,8 +10,9 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
     this.#unisatProvider = unisatProvider;
   }
 
-  async connect(network: Network): AsyncResult<{ address: string; provider: IInjectedBitcoinProvider; network: Network }, string> {
+  async connect(network?: Network): AsyncResult<{ address: string; provider: IInjectedBitcoinProvider; network: Network }, string> {
     try {
+      if (!network) network = Network.MAINNET;
       const accounts = await this.#unisatProvider.getAccounts();
       if (accounts.length > 0) this.address = accounts[0];
 

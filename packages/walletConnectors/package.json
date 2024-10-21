@@ -36,8 +36,10 @@
   },
   "sideEffects": false,
   "dependencies": {
+    "@bitcoinerlab/secp256k1": "^1.1.1",
     "@catalogfi/utils": "^0.1.11",
     "@gardenfi/utils": "workspace:^",
+    "bitcoinjs-lib": "^7.0.0-rc.0",
     "react": "^18.3.1"
   }
 }

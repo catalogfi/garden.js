@@ -18,7 +18,8 @@ export class OKXProvider implements IInjectedBitcoinProvider {
     return this.#currentNetwork === Network.MAINNET ? this.#mainnetProvider : this.#testnetProvider;
   }
 
-  async connect(network: Network): AsyncResult<{ address: string; provider: IInjectedBitcoinProvider; network: Network }, string> {
+  async connect(network?: Network): AsyncResult<{ address: string; provider: IInjectedBitcoinProvider; network: Network }, string> {
+    if (!network) network = Network.MAINNET;
     try {
       this.#currentNetwork = network;
 
