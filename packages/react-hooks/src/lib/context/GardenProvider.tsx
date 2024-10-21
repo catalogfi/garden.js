@@ -14,6 +14,7 @@ import { SwapParams } from '@gardenfi/core';
 import type {
   GardenContextType,
   GardenProviderProps,
+  QuoteParams,
 } from './gardenProvider.types';
 import { Err, Ok } from '@catalogfi/utils';
 import { isBitcoin } from '@gardenfi/orderbook';
@@ -23,6 +24,7 @@ import {
   IBitcoinWallet,
 } from '@catalogfi/wallets';
 import { IAuth, Siwe, Url } from '@gardenfi/utils';
+import { constructOrderpair } from '../utils';
 
 export const GardenContext = createContext<GardenContextType>({});
 
@@ -36,11 +38,11 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   const [bitcoinWallet, setBitcoinWallet] = useState<IBitcoinWallet>();
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
 
+  const quote = new Quote(config.quoteUrl);
+
   const { data: walletClient } = useWalletClient();
   const { initializeSecretManager } = useSecretManager(setSecretManager);
   const { orderbook } = useOrderbook(config.orderBookUrl, auth);
-
-  const quote = new Quote(config.quoteUrl);
 
   const bitcoinProvider = useMemo(
     () => new BitcoinProvider(config.bitcoinNetwork, config.bitcoinRPCUrl),
@@ -76,6 +78,18 @@ export const GardenProvider: FC<GardenProviderProps> = ({
 
     return Ok(order.val);
   };
+
+  const getQuote = async ({
+    fromAsset,
+    toAsset,
+    amount,
+    isExactOut = false,
+  }: QuoteParams) =>
+    await quote.getQuote(
+      constructOrderpair(fromAsset, toAsset),
+      amount,
+      isExactOut,
+    );
 
   // initialize auth
   useEffect(() => {
@@ -129,7 +143,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         orderBook: orderbook,
         swap,
         pendingOrdersCount,
-        quote,
+        getQuote,
       }}
     >
       {children}

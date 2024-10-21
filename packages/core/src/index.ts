@@ -28,6 +28,6 @@ export type {
 } from './lib/secretManager/secretManager.types';
 
 export { Quote } from './lib/quote/quote';
-export type { IQuote } from './lib/quote/quote.types';
+export type { IQuote, QuoteResponse } from './lib/quote/quote.types';
 
 export { switchOrAddNetwork } from './lib/utils';
