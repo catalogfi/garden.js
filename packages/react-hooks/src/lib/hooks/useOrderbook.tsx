@@ -7,6 +7,7 @@ export const useOrderbook = (orderBookUrl: string, auth: IAuth | undefined) => {
   const { data: walletClient } = useWalletClient();
   const [orderbook, setOrderbook] = useState<IOrderbook>();
 
+  //Initialize orderbook
   useEffect(() => {
     if (!walletClient || !orderBookUrl || !auth) return;
 
@@ -16,7 +17,7 @@ export const useOrderbook = (orderBookUrl: string, auth: IAuth | undefined) => {
       auth,
     });
     setOrderbook(orderbook);
-  }, [walletClient, orderBookUrl]);
+  }, [walletClient, orderBookUrl, auth]);
 
   return { orderbook };
 };

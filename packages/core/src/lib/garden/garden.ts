@@ -312,7 +312,6 @@ export class Garden implements IGardenJS {
 
           const cache = new OrderCache(order, this.store);
           const prevResult = cache.get(orderAction);
-          console.log('prevResult :', prevResult);
           if (prevResult) continue;
 
           const blockChain = getBlockchainType(order.destination_swap.chain);

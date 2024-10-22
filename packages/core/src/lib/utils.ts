@@ -13,9 +13,9 @@ import {
   EthereumLocalnet,
   EvmChain,
 } from '@gardenfi/orderbook';
-import { sha256, WalletClient } from 'viem';
+import { createWalletClient, http, sha256, WalletClient } from 'viem';
 import * as varuint from 'varuint-bitcoin';
-import { Err, Ok, trim0x } from '@catalogfi/utils';
+import { AsyncResult, Err, Ok, trim0x } from '@catalogfi/utils';
 import * as secp256k1 from 'tiny-secp256k1';
 
 export const computeSecret = async (
@@ -74,7 +74,7 @@ export function assert(condition: boolean, message: string): void {
 }
 
 /**
- * concats the leaf version, the length of the script, and the script itself
+ * concat the leaf version, the length of the script, and the script itself
  */
 export function serializeScript(leafScript: Buffer) {
   return Buffer.concat([
@@ -84,7 +84,7 @@ export function serializeScript(leafScript: Buffer) {
 }
 
 /**
- * concats the length of the script and the script itself
+ * concat the length of the script and the script itself
  */
 export function prefixScriptLength(s: Buffer): Buffer {
   const varintLen = varuint.encodingLength(s.length);
@@ -129,27 +129,45 @@ export const ChainToID: Record<EvmChain, viemChain> = {
  * Switches or adds a network to the wallet
  * @param chain Garden supported chain
  * @param walletClient
- * @returns
+ * @returns new walletClient with updated chain
  */
 export const switchOrAddNetwork = async (
   chain: Chain,
   walletClient: WalletClient,
-) => {
+): AsyncResult<{ message: string; walletClient: WalletClient }, string> => {
   const chainID = ChainToID[chain as EvmChain];
   if (chainID) {
     try {
       if (chainID.id === walletClient.chain?.id) {
-        return Ok('Already on chain');
+        return Ok({ message: 'Already on the network', walletClient });
       }
       // switch the chain first
       await walletClient.switchChain({ id: chainID.id });
-      return Ok('Switched chain');
+      const newWalletClient = createWalletClient({
+        account: walletClient.account,
+        chain: chainID,
+        transport: http(),
+      });
+
+      return Ok({
+        message: 'Switched chain',
+        walletClient: newWalletClient as WalletClient,
+      });
     } catch (error) {
       // If switching fails, attempt to add the network
       if (isChainNotFoundError(error)) {
         try {
           await walletClient.addChain({ chain: chainID });
-          return Ok('Added and switched chain');
+          const newWalletClient = createWalletClient({
+            account: walletClient.account,
+            chain: chainID,
+            transport: http(),
+          });
+
+          return Ok({
+            message: 'Added network',
+            walletClient: newWalletClient as WalletClient,
+          });
         } catch (addError) {
           return Err('Failed to add network');
         }
