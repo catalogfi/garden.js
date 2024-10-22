@@ -56,20 +56,26 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     // Get current garden instance or create a new one
     let currentGarden = garden;
     if (!secretManager || !currentGarden) {
-      const res = await initializeSecretManager();
-      if (res.error) return Err(res.error);
+      const smRes = await initializeSecretManager();
+      if (smRes.error) return Err(smRes.error);
+
+      const btcWallet = BitcoinWallet.fromPrivateKey(
+        smRes.val.getMasterPrivKey(),
+        bitcoinProvider,
+      );
 
       currentGarden = new Garden({
         orderbookURl: config.orderBookUrl,
-        secretManager: res.val,
+        secretManager: smRes.val,
         quote,
         auth,
         wallets: {
           evmWallet: walletClient,
-          btcWallet: bitcoinWallet,
+          btcWallet: btcWallet,
         },
       });
       setGarden(currentGarden);
+      setBitcoinWallet(btcWallet);
     }
 
     const order = await currentGarden.swap(params);
