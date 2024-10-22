@@ -106,7 +106,9 @@ export class Garden implements IGardenJS {
     const { strategyId, btcAddress } = params.additionalData;
     const additionalData = {
       strategy_id: strategyId,
-      ...(btcAddress && { btcAddress }),
+      ...(btcAddress && {
+        bitcoin_optional_recipient: btcAddress,
+      }),
     };
 
     const order: CreateOrderReqWithStrategyId = {
