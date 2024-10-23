@@ -201,7 +201,7 @@ export class Garden implements IGardenJS {
         const pubKey = await this.wallets.btcWallet?.getPublicKey();
         if (!pubKey || !isValidBitcoinPubKey(pubKey))
           return Err('Invalid btc public key');
-        return Ok(pubKey);
+        return Ok(toXOnly(pubKey));
       }
       default:
         return Err('Unsupported chain');
@@ -423,8 +423,8 @@ export class Garden implements IGardenJS {
                 'Unsupported chain: ' + order.destination_swap.chain,
               );
           }
-          return;
         }
+        return;
       },
       true,
     );

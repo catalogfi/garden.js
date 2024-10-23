@@ -174,6 +174,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         pendingOrders,
         getQuote,
         secretManager,
+        garden,
       }}
     >
       {children}

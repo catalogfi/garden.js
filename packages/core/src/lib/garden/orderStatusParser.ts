@@ -48,13 +48,20 @@ export const ParseOrderStatus = (
     return OrderStatus.CounterPartySwapExpired;
   if (sourceSwapStatus === SwapStatus.Expired) return OrderStatus.Expired;
 
+  const attestedDeadlineUnixTime =
+    Number(order.create_order.additional_data.deadline) * 1000;
+
   //initiate check
   if (destSwapStatus === SwapStatus.InitiateDetected)
     return OrderStatus.CounterPartyInitiateDetected;
   if (destSwapStatus === SwapStatus.Initiated)
     return OrderStatus.CounterPartyInitiated;
+  //should initiate before 1 hour of deadline in attested quote
+  if (isExpired(attestedDeadlineUnixTime, 1)) return OrderStatus.Expired;
   if (sourceSwapStatus === SwapStatus.InitiateDetected)
     return OrderStatus.InitiateDetected;
+  // Should be confirmed 12 hours before the deadline
+  if (isExpired(attestedDeadlineUnixTime, 12)) return OrderStatus.Expired;
   if (sourceSwapStatus === SwapStatus.Initiated) return OrderStatus.Initiated;
 
   return OrderStatus.Matched;
@@ -121,4 +128,10 @@ export const parseAction = (
     default:
       return OrderActions.Idle;
   }
+};
+
+export const isExpired = (unixTime: number, tillHours = 0): boolean => {
+  const currentTime = Date.now();
+  const expiryTime = unixTime * 1000 + tillHours * 3600000;
+  return currentTime >= expiryTime;
 };
