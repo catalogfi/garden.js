@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ExecutorCache } from './executorCache';
-import { MatchedOrder } from 'gardenfi/orderbook';
+import { MatchedOrder } from '@gardenfi/orderbook';
 import { OrderActions } from '../garden.types';
 
 describe('order Executor cache', () => {

@@ -40,7 +40,7 @@ export class SecretManager implements ISecretManager {
         primaryType: 'Data',
         message: {
           Message: 'Initialize your swap',
-          Version: '1.0.1',
+          Version: '1.0.2',
           Nonce: 1n,
         },
       });

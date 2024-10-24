@@ -277,6 +277,8 @@ export class Garden implements IGardenJS {
           const sourceChain = order.source_swap.chain;
           const destinationChain = order.destination_swap.chain;
 
+          this.emit('log', order.create_order.create_id, 'executing order');
+
           const sourceWallet = this.getWallet(sourceChain);
           const destWallet = this.getWallet(destinationChain);
           if (

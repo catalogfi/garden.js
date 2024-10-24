@@ -11,7 +11,7 @@ import {
   WBTCArbitrumLocalnetAsset,
   WBTCEthereumLocalnetAsset,
 } from '../../testUtils';
-import { Siwe, Url } from 'gardenfi/utils';
+import { Siwe, Url } from '@gardenfi/utils';
 // import { ParseOrderStatus } from '../order/parseOrderStatus';
 // import { OrderStatus } from '../order/order.types';
 

@@ -5,6 +5,12 @@ import {
   sepolia,
   Chain as viemChain,
 } from 'viem/chains';
+
+interface EthereumWindow extends Window {
+  ethereum?: any;
+}
+declare const window: EthereumWindow;
+
 import { IBaseWallet } from '@catalogfi/wallets';
 import { with0x } from '@gardenfi/utils';
 import {
@@ -13,7 +19,7 @@ import {
   EthereumLocalnet,
   EvmChain,
 } from '@gardenfi/orderbook';
-import { createWalletClient, http, sha256, WalletClient } from 'viem';
+import { createWalletClient, custom, sha256, WalletClient } from 'viem';
 import * as varuint from 'varuint-bitcoin';
 import { AsyncResult, Err, Ok, trim0x } from '@catalogfi/utils';
 import * as secp256k1 from 'tiny-secp256k1';
@@ -146,7 +152,7 @@ export const switchOrAddNetwork = async (
       const newWalletClient = createWalletClient({
         account: walletClient.account,
         chain: chainID,
-        transport: http(),
+        transport: custom(window.ethereum!),
       });
 
       return Ok({
@@ -161,7 +167,7 @@ export const switchOrAddNetwork = async (
           const newWalletClient = createWalletClient({
             account: walletClient.account,
             chain: chainID,
-            transport: http(),
+            transport: custom(window.ethereum!),
           });
 
           return Ok({
