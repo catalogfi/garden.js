@@ -33,6 +33,7 @@ import { parseAction } from './orderStatusParser';
 import { EvmRelay } from '../evm/relay/evmRelay';
 import { GardenHTLC } from '../bitcoin/htlc';
 import { ExecutorCache } from './cache/executorCache';
+import BigNumber from 'bignumber.js';
 
 export class Garden implements IGardenJS {
   private secretManager: ISecretManager;
@@ -209,10 +210,17 @@ export class Garden implements IGardenJS {
   }
 
   private validateAmount(amount: string) {
-    const amountBitInt = BigInt(amount);
-    if (amount == null || amountBitInt <= 0n || amount.includes('.'))
+    if (amount == null || amount.includes('.'))
       return Err('Invalid amount ', amount);
-    return Ok(amountBitInt);
+    const amountBigInt = new BigNumber(amount);
+    if (
+      !amountBigInt.isInteger() ||
+      amountBigInt.isNaN() ||
+      amountBigInt.lt(0) ||
+      amountBigInt.isLessThanOrEqualTo(0)
+    )
+      return Err('Invalid amount ', amount);
+    return Ok(amountBigInt);
   }
 
   private getTimelock(chain: Chain) {

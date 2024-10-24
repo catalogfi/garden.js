@@ -1,6 +1,6 @@
 {
   "name": "@gardenfi/core",
-  "version": "0.2.0-beta.32",
+  "version": "0.2.0-beta.33",
   "type": "module",
   "files": [
     "dist"
@@ -30,6 +30,7 @@
     "@catalogfi/wallets": "^0.2.50",
     "@gardenfi/orderbook": "workspace:^",
     "@gardenfi/utils": "workspace:^",
+    "bignumber.js": "^9.1.2",
     "bitcoinjs-lib": "^6.1.6",
     "tiny-secp256k1": "^2.2.3",
     "varuint-bitcoin": "^1.1.2",
