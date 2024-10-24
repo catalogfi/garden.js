@@ -3,6 +3,7 @@ import { AsyncResult, Err, Ok, trim0x } from '@catalogfi/utils';
 import {
   GardenEvents,
   IGardenJS,
+  IOrderExecutorCache,
   OrderActions,
   SwapParams,
   TimeLocks,
@@ -22,7 +23,6 @@ import {
   fetchBitcoinBlockNumber,
   fetchEVMBlockNumber,
   IAuth,
-  MemoryStorage,
   sleep,
 } from '@gardenfi/utils';
 import { IQuote } from '../quote/quote.types';
@@ -32,7 +32,7 @@ import { IBitcoinWallet } from '@catalogfi/wallets';
 import { parseAction } from './orderStatusParser';
 import { EvmRelay } from '../evm/relay/evmRelay';
 import { GardenHTLC } from '../bitcoin/htlc';
-import { OrderCache } from './orderCache';
+import { ExecutorCache } from './cache/executorCache';
 
 export class Garden implements IGardenJS {
   private secretManager: ISecretManager;
@@ -53,7 +53,7 @@ export class Garden implements IGardenJS {
     btcWallet?: IBitcoinWallet;
   };
   private evmAddress: string;
-  private store: MemoryStorage;
+  private orderExecutorCache: IOrderExecutorCache;
 
   constructor(config: {
     orderbookURl: string;
@@ -75,7 +75,7 @@ export class Garden implements IGardenJS {
     this.wallets = config.wallets;
     this.orderbookUrl = config.orderbookURl;
     this.auth = config.auth;
-    this.store = new MemoryStorage();
+    this.orderExecutorCache = new ExecutorCache();
 
     if (!config.wallets.evmWallet.account)
       throw new Error('Account not found in evmWallet');
@@ -271,7 +271,7 @@ export class Garden implements IGardenJS {
         this.pendingOrdersCount = pendingOrders.data.length;
         this.emit('onPendingOrdersChanged', pendingOrders.data);
 
-        //initialize swappers and execute swap
+        //initialize swappers and execute
         for (let i = 0; i < pendingOrders.data.length; i++) {
           const order = pendingOrders.data[i];
           const sourceChain = order.source_swap.chain;
@@ -312,44 +312,41 @@ export class Garden implements IGardenJS {
             blockNumbers.val.destination,
           );
 
-          const cache = new OrderCache(order, this.store);
-          const prevResult = cache.get(orderAction);
-          if (prevResult) continue;
+          switch (orderAction) {
+            case OrderActions.Redeem: {
+              const secrets = this.secretManager.generateSecret(
+                Number(order.create_order.nonce),
+              );
+              if (secrets.error) {
+                this.emit('error', order, secrets.error);
+                return;
+              }
 
-          const blockChain = getBlockchainType(order.destination_swap.chain);
-
-          switch (blockChain) {
-            case BlockchainType.EVM:
-              switch (orderAction) {
-                case OrderActions.Redeem: {
-                  console.log('executing evm redeem...');
-                  const evmRelay = new EvmRelay(
-                    order,
-                    this.orderbookUrl,
-                    this.auth,
-                  );
-                  const secrets = this.secretManager.generateSecret(
-                    Number(order.create_order.nonce),
-                  );
-                  if (secrets.error) {
-                    this.emit('error', order, secrets.error);
-                    return;
-                  }
-
-                  const res = await evmRelay.redeem(
-                    order.create_order.create_id,
-                    secrets.val.secret,
-                  );
-                  if (res.error) {
-                    this.emit('error', order, res.error);
-                    return;
-                  }
-                  this.emit('success', order, OrderActions.Redeem, res.val);
-                  cache.set(orderAction, res.val);
-
+              switch (getBlockchainType(order.destination_swap.chain)) {
+                case BlockchainType.EVM: {
+                  await this.evmRedeem(order, secrets.val.secret);
                   break;
                 }
-                case OrderActions.Refund: {
+                case BlockchainType.Bitcoin: {
+                  await this.btcRedeem(
+                    destWallet.val as IBitcoinWallet,
+                    order,
+                    secrets.val.secret,
+                  );
+                  break;
+                }
+                default:
+                  this.emit(
+                    'error',
+                    order,
+                    'Unsupported chain: ' + order.destination_swap.chain,
+                  );
+              }
+              break;
+            }
+            case OrderActions.Refund: {
+              switch (getBlockchainType(order.source_swap.chain)) {
+                case BlockchainType.EVM: {
                   this.emit(
                     'error',
                     order,
@@ -357,77 +354,129 @@ export class Garden implements IGardenJS {
                   );
                   break;
                 }
-              }
-              break;
-            case BlockchainType.Bitcoin:
-              switch (orderAction) {
-                case OrderActions.Redeem: {
-                  try {
-                    const bitcoinExecutor = await GardenHTLC.from(
-                      destWallet.val as IBitcoinWallet,
-                      Number(order.destination_swap.amount),
-                      order.create_order.secret_hash,
-                      toXOnly(order.destination_swap.initiator),
-                      toXOnly(order.destination_swap.redeemer),
-                      order.destination_swap.timelock,
-                    );
-
-                    const secrets = this.secretManager.generateSecret(
-                      Number(order.create_order.nonce),
-                    );
-                    if (secrets.error) {
-                      this.emit('error', order, secrets.error);
-                      return;
-                    }
-
-                    const res = await bitcoinExecutor.redeem(
-                      trim0x(secrets.val.secret),
-                      order.create_order.additional_data
-                        ?.bitcoin_optional_recipient,
-                    );
-
-                    this.emit('success', order, OrderActions.Redeem, res);
-                    cache.set(orderAction, res);
-                  } catch (error) {
-                    this.emit('error', order, 'Failed btc redeem: ' + error);
-                  }
+                case BlockchainType.Bitcoin: {
+                  await this.btcRefund(
+                    sourceWallet.val as IBitcoinWallet,
+                    order,
+                  );
                   break;
                 }
-                case OrderActions.Refund: {
-                  try {
-                    const bitcoinExecutor = await GardenHTLC.from(
-                      sourceWallet.val as IBitcoinWallet,
-                      Number(order.source_swap.amount),
-                      order.create_order.secret_hash,
-                      toXOnly(order.source_swap.initiator),
-                      toXOnly(order.source_swap.redeemer),
-                      order.source_swap.timelock,
-                    );
-                    const res = await bitcoinExecutor.refund(
-                      order.create_order.additional_data
-                        ?.bitcoin_optional_recipient,
-                    );
-                    this.emit('success', order, OrderActions.Refund, res);
-                    cache.set(orderAction, res);
-                  } catch (error) {
-                    this.emit('error', order, 'Failed btc refund: ' + error);
-                  }
-                  break;
-                }
+                default:
+                  this.emit(
+                    'error',
+                    order,
+                    'Unsupported chain: ' + order.source_swap.chain,
+                  );
               }
               break;
-            default:
-              this.emit(
-                'error',
-                order,
-                'Unsupported chain: ' + order.destination_swap.chain,
-              );
+            }
           }
         }
         return;
       },
+      {
+        per_page: 500,
+      },
       true,
     );
+  }
+
+  private async evmRedeem(order: MatchedOrder, secret: string) {
+    this.emit('log', order.create_order.create_id, 'executing evm redeem');
+    const cache = this.orderExecutorCache.get(order, OrderActions.Redeem);
+    console.log('cache inside evm redeem  :', cache);
+    if (cache) {
+      this.emit('log', order.create_order.create_id, 'already redeemed');
+      return;
+    }
+    const evmRelay = new EvmRelay(order, this.orderbookUrl, this.auth);
+    const res = await evmRelay.redeem(order.create_order.create_id, secret);
+    if (res.error) {
+      this.emit('error', order, res.error);
+      return;
+    }
+
+    this.emit('success', order, OrderActions.Redeem, res.val);
+    this.orderExecutorCache.set(order, OrderActions.Redeem, res.val);
+  }
+
+  private async btcRedeem(
+    wallet: IBitcoinWallet,
+    order: MatchedOrder,
+    secret: string,
+  ) {
+    const cache = this.orderExecutorCache.get(order, OrderActions.Redeem);
+    console.log('cache inside btc redeem :', cache);
+    let rbf = false;
+    if (cache) {
+      if (
+        cache.btcRedeemUTXO &&
+        cache.btcRedeemUTXO !== order.destination_swap.initiate_tx_hash
+      ) {
+        rbf = true;
+        this.emit('log', order.create_order.create_id, 'rbf btc redeem');
+      } else {
+        this.emit(
+          'log',
+          order.create_order.create_id,
+          'btcRedeem: already redeemed',
+        );
+        return;
+      }
+    }
+
+    this.emit('log', order.create_order.create_id, 'executing btc redeem');
+    try {
+      const bitcoinExecutor = await GardenHTLC.from(
+        wallet as IBitcoinWallet,
+        Number(order.destination_swap.amount),
+        order.create_order.secret_hash,
+        toXOnly(order.destination_swap.initiator),
+        toXOnly(order.destination_swap.redeemer),
+        order.destination_swap.timelock,
+        rbf ? [order.destination_swap.initiate_tx_hash] : [],
+      );
+      const res = await bitcoinExecutor.redeem(
+        trim0x(secret),
+        order.create_order.additional_data?.bitcoin_optional_recipient,
+      );
+
+      this.emit('success', order, OrderActions.Redeem, res);
+      this.orderExecutorCache.set(
+        order,
+        OrderActions.Redeem,
+        res,
+        order.destination_swap.initiate_tx_hash,
+      );
+    } catch (error) {
+      this.emit('error', order, 'Failed btc redeem: ' + error);
+    }
+  }
+
+  private async btcRefund(wallet: IBitcoinWallet, order: MatchedOrder) {
+    if (this.orderExecutorCache.get(order, OrderActions.Refund)) {
+      return;
+    }
+
+    this.emit('log', order.create_order.create_id, 'executing btc refund');
+
+    try {
+      const bitcoinExecutor = await GardenHTLC.from(
+        wallet as IBitcoinWallet,
+        Number(order.source_swap.amount),
+        order.create_order.secret_hash,
+        toXOnly(order.source_swap.initiator),
+        toXOnly(order.source_swap.redeemer),
+        order.source_swap.timelock,
+      );
+      const res = await bitcoinExecutor.refund(
+        order.create_order.additional_data?.bitcoin_optional_recipient,
+      );
+      this.emit('success', order, OrderActions.Refund, res);
+      this.orderExecutorCache.set(order, OrderActions.Refund, res);
+    } catch (error) {
+      this.emit('error', order, 'Failed btc refund: ' + error);
+    }
   }
 
   private getWallet(chain: Chain) {

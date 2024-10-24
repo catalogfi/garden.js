@@ -3,7 +3,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { createWalletClient, http, sha256 } from 'viem';
 import { randomBytes } from 'crypto';
 import { describe, expect, expectTypeOf, test } from 'vitest';
-import { sleep, with0x } from '@gardenfi/utils';
+import { Siwe, sleep, Url, with0x } from '@gardenfi/utils';
 import { Orderbook } from './orderbook';
 import { CreateOrderConfig, MatchedOrder } from './orderbook.types';
 import { Asset, Chains } from '../asset';
@@ -22,9 +22,12 @@ describe('orderbook', async () => {
   const bitcoinTestnetAddress = 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru';
   const sepoliaAddress = walletClient.account.address;
 
+  const auth = new Siwe(new Url('http://' + OrderbookApi + '/'), walletClient);
+
   const orderbook = new Orderbook({
     url: 'http://' + OrderbookApi + '/',
     walletClient,
+    auth,
   });
 
   const createOrderIds: string[] = [];
@@ -36,7 +39,6 @@ describe('orderbook', async () => {
     chain: Chains.bitcoin_regtest,
     atomicSwapAddress: 'primary',
     tokenAddress: 'primary',
-    isToken: true,
   };
   const WBTCArbitrumLocalnetAsset: Asset = {
     name: 'WBTC Arbitrum Localnet',
@@ -45,7 +47,6 @@ describe('orderbook', async () => {
     chain: Chains.arbitrum_localnet,
     atomicSwapAddress: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9',
     tokenAddress: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
-    isToken: true,
   };
   const WBTCEthereumLocalnetAsset: Asset = {
     name: 'WBTC Ethereum Localnet',
@@ -54,7 +55,6 @@ describe('orderbook', async () => {
     chain: Chains.ethereum_localnet,
     atomicSwapAddress: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
     tokenAddress: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-    isToken: true,
   };
 
   const createOrderConfigs: CreateOrderConfig[] = [

@@ -50,6 +50,7 @@ export type GardenEvents = {
   error: (order: MatchedOrder, error: string) => void;
   success: (order: MatchedOrder, action: OrderActions, result: string) => void;
   onPendingOrdersChanged: (orders: MatchedOrder[]) => void;
+  log: (id: string, message: string) => void;
 };
 
 export type EventCallback = (...args: any[]) => void;
@@ -78,13 +79,18 @@ export interface IGardenJS {
 export type OrderCacheValue = {
   txHash: string;
   timeStamp: number;
+  btcRedeemUTXO?: string;
 };
 
-export interface IOrderCache {
-  getOrder(): MatchedOrder;
-  set(action: OrderActions, txHash: string): void;
-  get(action: OrderActions): OrderCacheValue | null;
-  remove(action: OrderActions): void;
+export interface IOrderExecutorCache {
+  set(
+    order: MatchedOrder,
+    action: OrderActions,
+    txHash: string,
+    utxo?: string,
+  ): void;
+  get(order: MatchedOrder, action: OrderActions): OrderCacheValue | null;
+  remove(order: MatchedOrder, action: OrderActions): void;
 }
 
 /**

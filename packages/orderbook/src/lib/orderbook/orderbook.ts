@@ -128,8 +128,8 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
     cb: (
       orders: PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
     ) => Promise<void>,
-    pending?: boolean,
     paginationConfig?: PaginationConfig,
+    pending?: boolean,
   ): Promise<() => void> {
     const address = this.walletClient.account?.address;
     if (!address) return () => {};

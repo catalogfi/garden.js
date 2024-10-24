@@ -34,7 +34,7 @@ export class EvmRelay implements IEVMRelay {
       walletClient.account.address.toLowerCase() !==
       this.order.source_swap.initiator.toLowerCase()
     )
-      return Err('Account and order initiator mismatch');
+      return Err('Account address and order initiator mismatch');
 
     if (!currentL1BlockNumber) {
       const blockNumber = await fetchEVMBlockNumber(walletClient);

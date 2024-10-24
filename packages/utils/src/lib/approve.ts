@@ -17,12 +17,9 @@ export const checkAllowanceAndApprove = async (
     client: walletClient,
   });
 
-  const accountAddress = await walletClient.getAddresses();
-  if (!accountAddress[0]) return Err('No account found');
-
   try {
     const allowance = await erc20Contract.read.allowance([
-      with0x(accountAddress[0]),
+      with0x(walletClient.account.address),
       with0x(contractAddress),
     ]);
 

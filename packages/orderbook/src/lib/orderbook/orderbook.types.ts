@@ -137,8 +137,8 @@ export interface IOrderbook extends IOrderProvider {
     cb: (
       orders: PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
     ) => Promise<void>,
-    pending?: boolean,
     paginationConfig?: PaginationConfig,
+    pending?: boolean,
   ): Promise<() => void>;
 
   /**

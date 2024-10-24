@@ -106,7 +106,7 @@ describe('evmRelay', () => {
       const blockNumber = await arbitrumPublicClient.getBlockNumber();
 
       const res = await relayer.init(
-        order,
+        arbitrumWalletClient,
         // WBTCArbitrumLocalnetAsset,
         Number(blockNumber),
       );
