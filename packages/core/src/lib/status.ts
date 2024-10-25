@@ -85,11 +85,13 @@ export enum OrderStatus {
   CounterPartyRefunded = 'CounterPartyRefunded',
   /**
    * - Order is cancelled
-   * - There are some cases where the order is cancelled:
-   *   1) Not matched within 1 hour.
-   *   2) Both parties refund.
    */
   Cancelled = 'Cancelled',
+  /**
+   * - DeadLine exceeded
+   * - Initiate not detected before 1 hour of deadline or initiate not confirmed before 12 hours of deadline
+   */
+  DeadLineExceeded = 'DeadLineExceeded',
 }
 
 export enum SwapStatus {

@@ -26,43 +26,48 @@ export const ParseOrderStatus = (
   );
 
   //redeem check
-  if (sourceSwapStatus === SwapStatus.RedeemDetected)
-    return OrderStatus.CounterPartyRedeemDetected;
   if (sourceSwapStatus === SwapStatus.Redeemed)
     return OrderStatus.CounterPartyRedeemed;
+  if (sourceSwapStatus === SwapStatus.RedeemDetected)
+    return OrderStatus.CounterPartyRedeemDetected;
+  if (destSwapStatus === SwapStatus.Redeemed) return OrderStatus.Redeemed;
   if (destSwapStatus === SwapStatus.RedeemDetected)
     return OrderStatus.RedeemDetected;
-  if (destSwapStatus === SwapStatus.Redeemed) return OrderStatus.Redeemed;
 
   //refund check
-  if (destSwapStatus === SwapStatus.RefundDetected)
-    return OrderStatus.CounterPartyRefundDetected;
-  if (destSwapStatus === SwapStatus.Refunded)
-    return OrderStatus.CounterPartyRefunded;
+  if (sourceSwapStatus === SwapStatus.Refunded) return OrderStatus.Refunded;
   if (sourceSwapStatus === SwapStatus.RefundDetected)
     return OrderStatus.RefundDetected;
-  if (sourceSwapStatus === SwapStatus.Refunded) return OrderStatus.Refunded;
+  if (destSwapStatus === SwapStatus.Refunded)
+    return OrderStatus.CounterPartyRefunded;
+  if (destSwapStatus === SwapStatus.RefundDetected)
+    return OrderStatus.CounterPartyRefundDetected;
 
   //expiry check
   if (destSwapStatus === SwapStatus.Expired)
     return OrderStatus.CounterPartySwapExpired;
   if (sourceSwapStatus === SwapStatus.Expired) return OrderStatus.Expired;
 
-  const attestedDeadlineUnixTime =
-    Number(order.create_order.additional_data.deadline) * 1000;
+  const attestedDeadlineUnixTime = Number(
+    order.create_order.additional_data.deadline,
+  );
 
   //initiate check
-  if (destSwapStatus === SwapStatus.InitiateDetected)
-    return OrderStatus.CounterPartyInitiateDetected;
   if (destSwapStatus === SwapStatus.Initiated)
     return OrderStatus.CounterPartyInitiated;
+  if (destSwapStatus === SwapStatus.InitiateDetected)
+    return OrderStatus.CounterPartyInitiateDetected;
+
+  // Should be confirmed 12 hours before the deadline
+  if (isExpired(attestedDeadlineUnixTime, 12))
+    return OrderStatus.DeadLineExceeded;
+  if (sourceSwapStatus === SwapStatus.Initiated) return OrderStatus.Initiated;
+
   //should initiate before 1 hour of deadline in attested quote
-  if (isExpired(attestedDeadlineUnixTime, 1)) return OrderStatus.Expired;
+  if (isExpired(attestedDeadlineUnixTime, 1))
+    return OrderStatus.DeadLineExceeded;
   if (sourceSwapStatus === SwapStatus.InitiateDetected)
     return OrderStatus.InitiateDetected;
-  // Should be confirmed 12 hours before the deadline
-  if (isExpired(attestedDeadlineUnixTime, 12)) return OrderStatus.Expired;
-  if (sourceSwapStatus === SwapStatus.Initiated) return OrderStatus.Initiated;
 
   return OrderStatus.Matched;
 };
@@ -97,6 +102,7 @@ export const ParseSwapStatus = (swap: Swap, currentBlockNumber: number) => {
     if (swap.initiate_block_number) return SwapStatus.Initiated;
     return SwapStatus.InitiateDetected;
   }
+
   return SwapStatus.Idle;
 };
 
@@ -118,6 +124,7 @@ export const parseAction = (
     sourceChainCurrentBlockNumber,
     destChainCurrentBlockNumber,
   );
+
   switch (orderStatus) {
     case OrderStatus.Matched:
       return OrderActions.Initiate;

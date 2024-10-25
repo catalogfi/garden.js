@@ -285,8 +285,6 @@ export class Garden implements IGardenJS {
           const sourceChain = order.source_swap.chain;
           const destinationChain = order.destination_swap.chain;
 
-          this.emit('log', order.create_order.create_id, 'executing order');
-
           const sourceWallet = this.getWallet(sourceChain);
           const destWallet = this.getWallet(destinationChain);
           if (
@@ -394,7 +392,6 @@ export class Garden implements IGardenJS {
   private async evmRedeem(order: MatchedOrder, secret: string) {
     this.emit('log', order.create_order.create_id, 'executing evm redeem');
     const cache = this.orderExecutorCache.get(order, OrderActions.Redeem);
-    console.log('cache inside evm redeem  :', cache);
     if (cache) {
       this.emit('log', order.create_order.create_id, 'already redeemed');
       return;

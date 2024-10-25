@@ -152,10 +152,17 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   // Execute orders (redeem or refund)
   useEffect(() => {
     if (!garden) return;
-    garden.execute();
+    const unsubscribe = garden.execute();
     garden.on('onPendingOrdersChanged', (pendingOrders) => {
       setPendingOrders(pendingOrders);
     });
+
+    return () => {
+      (async () => {
+        const unsubscribeFn = await unsubscribe;
+        unsubscribeFn();
+      })();
+    };
   }, [garden]);
 
   return (
