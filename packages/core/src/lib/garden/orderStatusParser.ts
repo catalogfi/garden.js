@@ -80,13 +80,13 @@ export const ParseOrderStatus = (
 export const ParseSwapStatus = (swap: Swap, currentBlockNumber: number) => {
   //redeem check
   if (swap.redeem_tx_hash) {
-    if (swap.redeem_block_number) return SwapStatus.Redeemed;
+    if (Number(swap.redeem_block_number)) return SwapStatus.Redeemed;
     return SwapStatus.RedeemDetected;
   }
 
   //refund check
   if (swap.refund_tx_hash) {
-    if (swap.refund_block_number) return SwapStatus.Refunded;
+    if (Number(swap.refund_block_number)) return SwapStatus.Refunded;
     return SwapStatus.RefundDetected;
   }
 
@@ -99,7 +99,7 @@ export const ParseSwapStatus = (swap: Swap, currentBlockNumber: number) => {
 
   //initiate check
   if (swap.initiate_tx_hash) {
-    if (swap.initiate_block_number) return SwapStatus.Initiated;
+    if (Number(swap.initiate_block_number)) return SwapStatus.Initiated;
     return SwapStatus.InitiateDetected;
   }
 
@@ -129,6 +129,7 @@ export const parseAction = (
     case OrderStatus.Matched:
       return OrderActions.Initiate;
     case OrderStatus.CounterPartyInitiated:
+    case OrderStatus.CounterPartyInitiateDetected:
       return OrderActions.Redeem;
     case OrderStatus.Expired:
       return OrderActions.Refund;

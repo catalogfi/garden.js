@@ -1,6 +1,7 @@
 import {
   arbitrum,
   arbitrumSepolia,
+  baseSepolia,
   mainnet,
   sepolia,
   Chain as viemChain,
@@ -129,6 +130,7 @@ export const ChainToID: Record<EvmChain, viemChain> = {
   arbitrum_sepolia: arbitrumSepolia,
   ethereum_localnet: EthereumLocalnet,
   arbitrum_localnet: ArbitrumLocalnet,
+  base_sepolia: baseSepolia,
 };
 
 /**

@@ -413,7 +413,6 @@ export class Garden implements IGardenJS {
     secret: string,
   ) {
     const cache = this.orderExecutorCache.get(order, OrderActions.Redeem);
-    console.log('cache inside btc redeem :', cache);
     let rbf = false;
     if (cache) {
       if (

@@ -45,6 +45,7 @@ export const Chains = {
   arbitrum_localnet: 'arbitrum_localnet',
   arbitrum_sepolia: 'arbitrum_sepolia',
   ethereum_localnet: 'ethereum_localnet',
+  base_sepolia: 'base_sepolia',
 } as const;
 
 export type Chain = keyof typeof Chains;
@@ -61,7 +62,8 @@ export const isMainnet = (chain: Chain) => {
     chain === Chains.bitcoin_regtest ||
     chain === Chains.arbitrum_localnet ||
     chain === Chains.ethereum_localnet ||
-    chain === Chains.arbitrum_sepolia
+    chain === Chains.arbitrum_sepolia ||
+    chain === Chains.base_sepolia
   );
 };
 
@@ -80,7 +82,8 @@ export const isEVM = (chain: Chain) => {
     chain === Chains.ethereum_sepolia ||
     chain === Chains.ethereum_localnet ||
     chain === Chains.arbitrum_localnet ||
-    chain === Chains.arbitrum_sepolia
+    chain === Chains.arbitrum_sepolia ||
+    chain === Chains.base_sepolia
   );
 };
 
