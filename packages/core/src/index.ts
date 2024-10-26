@@ -2,13 +2,12 @@ export { Garden } from './lib/garden/garden';
 export type {
   IGardenJS,
   SwapParams,
-  TimeLocks,
-  OrderActions,
   GardenEvents,
   IOrderExecutorCache,
   OrderCacheValue,
   EventCallback,
 } from './lib/garden/garden.types';
+export { OrderActions, TimeLocks } from './lib/garden/garden.types';
 
 export { BlockNumberFetcher } from './lib/garden/blockNumber';
 export type { IBlockNumberFetcher, Network } from './lib/garden/blockNumber';
@@ -16,7 +15,7 @@ export type { IBlockNumberFetcher, Network } from './lib/garden/blockNumber';
 export { EvmRelay } from './lib/evm/relay/evmRelay';
 export type { IEVMRelay } from './lib/evm/relay/evmRelay.types';
 
-export type { OrderStatus, SwapStatus } from './lib/status';
+export { OrderStatus, SwapStatus } from './lib/status';
 
 export {
   parseAction,
