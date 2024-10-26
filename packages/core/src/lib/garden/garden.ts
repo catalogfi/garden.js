@@ -34,6 +34,11 @@ import { EvmRelay } from '../evm/relay/evmRelay';
 import { GardenHTLC } from '../bitcoin/htlc';
 import { ExecutorCache } from './cache/executorCache';
 import BigNumber from 'bignumber.js';
+import {
+  BlockNumberFetcher,
+  IBlockNumberFetcher,
+  Network,
+} from './blockNumber';
 
 export class Garden implements IGardenJS {
   private secretManager: ISecretManager;
@@ -55,6 +60,7 @@ export class Garden implements IGardenJS {
   };
   private evmAddress: string;
   private orderExecutorCache: IOrderExecutorCache;
+  private blockNumberFetcher: IBlockNumberFetcher | undefined;
 
   constructor(config: {
     orderbookURl: string;
@@ -64,6 +70,10 @@ export class Garden implements IGardenJS {
     wallets: {
       evmWallet: WalletClient;
       btcWallet?: IBitcoinWallet;
+    };
+    blockNumberFetcher?: {
+      url: string;
+      network: Network;
     };
   }) {
     this.orderBook = new Orderbook({
@@ -81,6 +91,12 @@ export class Garden implements IGardenJS {
     if (!config.wallets.evmWallet.account)
       throw new Error('Account not found in evmWallet');
     this.evmAddress = config.wallets.evmWallet.account.address;
+    this.blockNumberFetcher =
+      config.blockNumberFetcher &&
+      new BlockNumberFetcher(
+        config.blockNumberFetcher.url,
+        config.blockNumberFetcher.network,
+      );
   }
 
   getPendingOrderCount(): number {
@@ -279,6 +295,8 @@ export class Garden implements IGardenJS {
         this.pendingOrdersCount = pendingOrders.data.length;
         this.emit('onPendingOrdersChanged', pendingOrders.data);
 
+        const blockNumbers = await this.blockNumberFetcher?.fetchBlockNumbers();
+
         //initialize swappers and execute
         for (let i = 0; i < pendingOrders.data.length; i++) {
           const order = pendingOrders.data[i];
@@ -301,23 +319,32 @@ export class Garden implements IGardenJS {
             return;
           }
 
-          const blockNumbers = await this.fetchCurrentBlockNumbers(order, {
-            source: sourceWallet.val,
-            destination: destWallet.val,
-          });
-          if (blockNumbers.error) {
-            this.emit(
-              'error',
-              order,
-              'Error while fetching CurrentBlockNumbers: ' + blockNumbers.error,
-            );
-            return;
+          let sourceChainBlockNumber = blockNumbers?.val[sourceChain];
+          let destinationChainBlockNumber = blockNumbers?.val[destinationChain];
+
+          if (!sourceChainBlockNumber || !destinationChainBlockNumber) {
+            const _blockNumbers = await this.fetchCurrentBlockNumbers(order, {
+              source: sourceWallet.val,
+              destination: destWallet.val,
+            });
+            if (_blockNumbers.error) {
+              this.emit(
+                'error',
+                order,
+                'Error while fetching CurrentBlockNumbers: ' +
+                  _blockNumbers.error,
+              );
+              return;
+            }
+
+            sourceChainBlockNumber = _blockNumbers.val.source;
+            destinationChainBlockNumber = _blockNumbers.val.destination;
           }
 
           const orderAction = parseAction(
             order,
-            blockNumbers.val.source,
-            blockNumbers.val.destination,
+            sourceChainBlockNumber,
+            destinationChainBlockNumber,
           );
 
           switch (orderAction) {
