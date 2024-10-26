@@ -24,6 +24,7 @@ export type GardenContextType = {
   getQuote?: (params: QuoteParams) => AsyncResult<QuoteResponse, string>;
   secretManager?: ISecretManager;
   garden?: IGardenJS;
+  isExecuting: boolean;
 };
 
 export type GardenProviderProps = {

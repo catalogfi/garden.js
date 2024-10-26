@@ -26,7 +26,9 @@ import {
 import { IAuth, Siwe, Url } from '@gardenfi/utils';
 import { constructOrderpair } from '../utils';
 
-export const GardenContext = createContext<GardenContextType>({});
+export const GardenContext = createContext<GardenContextType>({
+  isExecuting: false,
+});
 
 export const GardenProvider: FC<GardenProviderProps> = ({
   children,
@@ -36,6 +38,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   const [garden, setGarden] = useState<IGardenJS>();
   const [auth, setAuth] = useState<IAuth>();
   const [pendingOrders, setPendingOrders] = useState<MatchedOrder[]>();
+  const isExecuting = !!(secretManager && garden && auth && pendingOrders);
 
   const quote = new Quote(config.quoteUrl);
 
@@ -194,6 +197,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         getQuote,
         secretManager,
         garden,
+        isExecuting,
       }}
     >
       {children}
