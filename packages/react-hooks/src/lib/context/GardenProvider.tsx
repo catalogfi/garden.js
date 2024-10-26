@@ -18,7 +18,11 @@ import type {
 } from './gardenProvider.types';
 import { Err, Ok } from '@catalogfi/utils';
 import { isBitcoin, MatchedOrder } from '@gardenfi/orderbook';
-import { BitcoinProvider, BitcoinWallet } from '@catalogfi/wallets';
+import {
+  BitcoinNetwork,
+  BitcoinProvider,
+  BitcoinWallet,
+} from '@catalogfi/wallets';
 import { IAuth, Siwe, Url } from '@gardenfi/utils';
 import { constructOrderpair } from '../utils';
 
@@ -42,10 +46,23 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     auth,
     setPendingOrders,
   );
+  const blockNumberFetcherNetwork =
+    config.network === BitcoinNetwork.Mainnet
+      ? 'mainnet'
+      : config.network === BitcoinNetwork.Testnet
+      ? 'testnet'
+      : undefined;
+  const blockNumberFetcher =
+    config.blockNumberFetcherUrl && blockNumberFetcherNetwork
+      ? {
+          url: config.blockNumberFetcherUrl,
+          network: blockNumberFetcherNetwork as 'mainnet' | 'testnet',
+        }
+      : undefined;
 
   const bitcoinProvider = useMemo(
-    () => new BitcoinProvider(config.bitcoinNetwork, config.bitcoinRPCUrl),
-    [config.bitcoinNetwork, config.bitcoinRPCUrl],
+    () => new BitcoinProvider(config.network, config.bitcoinRPCUrl),
+    [config.network, config.bitcoinRPCUrl],
   );
 
   const swap = async (params: SwapParams) => {
@@ -72,6 +89,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
           evmWallet: walletClient,
           btcWallet: btcWallet,
         },
+        blockNumberFetcher,
       });
       setGarden(currentGarden);
     }

@@ -32,8 +32,9 @@ export type GardenProviderProps = {
     orderBookUrl: string;
     quoteUrl: string;
     store: IStore;
-    bitcoinNetwork: BitcoinNetwork;
+    network: BitcoinNetwork;
     bitcoinRPCUrl?: string;
+    blockNumberFetcherUrl?: string;
   };
 };
 
