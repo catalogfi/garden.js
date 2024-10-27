@@ -30,6 +30,10 @@ export type {
 } from './lib/secretManager/secretManager.types';
 
 export { Quote } from './lib/quote/quote';
-export type { IQuote, QuoteResponse } from './lib/quote/quote.types';
+export type {
+  IQuote,
+  QuoteResponse,
+  Strategies,
+} from './lib/quote/quote.types';
 
 export { switchOrAddNetwork, constructOrderPair } from './lib/utils';
