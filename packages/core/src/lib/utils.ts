@@ -197,3 +197,17 @@ const isChainNotFoundError = (error: unknown): error is { code: number } => {
     (error as any).code === 4902
   );
 };
+
+export const constructOrderPair = (
+  sourceChain: Chain,
+  sourceAsset: string,
+  destChain: Chain,
+  destAsset: string,
+) =>
+  sourceChain +
+  ':' +
+  sourceAsset.toLowerCase() +
+  '::' +
+  destChain +
+  ':' +
+  destAsset.toLowerCase();

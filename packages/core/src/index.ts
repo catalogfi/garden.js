@@ -32,4 +32,4 @@ export type {
 export { Quote } from './lib/quote/quote';
 export type { IQuote, QuoteResponse } from './lib/quote/quote.types';
 
-export { switchOrAddNetwork } from './lib/utils';
+export { switchOrAddNetwork, constructOrderPair } from './lib/utils';

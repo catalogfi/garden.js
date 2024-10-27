@@ -86,4 +86,11 @@ describe('quote', () => {
     expect(res.error).toBeUndefined();
     expect(res.val).toBeTruthy();
   }, 30000);
+
+  it('should get strategies', async () => {
+    const res = await quote.getStrategies();
+    console.log('strategies :', res.val);
+    expect(res.error).toBeUndefined();
+    expect(res.val).toBeTruthy();
+  });
 });

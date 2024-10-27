@@ -1,8 +1,10 @@
 import { AsyncResult } from '@catalogfi/utils';
 import {
+  Chain,
   CreateOrderRequestWithAdditionalData,
   CreateOrderReqWithStrategyId,
 } from '@gardenfi/orderbook';
+import { APIResponse } from '@gardenfi/utils';
 
 export interface IQuote {
   /**
@@ -29,6 +31,12 @@ export interface IQuote {
   getAttestedQuote(
     order: CreateOrderReqWithStrategyId,
   ): AsyncResult<CreateOrderRequestWithAdditionalData, string>;
+
+  /**
+   * Get the strategies available for quoting
+   * @returns {Strategies} The strategies available
+   */
+  getStrategies(): AsyncResult<Strategies, string>;
 }
 
 export type QuoteResponse = {
@@ -36,3 +44,32 @@ export type QuoteResponse = {
   input_token_price: number;
   output_token_price: number;
 };
+
+export type Strategies = Record<
+  string,
+  {
+    id: string;
+    minAmount: string;
+    maxAmount: string;
+  }
+>;
+
+export type StrategiesResponse = APIResponse<{
+  [strategy: string]: {
+    id: string;
+    min_amount: string;
+    max_amount: string;
+    source_chain: Chain;
+    dest_chain: Chain;
+    source_asset: {
+      asset: string;
+      token_id: string;
+      decimals: number;
+    };
+    dest_asset: {
+      asset: string;
+      token_id: string;
+      decimals: number;
+    };
+  };
+}>;

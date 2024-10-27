@@ -1,10 +1,16 @@
 import { AsyncResult, Err, Fetcher, Ok } from '@catalogfi/utils';
-import { IQuote, QuoteResponse } from './quote.types';
+import {
+  IQuote,
+  QuoteResponse,
+  Strategies,
+  StrategiesResponse,
+} from './quote.types';
 import {
   CreateOrderRequestWithAdditionalData,
   CreateOrderReqWithStrategyId,
 } from '@gardenfi/orderbook';
 import { APIResponse, Url } from '@gardenfi/utils';
+import { constructOrderPair } from '../utils';
 
 export class Quote implements IQuote {
   private quoteUrl: Url;
@@ -53,6 +59,38 @@ export class Quote implements IQuote {
     } catch (error) {
       console.log('error :', error);
       return Err('GetAttestedQuote:', String(error));
+    }
+  }
+
+  async getStrategies() {
+    try {
+      const res = await Fetcher.get<StrategiesResponse>(
+        this.quoteUrl.endpoint('/strategies'),
+      );
+
+      if (res.error) return Err(res.error);
+      if (!res.result)
+        return Err('GetStrategies: Unexpected error, result is undefined');
+
+      const strategies: Strategies = {};
+
+      for (const value of Object.values(res.result)) {
+        const orderPair = constructOrderPair(
+          value.source_chain,
+          value.source_asset.asset,
+          value.dest_chain,
+          value.dest_asset.asset,
+        );
+        strategies[orderPair] = {
+          id: value.id,
+          minAmount: value.min_amount,
+          maxAmount: value.max_amount,
+        };
+      }
+
+      return Ok(strategies);
+    } catch (error) {
+      return Err('GetStrategies:', String(error));
     }
   }
 }
