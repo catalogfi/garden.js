@@ -68,6 +68,33 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     [config.network, config.bitcoinRPCUrl],
   );
 
+  const initializeSMandGarden = async () => {
+    if (!walletClient || !auth)
+      return Err('WalletClient or auth not initialized');
+
+    const smRes = await initializeSecretManager();
+    if (smRes.error) return Err(smRes.error);
+
+    const wallet = BitcoinWallet.fromPrivateKey(
+      smRes.val.getMasterPrivKey(),
+      bitcoinProvider,
+    );
+
+    const garden = new Garden({
+      orderbookURl: config.orderBookUrl,
+      secretManager: smRes.val,
+      quote,
+      auth,
+      wallets: {
+        evmWallet: walletClient,
+        btcWallet: wallet,
+      },
+      blockNumberFetcher,
+    });
+    setGarden(garden);
+    return Ok(garden);
+  };
+
   const swap = async (params: SwapParams) => {
     if (!orderbook || !walletClient || !auth)
       return Err('Orderbook or walletClient or auth not initialized');
@@ -75,26 +102,9 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     // Get current garden instance or create a new one
     let currentGarden = garden;
     if (!secretManager || !currentGarden) {
-      const smRes = await initializeSecretManager();
-      if (smRes.error) return Err(smRes.error);
-
-      const btcWallet = BitcoinWallet.fromPrivateKey(
-        smRes.val.getMasterPrivKey(),
-        bitcoinProvider,
-      );
-
-      currentGarden = new Garden({
-        orderbookURl: config.orderBookUrl,
-        secretManager: smRes.val,
-        quote,
-        auth,
-        wallets: {
-          evmWallet: walletClient,
-          btcWallet: btcWallet,
-        },
-        blockNumberFetcher,
-      });
-      setGarden(currentGarden);
+      const gardenRes = await initializeSMandGarden();
+      if (gardenRes.error) return Err(gardenRes.error);
+      currentGarden = gardenRes.val;
     }
 
     const order = await currentGarden.swap(params);
@@ -110,7 +120,6 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     if (switchRes.error)
       return Err('Failed to switch network: ' + switchRes.error);
     const newWalletClient = switchRes.val.walletClient;
-    console.log('newWalletClient :', newWalletClient);
 
     //only initiate if EVM
     const evmRelay = new EvmRelay(order.val, config.orderBookUrl, auth);
@@ -121,6 +130,46 @@ export const GardenProvider: FC<GardenProviderProps> = ({
       ...order.val,
       source_swap: {
         ...order.val.source_swap,
+        initiate_tx_hash: initRes.val,
+      },
+    };
+
+    return Ok(updatedOrder);
+  };
+
+  const evmInitiate = async (order: MatchedOrder) => {
+    if (!walletClient || !auth)
+      return Err('Orderbook or walletClient or auth not initialized');
+
+    // Get current garden instance or create a new one
+    let currentGarden = garden;
+    if (!secretManager || !currentGarden) {
+      const gardenRes = await initializeSMandGarden();
+      if (gardenRes.error) return Err(gardenRes.error);
+      currentGarden = gardenRes.val;
+    }
+
+    if (isBitcoin(order.source_swap.chain))
+      return Err('Not an EVM order: sourceSwap.chain is Bitcoin');
+
+    // switch network if needed
+    const switchRes = await switchOrAddNetwork(
+      order.source_swap.chain,
+      walletClient,
+    );
+    if (switchRes.error)
+      return Err('Failed to switch network: ' + switchRes.error);
+    const newWalletClient = switchRes.val.walletClient;
+
+    //only initiate if EVM
+    const evmRelay = new EvmRelay(order, config.orderBookUrl, auth);
+    const initRes = await evmRelay.init(newWalletClient);
+    if (initRes.error) return Err(initRes.error);
+
+    const updatedOrder: MatchedOrder = {
+      ...order,
+      source_swap: {
+        ...order.source_swap,
         initiate_tx_hash: initRes.val,
       },
     };
@@ -198,6 +247,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         secretManager,
         garden,
         isExecuting,
+        evmInitiate,
       }}
     >
       {children}
