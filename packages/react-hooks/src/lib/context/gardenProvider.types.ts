@@ -2,6 +2,7 @@ import { AsyncResult } from '@catalogfi/utils';
 import { BitcoinNetwork } from '@catalogfi/wallets';
 import {
   IGardenJS,
+  IQuote,
   ISecretManager,
   QuoteResponse,
   SecretManager,
@@ -26,6 +27,7 @@ export type GardenContextType = {
   garden?: IGardenJS;
   evmInitiate?: (order: MatchedOrder) => AsyncResult<MatchedOrder, string>;
   isExecuting: boolean;
+  quote?: IQuote;
 };
 
 export type GardenProviderProps = {

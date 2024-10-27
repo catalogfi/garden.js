@@ -248,6 +248,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         garden,
         isExecuting,
         evmInitiate,
+        quote,
       }}
     >
       {children}
