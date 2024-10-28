@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@catalogfi/utils": "^0.1.6",
-    "@catalogfi/wallets": "^0.2.50",
+    "@catalogfi/wallets": "^0.2.51",
     "@gardenfi/core": "workspace:^",
     "@gardenfi/orderbook": "workspace:^",
     "@gardenfi/utils": "workspace:^",

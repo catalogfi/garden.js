@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@catalogfi/wallets": "^0.2.50",
+    "@catalogfi/wallets": "^0.2.51",
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@gardenfi/core": "workspace:^",
     "@gardenfi/orderbook": "workspace:^",
