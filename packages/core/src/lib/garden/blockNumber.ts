@@ -20,7 +20,6 @@ export class BlockNumberFetcher implements IBlockNumberFetcher {
   }
 
   async fetchBlockNumbers(): AsyncResult<Response, string> {
-    console.log('this.url :', this.url.toString());
     try {
       const res = await Fetcher.get<Response>(this.url);
       return Ok(res);

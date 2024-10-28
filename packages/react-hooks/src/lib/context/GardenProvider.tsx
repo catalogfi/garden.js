@@ -40,7 +40,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   const [pendingOrders, setPendingOrders] = useState<MatchedOrder[]>();
   const isExecuting = !!(secretManager && garden && auth && pendingOrders);
 
-  const quote = new Quote(config.quoteUrl);
+  const quote = useMemo(() => new Quote(config.quoteUrl), [config.quoteUrl]);
 
   const { data: walletClient } = useWalletClient();
   const { initializeSecretManager } = useSecretManager(setSecretManager);
@@ -49,6 +49,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     auth,
     setPendingOrders,
   );
+
   const blockNumberFetcherNetwork =
     config.network === BitcoinNetwork.Mainnet
       ? 'mainnet'
@@ -215,6 +216,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         evmWallet: walletClient,
         btcWallet: wallet,
       },
+      blockNumberFetcher,
     });
     setGarden(garden);
   }, [secretManager, walletClient, orderbook, auth]);
