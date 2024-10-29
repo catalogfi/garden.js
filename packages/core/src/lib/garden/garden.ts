@@ -522,7 +522,13 @@ export class Garden implements IGardenJS {
         order.create_order.additional_data?.bitcoin_optional_recipient,
       );
 
-      this.emit('success', order, OrderActions.Redeem, res);
+      if (rbf)
+        this.emit(
+          'log',
+          order.create_order.create_id,
+          'rbf: btc redeem success',
+        );
+      else this.emit('success', order, OrderActions.Redeem, res);
       this.orderExecutorCache.set(order, OrderActions.Redeem, res, initTx);
     } catch (error) {
       this.emit('error', order, 'Failed btc redeem: ' + error);
