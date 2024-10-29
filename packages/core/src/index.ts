@@ -21,6 +21,8 @@ export {
   parseAction,
   ParseOrderStatus,
   ParseSwapStatus,
+  isExpired,
+  filterDeadlineExpiredOrders,
 } from './lib/garden/orderStatusParser';
 
 export { SecretManager } from './lib/secretManager/secretManager';

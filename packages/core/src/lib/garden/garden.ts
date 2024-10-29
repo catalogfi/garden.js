@@ -29,7 +29,7 @@ import { IQuote } from '../quote/quote.types';
 import { isValidBitcoinPubKey, toXOnly } from '../utils';
 import { WalletClient } from 'viem';
 import { IBitcoinWallet } from '@catalogfi/wallets';
-import { parseAction } from './orderStatusParser';
+import { filterDeadlineExpiredOrders, parseAction } from './orderStatusParser';
 import { EvmRelay } from '../evm/relay/evmRelay';
 import { GardenHTLC } from '../bitcoin/htlc';
 import { ExecutorCache } from './cache/executorCache';
@@ -49,7 +49,6 @@ export class Garden implements IGardenJS {
   private orderBook: IOrderbook;
   private quote: IQuote;
   private getOrderThreshold = 20;
-  private pendingOrdersCount = 0;
   private orderbookUrl: string;
   private auth: IAuth;
   //TODO: do not use relay if set to false
@@ -97,10 +96,6 @@ export class Garden implements IGardenJS {
         config.blockNumberFetcher.url,
         config.blockNumberFetcher.network,
       );
-  }
-
-  getPendingOrderCount(): number {
-    return this.pendingOrdersCount;
   }
 
   setUseRelay(useRelay: boolean): void {
@@ -292,14 +287,14 @@ export class Garden implements IGardenJS {
       true,
       interval,
       async (pendingOrders) => {
-        this.pendingOrdersCount = pendingOrders.data.length;
-        this.emit('onPendingOrdersChanged', pendingOrders.data);
+        const unexpiredOrders = filterDeadlineExpiredOrders(pendingOrders.data);
+        this.emit('onPendingOrdersChanged', unexpiredOrders);
 
         const blockNumbers = await this.blockNumberFetcher?.fetchBlockNumbers();
 
         //initialize swappers and execute
-        for (let i = 0; i < pendingOrders.data.length; i++) {
-          const order = pendingOrders.data[i];
+        for (let i = 0; i < unexpiredOrders.length; i++) {
+          const order = unexpiredOrders[i];
           const sourceChain = order.source_swap.chain;
           const destinationChain = order.destination_swap.chain;
 
@@ -427,6 +422,13 @@ export class Garden implements IGardenJS {
     const res = await evmRelay.redeem(order.create_order.create_id, secret);
     if (res.error) {
       this.emit('error', order, res.error);
+      if (res.error.includes('Order already redeemed')) {
+        this.orderExecutorCache.set(
+          order,
+          OrderActions.Redeem,
+          order.destination_swap.redeem_tx_hash,
+        );
+      }
       return;
     }
 
@@ -440,12 +442,19 @@ export class Garden implements IGardenJS {
     secret: string,
   ) {
     const cache = this.orderExecutorCache.get(order, OrderActions.Redeem);
+    const initTx = order.destination_swap.initiate_tx_hash
+      .split(',')
+      .at(-1)
+      ?.split(':')
+      .at(0);
+    if (!initTx) {
+      this.emit('error', order, 'Failed to get initiate_tx_hash');
+      return;
+    }
+
     let rbf = false;
     if (cache) {
-      if (
-        cache.btcRedeemUTXO &&
-        cache.btcRedeemUTXO !== order.destination_swap.initiate_tx_hash
-      ) {
+      if (cache.btcRedeemUTXO && cache.btcRedeemUTXO !== initTx) {
         rbf = true;
         this.emit('log', order.create_order.create_id, 'rbf btc redeem');
       } else {
@@ -455,6 +464,45 @@ export class Garden implements IGardenJS {
           'btcRedeem: already redeemed',
         );
         return;
+      }
+    } else if (
+      order.destination_swap.redeem_tx_hash &&
+      !Number(order.destination_swap.redeem_block_number)
+    ) {
+      try {
+        const tx = await (
+          await wallet.getProvider()
+        ).getTransaction(order.destination_swap.redeem_tx_hash);
+
+        let isValidRedeem = false;
+        for (const input of tx.vin) {
+          if (input.txid === initTx) {
+            isValidRedeem = true;
+            break;
+          }
+        }
+        if (isValidRedeem) {
+          this.emit(
+            'log',
+            order.create_order.create_id,
+            'already a valid redeem',
+          );
+          this.orderExecutorCache.set(
+            order,
+            OrderActions.Redeem,
+            order.destination_swap.redeem_tx_hash,
+            initTx,
+          );
+          return;
+        }
+        rbf = true;
+      } catch (error) {
+        if ((error as Error).message.includes('Transaction not found')) {
+          rbf = true;
+        } else {
+          this.emit('error', order, 'Failed to get redeem tx: ' + error);
+          return;
+        }
       }
     }
 
@@ -467,7 +515,7 @@ export class Garden implements IGardenJS {
         toXOnly(order.destination_swap.initiator),
         toXOnly(order.destination_swap.redeemer),
         order.destination_swap.timelock,
-        rbf ? [order.destination_swap.initiate_tx_hash] : [],
+        rbf ? [initTx] : [],
       );
       const res = await bitcoinExecutor.redeem(
         trim0x(secret),
@@ -475,12 +523,7 @@ export class Garden implements IGardenJS {
       );
 
       this.emit('success', order, OrderActions.Redeem, res);
-      this.orderExecutorCache.set(
-        order,
-        OrderActions.Redeem,
-        res,
-        order.destination_swap.initiate_tx_hash,
-      );
+      this.orderExecutorCache.set(order, OrderActions.Redeem, res, initTx);
     } catch (error) {
       this.emit('error', order, 'Failed btc redeem: ' + error);
     }

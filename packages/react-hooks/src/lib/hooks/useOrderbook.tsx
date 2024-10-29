@@ -1,3 +1,4 @@
+import { filterDeadlineExpiredOrders } from '@gardenfi/core';
 import { IOrderbook, MatchedOrder, Orderbook } from '@gardenfi/orderbook';
 import { IAuth } from '@gardenfi/utils';
 import { useEffect, useState } from 'react';
@@ -29,7 +30,8 @@ export const useOrderbook = (
       })
       .then((orders) => {
         if (!orders.error && orders.val) {
-          setPendingOrders(orders.val.data);
+          //only set deadline unexpired orders
+          setPendingOrders(filterDeadlineExpiredOrders(orders.val.data));
         }
       });
   }, [walletClient, orderBookUrl, auth]);

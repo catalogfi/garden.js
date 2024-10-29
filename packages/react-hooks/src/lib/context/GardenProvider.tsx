@@ -38,7 +38,10 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   const [garden, setGarden] = useState<IGardenJS>();
   const [auth, setAuth] = useState<IAuth>();
   const [pendingOrders, setPendingOrders] = useState<MatchedOrder[]>();
-  const isExecuting = !!(secretManager && garden && auth && pendingOrders);
+  const isExecuting = useMemo(
+    () => !!(secretManager && garden && auth && pendingOrders),
+    [secretManager, garden, auth, pendingOrders],
+  );
 
   const quote = useMemo(() => new Quote(config.quoteUrl), [config.quoteUrl]);
 

@@ -72,8 +72,8 @@ export interface IGardenJS {
   // ): Promise<() => void>;
 
   execute(): Promise<() => void>;
-  getPendingOrderCount(): number;
   on<E extends keyof GardenEvents>(event: E, cb: GardenEvents[E]): void;
+  off<E extends keyof GardenEvents>(event: E, cb: GardenEvents[E]): void;
 }
 
 export type OrderCacheValue = {
