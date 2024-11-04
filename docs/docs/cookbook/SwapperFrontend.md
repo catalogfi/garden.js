@@ -5,7 +5,7 @@ id: swapper-frontend
 # Swapper Frontend
 
 :::note
-This guide is meant to be followed along side [Swapper Frontend](https://github.com/gardenfi/swapper-frontend) and is not meant for production use; it is merely an example to help you get started with the SDK.
+This guide is meant to be followed alongside [Swapper Frontend](https://github.com/gardenfi/swapper-frontend) and is not meant for production use; it is merely an example to help you get started with the SDK.
 :::
 
 ## Introduction
