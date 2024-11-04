@@ -42,7 +42,7 @@ id: wbtc-wbtc
 
 
 
-11. Click on "Claim BTC" on the desitnation chain. 
+11. Click on "Claim BTC" on the destination chain. 
 ![step 11](../../images/guide-wbtc-wbtc-11.png)
 
 
