@@ -34,19 +34,21 @@ export const ParseOrderStatus = (
     return OrderStatus.CounterPartyRedeemDetected;
   if (destSwapStatus === SwapStatus.Redeemed) return OrderStatus.Redeemed;
 
-  //refund check
+  //source refund check
   if (sourceSwapStatus === SwapStatus.Refunded) return OrderStatus.Refunded;
   if (sourceSwapStatus === SwapStatus.RefundDetected)
     return OrderStatus.RefundDetected;
-  if (destSwapStatus === SwapStatus.Refunded)
-    return OrderStatus.CounterPartyRefunded;
-  if (destSwapStatus === SwapStatus.RefundDetected)
-    return OrderStatus.CounterPartyRefundDetected;
 
   //expiry check
   if (destSwapStatus === SwapStatus.Expired)
     return OrderStatus.CounterPartySwapExpired;
   if (sourceSwapStatus === SwapStatus.Expired) return OrderStatus.Expired;
+
+  //dest refund check
+  if (destSwapStatus === SwapStatus.Refunded)
+    return OrderStatus.CounterPartyRefunded;
+  if (destSwapStatus === SwapStatus.RefundDetected)
+    return OrderStatus.CounterPartyRefundDetected;
 
   const attestedDeadlineUnixTime = Number(
     order.create_order.additional_data.deadline,
