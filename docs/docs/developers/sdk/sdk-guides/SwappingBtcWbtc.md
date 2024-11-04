@@ -17,7 +17,7 @@ In this guide, we'll be swapping BTC to WBTC on Ethereum.
 
 ## Creating the Wallets
 
-We'll need a Bitcoin and an EVM wallet to do the swap. The process is the same as described in [Creating Wallets](./CreatingWallets.md). If you are implementing the following in a browser you may need wasm support and pollyfills for bitcoin wallet.
+We'll need a Bitcoin and an EVM wallet to do the swap. The process is the same as described in [Creating Wallets](./CreatingWallets.md). If you are implementing the following in a browser you may need wasm support and polyfills for bitcoin wallet.
 
 **You'll need:**
 
