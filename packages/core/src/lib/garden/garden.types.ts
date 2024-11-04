@@ -1,5 +1,6 @@
 import { AsyncResult } from '@catalogfi/utils';
 import { Asset, MatchedOrder } from '@gardenfi/orderbook';
+import { OrderStatus } from '../status';
 
 export type SwapParams = {
   /**
@@ -46,10 +47,14 @@ export enum TimeLocks {
   btc = 288,
 }
 
+export type OrderWithStatus = MatchedOrder & {
+  status: OrderStatus;
+};
+
 export type GardenEvents = {
   error: (order: MatchedOrder, error: string) => void;
   success: (order: MatchedOrder, action: OrderActions, result: string) => void;
-  onPendingOrdersChanged: (orders: MatchedOrder[]) => void;
+  onPendingOrdersChanged: (orders: OrderWithStatus[]) => void;
   log: (id: string, message: string) => void;
 };
 

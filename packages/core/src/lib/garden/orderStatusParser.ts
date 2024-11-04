@@ -127,7 +127,16 @@ export const parseAction = (
     destChainCurrentBlockNumber,
   );
 
-  switch (orderStatus) {
+  return parseActionFromStatus(orderStatus);
+};
+
+/**
+ * Parse the action to be performed on the order based on the order status.
+ * @param status Order status
+ * @returns {OrderActions} The action to be performed on the order
+ */
+export const parseActionFromStatus = (status: OrderStatus): OrderActions => {
+  switch (status) {
     case OrderStatus.Matched:
       return OrderActions.Initiate;
     case OrderStatus.CounterPartyInitiated:

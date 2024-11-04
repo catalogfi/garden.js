@@ -6,6 +6,7 @@ export type {
   IOrderExecutorCache,
   OrderCacheValue,
   EventCallback,
+  OrderWithStatus,
 } from './lib/garden/garden.types';
 export { OrderActions, TimeLocks } from './lib/garden/garden.types';
 

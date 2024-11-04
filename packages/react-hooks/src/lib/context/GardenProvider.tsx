@@ -3,10 +3,12 @@ import { useWalletClient } from 'wagmi';
 import { useSecretManager } from '../hooks/useSecretManager';
 import { useOrderbook } from '../hooks/useOrderbook';
 import {
+  BlockNumberFetcher,
   EvmRelay,
   Garden,
   IGardenJS,
   ISecretManager,
+  OrderWithStatus,
   Quote,
   switchOrAddNetwork,
 } from '@gardenfi/core';
@@ -37,13 +39,32 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   const [secretManager, setSecretManager] = useState<ISecretManager>();
   const [garden, setGarden] = useState<IGardenJS>();
   const [auth, setAuth] = useState<IAuth>();
-  const [pendingOrders, setPendingOrders] = useState<MatchedOrder[]>();
+  const [pendingOrders, setPendingOrders] = useState<OrderWithStatus[]>();
   const isExecuting = useMemo(
     () => !!(secretManager && garden && auth && pendingOrders),
     [secretManager, garden, auth, pendingOrders],
   );
 
   const quote = useMemo(() => new Quote(config.quoteUrl), [config.quoteUrl]);
+  const blockNumberFetcher = useMemo(() => {
+    const blockNumberFetcherNetwork =
+      config.network === BitcoinNetwork.Mainnet
+        ? 'mainnet'
+        : config.network === BitcoinNetwork.Testnet
+        ? 'testnet'
+        : undefined;
+
+    return config.blockNumberFetcherUrl && blockNumberFetcherNetwork
+      ? new BlockNumberFetcher(
+          config.blockNumberFetcherUrl,
+          blockNumberFetcherNetwork,
+        )
+      : undefined;
+  }, [config.blockNumberFetcherUrl, config.network]);
+  const bitcoinProvider = useMemo(
+    () => new BitcoinProvider(config.network, config.bitcoinRPCUrl),
+    [config.network, config.bitcoinRPCUrl],
+  );
 
   const { data: walletClient } = useWalletClient();
   const { initializeSecretManager } = useSecretManager(setSecretManager);
@@ -51,25 +72,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     config.orderBookUrl,
     auth,
     setPendingOrders,
-  );
-
-  const blockNumberFetcherNetwork =
-    config.network === BitcoinNetwork.Mainnet
-      ? 'mainnet'
-      : config.network === BitcoinNetwork.Testnet
-      ? 'testnet'
-      : undefined;
-  const blockNumberFetcher =
-    config.blockNumberFetcherUrl && blockNumberFetcherNetwork
-      ? {
-          url: config.blockNumberFetcherUrl,
-          network: blockNumberFetcherNetwork as 'mainnet' | 'testnet',
-        }
-      : undefined;
-
-  const bitcoinProvider = useMemo(
-    () => new BitcoinProvider(config.network, config.bitcoinRPCUrl),
-    [config.network, config.bitcoinRPCUrl],
+    blockNumberFetcher,
   );
 
   const initializeSMandGarden = async () => {
@@ -228,15 +231,17 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   useEffect(() => {
     if (!garden) return;
     const unsubscribe = garden.execute();
-    garden.on('onPendingOrdersChanged', (pendingOrders) => {
-      setPendingOrders(pendingOrders);
-    });
+
+    const handlePendingOrdersChange = (orders: OrderWithStatus[]) =>
+      setPendingOrders(orders);
+    garden.on('onPendingOrdersChanged', handlePendingOrdersChange);
 
     return () => {
       (async () => {
         const unsubscribeFn = await unsubscribe;
         unsubscribeFn();
       })();
+      garden.off('onPendingOrdersChanged', handlePendingOrdersChange);
     };
   }, [garden]);
 

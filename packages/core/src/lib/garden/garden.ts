@@ -5,6 +5,7 @@ import {
   IGardenJS,
   IOrderExecutorCache,
   OrderActions,
+  OrderWithStatus,
   SwapParams,
   TimeLocks,
 } from './garden.types';
@@ -29,16 +30,16 @@ import { IQuote } from '../quote/quote.types';
 import { isValidBitcoinPubKey, toXOnly } from '../utils';
 import { WalletClient } from 'viem';
 import { IBitcoinWallet } from '@catalogfi/wallets';
-import { filterDeadlineExpiredOrders, parseAction } from './orderStatusParser';
+import {
+  filterDeadlineExpiredOrders,
+  parseActionFromStatus,
+  ParseOrderStatus,
+} from './orderStatusParser';
 import { EvmRelay } from '../evm/relay/evmRelay';
 import { GardenHTLC } from '../bitcoin/htlc';
 import { ExecutorCache } from './cache/executorCache';
 import BigNumber from 'bignumber.js';
-import {
-  BlockNumberFetcher,
-  IBlockNumberFetcher,
-  Network,
-} from './blockNumber';
+import { IBlockNumberFetcher } from './blockNumber';
 
 export class Garden implements IGardenJS {
   private secretManager: ISecretManager;
@@ -70,10 +71,7 @@ export class Garden implements IGardenJS {
       evmWallet: WalletClient;
       btcWallet?: IBitcoinWallet;
     };
-    blockNumberFetcher?: {
-      url: string;
-      network: Network;
-    };
+    blockNumberFetcher?: IBlockNumberFetcher;
   }) {
     this.orderBook = new Orderbook({
       url: config.orderbookURl,
@@ -90,12 +88,7 @@ export class Garden implements IGardenJS {
     if (!config.wallets.evmWallet.account)
       throw new Error('Account not found in evmWallet');
     this.evmAddress = config.wallets.evmWallet.account.address;
-    this.blockNumberFetcher =
-      config.blockNumberFetcher &&
-      new BlockNumberFetcher(
-        config.blockNumberFetcher.url,
-        config.blockNumberFetcher.network,
-      );
+    this.blockNumberFetcher = config.blockNumberFetcher;
   }
 
   setUseRelay(useRelay: boolean): void {
@@ -288,59 +281,14 @@ export class Garden implements IGardenJS {
       interval,
       async (pendingOrders) => {
         const unexpiredOrders = filterDeadlineExpiredOrders(pendingOrders.data);
-        this.emit('onPendingOrdersChanged', unexpiredOrders);
 
-        const blockNumbers = await this.blockNumberFetcher?.fetchBlockNumbers();
+        const ordersWithStatus = await this.assignOrderStatus(unexpiredOrders);
+        this.emit('onPendingOrdersChanged', ordersWithStatus);
 
         //initialize swappers and execute
-        for (let i = 0; i < unexpiredOrders.length; i++) {
-          const order = unexpiredOrders[i];
-          const sourceChain = order.source_swap.chain;
-          const destinationChain = order.destination_swap.chain;
-
-          const sourceWallet = this.getWallet(sourceChain);
-          const destWallet = this.getWallet(destinationChain);
-          if (
-            sourceWallet.error ||
-            destWallet.error ||
-            !sourceWallet.val ||
-            !destWallet.val
-          ) {
-            this.emit(
-              'error',
-              order,
-              'Source or Destination Wallet not found while executing order',
-            );
-            return;
-          }
-
-          let sourceChainBlockNumber = blockNumbers?.val[sourceChain];
-          let destinationChainBlockNumber = blockNumbers?.val[destinationChain];
-
-          if (!sourceChainBlockNumber || !destinationChainBlockNumber) {
-            const _blockNumbers = await this.fetchCurrentBlockNumbers(order, {
-              source: sourceWallet.val,
-              destination: destWallet.val,
-            });
-            if (_blockNumbers.error) {
-              this.emit(
-                'error',
-                order,
-                'Error while fetching CurrentBlockNumbers: ' +
-                  _blockNumbers.error,
-              );
-              return;
-            }
-
-            sourceChainBlockNumber = _blockNumbers.val.source;
-            destinationChainBlockNumber = _blockNumbers.val.destination;
-          }
-
-          const orderAction = parseAction(
-            order,
-            sourceChainBlockNumber,
-            destinationChainBlockNumber,
-          );
+        for (let i = 0; i < ordersWithStatus.length; i++) {
+          const order = ordersWithStatus[i];
+          const orderAction = parseActionFromStatus(order.status);
 
           switch (orderAction) {
             case OrderActions.Redeem: {
@@ -358,6 +306,14 @@ export class Garden implements IGardenJS {
                   break;
                 }
                 case BlockchainType.Bitcoin: {
+                  const destWallet = this.getWallet(
+                    order.destination_swap.chain,
+                  );
+                  if (destWallet.error) {
+                    this.emit('error', order, destWallet.error);
+                    return;
+                  }
+
                   await this.btcRedeem(
                     destWallet.val as IBitcoinWallet,
                     order,
@@ -385,6 +341,12 @@ export class Garden implements IGardenJS {
                   break;
                 }
                 case BlockchainType.Bitcoin: {
+                  const sourceWallet = this.getWallet(order.source_swap.chain);
+                  if (sourceWallet.error) {
+                    this.emit('error', order, sourceWallet.error);
+                    return;
+                  }
+
                   await this.btcRefund(
                     sourceWallet.val as IBitcoinWallet,
                     order,
@@ -615,5 +577,68 @@ export class Garden implements IGardenJS {
       source: sourceBlockNumber.val,
       destination: destinationBlockNumber.val,
     });
+  }
+
+  private async assignOrderStatus(orders: MatchedOrder[]) {
+    const blockNumbers = await this.blockNumberFetcher?.fetchBlockNumbers();
+
+    const orderWithStatuses: OrderWithStatus[] = [];
+
+    for (let i = 0; i < orders.length; i++) {
+      const order = orders[i];
+
+      const sourceChain = order.source_swap.chain;
+      const destinationChain = order.destination_swap.chain;
+
+      const sourceWallet = this.getWallet(sourceChain);
+      const destWallet = this.getWallet(destinationChain);
+      if (
+        sourceWallet.error ||
+        destWallet.error ||
+        !sourceWallet.val ||
+        !destWallet.val
+      ) {
+        this.emit(
+          'error',
+          order,
+          'Source or Destination Wallet not found while executing order',
+        );
+        continue;
+      }
+
+      let sourceChainBlockNumber = blockNumbers?.val[sourceChain];
+      let destinationChainBlockNumber = blockNumbers?.val[destinationChain];
+
+      if (!sourceChainBlockNumber || !destinationChainBlockNumber) {
+        const _blockNumbers = await this.fetchCurrentBlockNumbers(order, {
+          source: sourceWallet.val,
+          destination: destWallet.val,
+        });
+        if (_blockNumbers.error) {
+          this.emit(
+            'error',
+            order,
+            'Error while fetching CurrentBlockNumbers: ' + _blockNumbers.error,
+          );
+          continue;
+        }
+
+        sourceChainBlockNumber = _blockNumbers.val.source;
+        destinationChainBlockNumber = _blockNumbers.val.destination;
+      }
+
+      const status = ParseOrderStatus(
+        order,
+        sourceChainBlockNumber,
+        destinationChainBlockNumber,
+      );
+
+      orderWithStatuses.push({
+        ...order,
+        status,
+      });
+    }
+
+    return orderWithStatuses;
   }
 }
