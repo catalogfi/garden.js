@@ -7,11 +7,6 @@ import {
   Chain as viemChain,
 } from 'viem/chains';
 
-interface EthereumWindow extends Window {
-  ethereum?: any;
-}
-declare const window: EthereumWindow;
-
 import { IBaseWallet } from '@catalogfi/wallets';
 import { with0x } from '@gardenfi/utils';
 import {
@@ -24,6 +19,11 @@ import { createWalletClient, custom, sha256, WalletClient } from 'viem';
 import * as varuint from 'varuint-bitcoin';
 import { AsyncResult, Err, Ok, trim0x } from '@catalogfi/utils';
 import * as secp256k1 from 'tiny-secp256k1';
+
+interface EthereumWindow extends Window {
+  ethereum?: any;
+}
+declare const window: EthereumWindow;
 
 export const computeSecret = async (
   fromChain: Chain,
@@ -123,7 +123,7 @@ export const isValidBitcoinPubKey = (pubKey: string): boolean => {
   }
 };
 
-export const ChainToID: Record<EvmChain, viemChain> = {
+export const evmToViemChainMap: Record<EvmChain, viemChain> = {
   ethereum: mainnet,
   ethereum_arbitrum: arbitrum,
   ethereum_sepolia: sepolia,
@@ -143,7 +143,7 @@ export const switchOrAddNetwork = async (
   chain: Chain,
   walletClient: WalletClient,
 ): AsyncResult<{ message: string; walletClient: WalletClient }, string> => {
-  const chainID = ChainToID[chain as EvmChain];
+  const chainID = evmToViemChainMap[chain as EvmChain];
   if (chainID) {
     try {
       if (chainID.id === walletClient.chain?.id) {

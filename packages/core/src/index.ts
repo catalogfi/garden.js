@@ -40,4 +40,8 @@ export type {
   Strategies,
 } from './lib/quote/quote.types';
 
-export { switchOrAddNetwork, constructOrderPair } from './lib/utils';
+export {
+  switchOrAddNetwork,
+  constructOrderPair,
+  evmToViemChainMap,
+} from './lib/utils';
