@@ -38,7 +38,7 @@ export default defineConfig({
         // ...[...builtinModules, ...builtinModules.map((m) => `node:${m}`)],
       ],
       output: {
-        preserveModules: true,
+        // preserveModules: true,
       },
     },
   },
