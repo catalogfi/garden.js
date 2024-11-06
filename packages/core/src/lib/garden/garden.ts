@@ -265,16 +265,6 @@ export class Garden implements IGardenJS {
     return Err(`Order not found, createOrder id: ${createOrderID}`);
   }
 
-  private emit<E extends keyof GardenEvents>(
-    event: E,
-    ...args: Parameters<GardenEvents[E]>
-  ): void {
-    const listeners = this.eventListeners.get(event) ?? [];
-    listeners.forEach((cb) => {
-      (cb as (...args: Parameters<GardenEvents[E]>) => void)(...args);
-    });
-  }
-
   async execute(interval: number = 5000): Promise<() => void> {
     return await this.orderBook.subscribeToOrders(
       true,
@@ -394,8 +384,8 @@ export class Garden implements IGardenJS {
       return;
     }
 
-    this.emit('success', order, OrderActions.Redeem, res.val);
     this.orderExecutorCache.set(order, OrderActions.Redeem, res.val);
+    this.emit('success', order, OrderActions.Redeem, res.val);
   }
 
   private async btcRedeem(
@@ -444,16 +434,16 @@ export class Garden implements IGardenJS {
           }
         }
         if (isValidRedeem) {
-          this.emit(
-            'log',
-            order.create_order.create_id,
-            'already a valid redeem',
-          );
           this.orderExecutorCache.set(
             order,
             OrderActions.Redeem,
             order.destination_swap.redeem_tx_hash,
             initTx,
+          );
+          this.emit(
+            'log',
+            order.create_order.create_id,
+            'already a valid redeem',
           );
           return;
         }
@@ -516,8 +506,8 @@ export class Garden implements IGardenJS {
       const res = await bitcoinExecutor.refund(
         order.create_order.additional_data?.bitcoin_optional_recipient,
       );
-      this.emit('success', order, OrderActions.Refund, res);
       this.orderExecutorCache.set(order, OrderActions.Refund, res);
+      this.emit('success', order, OrderActions.Refund, res);
     } catch (error) {
       this.emit('error', order, 'Failed btc refund: ' + error);
     }
@@ -533,6 +523,16 @@ export class Garden implements IGardenJS {
       default:
         return Err('Unsupported chain for wallet');
     }
+  }
+
+  private emit<E extends keyof GardenEvents>(
+    event: E,
+    ...args: Parameters<GardenEvents[E]>
+  ): void {
+    const listeners = this.eventListeners.get(event) ?? [];
+    listeners.forEach((cb) => {
+      (cb as (...args: Parameters<GardenEvents[E]>) => void)(...args);
+    });
   }
 
   on<E extends keyof GardenEvents>(event: E, cb: GardenEvents[E]): void {

@@ -148,6 +148,9 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     if (!walletClient || !auth)
       return Err('Orderbook or walletClient or auth not initialized');
 
+    if (isBitcoin(order.source_swap.chain))
+      return Err('Not an EVM order: sourceSwap.chain is Bitcoin');
+
     // Get current garden instance or create a new one
     let currentGarden = garden;
     if (!secretManager || !currentGarden) {
@@ -155,9 +158,6 @@ export const GardenProvider: FC<GardenProviderProps> = ({
       if (gardenRes.error) return Err(gardenRes.error);
       currentGarden = gardenRes.val;
     }
-
-    if (isBitcoin(order.source_swap.chain))
-      return Err('Not an EVM order: sourceSwap.chain is Bitcoin');
 
     // switch network if needed
     const switchRes = await switchOrAddNetwork(
@@ -184,17 +184,16 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     return Ok(updatedOrder);
   };
 
-  const getQuote = async ({
-    fromAsset,
-    toAsset,
-    amount,
-    isExactOut = false,
-  }: QuoteParams) =>
-    await quote.getQuote(
-      constructOrderpair(fromAsset, toAsset),
-      amount,
-      isExactOut,
-    );
+  const getQuote = useMemo(
+    () =>
+      async ({ fromAsset, toAsset, amount, isExactOut = false }: QuoteParams) =>
+        await quote.getQuote(
+          constructOrderpair(fromAsset, toAsset),
+          amount,
+          isExactOut,
+        ),
+    [quote],
+  );
 
   // initialize auth
   useEffect(() => {
