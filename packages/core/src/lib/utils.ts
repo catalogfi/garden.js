@@ -21,6 +21,7 @@ import { AsyncResult, Err, Ok, trim0x } from '@catalogfi/utils';
 import * as secp256k1 from 'tiny-secp256k1';
 import * as bitcoin from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
+import { NetworkType } from '@gardenfi/orderbook';
 
 interface EthereumWindow extends Window {
   ethereum?: any;
@@ -214,11 +215,12 @@ export const constructOrderPair = (
   ':' +
   destAsset.toLowerCase();
 
-export function validateBTCAddress(
-  address: string,
-  network: bitcoin.networks.Network,
-) {
+export function validateBTCAddress(address: string, networkType: NetworkType) {
   if (!address) return false;
+  const network =
+    networkType === 'mainnet'
+      ? bitcoin.networks.bitcoin
+      : bitcoin.networks.testnet;
   bitcoin.initEccLib(ecc);
   try {
     bitcoin.address.toOutputScript(address, network);
