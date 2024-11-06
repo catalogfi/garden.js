@@ -26,4 +26,12 @@ export class Url extends URL {
       throw new Error('Invalid protocol');
     }
   }
+
+  addSearchParams(params: Record<string, string>) {
+    const url = new URLSearchParams(this.search);
+    for (const key in params) {
+      url.set(key, params[key]);
+    }
+    return new Url(`${this.pathname}?${url.toString()}`, this);
+  }
 }

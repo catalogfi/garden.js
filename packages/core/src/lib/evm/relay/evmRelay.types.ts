@@ -1,6 +1,6 @@
 import { AsyncResult } from '@catalogfi/utils';
-import { MatchedOrder } from '@gardenfi/orderbook';
 import { IStore } from '@gardenfi/utils';
+import { WalletClient } from 'viem';
 
 export type EVMRelayOpts = {
   store?: IStore;
@@ -13,13 +13,10 @@ export interface IEVMRelay {
    * Sends the signature to the relay service.
    * @param order Matched Order
    * @param currentL1BlockNumber Current L1 block number. Used to calculate the swap expiry.
-   * @NOTE send the current block number of the L1 chain even if the order is on L2 chain.
+   * @NOTE send the current block number of the L1 chain, if the order is on L2 chain (arbitrum).
    * @returns txHash of Initiation
    */
-  init(
-    order: MatchedOrder,
-    currentL1BlockNumber: number,
-  ): AsyncResult<string, string>;
+  init(walletClient: WalletClient): AsyncResult<string, string>;
 
   /**
    * Redeems funds from the EVM atomic swap contract using relay service.

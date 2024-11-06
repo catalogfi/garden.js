@@ -1,6 +1,7 @@
 import { MatchedOrder } from '@gardenfi/orderbook';
-import { OrderActions, OrderStatus, SwapStatus } from './orderExecutor.types';
 import { Swap } from '@gardenfi/orderbook';
+import { OrderActions } from './garden.types';
+import { OrderStatus, SwapStatus } from '../status';
 
 /**
  * Parse the order status based on the current block number and checks if its expired or initiated or redeemed or refunded
@@ -25,36 +26,50 @@ export const ParseOrderStatus = (
   );
 
   //redeem check
-  if (sourceSwapStatus === SwapStatus.RedeemDetected)
-    return OrderStatus.CounterPartyRedeemDetected;
-  if (sourceSwapStatus === SwapStatus.Redeemed)
-    return OrderStatus.CounterPartyRedeemed;
   if (destSwapStatus === SwapStatus.RedeemDetected)
     return OrderStatus.RedeemDetected;
+  if (sourceSwapStatus === SwapStatus.Redeemed)
+    return OrderStatus.CounterPartyRedeemed;
+  if (sourceSwapStatus === SwapStatus.RedeemDetected)
+    return OrderStatus.CounterPartyRedeemDetected;
   if (destSwapStatus === SwapStatus.Redeemed) return OrderStatus.Redeemed;
 
-  //refund check
-  if (destSwapStatus === SwapStatus.RefundDetected)
-    return OrderStatus.CounterPartyRefundDetected;
-  if (destSwapStatus === SwapStatus.Refunded)
-    return OrderStatus.CounterPartyRefunded;
+  //source refund check
+  if (sourceSwapStatus === SwapStatus.Refunded) return OrderStatus.Refunded;
   if (sourceSwapStatus === SwapStatus.RefundDetected)
     return OrderStatus.RefundDetected;
-  if (sourceSwapStatus === SwapStatus.Refunded) return OrderStatus.Refunded;
 
   //expiry check
   if (destSwapStatus === SwapStatus.Expired)
     return OrderStatus.CounterPartySwapExpired;
   if (sourceSwapStatus === SwapStatus.Expired) return OrderStatus.Expired;
 
+  //dest refund check
+  if (destSwapStatus === SwapStatus.Refunded)
+    return OrderStatus.CounterPartyRefunded;
+  if (destSwapStatus === SwapStatus.RefundDetected)
+    return OrderStatus.CounterPartyRefundDetected;
+
+  const attestedDeadlineUnixTime = Number(
+    order.create_order.additional_data.deadline,
+  );
+
   //initiate check
-  if (destSwapStatus === SwapStatus.InitiateDetected)
-    return OrderStatus.CounterPartyInitiateDetected;
   if (destSwapStatus === SwapStatus.Initiated)
     return OrderStatus.CounterPartyInitiated;
+  if (destSwapStatus === SwapStatus.InitiateDetected)
+    return OrderStatus.CounterPartyInitiateDetected;
+
+  // Should be confirmed 12 hours before the deadline
+  if (isExpired(attestedDeadlineUnixTime, 12))
+    return OrderStatus.DeadLineExceeded;
+  if (sourceSwapStatus === SwapStatus.Initiated) return OrderStatus.Initiated;
+
+  //should initiate before 1 hour of deadline in attested quote
+  if (isExpired(attestedDeadlineUnixTime, 1))
+    return OrderStatus.DeadLineExceeded;
   if (sourceSwapStatus === SwapStatus.InitiateDetected)
     return OrderStatus.InitiateDetected;
-  if (sourceSwapStatus === SwapStatus.Initiated) return OrderStatus.Initiated;
 
   return OrderStatus.Matched;
 };
@@ -67,13 +82,13 @@ export const ParseOrderStatus = (
 export const ParseSwapStatus = (swap: Swap, currentBlockNumber: number) => {
   //redeem check
   if (swap.redeem_tx_hash) {
-    if (swap.redeem_block_number) return SwapStatus.Redeemed;
+    if (Number(swap.redeem_block_number)) return SwapStatus.Redeemed;
     return SwapStatus.RedeemDetected;
   }
 
   //refund check
   if (swap.refund_tx_hash) {
-    if (swap.refund_block_number) return SwapStatus.Refunded;
+    if (Number(swap.refund_block_number)) return SwapStatus.Refunded;
     return SwapStatus.RefundDetected;
   }
 
@@ -86,9 +101,10 @@ export const ParseSwapStatus = (swap: Swap, currentBlockNumber: number) => {
 
   //initiate check
   if (swap.initiate_tx_hash) {
-    if (swap.initiate_block_number) return SwapStatus.Initiated;
+    if (Number(swap.initiate_block_number)) return SwapStatus.Initiated;
     return SwapStatus.InitiateDetected;
   }
+
   return SwapStatus.Idle;
 };
 
@@ -110,15 +126,59 @@ export const parseAction = (
     sourceChainCurrentBlockNumber,
     destChainCurrentBlockNumber,
   );
-  console.log('orderStatus :', orderStatus);
-  switch (orderStatus) {
+
+  return parseActionFromStatus(orderStatus);
+};
+
+/**
+ * Parse the action to be performed on the order based on the order status.
+ * @param status Order status
+ * @returns {OrderActions} The action to be performed on the order
+ */
+export const parseActionFromStatus = (status: OrderStatus): OrderActions => {
+  switch (status) {
     case OrderStatus.Matched:
       return OrderActions.Initiate;
     case OrderStatus.CounterPartyInitiated:
+    case OrderStatus.CounterPartyInitiateDetected:
+    case OrderStatus.RedeemDetected:
       return OrderActions.Redeem;
     case OrderStatus.Expired:
       return OrderActions.Refund;
     default:
       return OrderActions.Idle;
   }
+};
+
+export const isExpired = (unixTime: number, tillHours = 0): boolean => {
+  const currentTime = Date.now();
+  const expiryTime = unixTime * 1000 + tillHours * 3600000;
+  return currentTime >= expiryTime;
+};
+
+export const filterDeadlineExpiredOrders = (
+  orders: MatchedOrder[],
+): MatchedOrder[] => {
+  return orders.filter((order) => {
+    const { source_swap, create_order } = order;
+    const { initiate_tx_hash, initiate_block_number } = source_swap;
+    const { deadline } = create_order.additional_data;
+
+    // Initiated and confirmed
+    if (initiate_tx_hash && Number(initiate_block_number)) {
+      return true;
+    }
+
+    // Initiated but not confirmed yet, check for 12-hour deadline
+    if (initiate_tx_hash && !Number(initiate_block_number)) {
+      return !isExpired(Number(deadline), 12);
+    }
+
+    // Not initiated yet, check for 1-hour deadline
+    if (!initiate_tx_hash) {
+      return !isExpired(Number(deadline), 1);
+    }
+
+    return true;
+  });
 };

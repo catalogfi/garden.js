@@ -42,6 +42,9 @@ export class GardenHTLC implements IHTLCWallet {
   // Amount to initiate the HTLC
   private initiateAmount: number;
 
+  // UTXO hashes which will be used instead of fetching from the rpcs
+  private utxoHashes?: string[];
+
   /**
    * Note: redeemerAddress and initiatorAddress should be x-only public key without 02 or 03 prefix
    */
@@ -53,6 +56,7 @@ export class GardenHTLC implements IHTLCWallet {
     initiatorPubkey: string,
     expiry: number,
     network: bitcoin.networks.Network,
+    utxoHashes?: string[],
   ) {
     this.secretHash = secretHash;
     this.redeemerPubkey = redeemerPubkey;
@@ -62,6 +66,7 @@ export class GardenHTLC implements IHTLCWallet {
     this.network = network;
     this.internalPubkey = generateInternalkey();
     this.initiateAmount = initiateAmount;
+    this.utxoHashes = utxoHashes;
   }
 
   /**
@@ -84,6 +89,7 @@ export class GardenHTLC implements IHTLCWallet {
     initiatorPubkey: string,
     redeemerPubkey: string,
     expiry: number,
+    utxoHashes?: string[],
   ): Promise<GardenHTLC> {
     // trim 0x prefix if present
     secretHash = secretHash.startsWith('0x') ? secretHash.slice(2) : secretHash;
@@ -110,6 +116,7 @@ export class GardenHTLC implements IHTLCWallet {
       xOnlyPubkey(initiatorPubkey).toString('hex'),
       expiry,
       network,
+      utxoHashes,
     );
   }
 
@@ -138,7 +145,26 @@ export class GardenHTLC implements IHTLCWallet {
 
     const address = this.address();
     const provider = await this.signer.getProvider();
-    const utxos = await provider.getUTXOs(address);
+
+    let utxos: BitcoinUTXO[] = [];
+    if (this.utxoHashes && this.utxoHashes.length > 0) {
+      for (const utxoHash of this.utxoHashes) {
+        const tx = await provider.getTransaction(utxoHash);
+        for (let i = 0; i < tx.vout.length; i++) {
+          const vout = tx.vout[i];
+          if (vout.scriptpubkey_address === address) {
+            utxos.push({
+              txid: tx.txid,
+              vout: i,
+              value: vout.value,
+              status: { confirmed: false },
+            });
+          }
+        }
+      }
+    } else {
+      utxos = await provider.getUTXOs(address);
+    }
     const balance = utxos.reduce((acc, utxo) => acc + utxo.value, 0);
     if (balance === 0) throw new Error(`${address} ${htlcErrors.notFunded}`);
 

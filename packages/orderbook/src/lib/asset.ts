@@ -9,10 +9,14 @@ export type AssetCommon = {
 
 export type AssetToken = AssetCommon & {
   tokenAddress: string;
-  isToken: true;
 };
 
 export type Asset = AssetToken;
+
+export enum BlockchainType {
+  Bitcoin = 'Bitcoin',
+  EVM = 'EVM',
+}
 
 export enum NetworkType {
   mainnet = 'mainnet',
@@ -39,7 +43,9 @@ export const Chains = {
   ethereum_arbitrum: 'ethereum_arbitrum',
   ethereum_sepolia: 'ethereum_sepolia',
   arbitrum_localnet: 'arbitrum_localnet',
+  arbitrum_sepolia: 'arbitrum_sepolia',
   ethereum_localnet: 'ethereum_localnet',
+  base_sepolia: 'base_sepolia',
 } as const;
 
 export type Chain = keyof typeof Chains;
@@ -55,7 +61,9 @@ export const isMainnet = (chain: Chain) => {
     chain === Chains.bitcoin_testnet ||
     chain === Chains.bitcoin_regtest ||
     chain === Chains.arbitrum_localnet ||
-    chain === Chains.ethereum_localnet
+    chain === Chains.ethereum_localnet ||
+    chain === Chains.arbitrum_sepolia ||
+    chain === Chains.base_sepolia
   );
 };
 
@@ -73,6 +81,14 @@ export const isEVM = (chain: Chain) => {
     chain === Chains.ethereum_arbitrum ||
     chain === Chains.ethereum_sepolia ||
     chain === Chains.ethereum_localnet ||
-    chain === Chains.arbitrum_localnet
+    chain === Chains.arbitrum_localnet ||
+    chain === Chains.arbitrum_sepolia ||
+    chain === Chains.base_sepolia
   );
+};
+
+export const getBlockchainType = (chain: Chain) => {
+  if (isBitcoin(chain)) return BlockchainType.Bitcoin;
+  if (isEVM(chain)) return BlockchainType.EVM;
+  throw new Error('Invalid or unsupported chain');
 };

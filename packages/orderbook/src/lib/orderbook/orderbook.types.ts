@@ -1,6 +1,6 @@
 import { WalletClient } from 'viem';
 import { AsyncResult } from '@catalogfi/utils';
-import { APIResponse, IStore } from '@gardenfi/utils';
+import { APIResponse, IAuth, IStore } from '@gardenfi/utils';
 import { Asset, Chain } from '../asset';
 import { IOrderProvider } from '../orders/orders.types';
 
@@ -80,7 +80,7 @@ export type OrderbookOpts = {
 export interface OrderbookConfig {
   url?: string;
   walletClient: WalletClient;
-  opts?: OrderbookOpts;
+  auth: IAuth;
 }
 
 /**
@@ -103,7 +103,9 @@ export interface IOrderbook extends IOrderProvider {
    * @param {CreateOrderConfig} orderConfig - The configuration for the creating the order.
    * @returns {number} The create order ID.
    */
-  createOrder(orderConfig: CreateOrderConfig): AsyncResult<string, string>;
+  createOrder(
+    order: CreateOrderRequestWithAdditionalData,
+  ): AsyncResult<string, string>;
 
   /**
    * Wrapper for the getOrder method in the OrdersProvider class to abstract the address parameter.
@@ -135,8 +137,8 @@ export interface IOrderbook extends IOrderProvider {
     cb: (
       orders: PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
     ) => Promise<void>,
-    pending?: boolean,
     paginationConfig?: PaginationConfig,
+    pending?: boolean,
   ): Promise<() => void>;
 
   /**
@@ -157,6 +159,29 @@ export type Orders = {
   matched: PaginatedData<MatchedOrder[]>;
 };
 
+export type AdditionalData = {
+  additional_data: {
+    strategy_id: string;
+    sig: string;
+    input_token_price: number;
+    output_token_price: number;
+    deadline: string;
+    bitcoin_optional_recipient?: string;
+    [key: string]: any;
+  };
+};
+
+export type AdditionalDataWithStrategyId = {
+  additional_data: {
+    strategy_id: string;
+    bitcoin_optional_recipient?: string;
+    [key: string]: any;
+  };
+};
+
+export type CreateOrderReqWithStrategyId = CreateOrderRequest &
+  AdditionalDataWithStrategyId;
+
 export type CreateOrderRequest = {
   source_chain: string;
   destination_chain: string;
@@ -171,12 +196,12 @@ export type CreateOrderRequest = {
   min_destination_confirmations: number;
   timelock: number;
   secret_hash: string;
-  additional_data?: {
-    bitcoin_optional_recipient: string;
-  };
 };
 
-export type CreateOrder = CreateOrderRequest & {
+export type CreateOrderRequestWithAdditionalData = CreateOrderRequest &
+  AdditionalData;
+
+export type CreateOrder = CreateOrderRequestWithAdditionalData & {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;

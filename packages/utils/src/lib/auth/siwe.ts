@@ -1,11 +1,12 @@
 import { IAuth, SiweOpts } from './auth.types';
-import { SiweMessage } from 'siwe';
 import { AsyncResult, Err, Fetcher, Ok, Result } from '@catalogfi/utils';
 import { Url } from '../url';
 import { MemoryStorage } from '../store/memoryStorage';
 import { IStore, StoreKeys } from '../store/store.interface';
 import { APIResponse } from '../apiResponse.types';
 import { WalletClient } from 'viem';
+import { createSiweMessage } from 'viem/siwe';
+import { jwtDecode } from 'jwt-decode';
 
 export class Siwe implements IAuth {
   private readonly API = 'https://api.garden.finance';
@@ -29,10 +30,9 @@ export class Siwe implements IAuth {
   }
 
   verifyToken(token: string, account: string): Result<boolean, string> {
-    const parsedToken = parseJwt(token);
-    if (!parsedToken) return Ok(false);
-
     try {
+      const parsedToken = parseJwt(token);
+      if (!parsedToken) return Ok(false);
       const utcTimestampNow = Math.floor(Date.now() / 1000) + 120; // auth should be valid for atleast 2 minutes
       return Ok(
         parsedToken.exp > utcTimestampNow &&
@@ -95,8 +95,8 @@ export class Siwe implements IAuth {
     },
     string
   > {
-    if (!this.walletClient.chain?.id || !this.walletClient.account?.address) {
-      return Err('Wallet client does not have a chain');
+    if (!this.walletClient.account?.address) {
+      return Err('Wallet client does not have a valid account');
     }
     const date = new Date();
     const expirationTime = new Date(date.getTime() + 300 * 1000); //message expires in 5min
@@ -109,8 +109,9 @@ export class Siwe implements IAuth {
       return Err('Failed to get nonce');
     }
 
-    const chainID = this.walletClient.chain?.id;
-    const message = new SiweMessage({
+    const chainID = await this.walletClient.getChainId();
+
+    const message = createSiweMessage({
       domain: this.domain,
       address: this.walletClient.account.address,
       statement: this.signingStatement,
@@ -118,29 +119,28 @@ export class Siwe implements IAuth {
       uri: 'https://' + this.domain,
       version: '1',
       chainId: chainID,
-      expirationTime: expirationTime.toISOString(),
+      notBefore: expirationTime,
     });
-    const preparedMessage = message.prepareMessage();
+
     const signature = await this.walletClient.signMessage({
       account: this.walletClient.account,
-      message: preparedMessage,
+      message,
     });
 
     return Ok({
-      message: preparedMessage,
+      message,
       signature,
       nonce,
     });
   }
 }
 
-const parseJwt = (token: string) => {
+export const parseJwt = (token: string) => {
   try {
-    if (token.split('.').length < 3) return;
-    const jwt = token.split('.')[1];
-    if (!jwt) return;
-    //TODO: check this again
-    return JSON.parse(Buffer.from(jwt, 'base64').toString('latin1'));
+    return jwtDecode(token) as {
+      address: string;
+      exp: number;
+    };
   } catch {
     return;
   }

@@ -1,8 +1,3 @@
-import { AsyncResult } from '@catalogfi/utils';
-import { IBitcoinWallet } from '@catalogfi/wallets';
-import { WalletClient } from 'viem';
-import { MatchedOrder } from '@gardenfi/orderbook';
-
 /**
  * Order statuses
  */
@@ -90,11 +85,13 @@ export enum OrderStatus {
   CounterPartyRefunded = 'CounterPartyRefunded',
   /**
    * - Order is cancelled
-   * - There are some cases where the order is cancelled:
-   *   1) Not matched within 1 hour.
-   *   2) Both parties refund.
    */
   Cancelled = 'Cancelled',
+  /**
+   * - DeadLine exceeded
+   * - Initiate not detected before 1 hour of deadline or initiate not confirmed before 12 hours of deadline
+   */
+  DeadLineExceeded = 'DeadLineExceeded',
 }
 
 export enum SwapStatus {
@@ -131,71 +128,4 @@ export enum SwapStatus {
    * - Should refund.
    */
   Expired = 'Expired',
-}
-
-export enum OrderActions {
-  Idle = 'Idle',
-  Initiate = 'Initiate',
-  Redeem = 'Redeem',
-  Refund = 'Refund',
-}
-
-export type ExecuteParams = {
-  wallets: {
-    source: IBitcoinWallet | WalletClient;
-    destination: IBitcoinWallet | WalletClient;
-  };
-  blockNumbers?: {
-    source: number;
-    destination: number;
-  };
-};
-
-/**
- * This is a generic interface for Order. Use this interface to perform operations on the order (init, redeem, refund, execute).
- */
-export interface IOrderExecutor {
-  /**
-   * Get the order details.
-   * @returns MatchedOrder
-   */
-  getOrder(): MatchedOrder;
-
-  /**
-   * Redeem the funds from the atomic swap contract.
-   */
-  redeem(
-    wallet: WalletClient | IBitcoinWallet,
-    secret: string,
-  ): AsyncResult<string, string>;
-  /**
-   * Refund the funds from the atomic swap contract after expiry.
-   */
-  refund(wallet: IBitcoinWallet): AsyncResult<string, string>;
-  /**
-   * This will take care of order execution according to its current status, i.e., redeem or refund.
-   *
-   * Redeem:- Both EVM and BTC redeems are done by executor, and only BTC refund is done by executor.
-   * EVM refund is done automatically by the relayer service.
-   */
-  execute(params: ExecuteParams): AsyncResult<string | void, string>;
-}
-
-export enum OrderCacheAction {
-  init = 'init',
-  redeem = 'redeem',
-  refund = 'refund',
-}
-
-export type OrderCacheValue = {
-  txHash: string;
-  timeStamp: number;
-};
-
-export interface IOrderCache {
-  getOrder(): MatchedOrder;
-  set(action: OrderCacheAction, txHash: string): void;
-  get(action: OrderCacheAction): OrderCacheValue | null;
-  remove(action: OrderCacheAction): void;
-  deleteHistory(): void;
 }

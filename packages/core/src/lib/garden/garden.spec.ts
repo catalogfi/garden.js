@@ -1,15 +1,17 @@
+import { Quote } from './../quote/quote';
 import { Garden } from './garden';
 import { SecretManager } from './../secretManager/secretManager';
-import { sleep, with0x } from '@gardenfi/utils';
+import { MemoryStorage, Siwe, Url, with0x } from '@gardenfi/utils';
 import { createWalletClient, http, WalletClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { beforeAll, describe, expect, it } from 'vitest';
+import { ArbitrumLocalnet, createOrderObject } from '../testUtils';
 import {
-  ArbitrumLocalnet,
-  createOrderObject,
+  Chain,
+  Chains,
   EthereumLocalnet,
-} from '../testUtils';
-import { Chain, Chains, MatchedOrder, Orderbook } from '@gardenfi/orderbook';
+  MatchedOrder,
+} from '@gardenfi/orderbook';
 import { ISecretManager } from '../secretManager/secretManager.types';
 import {
   BitcoinNetwork,
@@ -17,14 +19,17 @@ import {
   BitcoinWallet,
   IBitcoinProvider,
 } from '@catalogfi/wallets';
-// import { toXOnly } from '../utils';
+import { EvmRelay } from '../evm/relay/evmRelay';
+import { sleep } from '@catalogfi/utils';
 
 describe('garden', () => {
   const orderBookApi = 'http://localhost:4426';
+  const quoteApi = 'http://localhost:6969';
   const bitcoinProviderApi = 'http://localhost:30000';
   const pk =
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
   const account = privateKeyToAccount(with0x(pk));
+  console.log('account :', account.address);
 
   const arbitrumWalletClient = createWalletClient({
     account,
@@ -37,10 +42,10 @@ describe('garden', () => {
     transport: http(),
   });
 
-  const orderBook = new Orderbook({
-    url: orderBookApi,
-    walletClient: arbitrumWalletClient,
+  const auth = new Siwe(new Url(orderBookApi), arbitrumWalletClient, {
+    store: new MemoryStorage(),
   });
+  const quote = new Quote(quoteApi);
 
   let secretManager: ISecretManager;
   let garden: Garden;
@@ -59,7 +64,15 @@ describe('garden', () => {
     expect(result.val).toBeTruthy();
 
     secretManager = result.val;
-    garden = new Garden(orderBook, orderBookApi, secretManager);
+    garden = new Garden({
+      orderbookURl: orderBookApi,
+      secretManager,
+      quote,
+      auth: auth,
+      wallets: {
+        evmWallet: arbitrumWalletClient,
+      },
+    });
     evmAddress = arbitrumWalletClient.account.address;
     bitcoinProvider = new BitcoinProvider(
       BitcoinNetwork.Regtest,
@@ -71,6 +84,7 @@ describe('garden', () => {
     );
     btcPubkey = await btcWallet.getPublicKey();
     btcAddress = await btcWallet.getAddress();
+
     if (
       !secretManager ||
       !btcPubkey ||
@@ -79,9 +93,9 @@ describe('garden', () => {
       !btcWallet ||
       !evmAddress ||
       !btcAddress
-    ) {
+    )
       throw new Error('Failed to initialize');
-    }
+
     wallets = {
       [Chains.arbitrum_localnet]: arbitrumWalletClient,
       [Chains.ethereum_localnet]: ethereumWalletClient,
@@ -89,7 +103,7 @@ describe('garden', () => {
     };
   });
 
-  let orderId: string;
+  let order: MatchedOrder;
 
   it('should create an order', async () => {
     // const order = createOrderObject(
@@ -106,66 +120,46 @@ describe('garden', () => {
     //   evmAddress,
     //   btcAddress,
     // );
-    const order = createOrderObject(
+    const orderObj = createOrderObject(
       Chains.arbitrum_localnet,
       Chains.ethereum_localnet,
-      arbitrumWalletClient.account.address,
-      ethereumWalletClient.account.address,
+      'alel12',
     );
 
-    const result = await garden.swap(order);
+    const result = await garden.swap(orderObj);
+    if (result.error) {
+      console.log('error while creating order ❌ :', result.error);
+      throw new Error(result.error);
+    }
 
-    orderId = result.val;
-    console.log('orderIds :', orderId);
-    if (!orderId) {
+    order = result.val;
+    console.log('orderCreated and matched ✅ ', order.create_order.create_id);
+    if (!order) {
       throw new Error('Order id not found');
     }
+
     expect(result.error).toBeFalsy();
     expect(result.val).toBeTruthy();
-  });
+  }, 60000);
 
-  it('order should be matched', async () => {
-    if (!orderId) {
-      throw new Error('Order id not found');
-    }
-
-    let order: MatchedOrder | null = null;
-    while (!order) {
-      const res = await orderBook.getOrder(orderId, true);
-      order = res.val;
-      if (!order) {
-        console.log('unmatched');
-        await sleep(1000);
-      }
-    }
-
-    console.log('matched');
+  //TODO: also add bitcoin init
+  it('Initiate the swap', async () => {
+    const evmRelay = new EvmRelay(order, orderBookApi, auth);
+    const res = await evmRelay.init(
+      wallets[order.source_swap.chain] as WalletClient,
+    );
+    console.log('initiated ✅ :', res.val);
+    if (res.error) console.log('init error ❌ :', res.error);
+    expect(res.ok).toBeTruthy();
   }, 20000);
 
   it('subscribe to orders and execute', async () => {
-    await garden.subscribeOrders(async (orderExecutor) => {
-      const sourceWallet = wallets[orderExecutor.getOrder().source_swap.chain];
-      const destWallet =
-        wallets[orderExecutor.getOrder().destination_swap.chain];
-
-      if (!sourceWallet || !destWallet) {
-        throw new Error('Wallets not found');
-      }
-
-      if (orderExecutor.getOrder().create_order.create_id === orderId) {
-        console.log(
-          'executing order ',
-          orderExecutor.getOrder().create_order.create_id,
-        );
-        const res = await orderExecutor.execute({
-          wallets: {
-            source: sourceWallet,
-            destination: destWallet,
-          },
-        });
-        console.log('execute result :', res.val);
-        console.log('execute error: ', res.error);
-      }
+    await garden.execute();
+    garden.on('error', (order, error) => {
+      console.log('error while executing ❌', error);
+    });
+    garden.on('success', (order, action, result) => {
+      console.log('executed ✅ ', action, result);
     });
     await sleep(150000);
   }, 150000);

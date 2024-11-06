@@ -3,9 +3,6 @@ import { erc20Abi, getContract, maxUint256, WalletClient } from 'viem';
 import { with0x } from './utils';
 import { waitForTransactionReceipt } from 'viem/actions';
 
-/**
- * @description approves the staking contract to spend the SEED tokens.
- */
 export const checkAllowanceAndApprove = async (
   amount: number,
   tokenAddress: string,
@@ -20,12 +17,9 @@ export const checkAllowanceAndApprove = async (
     client: walletClient,
   });
 
-  const accountAddress = await walletClient.getAddresses();
-  if (!accountAddress[0]) return Err('No account found');
-
   try {
     const allowance = await erc20Contract.read.allowance([
-      with0x(accountAddress[0]),
+      with0x(walletClient.account.address),
       with0x(contractAddress),
     ]);
 

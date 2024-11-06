@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useGarden } from '@gardenfi/react-hooks';
 import { useAccount, useChainId, useConnect, useWalletClient } from 'wagmi';
-import { switchOrAddNetwork } from '@gardenfi/utils';
 import {
   bitcoinRegtestAsset,
   Chains,
@@ -9,6 +8,7 @@ import {
   WBTCEthereumLocalnetAsset,
 } from '@gardenfi/orderbook';
 import './App.css';
+import { switchOrAddNetwork } from '@gardenfi/core';
 
 const chainToAsset = {
   ethereum_localnet: WBTCEthereumLocalnetAsset,
@@ -218,13 +218,15 @@ function App() {
 
             setLoading(true);
             const res = await swap({
-              sendAddress: EvmAddress,
-              receiveAddress: EvmAddress,
               fromAsset: swapParams.inputToken,
               toAsset: swapParams.outputToken,
               sendAmount: sendAmount.toString(),
               receiveAmount: receiveAmount.toString(),
               minDestinationConfirmations: 3,
+              additionalData: {
+                btcAddress: swapParams.btcAddress,
+                strategyId: '1',
+              },
             });
             setLoading(false);
             console.log('res.error :', res.error);
