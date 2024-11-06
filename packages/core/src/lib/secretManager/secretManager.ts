@@ -1,6 +1,6 @@
 import { Err, Ok, trim0x } from '@catalogfi/utils';
 import { sha256, WalletClient } from 'viem';
-import { ECPairFactory } from 'ecpair';
+import ECPairFactory from 'ecpair';
 import * as ecc from 'tiny-secp256k1';
 import { with0x } from '@gardenfi/utils';
 import { ISecretManager } from './secretManager.types';

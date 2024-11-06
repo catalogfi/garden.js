@@ -44,4 +44,5 @@ export {
   switchOrAddNetwork,
   constructOrderPair,
   evmToViemChainMap,
+  validateBTCAddress,
 } from './lib/utils';

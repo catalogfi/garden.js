@@ -19,6 +19,8 @@ import { createWalletClient, custom, sha256, WalletClient } from 'viem';
 import * as varuint from 'varuint-bitcoin';
 import { AsyncResult, Err, Ok, trim0x } from '@catalogfi/utils';
 import * as secp256k1 from 'tiny-secp256k1';
+import * as bitcoin from 'bitcoinjs-lib';
+import * as ecc from 'tiny-secp256k1';
 
 interface EthereumWindow extends Window {
   ethereum?: any;
@@ -211,3 +213,18 @@ export const constructOrderPair = (
   destChain +
   ':' +
   destAsset.toLowerCase();
+
+export function validateBTCAddress(
+  address: string,
+  network: bitcoin.networks.Network,
+) {
+  if (!address) return false;
+  bitcoin.initEccLib(ecc);
+  try {
+    bitcoin.address.toOutputScript(address, network);
+    return true;
+  } catch (e) {
+    // console.error(e);
+    return false;
+  }
+}

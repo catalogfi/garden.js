@@ -16,10 +16,7 @@ export interface IEVMRelay {
    * @NOTE send the current block number of the L1 chain, if the order is on L2 chain (arbitrum).
    * @returns txHash of Initiation
    */
-  init(
-    walletClient: WalletClient,
-    currentL1BlockNumber: number,
-  ): AsyncResult<string, string>;
+  init(walletClient: WalletClient): AsyncResult<string, string>;
 
   /**
    * Redeems funds from the EVM atomic swap contract using relay service.

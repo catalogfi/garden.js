@@ -1,4 +1,4 @@
-import { checkAllowanceAndApprove, fetchEVMBlockNumber } from '@gardenfi/utils';
+import { checkAllowanceAndApprove } from '@gardenfi/utils';
 import { WalletClient, getContract } from 'viem';
 import { MatchedOrder } from '@gardenfi/orderbook';
 import { IEVMRelay } from './evmRelay.types';
@@ -10,9 +10,7 @@ import {
   Url,
   with0x,
 } from '@gardenfi/utils';
-import { ParseSwapStatus } from '../../garden/orderStatusParser';
 import { AtomicSwapABI } from '../abi/atomicSwap';
-import { SwapStatus } from './../../status';
 
 export class EvmRelay implements IEVMRelay {
   private url: Url;
@@ -25,28 +23,13 @@ export class EvmRelay implements IEVMRelay {
     this.order = order;
   }
 
-  async init(
-    walletClient: WalletClient,
-    currentL1BlockNumber?: number,
-  ): AsyncResult<string, string> {
+  async init(walletClient: WalletClient): AsyncResult<string, string> {
     if (!walletClient.account) return Err('No account found');
     if (
       walletClient.account.address.toLowerCase() !==
       this.order.source_swap.initiator.toLowerCase()
     )
       return Err('Account address and order initiator mismatch');
-
-    if (!currentL1BlockNumber) {
-      const blockNumber = await fetchEVMBlockNumber(walletClient);
-      if (blockNumber.error) return Err(blockNumber.error);
-      currentL1BlockNumber = blockNumber.val;
-    }
-
-    const swapStatus = ParseSwapStatus(
-      this.order.source_swap,
-      currentL1BlockNumber,
-    );
-    if (swapStatus !== SwapStatus.Idle) return Err('Invalid swap status');
 
     const { create_order, source_swap } = this.order;
 
