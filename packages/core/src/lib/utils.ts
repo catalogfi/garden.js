@@ -126,10 +126,19 @@ export const isValidBitcoinPubKey = (pubKey: string): boolean => {
   }
 };
 
+const updatedSepolia = {
+  ...sepolia,
+  rpcUrls: {
+    default: {
+      http: ['https://ethereum-sepolia-rpc.publicnode.com'],
+    },
+  },
+};
+
 export const evmToViemChainMap: Record<EvmChain, viemChain> = {
   ethereum: mainnet,
   ethereum_arbitrum: arbitrum,
-  ethereum_sepolia: sepolia,
+  ethereum_sepolia: updatedSepolia,
   arbitrum_sepolia: arbitrumSepolia,
   ethereum_localnet: EthereumLocalnet,
   arbitrum_localnet: ArbitrumLocalnet,
