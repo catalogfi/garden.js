@@ -59,7 +59,7 @@ export const WBTCEthereumLocalnetAsset: Asset = {
 
 type SupportedAssets = {
   [chain in NetworkType]: {
-    [asset: string]: Asset;
+    [chain_asset: string]: Asset;
   };
 };
 
