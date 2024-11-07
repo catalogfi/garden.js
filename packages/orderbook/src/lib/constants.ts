@@ -65,11 +65,13 @@ type SupportedAssets = {
 
 export const SupportedAssets: SupportedAssets = {
   localnet: {
-    [Chains.arbitrum_localnet]: WBTCArbitrumLocalnetAsset,
-    [Chains.ethereum_localnet]: WBTCEthereumLocalnetAsset,
+    [`${Chains.arbitrum_localnet}_0xdc64a140aa3e981100a9beca4e685f962f0cf6c9`]:
+      WBTCArbitrumLocalnetAsset,
+    [`${Chains.ethereum_localnet}_0xe7f1725e7734ce288f8367e1bb143e90bb3f0512`]:
+      WBTCEthereumLocalnetAsset,
   },
   testnet: {
-    [Chains.bitcoin_testnet]: {
+    [`${Chains.bitcoin_testnet}_primary`]: {
       name: 'BTC',
       decimals: 8,
       symbol: 'BTC',
@@ -77,22 +79,42 @@ export const SupportedAssets: SupportedAssets = {
       tokenAddress: 'primary',
       atomicSwapAddress: 'primary',
     },
-    [Chains.ethereum_sepolia]: {
-      name: 'WBTC',
+    [`${Chains.ethereum_sepolia}_0x3c6a17b8cd92976d1d91e491c93c98cd81998265`]: {
+      name: 'Wrapped Bitcoin',
       decimals: 8,
       symbol: 'WBTC',
       chain: Chains.ethereum_sepolia,
-      tokenAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
-      atomicSwapAddress: '0x1cd0bBd55fD66B4C5F7dfE434eFD009C09e628d1',
-    },
-    [Chains.arbitrum_sepolia]: {
-      name: 'WBTC',
-      decimals: 8,
-      symbol: 'WBTC',
-      chain: Chains.ethereum_sepolia,
+      logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
       tokenAddress: '0x4D68da063577F98C55166c7AF6955cF58a97b20A',
       atomicSwapAddress: '0x3C6a17b8cD92976D1D91E491c93c98cd81998265',
     },
+    [`${Chains.arbitrum_sepolia}_0x1cd0bbd55fd66b4c5f7dfe434efd009c09e628d1`]: {
+      name: 'Wrapped Bitcoin',
+      decimals: 8,
+      symbol: 'WBTC',
+      logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
+      chain: Chains.arbitrum_sepolia,
+      tokenAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
+      atomicSwapAddress: '0x1cd0bBd55fD66B4C5F7dfE434eFD009C09e628d1',
+    },
+    [`${Chains.arbitrum_sepolia}_0xd5fedb4cecb0f1d32788a190d9eb47d94d23ee4e`]: {
+      name: 'Seed',
+      decimals: 18,
+      symbol: 'SEED',
+      chain: Chains.arbitrum_sepolia,
+      logo: 'https://garden-finance.imgix.net/token-images/seed.svg',
+      tokenAddress: '0x13DCec0762EcC5E666c207ab44Dc768e5e33070F',
+      atomicSwapAddress: '0xD5FeDb4ceCB0F1D32788a190d9EB47D94D23eE4e',
+    },
+    [`${Chains.base_sepolia}_0x00ab86f54f436cfe15253845f139955ae0c00baf`]: {
+      name: 'Wrapped Bitcoin',
+      decimals: 8,
+      symbol: 'WBTC',
+      chain: Chains.base_sepolia,
+      logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
+      tokenAddress: '0x13DCec0762EcC5E666c207ab44Dc768e5e33070F',
+      atomicSwapAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
+    },
   },
   mainnet: {},
-};
+} as const;
