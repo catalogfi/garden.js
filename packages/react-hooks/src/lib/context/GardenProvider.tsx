@@ -102,7 +102,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     return Ok(garden);
   };
 
-  const swap = async (params: SwapParams) => {
+  const swapAndInitiate = async (params: SwapParams) => {
     if (!orderbook || !walletClient || !auth)
       return Err('Orderbook or walletClient or auth not initialized');
 
@@ -250,7 +250,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         orderBookUrl: config.orderBookUrl,
         initializeSecretManager,
         orderBook: orderbook,
-        swap,
+        swapAndInitiate,
         pendingOrders,
         getQuote,
         secretManager,

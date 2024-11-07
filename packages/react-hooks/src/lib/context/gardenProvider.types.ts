@@ -29,7 +29,7 @@ export type GardenContextType = {
    * @params {SwapParams} - The parameters for creating the order.
    * @returns {AsyncResult<string, string>} - create order ID.
    */
-  swap?: (params: SwapParams) => AsyncResult<MatchedOrder, string>;
+  swapAndInitiate?: (params: SwapParams) => AsyncResult<MatchedOrder, string>;
   /**
    * Get all the pending orders of the user. This will return all the orders that are yet to be initiated, redeemed, or refunded.
    * It will not return orders that have expired (deadline expiry).
