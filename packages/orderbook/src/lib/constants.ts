@@ -1,5 +1,5 @@
 import { Chain } from 'viem';
-import { Asset, Chains } from './asset';
+import { Asset, Chains, NetworkType } from './asset';
 
 export const ArbitrumLocalnet: Chain = {
   id: 31338,
@@ -58,7 +58,7 @@ export const WBTCEthereumLocalnetAsset: Asset = {
 };
 
 type SupportedAssets = {
-  [chain: string]: {
+  [chain in NetworkType]: {
     [asset: string]: Asset;
   };
 };
