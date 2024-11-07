@@ -3,8 +3,7 @@ import { Balance, Network } from './bitcoin.types';
 
 const BitcoinExplorers = {
   testnet: {
-    Mempool: 'https://mempool.space/testnet',
-    Blockstream: 'https://blockstream.info/testnet',
+    Mempool: 'https://mempool.space/testnet4',
   },
   mainnet: {
     Mempool: 'https://mempool.space',
@@ -32,22 +31,23 @@ type BalanceResponse = {
 
 export const getBalance = async (
   address: string,
-  network: Network
+  network: Network,
 ): AsyncResult<Balance, string> => {
   const explorers = BitcoinExplorers[network];
   if (!explorers) return Err('Invalid network');
 
-  const blockstreamUrl = `${explorers.Blockstream}/api/address/${address}`;
+  const blockstreamUrl =
+    'Blockstream' in explorers
+      ? `${explorers.Blockstream}/api/address/${address}`
+      : null;
   const mempoolUrl = `${explorers.Mempool}/api/address/${address}`;
 
   try {
-    const response = await Fetcher.getWithFallback<BalanceResponse>(
-      [blockstreamUrl, mempoolUrl],
-      {
-        retryCount: 3,
-        retryDelay: 1000,
-      }
-    );
+    const urls = blockstreamUrl ? [blockstreamUrl, mempoolUrl] : [mempoolUrl];
+    const response = await Fetcher.getWithFallback<BalanceResponse>(urls, {
+      retryCount: 3,
+      retryDelay: 1000,
+    });
 
     const confirmedBalanceSatoshis =
       response.chain_stats.funded_txo_sum - response.chain_stats.spent_txo_sum;

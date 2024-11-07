@@ -4,7 +4,7 @@ import {
   Network,
 } from '../../bitcoin.types';
 import { XVerseBitcoinProvider } from './xverse.types';
-import { AsyncResult, Err, executeWithTryCatch, Ok, Void } from '@catalogfi/utils';
+import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
 
 export class XverseProvider implements IInjectedBitcoinProvider {
   #xverseProvider: XVerseBitcoinProvider;
@@ -30,7 +30,7 @@ export class XverseProvider implements IInjectedBitcoinProvider {
       }
 
       const provider = new XverseProvider(
-        window.XverseProviders.BitcoinProvider
+        window.XverseProviders.BitcoinProvider,
       );
       this.#xverseProvider = provider.provider;
 
@@ -70,7 +70,7 @@ export class XverseProvider implements IInjectedBitcoinProvider {
 
   sendBitcoin = async (
     toAddress: string,
-    satoshis: number
+    satoshis: number,
   ): AsyncResult<string, string> => {
     try {
       const res = await this.#xverseProvider.request('sendTransfer', {
@@ -84,7 +84,7 @@ export class XverseProvider implements IInjectedBitcoinProvider {
         } else {
           return Err(
             'Error while sending bitcoin from XVerse wallet',
-            res.error
+            res.error,
           );
         }
       }
@@ -129,5 +129,5 @@ export class XverseProvider implements IInjectedBitcoinProvider {
   disconnect = (): AsyncResult<string, string> => {
     this.address = '';
     return Promise.resolve(Ok('Disconnected'));
-  }
+  };
 }

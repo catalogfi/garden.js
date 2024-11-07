@@ -1,9 +1,9 @@
-import { IInjectedBitcoinProvider, Network } from "../../bitcoin.types";
-import { PhantomBitcoinProvider } from "./phantom.types";
-import { AsyncResult, Err, executeWithTryCatch, Ok } from "@catalogfi/utils";
-import * as bitcoin from "bitcoinjs-lib";
-import axios from "axios";
-import { initEccLib } from "bitcoinjs-lib";
+import { IInjectedBitcoinProvider, Network } from '../../bitcoin.types';
+import { PhantomBitcoinProvider } from './phantom.types';
+import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
+import * as bitcoin from 'bitcoinjs-lib';
+import axios from 'axios';
+import { initEccLib } from 'bitcoinjs-lib';
 import * as secp256k1 from '@bitcoinerlab/secp256k1';
 
 // Initialize the ECC library
@@ -30,7 +30,12 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
     this.#phantomProvider = phantomProvider;
   }
 
-  async connect(network?: Network): AsyncResult<{ address: string; provider: IInjectedBitcoinProvider; network: Network }, string> {
+  async connect(
+    network?: Network,
+  ): AsyncResult<
+    { address: string; provider: IInjectedBitcoinProvider; network: Network },
+    string
+  > {
     if (!network) network = Network.MAINNET;
     try {
       const accounts = await this.#phantomProvider.requestAccounts();
@@ -41,10 +46,11 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
       const provider = new PhantomProvider(window.phantom.bitcoin);
       this.#phantomProvider = provider.#phantomProvider;
 
-      for (let account of accounts) {
-        if (account.purpose === "payment") this.address = account.address;
+      for (const account of accounts) {
+        if (account.purpose === 'payment') this.address = account.address;
       }
-      if (this.address === '') return Err('Could not connect to Phantom bitcoin payment account');
+      if (this.address === '')
+        return Err('Could not connect to Phantom bitcoin payment account');
 
       const network = await this.getNetwork();
       if (network.error) return Err('Could not get network: ' + network.error);
@@ -54,7 +60,7 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
         provider: provider,
         network: network.val,
       });
-    } catch(error) {
+    } catch (error) {
       return Err('Error while connecting to Phantom wallet: ' + error);
     }
   }
@@ -65,7 +71,7 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
       if (accounts.length > 0) {
         this.address = accounts[0].address;
       }
-      return accounts.map(account => account.address);
+      return accounts.map((account) => account.address);
     }, 'Error while requesting accounts from Phantom wallet');
   }
 
@@ -79,23 +85,29 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
   }
 
   async switchNetwork(): AsyncResult<Network, string> {
-    return Err("Phantom wallet does not support testnet");
+    return Err('Phantom wallet does not support testnet');
   }
 
-  async getBalance(): AsyncResult<{ confirmed: number; unconfirmed: number; total: number }, string> {
+  async getBalance(): AsyncResult<
+    { confirmed: number; unconfirmed: number; total: number },
+    string
+  > {
     return await executeWithTryCatch(async () => {
       return await this.#phantomProvider.getBalance();
     }, 'Error while getting balance from Phantom wallet');
   }
 
-  async sendBitcoin(toAddress: string, satoshis: number): AsyncResult<string, string> {
+  async sendBitcoin(
+    toAddress: string,
+    satoshis: number,
+  ): AsyncResult<string, string> {
     return await executeWithTryCatch(async () => {
       const network = bitcoin.networks.bitcoin;
       const psbt = new bitcoin.Psbt({ network });
 
       const utxos = await this.getUnspentOutputs();
       let totalInput = 0;
-      utxos.forEach(utxo => {
+      utxos.forEach((utxo) => {
         psbt.addInput({
           hash: utxo.txid,
           index: utxo.vout,
@@ -133,7 +145,7 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
               sigHash: bitcoin.Transaction.SIGHASH_ALL,
             },
           ],
-        }
+        },
       );
 
       const signedPsbt = bitcoin.Psbt.fromBuffer(Buffer.from(signedPsbtBytes));
@@ -150,7 +162,9 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
 
   private async getUnspentOutputs(): Promise<UTXO[]> {
     try {
-      const response = await axios.get(`${this.mempoolApiBaseUrl}/address/${this.address}/utxo`);
+      const response = await axios.get(
+        `${this.mempoolApiBaseUrl}/address/${this.address}/utxo`,
+      );
       return response.data as UTXO[];
     } catch (error) {
       console.error('Error fetching UTXOs:', error);
@@ -170,7 +184,9 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
   }
 
   private fromHexString(hexString: string): Uint8Array {
-    return Uint8Array.from(hexString.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
+    return Uint8Array.from(
+      hexString.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)),
+    );
   }
 
   on(event: string, callback: (data: any) => void): void {
@@ -184,5 +200,5 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
   disconnect = (): AsyncResult<string, string> => {
     this.address = '';
     return Promise.resolve(Ok('Disconnected Phantom wallet'));
-  }
+  };
 }

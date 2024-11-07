@@ -11,7 +11,12 @@ export class XdefiProvider implements IInjectedBitcoinProvider {
     this.#xdefiProvider = xdefiProvider;
   }
 
-  async connect(network?: Network): AsyncResult<{ address: string; provider: IInjectedBitcoinProvider; network: Network }, string> {
+  async connect(
+    network?: Network,
+  ): AsyncResult<
+    { address: string; provider: IInjectedBitcoinProvider; network: Network },
+    string
+  > {
     try {
       if (!window.xfi || !window.xfi.bitcoin)
         return Err('Xdefi wallet not found');
@@ -26,7 +31,8 @@ export class XdefiProvider implements IInjectedBitcoinProvider {
 
       this.address = res[0];
 
-      if (provider.#xdefiProvider.network !== network) await this.switchNetwork();
+      if (provider.#xdefiProvider.network !== network)
+        await this.switchNetwork();
 
       return Ok({
         address: res[0],
@@ -36,13 +42,13 @@ export class XdefiProvider implements IInjectedBitcoinProvider {
     } catch (error) {
       return Err('Error while connecting to the Xdefi wallet', error);
     }
-  };
+  }
 
   // requests accounts from the wallet, if not connected, it will connect first
   async requestAccounts() {
     return await executeWithTryCatch(
       async () => await this.#xdefiProvider.requestAccounts(),
-      'Error while requesting accounts from the Xdefi wallet'
+      'Error while requesting accounts from the Xdefi wallet',
     );
   }
 
@@ -50,7 +56,7 @@ export class XdefiProvider implements IInjectedBitcoinProvider {
   async getAccounts() {
     return await executeWithTryCatch(
       async () => await this.#xdefiProvider.getAccounts(),
-      'Error while getting accounts from the Xdefi wallet'
+      'Error while getting accounts from the Xdefi wallet',
     );
   }
 
@@ -61,13 +67,16 @@ export class XdefiProvider implements IInjectedBitcoinProvider {
   async switchNetwork(): AsyncResult<Network, string> {
     try {
       const currentNetwork = await this.getNetwork();
-      const newNetwork = currentNetwork.val === Network.MAINNET ? Network.TESTNET : Network.MAINNET;
+      const newNetwork =
+        currentNetwork.val === Network.MAINNET
+          ? Network.TESTNET
+          : Network.MAINNET;
       await this.#xdefiProvider.changeNetwork(newNetwork);
       const accounts = await this.getAccounts();
       this.address = accounts.val[0];
       return Ok(newNetwork);
     } catch (error) {
-      return Err('Error while switching networks in the Xdefi wallet:', error)
+      return Err('Error while switching networks in the Xdefi wallet:', error);
     }
   }
 
@@ -83,30 +92,28 @@ export class XdefiProvider implements IInjectedBitcoinProvider {
   }
 
   sendBitcoin = async (toAddress: string, satoshis: number) => {
-    const res = await new Promise<{ error: any; txHash: string }>(
-      (resolve, reject) => {
-        this.#xdefiProvider.request(
-          {
-            method: 'transfer',
-            params: [
-              {
-                feeRate: 10,
-                from: this.address,
-                recipient: toAddress,
-                amount: {
-                  amount: satoshis,
-                  decimals: 8
-                },
-                memo: 'Send Bitcoin',
+    const res = await new Promise<{ error: any; txHash: string }>((resolve) => {
+      this.#xdefiProvider.request(
+        {
+          method: 'transfer',
+          params: [
+            {
+              feeRate: 10,
+              from: this.address,
+              recipient: toAddress,
+              amount: {
+                amount: satoshis,
+                decimals: 8,
               },
-            ],
-          },
-          (error: any, txHash: string) => {
-            resolve({ error, txHash });
-          }
-        );
-      }
-    );
+              memo: 'Send Bitcoin',
+            },
+          ],
+        },
+        (error: any, txHash: string) => {
+          resolve({ error, txHash });
+        },
+      );
+    });
     if (res.error) return Err(res.error);
     return Ok(res.txHash);
   };
@@ -120,5 +127,5 @@ export class XdefiProvider implements IInjectedBitcoinProvider {
   disconnect = (): AsyncResult<string, string> => {
     this.address = '';
     return Promise.resolve(Ok('Disconnected xdefi wallet'));
-  }
+  };
 }

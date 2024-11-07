@@ -6,7 +6,11 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
-import { BitcoinWallets, IInjectedBitcoinProvider, Network } from './bitcoin.types';
+import {
+  BitcoinWallets,
+  IInjectedBitcoinProvider,
+  Network,
+} from './bitcoin.types';
 import { OKXProvider } from './providers/okx/provider';
 import { OKXBitcoinProvider } from './providers/okx/okx.types';
 import { AsyncResult, Err, Ok, Void } from '@catalogfi/utils';
@@ -34,7 +38,7 @@ declare global {
     };
     phantom?: {
       bitcoin: PhantomBitcoinProvider;
-    }
+    };
   }
 }
 
@@ -43,16 +47,21 @@ const BTCWalletProviderContext = createContext(
     walletList: { [key: string]: IInjectedBitcoinProvider };
     connect: (
       BitcoinWallet: IInjectedBitcoinProvider,
-      network?: Network
+      network?: Network,
     ) => AsyncResult<void, string>;
     updateAccount: () => Promise<void>;
     provider: IInjectedBitcoinProvider | undefined;
     account: string | undefined;
     network: Network | undefined;
-  }
+  },
 );
 
-export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
+export const BTCWalletProvider = ({
+  children,
+  network,
+}: {
+  children: ReactNode;
+}) => {
   const [provider, setProvider] = useState<IInjectedBitcoinProvider>();
   const [account, setAccount] = useState<string>();
   const [network, setNetwork] = useState<Network>();
@@ -61,7 +70,10 @@ export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
   }>({});
 
   //connect to the specified wallet and set the provider and account
-  const connect = async (BitcoinWallet: IInjectedBitcoinProvider, network?: Network) => {
+  const connect = async (
+    BitcoinWallet: IInjectedBitcoinProvider,
+    network?: Network,
+  ) => {
     let res;
     if (network) {
       res = await BitcoinWallet.connect(network);
@@ -82,11 +94,11 @@ export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
     if (!provider) return;
     provider.disconnect();
     return Ok(Void);
-  }
+  };
 
   const updateAccount = useCallback(async () => {
     if (!provider) return;
-    
+
     const accounts = await provider.getAccounts();
     if (accounts.error) {
       console.error('Error getting accounts:', accounts.error);
@@ -102,7 +114,7 @@ export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
     }
 
     setNetwork(network.val);
-  }, [provider])
+  }, [provider]);
 
   //adds wallet to the wallet list
   const addToWalletList = (name: string, wallet: IInjectedBitcoinProvider) => {
@@ -113,8 +125,15 @@ export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateWalletList = async () => {
-    if (window.okxwallet && window.okxwallet.bitcoin && window.okxwallet.bitcoinTestnet) {
-      const okxProvider = new OKXProvider(window.okxwallet.bitcoin, window.okxwallet.bitcoinTestnet);
+    if (
+      window.okxwallet &&
+      window.okxwallet.bitcoin &&
+      window.okxwallet.bitcoinTestnet
+    ) {
+      const okxProvider = new OKXProvider(
+        window.okxwallet.bitcoin,
+        window.okxwallet.bitcoinTestnet,
+      );
       addToWalletList(BitcoinWallets.OKX_WALLET, okxProvider);
       const res = await okxProvider.getAccounts();
       setAccount(res.val[0]);
@@ -127,7 +146,7 @@ export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
     }
     if (window.XverseProviders && window.XverseProviders.BitcoinProvider) {
       const xverseProvider = new XverseProvider(
-        window.XverseProviders.BitcoinProvider
+        window.XverseProviders.BitcoinProvider,
       );
       addToWalletList(BitcoinWallets.XVERSE, xverseProvider);
       const res = await xverseProvider.getAccounts();
@@ -145,7 +164,7 @@ export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
       const res = await phantomProvider.getAccounts();
       setAccount(res.val[0]);
     }
-  }
+  };
 
   //updates the available wallets list
   useEffect(() => {
@@ -181,3 +200,5 @@ export const useBitcoinWallet = () => {
   }
   return context;
 };
+
+//I will give network I want all the wallets to connect the given network

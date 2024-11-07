@@ -2,7 +2,7 @@ import { Network } from '../../bitcoin.types';
 
 type RequestFunction = (
   { method, params }: { method: string; params: any[] },
-  callback: (error: any, accounts: any) => void
+  callback: (error: any, accounts: any) => void,
 ) => Promise<any>;
 
 export interface XdefiBitcoinProvider {

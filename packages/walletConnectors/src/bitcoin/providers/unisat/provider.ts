@@ -1,5 +1,5 @@
 import { UnisatBitcoinProvider } from './unisat.types';
-import { AsyncResult, Err, executeWithTryCatch, Ok, Void } from '@catalogfi/utils';
+import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
 import { IInjectedBitcoinProvider, Network } from '../../bitcoin.types';
 
 export class UnisatProvider implements IInjectedBitcoinProvider {
@@ -10,14 +10,20 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
     this.#unisatProvider = unisatProvider;
   }
 
-  async connect(network?: Network): AsyncResult<{ address: string; provider: IInjectedBitcoinProvider; network: Network }, string> {
+  async connect(
+    network?: Network,
+  ): AsyncResult<
+    { address: string; provider: IInjectedBitcoinProvider; network: Network },
+    string
+  > {
     try {
       if (!network) network = Network.MAINNET;
       const accounts = await this.#unisatProvider.getAccounts();
       if (accounts.length > 0) this.address = accounts[0];
 
       const currentNetwork = await this.getNetwork();
-      if (currentNetwork.error) return Err('Could not get network', currentNetwork.error);
+      if (currentNetwork.error)
+        return Err('Could not get network', currentNetwork.error);
 
       if (currentNetwork.val !== network) await this.switchNetwork();
 
@@ -60,8 +66,11 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
         return Err('Failed to get current network');
       }
 
-      const toNetwork = (currentNetwork.val === Network.MAINNET) ? Network.TESTNET : Network.MAINNET;
-      
+      const toNetwork =
+        currentNetwork.val === Network.MAINNET
+          ? Network.TESTNET
+          : Network.MAINNET;
+
       await this.#unisatProvider.switchNetwork(toNetwork);
 
       const newNetwork = await this.getNetwork();
@@ -102,5 +111,5 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
   disconnect = (): AsyncResult<string, string> => {
     this.address = '';
     return Promise.resolve(Ok('Disconnected unisat wallet'));
-  }
+  };
 }
