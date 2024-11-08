@@ -47,12 +47,13 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   );
 
   const gardenConfig = useMemo(() => getConfigForNetwork(config.network), [config.network]);
+  if (!gardenConfig) throw new Error("Invalid bitcoin network config");
+  
   const orderBookUrl = config.orderBookUrl ?? gardenConfig.orderBookUrl;
   const quoteUrl = config.quoteUrl ?? gardenConfig.quoteUrl;
   const bitcoinRPCUrl = config.bitcoinRPCUrl ?? gardenConfig.bitcoinRPCUrl;
   const blockNumberFetcherUrl = config.blockNumberFetcherUrl ?? gardenConfig.blockNumberFetcherUrl;
 
-  if (!gardenConfig) throw new Error("Invalid bitcoin network config");
 
   const quote = useMemo(() => new Quote(quoteUrl), [quoteUrl]);
   const blockNumberFetcher = useMemo(() => {
