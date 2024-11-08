@@ -197,9 +197,10 @@ export const GardenProvider: FC<GardenProviderProps> = ({
 
   // initialize auth
   useEffect(() => {
-    if (!walletClient) return;
+    if (!walletClient || !window) return;
     const auth = new Siwe(new Url(config.orderBookUrl), walletClient, {
       store: config.store,
+      domain: window.location.hostname,
     });
     setAuth(auth);
   }, [walletClient]);
