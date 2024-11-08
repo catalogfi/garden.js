@@ -27,6 +27,7 @@ import {
 } from '@catalogfi/wallets';
 import { IAuth, Siwe, Url } from '@gardenfi/utils';
 import { constructOrderpair } from '../utils';
+import { getConfigForNetwork } from '../constants';
 
 export const GardenContext = createContext<GardenContextType>({
   isExecuting: false,
@@ -45,7 +46,15 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     [secretManager, garden, auth, pendingOrders],
   );
 
-  const quote = useMemo(() => new Quote(config.quoteUrl), [config.quoteUrl]);
+  const gardenConfig = useMemo(() => getConfigForNetwork(config.network), [config.network]);
+  const orderBookUrl = config.orderBookUrl ?? gardenConfig.orderBookUrl;
+  const quoteUrl = config.quoteUrl ?? gardenConfig.quoteUrl;
+  const bitcoinRPCUrl = config.bitcoinRPCUrl ?? gardenConfig.bitcoinRPCUrl;
+  const blockNumberFetcherUrl = config.blockNumberFetcherUrl ?? gardenConfig.blockNumberFetcherUrl;
+
+  if (!gardenConfig) throw new Error("Invalid bitcoin network config");
+
+  const quote = useMemo(() => new Quote(quoteUrl), [quoteUrl]);
   const blockNumberFetcher = useMemo(() => {
     const blockNumberFetcherNetwork =
       config.network === BitcoinNetwork.Mainnet
@@ -54,22 +63,22 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         ? 'testnet'
         : undefined;
 
-    return config.blockNumberFetcherUrl && blockNumberFetcherNetwork
+    return blockNumberFetcherUrl && blockNumberFetcherNetwork
       ? new BlockNumberFetcher(
-          config.blockNumberFetcherUrl,
+          blockNumberFetcherUrl,
           blockNumberFetcherNetwork,
         )
       : undefined;
-  }, [config.blockNumberFetcherUrl, config.network]);
+  }, [blockNumberFetcherUrl, config.network]);
   const bitcoinProvider = useMemo(
-    () => new BitcoinProvider(config.network, config.bitcoinRPCUrl),
-    [config.network, config.bitcoinRPCUrl],
+    () => new BitcoinProvider(config.network, bitcoinRPCUrl),
+    [config.network, bitcoinRPCUrl],
   );
 
   const { data: walletClient } = useWalletClient();
   const { initializeSecretManager } = useSecretManager(setSecretManager);
   const { orderbook } = useOrderbook(
-    config.orderBookUrl,
+    orderBookUrl,
     auth,
     setPendingOrders,
     blockNumberFetcher,
@@ -88,7 +97,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     );
 
     const garden = new Garden({
-      orderbookURl: config.orderBookUrl,
+      orderbookURl: orderBookUrl,
       secretManager: smRes.val,
       quote,
       auth,
@@ -129,7 +138,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     const newWalletClient = switchRes.val.walletClient;
 
     //only initiate if EVM
-    const evmRelay = new EvmRelay(order.val, config.orderBookUrl, auth);
+    const evmRelay = new EvmRelay(order.val, orderBookUrl, auth);
     const initRes = await evmRelay.init(newWalletClient);
     if (initRes.error) return Err(initRes.error);
 
@@ -169,7 +178,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     const newWalletClient = switchRes.val.walletClient;
 
     //only initiate if EVM
-    const evmRelay = new EvmRelay(order, config.orderBookUrl, auth);
+    const evmRelay = new EvmRelay(order, orderBookUrl, auth);
     const initRes = await evmRelay.init(newWalletClient);
     if (initRes.error) return Err(initRes.error);
 
@@ -198,7 +207,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   // initialize auth
   useEffect(() => {
     if (!walletClient) return;
-    const auth = new Siwe(new Url(config.orderBookUrl), walletClient, {
+    const auth = new Siwe(new Url(orderBookUrl), walletClient, {
       store: config.store,
     });
     setAuth(auth);
@@ -213,7 +222,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     );
 
     const garden = new Garden({
-      orderbookURl: config.orderBookUrl,
+      orderbookURl: orderBookUrl,
       secretManager,
       quote,
       auth,
@@ -247,7 +256,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   return (
     <GardenContext.Provider
       value={{
-        orderBookUrl: config.orderBookUrl,
+        orderBookUrl: orderBookUrl,
         initializeSecretManager,
         orderBook: orderbook,
         swapAndInitiate,

@@ -74,10 +74,10 @@ export type GardenContextType = {
 export type GardenProviderProps = {
   children: React.ReactNode;
   config: {
-    orderBookUrl: string;
-    quoteUrl: string;
     store: IStore;
     network: BitcoinNetwork;
+    orderBookUrl?: string;
+    quoteUrl?: string;
     bitcoinRPCUrl?: string;
     blockNumberFetcherUrl?: string;
   };
