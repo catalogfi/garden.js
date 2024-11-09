@@ -20,13 +20,10 @@ import type {
 } from './gardenProvider.types';
 import { Err, Ok } from '@catalogfi/utils';
 import { isBitcoin, MatchedOrder } from '@gardenfi/orderbook';
-import {
-  BitcoinNetwork,
-  BitcoinProvider,
-  BitcoinWallet,
-} from '@catalogfi/wallets';
+import { BitcoinProvider, BitcoinWallet } from '@catalogfi/wallets';
 import { IAuth, Siwe, Url } from '@gardenfi/utils';
 import { constructOrderpair } from '../utils';
+import { getBitcoinNetwork, getConfigForNetwork } from '../gardenConfig';
 
 export const GardenContext = createContext<GardenContextType>({
   isExecuting: false,
@@ -45,31 +42,34 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     [secretManager, garden, auth, pendingOrders],
   );
 
-  const quote = useMemo(() => new Quote(config.quoteUrl), [config.quoteUrl]);
-  const blockNumberFetcher = useMemo(() => {
-    const blockNumberFetcherNetwork =
-      config.network === BitcoinNetwork.Mainnet
-        ? 'mainnet'
-        : config.network === BitcoinNetwork.Testnet
-        ? 'testnet'
-        : undefined;
+  const { orderBookUrl, quoteUrl, bitcoinRPCUrl, blockNumberFetcherUrl } =
+    useMemo(() => {
+      const gardenConfig = getConfigForNetwork(config.environment);
+      return {
+        orderBookUrl: config.orderBookUrl || gardenConfig.orderBookUrl,
+        quoteUrl: config.quoteUrl || gardenConfig.quoteUrl,
+        bitcoinRPCUrl: config.bitcoinRPCUrl || gardenConfig.bitcoinRPCUrl,
+        blockNumberFetcherUrl:
+          config.blockNumberFetcherUrl || gardenConfig.blockNumberFetcherUrl,
+      };
+    }, [config]);
 
-    return config.blockNumberFetcherUrl && blockNumberFetcherNetwork
-      ? new BlockNumberFetcher(
-          config.blockNumberFetcherUrl,
-          blockNumberFetcherNetwork,
-        )
+  const quote = useMemo(() => new Quote(quoteUrl), [quoteUrl]);
+  const blockNumberFetcher = useMemo(() => {
+    return blockNumberFetcherUrl && config.environment
+      ? new BlockNumberFetcher(blockNumberFetcherUrl, config.environment)
       : undefined;
-  }, [config.blockNumberFetcherUrl, config.network]);
+  }, [blockNumberFetcherUrl, config.environment]);
   const bitcoinProvider = useMemo(
-    () => new BitcoinProvider(config.network, config.bitcoinRPCUrl),
-    [config.network, config.bitcoinRPCUrl],
+    () =>
+      new BitcoinProvider(getBitcoinNetwork(config.environment), bitcoinRPCUrl),
+    [config.environment, bitcoinRPCUrl],
   );
 
   const { data: walletClient } = useWalletClient();
   const { initializeSecretManager } = useSecretManager(setSecretManager);
   const { orderbook } = useOrderbook(
-    config.orderBookUrl,
+    orderBookUrl,
     auth,
     setPendingOrders,
     blockNumberFetcher,
@@ -88,7 +88,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     );
 
     const garden = new Garden({
-      orderbookURl: config.orderBookUrl,
+      orderbookURl: orderBookUrl,
       secretManager: smRes.val,
       quote,
       auth,
@@ -129,7 +129,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     const newWalletClient = switchRes.val.walletClient;
 
     //only initiate if EVM
-    const evmRelay = new EvmRelay(order.val, config.orderBookUrl, auth);
+    const evmRelay = new EvmRelay(order.val, orderBookUrl, auth);
     const initRes = await evmRelay.init(newWalletClient);
     if (initRes.error) return Err(initRes.error);
 
@@ -169,7 +169,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     const newWalletClient = switchRes.val.walletClient;
 
     //only initiate if EVM
-    const evmRelay = new EvmRelay(order, config.orderBookUrl, auth);
+    const evmRelay = new EvmRelay(order, orderBookUrl, auth);
     const initRes = await evmRelay.init(newWalletClient);
     if (initRes.error) return Err(initRes.error);
 
@@ -198,7 +198,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   // initialize auth
   useEffect(() => {
     if (!walletClient || !window) return;
-    const auth = new Siwe(new Url(config.orderBookUrl), walletClient, {
+    const auth = new Siwe(new Url(orderBookUrl), walletClient, {
       store: config.store,
       domain: window.location.hostname,
     });
@@ -214,7 +214,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     );
 
     const garden = new Garden({
-      orderbookURl: config.orderBookUrl,
+      orderbookURl: orderBookUrl,
       secretManager,
       quote,
       auth,
@@ -248,7 +248,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   return (
     <GardenContext.Provider
       value={{
-        orderBookUrl: config.orderBookUrl,
+        orderBookUrl: orderBookUrl,
         initializeSecretManager,
         orderBook: orderbook,
         swapAndInitiate,
