@@ -1,6 +1,6 @@
 {
   "name": "@gardenfi/core",
-  "version": "0.2.0-beta.81",
+  "version": "0.2.0-beta.85",
   "type": "module",
   "files": [
     "dist"

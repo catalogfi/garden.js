@@ -25,7 +25,7 @@ describe('orderStatus', () => {
       'https://evm-swapper-relay.onrender.com/',
     );
     const order = await ordersProvider.getOrder(
-      'fc4af7392d557aaa430e5423c18f0360b66c69a0d15b9333ab13648cf9dd11ae',
+      '0ae630a570f8dacca370ee267123846e17ccec7b3ca0f33ec23a17f8b56ed032',
       true,
     );
     if (order.error) {
