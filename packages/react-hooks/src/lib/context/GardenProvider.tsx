@@ -42,14 +42,9 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     [secretManager, garden, auth, pendingOrders],
   );
 
-  const gardenConfig = useMemo(
-    () => getConfigForNetwork(config.environment),
-    [config.environment],
-  );
-  if (!gardenConfig) throw new Error('Invalid bitcoin network config');
-
   const { orderBookUrl, quoteUrl, bitcoinRPCUrl, blockNumberFetcherUrl } =
     useMemo(() => {
+      const gardenConfig = getConfigForNetwork(config.environment);
       return {
         orderBookUrl: config.orderBookUrl || gardenConfig.orderBookUrl,
         quoteUrl: config.quoteUrl || gardenConfig.quoteUrl,
@@ -57,7 +52,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         blockNumberFetcherUrl:
           config.blockNumberFetcherUrl || gardenConfig.blockNumberFetcherUrl,
       };
-    }, [config, gardenConfig]);
+    }, [config]);
 
   const quote = useMemo(() => new Quote(quoteUrl), [quoteUrl]);
   const blockNumberFetcher = useMemo(() => {
