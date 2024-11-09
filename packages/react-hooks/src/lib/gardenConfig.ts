@@ -16,8 +16,9 @@ export const GARDEN_CONFIG: Partial<Record<environment, GardenConfigType>> = {
   [environment.testnet]: {
     orderBookUrl: 'https://evm-swapper-relay.onrender.com',
     quoteUrl: 'https://quote-knrp.onrender.com',
-    bitcoinRPCUrl: 'https://mempool.space/testnet4',
-    blockNumberFetcherUrl: 'https://mempool.space',
+    bitcoinRPCUrl: 'https://mempool.space/testnet4/api',
+    blockNumberFetcherUrl:
+      'https://prod-mainnet-virtual-balance-pr-5.onrender.com',
   },
 } as const;
 
