@@ -28,10 +28,6 @@ export const ParseOrderStatus = (
   //redeem check
   if (destSwapStatus === SwapStatus.RedeemDetected)
     return OrderStatus.RedeemDetected;
-  if (sourceSwapStatus === SwapStatus.Redeemed)
-    return OrderStatus.CounterPartyRedeemed;
-  if (sourceSwapStatus === SwapStatus.RedeemDetected)
-    return OrderStatus.CounterPartyRedeemDetected;
   if (destSwapStatus === SwapStatus.Redeemed) return OrderStatus.Redeemed;
 
   //source refund check
@@ -70,6 +66,11 @@ export const ParseOrderStatus = (
     return OrderStatus.DeadLineExceeded;
   if (sourceSwapStatus === SwapStatus.InitiateDetected)
     return OrderStatus.InitiateDetected;
+
+  if (sourceSwapStatus === SwapStatus.Redeemed)
+    return OrderStatus.CounterPartyRedeemed;
+  if (sourceSwapStatus === SwapStatus.RedeemDetected)
+    return OrderStatus.CounterPartyRedeemDetected;
 
   return OrderStatus.Matched;
 };
