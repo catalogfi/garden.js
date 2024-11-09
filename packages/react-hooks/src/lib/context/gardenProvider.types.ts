@@ -1,6 +1,5 @@
 import { OrderWithStatus } from '@gardenfi/core';
 import { AsyncResult } from '@catalogfi/utils';
-import { BitcoinNetwork } from '@catalogfi/wallets';
 import {
   IGardenJS,
   IQuote,
@@ -11,6 +10,7 @@ import {
 } from '@gardenfi/core';
 import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
 import { IStore } from '@gardenfi/utils';
+import { environment } from '../gardenConfig';
 
 export type GardenContextType = {
   orderBookUrl?: string;
@@ -75,7 +75,7 @@ export type GardenProviderProps = {
   children: React.ReactNode;
   config: {
     store: IStore;
-    network: BitcoinNetwork;
+    environment: environment;
     orderBookUrl?: string;
     quoteUrl?: string;
     bitcoinRPCUrl?: string;

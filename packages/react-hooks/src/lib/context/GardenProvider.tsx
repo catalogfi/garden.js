@@ -20,14 +20,10 @@ import type {
 } from './gardenProvider.types';
 import { Err, Ok } from '@catalogfi/utils';
 import { isBitcoin, MatchedOrder } from '@gardenfi/orderbook';
-import {
-  BitcoinNetwork,
-  BitcoinProvider,
-  BitcoinWallet,
-} from '@catalogfi/wallets';
+import { BitcoinProvider, BitcoinWallet } from '@catalogfi/wallets';
 import { IAuth, Siwe, Url } from '@gardenfi/utils';
 import { constructOrderpair } from '../utils';
-import { getConfigForNetwork } from '../constants';
+import { getBitcoinNetwork, getConfigForNetwork } from '../gardenConfig';
 
 export const GardenContext = createContext<GardenContextType>({
   isExecuting: false,
@@ -46,34 +42,33 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     [secretManager, garden, auth, pendingOrders],
   );
 
-  const gardenConfig = useMemo(() => getConfigForNetwork(config.network), [config.network]);
-  if (!gardenConfig) throw new Error("Invalid bitcoin network config");
-  
-  const orderBookUrl = config.orderBookUrl ?? gardenConfig.orderBookUrl;
-  const quoteUrl = config.quoteUrl ?? gardenConfig.quoteUrl;
-  const bitcoinRPCUrl = config.bitcoinRPCUrl ?? gardenConfig.bitcoinRPCUrl;
-  const blockNumberFetcherUrl = config.blockNumberFetcherUrl ?? gardenConfig.blockNumberFetcherUrl;
+  const gardenConfig = useMemo(
+    () => getConfigForNetwork(config.environment),
+    [config.environment],
+  );
+  if (!gardenConfig) throw new Error('Invalid bitcoin network config');
 
+  const { orderBookUrl, quoteUrl, bitcoinRPCUrl, blockNumberFetcherUrl } =
+    useMemo(() => {
+      return {
+        orderBookUrl: config.orderBookUrl || gardenConfig.orderBookUrl,
+        quoteUrl: config.quoteUrl || gardenConfig.quoteUrl,
+        bitcoinRPCUrl: config.bitcoinRPCUrl || gardenConfig.bitcoinRPCUrl,
+        blockNumberFetcherUrl:
+          config.blockNumberFetcherUrl || gardenConfig.blockNumberFetcherUrl,
+      };
+    }, [config, gardenConfig]);
 
   const quote = useMemo(() => new Quote(quoteUrl), [quoteUrl]);
   const blockNumberFetcher = useMemo(() => {
-    const blockNumberFetcherNetwork =
-      config.network === BitcoinNetwork.Mainnet
-        ? 'mainnet'
-        : config.network === BitcoinNetwork.Testnet
-        ? 'testnet'
-        : undefined;
-
-    return blockNumberFetcherUrl && blockNumberFetcherNetwork
-      ? new BlockNumberFetcher(
-          blockNumberFetcherUrl,
-          blockNumberFetcherNetwork,
-        )
+    return blockNumberFetcherUrl && config.environment
+      ? new BlockNumberFetcher(blockNumberFetcherUrl, config.environment)
       : undefined;
-  }, [blockNumberFetcherUrl, config.network]);
+  }, [blockNumberFetcherUrl, config.environment]);
   const bitcoinProvider = useMemo(
-    () => new BitcoinProvider(config.network, bitcoinRPCUrl),
-    [config.network, bitcoinRPCUrl],
+    () =>
+      new BitcoinProvider(getBitcoinNetwork(config.environment), bitcoinRPCUrl),
+    [config.environment, bitcoinRPCUrl],
   );
 
   const { data: walletClient } = useWalletClient();
