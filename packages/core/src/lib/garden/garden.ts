@@ -16,6 +16,7 @@ import {
   getBlockchainType,
   IOrderbook,
   isBitcoin,
+  isEVM,
   isMainnet,
   MatchedOrder,
   Orderbook,
@@ -40,6 +41,9 @@ import { GardenHTLC } from '../bitcoin/htlc';
 import { ExecutorCache } from './cache/executorCache';
 import BigNumber from 'bignumber.js';
 import { IBlockNumberFetcher } from './blockNumber';
+import { AnchorProvider } from '@coral-xyz/anchor';
+import { SolanaRelay } from '../solana/solanaRelay';
+import { SwapConfig } from '../solana/solanaTypes';
 
 export class Garden implements IGardenJS {
   private secretManager: ISecretManager;
@@ -51,13 +55,16 @@ export class Garden implements IGardenJS {
   private quote: IQuote;
   private getOrderThreshold = 20;
   private orderbookUrl: string;
+  private solanaRelayUrl?: URL;
   private auth: IAuth;
   //TODO: do not use relay if set to false
   private useRelay = true;
   private wallets: {
     evmWallet: WalletClient;
     btcWallet?: IBitcoinWallet;
+    solWallet?: AnchorProvider;
   };
+  private solanaRelayerAddress?: string;
   private evmAddress: string;
   private orderExecutorCache: IOrderExecutorCache;
   private blockNumberFetcher: IBlockNumberFetcher | undefined;
@@ -70,8 +77,11 @@ export class Garden implements IGardenJS {
     wallets: {
       evmWallet: WalletClient;
       btcWallet?: IBitcoinWallet;
+      solWallet?: AnchorProvider;
     };
     blockNumberFetcher?: IBlockNumberFetcher;
+    solanaRelayUrl?: URL,
+    solanaRelayerAddress?: string,
   }) {
     this.orderBook = new Orderbook({
       url: config.orderbookURl,
@@ -89,6 +99,8 @@ export class Garden implements IGardenJS {
       throw new Error('Account not found in evmWallet');
     this.evmAddress = config.wallets.evmWallet.account.address;
     this.blockNumberFetcher = config.blockNumberFetcher;
+    this.solanaRelayUrl = config.solanaRelayUrl;
+    this.solanaRelayerAddress = config.solanaRelayerAddress;
   }
 
   setUseRelay(useRelay: boolean): void {
@@ -208,6 +220,12 @@ export class Garden implements IGardenJS {
           return Err('Invalid btc public key');
         return Ok(toXOnly(pubKey));
       }
+      case BlockchainType.Solana: {
+        const pubKey = await this.wallets.solWallet?.publicKey;
+        if (!pubKey)
+            return Err("Missing solana wallet");
+        return Ok(pubKey.toBase58());
+      }
       default:
         return Err('Unsupported chain');
     }
@@ -234,6 +252,8 @@ export class Garden implements IGardenJS {
         return TimeLocks.evm;
       case BlockchainType.Bitcoin:
         return TimeLocks.btc;
+      case BlockchainType.Solana:
+        return TimeLocks.sol;
       default:
         return undefined;
     }
@@ -311,6 +331,9 @@ export class Garden implements IGardenJS {
                   );
                   break;
                 }
+                case BlockchainType.Solana:
+                    await this.solRedeem(order, secrets.val.secret);
+                    break;
                 default:
                   this.emit(
                     'error',
@@ -322,6 +345,14 @@ export class Garden implements IGardenJS {
             }
             case OrderActions.Refund: {
               switch (getBlockchainType(order.source_swap.chain)) {
+                case BlockchainType.Solana: {
+                    this.emit(
+                      'error',
+                      order,
+                      'Solana refund is automatically done by relay service',
+                    );
+                    break;
+                  }
                 case BlockchainType.EVM: {
                   this.emit(
                     'error',
@@ -361,6 +392,34 @@ export class Garden implements IGardenJS {
       },
       true,
     );
+  }
+
+  private async solRedeem(order: MatchedOrder, secret: string) {
+    this.emit('log', order.create_order.create_id, 'executing sol redeem');
+    const cache = this.orderExecutorCache.get(order, OrderActions.Redeem);
+    if (cache) {
+        this.emit('log', order.create_order.create_id, 'already redeemed');
+        return;
+    }
+    const swapConfig = SwapConfig.from(order);
+    const solRelay = new SolanaRelay(swapConfig, this.wallets.solWallet!, this.solanaRelayUrl!, this.solanaRelayerAddress!);
+    let sig;
+    try {
+        sig = await solRelay.redeem(secret);
+    } catch (err) {
+        const error = err as Error;
+        this.emit('error', order, error.message);
+        if (error.message.includes("transaction has already been processed")) {
+            this.orderExecutorCache.set(
+                order,
+                OrderActions.Redeem,
+                order.destination_swap.redeem_tx_hash,
+            );
+        }
+        return;
+    }
+    this.orderExecutorCache.set(order, OrderActions.Redeem, sig);
+    this.emit("success", order, OrderActions.Redeem, sig);
   }
 
   private async evmRedeem(order: MatchedOrder, secret: string) {
@@ -520,6 +579,8 @@ export class Garden implements IGardenJS {
         return Ok(this.wallets.evmWallet);
       case BlockchainType.Bitcoin:
         return Ok(this.wallets.btcWallet);
+      case BlockchainType.Solana:
+        return Ok(this.wallets.solWallet);
       default:
         return Err('Unsupported chain for wallet');
     }
@@ -552,25 +613,35 @@ export class Garden implements IGardenJS {
   private async fetchCurrentBlockNumbers(
     order: MatchedOrder,
     wallets: {
-      source: WalletClient | IBitcoinWallet;
-      destination: WalletClient | IBitcoinWallet;
+      source: WalletClient | IBitcoinWallet | AnchorProvider;
+      destination: WalletClient | IBitcoinWallet | AnchorProvider;
     },
   ) {
     if (!wallets || !wallets.source || !wallets.destination)
       return Err('Provide wallets to fetch the current block number');
 
-    const sourceBlockNumber = isBitcoin(order.source_swap.chain)
-      ? await fetchBitcoinBlockNumber(
-          await (wallets.source as IBitcoinWallet).getProvider(),
-        )
-      : await fetchEVMBlockNumber(wallets.source as WalletClient);
-    if (sourceBlockNumber.error) return Err(sourceBlockNumber.error);
+    const solanaBlockNumber = async (provider: AnchorProvider) => {
+        return Ok((await provider.connection.getLatestBlockhash()).lastValidBlockHeight);
+    };
 
-    const destinationBlockNumber = isBitcoin(order.destination_swap.chain)
-      ? await fetchBitcoinBlockNumber(
-          await (wallets.destination as IBitcoinWallet).getProvider(),
-        )
-      : await fetchEVMBlockNumber(wallets.destination as WalletClient);
+    let sourceBlockNumber;
+    if (isBitcoin(order.source_swap.chain)) {
+        sourceBlockNumber = await fetchBitcoinBlockNumber(await (wallets.source as IBitcoinWallet).getProvider());
+    } else if (isEVM(order.source_swap.chain)) {
+        sourceBlockNumber = await fetchEVMBlockNumber(wallets.source as WalletClient);
+    } else {
+        sourceBlockNumber = await solanaBlockNumber(wallets.source as AnchorProvider);
+    }
+    if (sourceBlockNumber?.error) return Err(sourceBlockNumber.error);
+
+    let destinationBlockNumber;
+    if (isBitcoin(order.destination_swap.chain)) {
+        destinationBlockNumber = await fetchBitcoinBlockNumber(await (wallets.destination as IBitcoinWallet).getProvider());
+    } else if (isEVM(order.destination_swap.chain)) {
+        destinationBlockNumber = await fetchEVMBlockNumber(wallets.destination as WalletClient);
+    } else {
+        destinationBlockNumber = await solanaBlockNumber(wallets.source as AnchorProvider);
+    }
     if (destinationBlockNumber.error) return Err(destinationBlockNumber.error);
 
     return Ok({
