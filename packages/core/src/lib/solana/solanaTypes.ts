@@ -53,10 +53,16 @@ export class SwapConfig {
      * @param order - The MatchedOrder with a Solana as source swap
      */
     static from(order: MatchedOrder): SwapConfig {
-        if (!order.source_swap.chain.includes("solana"))
-            throw new Error("Expected source_swap to be one of 'solana', 'solana_localnet', 'solana_devnet'. Instead found: " + order.source_swap.chain);
-        const { swap_id, redeemer, secret_hash, timelock } = order.source_swap;
-        const amount = BigInt(order.source_swap.amount);
+        let swap;
+        if (order.source_swap.chain.includes("solana"))
+            swap = order.source_swap;
+        else if (order.destination_swap.chain.includes("solana"))
+            swap = order.destination_swap;
+        else
+            throw new Error("Expected source_swap or destination_swap to be one of 'solana', 'solana_localnet', 'solana_devnet'");
+
+        const { swap_id, redeemer, secret_hash, timelock } = swap;
+        const amount = BigInt(swap.amount);
         return new SwapConfig(swap_id, redeemer, secret_hash, amount, timelock);
     }
 }
