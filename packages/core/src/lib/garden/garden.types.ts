@@ -45,6 +45,7 @@ export type SwapParams = {
 export enum TimeLocks {
   evm = 14400,
   btc = 288,
+  sol = 432000,
 }
 
 export type OrderWithStatus = MatchedOrder & {

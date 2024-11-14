@@ -16,6 +16,7 @@ export type Asset = AssetToken;
 export enum BlockchainType {
   Bitcoin = 'Bitcoin',
   EVM = 'EVM',
+  Solana = 'Solana'
 }
 
 export enum NetworkType {
@@ -46,13 +47,16 @@ export const Chains = {
   arbitrum_sepolia: 'arbitrum_sepolia',
   ethereum_localnet: 'ethereum_localnet',
   base_sepolia: 'base_sepolia',
+  solana: 'solana',
+  solana_devnet: 'solana_devnet',
+  solana_localnet: 'solana_localnet',
 } as const;
 
 export type Chain = keyof typeof Chains;
 
 export type EvmChain = keyof Omit<
   typeof Chains,
-  'bitcoin' | 'bitcoin_testnet' | 'bitcoin_regtest'
+  'bitcoin' | 'bitcoin_testnet' | 'bitcoin_regtest' | 'solana' | 'solana_devnet' | 'solana_localnet'
 >;
 
 export const isMainnet = (chain: Chain) => {
@@ -63,7 +67,8 @@ export const isMainnet = (chain: Chain) => {
     chain === Chains.arbitrum_localnet ||
     chain === Chains.ethereum_localnet ||
     chain === Chains.arbitrum_sepolia ||
-    chain === Chains.base_sepolia
+    chain === Chains.base_sepolia ||
+    chain === Chains.solana
   );
 };
 
@@ -90,5 +95,6 @@ export const isEVM = (chain: Chain) => {
 export const getBlockchainType = (chain: Chain) => {
   if (isBitcoin(chain)) return BlockchainType.Bitcoin;
   if (isEVM(chain)) return BlockchainType.EVM;
+  if (chain.includes("solana")) return BlockchainType.Solana;
   throw new Error('Invalid or unsupported chain');
 };

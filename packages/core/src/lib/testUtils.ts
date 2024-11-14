@@ -83,6 +83,15 @@ export const bitcoinRegtestAsset: Asset = {
   atomicSwapAddress: 'primary',
   tokenAddress: 'primary',
 };
+
+export const SOLSolanaLocalnetAsset: Asset = {
+    name: 'SOL Solana Localnet',
+    decimals: 9,
+    symbol: 'SOL',
+    chain: "solana_localnet",
+    atomicSwapAddress: "11111111111111111111111111111111",
+    tokenAddress: "primary"
+};
 export const WBTCArbitrumLocalnetAsset: Asset = {
   name: 'WBTC Arbitrum Localnet',
   decimals: 8,
@@ -96,7 +105,7 @@ export const WBTCEthereumLocalnetAsset: Asset = {
   decimals: 8,
   symbol: 'WBTC',
   chain: Chains.ethereum_localnet,
-  atomicSwapAddress: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
+  atomicSwapAddress: '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0',
   tokenAddress: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
 };
 
@@ -111,19 +120,17 @@ export const createOrderObject = (
   strategyId: string,
   btcAddress?: string,
 ) => {
-  const sendAmount = '100000';
-  const receiveAmount = '99990';
+  const sendAmount = '1000000000';
+  const receiveAmount = '99800000';
   const fromAsset =
-    fromChain === Chains.arbitrum_localnet
-      ? WBTCArbitrumLocalnetAsset
-      : fromChain === Chains.ethereum_localnet
-      ? WBTCEthereumLocalnetAsset
+    fromChain === Chains.arbitrum_localnet ? WBTCArbitrumLocalnetAsset
+      : fromChain === Chains.ethereum_localnet ? WBTCEthereumLocalnetAsset
+      : fromChain === Chains.solana_localnet ? SOLSolanaLocalnetAsset
       : bitcoinRegtestAsset;
   const toAsset =
-    toChain === Chains.arbitrum_localnet
-      ? WBTCArbitrumLocalnetAsset
-      : toChain === Chains.ethereum_localnet
-      ? WBTCEthereumLocalnetAsset
+    toChain === Chains.arbitrum_localnet ? WBTCArbitrumLocalnetAsset
+      : toChain === Chains.ethereum_localnet ? WBTCEthereumLocalnetAsset
+      : toChain === Chains.solana_localnet ? SOLSolanaLocalnetAsset
       : bitcoinRegtestAsset;
 
   const additionalData = { btcAddress, strategyId };

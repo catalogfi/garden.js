@@ -1,6 +1,21 @@
 import { Chain } from 'viem';
 import { Asset, Chains } from './asset';
 
+export const SolanaLocalnet: Chain = {
+    id: 104,
+    name: 'Solana Localnet',
+    nativeCurrency: {
+      name: 'Sol',
+      symbol: 'SOL',
+      decimals: 9,
+    },
+    rpcUrls: {
+      default: {
+        http: ['http://localhost:8899/'],
+      },
+    },
+    testnet: true,
+  };
 export const ArbitrumLocalnet: Chain = {
   id: 31338,
   name: 'Arbitrum Localnet',
@@ -32,6 +47,14 @@ export const EthereumLocalnet: Chain = {
   testnet: true,
 };
 
+export const SOLSolanaLocalnetAsset: Asset = {
+    name: 'SOL Solana Localnet',
+    decimals: 9,
+    symbol: 'SOL',
+    chain: Chains.solana_localnet,
+    atomicSwapAddress: '11111111111111111111111111111111',
+    tokenAddress: 'primary',
+  };
 export const bitcoinRegtestAsset: Asset = {
   name: 'Bitcoin Regtest',
   decimals: 8,
@@ -61,6 +84,7 @@ type SupportedAssets = {
   localnet: {
     arbitrum_localnet_0xdc64a140aa3e981100a9beca4e685f962f0cf6c9: Asset;
     ethereum_localnet_0xe7f1725e7734ce288f8367e1bb143e90bb3f0512: Asset;
+    solana_localnet_11111111111111111111111111111111: Asset;
   };
   testnet: {
     bitcoin_testnet_primary: Asset;
@@ -77,6 +101,8 @@ export const SupportedAssets: SupportedAssets = {
       WBTCArbitrumLocalnetAsset,
     ethereum_localnet_0xe7f1725e7734ce288f8367e1bb143e90bb3f0512:
       WBTCEthereumLocalnetAsset,
+    solana_localnet_11111111111111111111111111111111:
+      SOLSolanaLocalnetAsset,
   },
   testnet: {
     bitcoin_testnet_primary: {
