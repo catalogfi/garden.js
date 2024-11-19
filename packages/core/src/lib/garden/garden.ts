@@ -7,13 +7,13 @@ import {
   OrderActions,
   OrderWithStatus,
   SwapParams,
-  TimeLocks,
 } from './garden.types';
 import {
   BlockchainType,
   Chain,
   CreateOrderReqWithStrategyId,
   getBlockchainType,
+  getTimeLock,
   IOrderbook,
   isBitcoin,
   isMainnet,
@@ -186,7 +186,7 @@ export class Garden implements IGardenJS {
     if (inputAmount < outputAmount)
       return Err('Send amount should be greater than receive amount');
 
-    const timelock = this.getTimelock(params.fromAsset.chain);
+    const timelock = getTimeLock(params.fromAsset.chain);
     if (!timelock) return Err('Unsupported chain for timelock');
 
     return Ok({
@@ -225,18 +225,6 @@ export class Garden implements IGardenJS {
     )
       return Err('Invalid amount ', amount);
     return Ok(amountBigInt);
-  }
-
-  private getTimelock(chain: Chain) {
-    const blockChainType = getBlockchainType(chain);
-    switch (blockChainType) {
-      case BlockchainType.EVM:
-        return TimeLocks.evm;
-      case BlockchainType.Bitcoin:
-        return TimeLocks.btc;
-      default:
-        return undefined;
-    }
   }
 
   private async pollOrder(createOrderID: string) {

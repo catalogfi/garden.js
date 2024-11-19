@@ -1,6 +1,7 @@
 import {
   arbitrum,
   arbitrumSepolia,
+  base,
   baseSepolia,
   mainnet,
   sepolia,
@@ -143,6 +144,7 @@ export const evmToViemChainMap: Record<EvmChain, viemChain> = {
   ethereum_localnet: EthereumLocalnet,
   arbitrum_localnet: ArbitrumLocalnet,
   base_sepolia: baseSepolia,
+  base: base,
 };
 
 /**

@@ -40,6 +40,7 @@ export const Chains = {
   bitcoin_testnet: 'bitcoin_testnet',
   bitcoin_regtest: 'bitcoin_regtest',
   ethereum: 'ethereum',
+  base: 'base',
   ethereum_arbitrum: 'ethereum_arbitrum',
   ethereum_sepolia: 'ethereum_sepolia',
   arbitrum_localnet: 'arbitrum_localnet',
@@ -83,12 +84,32 @@ export const isEVM = (chain: Chain) => {
     chain === Chains.ethereum_localnet ||
     chain === Chains.arbitrum_localnet ||
     chain === Chains.arbitrum_sepolia ||
-    chain === Chains.base_sepolia
+    chain === Chains.base_sepolia ||
+    chain === Chains.base
   );
+};
+
+export const TimeLocks: Record<Chain, number> = {
+  [Chains.bitcoin]: 288,
+  [Chains.bitcoin_testnet]: 288,
+  [Chains.bitcoin_regtest]: 288,
+  [Chains.ethereum]: 14400,
+  [Chains.ethereum_arbitrum]: 14400,
+  [Chains.ethereum_sepolia]: 14400,
+  [Chains.arbitrum_localnet]: 14400,
+  [Chains.arbitrum_sepolia]: 14400,
+  [Chains.ethereum_localnet]: 14400,
+  [Chains.base_sepolia]: 14400,
+  [Chains.base]: 86400,
 };
 
 export const getBlockchainType = (chain: Chain) => {
   if (isBitcoin(chain)) return BlockchainType.Bitcoin;
   if (isEVM(chain)) return BlockchainType.EVM;
   throw new Error('Invalid or unsupported chain');
+};
+
+export const getTimeLock = (chain: Chain) => {
+  if (!TimeLocks[chain]) throw new Error('Invalid or unsupported chain');
+  return TimeLocks[chain];
 };

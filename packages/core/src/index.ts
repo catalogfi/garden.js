@@ -8,7 +8,7 @@ export type {
   EventCallback,
   OrderWithStatus,
 } from './lib/garden/garden.types';
-export { OrderActions, TimeLocks } from './lib/garden/garden.types';
+export { OrderActions } from './lib/garden/garden.types';
 
 export { BlockNumberFetcher } from './lib/garden/blockNumber';
 export type { IBlockNumberFetcher, Network } from './lib/garden/blockNumber';

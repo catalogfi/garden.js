@@ -69,6 +69,11 @@ type SupportedAssets = {
     arbitrum_sepolia_0xd5fedb4cecb0f1d32788a190d9eb47d94d23ee4e: Asset;
     base_sepolia_0x00ab86f54f436cfe15253845f139955ae0c00baf: Asset;
   };
+  mainnet: {
+    bitcoin_primary: Asset;
+    base_0x13dcec0762ecc5e666c207ab44dc768e5e33070f: Asset;
+    base_0x00ab86f54f436cfe15253845f139955ae0c00baf: Asset;
+  };
 };
 
 export const SupportedAssets: SupportedAssets = {
@@ -121,6 +126,34 @@ export const SupportedAssets: SupportedAssets = {
       chain: Chains.base_sepolia,
       logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
       tokenAddress: '0x13DCec0762EcC5E666c207ab44Dc768e5e33070F',
+      atomicSwapAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
+    },
+  },
+  mainnet: {
+    bitcoin_primary: {
+      name: 'BTC',
+      decimals: 8,
+      symbol: 'BTC',
+      chain: Chains.bitcoin,
+      tokenAddress: 'primary',
+      atomicSwapAddress: 'primary',
+    },
+    base_0x13dcec0762ecc5e666c207ab44dc768e5e33070f: {
+      name: 'Coinbase Bitcoin',
+      decimals: 8,
+      symbol: 'cbBTC',
+      chain: Chains.base,
+      logo: 'https://coin-images.coingecko.com/coins/images/51336/large/cbbtc.png?1730814747',
+      tokenAddress: '0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf',
+      atomicSwapAddress: '0x13DCec0762EcC5E666c207ab44Dc768e5e33070F',
+    },
+    base_0x00ab86f54f436cfe15253845f139955ae0c00baf: {
+      name: 'USD Coin',
+      decimals: 6,
+      symbol: 'USDC',
+      chain: Chains.base,
+      logo: 'https://garden-finance.imgix.net/token-images/usdc.svg',
+      tokenAddress: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
       atomicSwapAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
     },
   },
