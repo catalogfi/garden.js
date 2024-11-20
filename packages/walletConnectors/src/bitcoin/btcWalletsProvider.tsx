@@ -13,7 +13,7 @@ import {
 } from './bitcoin.types';
 import { OKXProvider } from './providers/okx/provider';
 import { OKXBitcoinProvider } from './providers/okx/okx.types';
-import { AsyncResult, Err, Ok, Void } from '@catalogfi/utils';
+import { AsyncResult, Err, Ok, Result, Void } from '@catalogfi/utils';
 import { UnisatBitcoinProvider } from './providers/unisat/unisat.types';
 import { UnisatProvider } from './providers/unisat/provider';
 import { XverseProvider } from './providers/xverse/provider';
@@ -53,15 +53,11 @@ const BTCWalletProviderContext = createContext(
     provider: IInjectedBitcoinProvider | undefined;
     account: string | undefined;
     network: Network | undefined;
+    disconnect: () => Result<void, string>;
   },
 );
 
-export const BTCWalletProvider = ({
-  children,
-  network,
-}: {
-  children: ReactNode;
-}) => {
+export const BTCWalletProvider = ({ children }: { children: ReactNode }) => {
   const [provider, setProvider] = useState<IInjectedBitcoinProvider>();
   const [account, setAccount] = useState<string>();
   const [network, setNetwork] = useState<Network>();
@@ -83,6 +79,7 @@ export const BTCWalletProvider = ({
     if (res.error) {
       return Err(res.error);
     }
+
     setProvider(res.val.provider);
     setAccount(res.val.address);
     setNetwork(res.val.network);
@@ -91,7 +88,7 @@ export const BTCWalletProvider = ({
   };
 
   const disconnect = () => {
-    if (!provider) return;
+    if (!provider) return Err('No provider to disconnect');
     provider.disconnect();
     return Ok(Void);
   };
@@ -186,7 +183,15 @@ export const BTCWalletProvider = ({
 
   return (
     <BTCWalletProviderContext.Provider
-      value={{ walletList, connect, provider, account, network, updateAccount }}
+      value={{
+        walletList,
+        connect,
+        provider,
+        account,
+        network,
+        updateAccount,
+        disconnect,
+      }}
     >
       {children}
     </BTCWalletProviderContext.Provider>
