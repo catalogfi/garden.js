@@ -85,6 +85,7 @@ export class Quote implements IQuote {
           id: value.id,
           minAmount: value.min_amount,
           maxAmount: value.max_amount,
+          fee: value.fee,
         };
       }
 

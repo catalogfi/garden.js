@@ -28,6 +28,10 @@ export type SwapParams = {
    */
   minDestinationConfirmations?: number;
   /**
+   * Unique nonce for generating secret and secret hashes. If not provided, it will be generated as the total order count until now + 1.
+   */
+  nonce?: number;
+  /**
    * Additional data for the order.
    */
   additionalData: {

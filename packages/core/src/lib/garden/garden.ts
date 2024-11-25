@@ -101,11 +101,14 @@ export class Garden implements IGardenJS {
 
     const { sendAddress, receiveAddress, timelock } = validate.val;
 
-    const nonceRes = await this.orderBook.getOrdersCount(this.evmAddress);
-    if (nonceRes.error) return Err(nonceRes.error);
-    const nonce = nonceRes.val + 1;
+    let _nonce = params.nonce;
+    if (!_nonce) {
+      const nonceRes = await this.orderBook.getOrdersCount(this.evmAddress);
+      if (nonceRes.error) return Err(nonceRes.error);
+      _nonce = nonceRes.val + 1;
+    }
 
-    const secrets = this.secretManager.generateSecret(nonce);
+    const secrets = this.secretManager.generateSecret(_nonce);
     if (secrets.error) return Err(secrets.error);
 
     const { strategyId, btcAddress } = params.additionalData;
@@ -126,7 +129,7 @@ export class Garden implements IGardenJS {
       source_amount: params.sendAmount,
       destination_amount: params.receiveAmount,
       fee: '1',
-      nonce: nonce.toString(),
+      nonce: _nonce.toString(),
       timelock: timelock,
       secret_hash: trim0x(secrets.val.secretHash),
       min_destination_confirmations: params.minDestinationConfirmations ?? 0,
