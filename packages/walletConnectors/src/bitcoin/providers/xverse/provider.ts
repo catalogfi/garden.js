@@ -1,10 +1,7 @@
-import {
-  Balance,
-  IInjectedBitcoinProvider,
-  Network,
-} from '../../bitcoin.types';
+import { Balance, IInjectedBitcoinProvider } from '../../bitcoin.types';
 import { XVerseBitcoinProvider } from './xverse.types';
 import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
+import { Network } from '@gardenfi/utils';
 
 export class XverseProvider implements IInjectedBitcoinProvider {
   #xverseProvider: XVerseBitcoinProvider;

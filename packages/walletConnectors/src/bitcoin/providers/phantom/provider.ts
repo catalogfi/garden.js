@@ -1,13 +1,14 @@
-import { IInjectedBitcoinProvider, Network } from '../../bitcoin.types';
+import { IInjectedBitcoinProvider } from '../../bitcoin.types';
 import { PhantomBitcoinProvider } from './phantom.types';
 import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
 import * as bitcoin from 'bitcoinjs-lib';
 import axios from 'axios';
 import { initEccLib } from 'bitcoinjs-lib';
-import * as secp256k1 from '@bitcoinerlab/secp256k1';
+import * as ecc from 'tiny-secp256k1';
+import { Network } from '@gardenfi/utils';
 
 // Initialize the ECC library
-initEccLib(secp256k1);
+initEccLib(ecc);
 
 interface UTXO {
   txid: string;
@@ -37,6 +38,9 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
     string
   > {
     if (!network) network = Network.MAINNET;
+    if (network === Network.TESTNET)
+      return Err('Phantom wallet does not support testnet');
+
     try {
       const accounts = await this.#phantomProvider.requestAccounts();
 
@@ -124,6 +128,7 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
         value: BigInt(satoshis),
       });
 
+      //TODO: make this dynamic
       const fee = 1000; // Set fee
       const change = totalInput - satoshis - fee;
       if (change > 0) {

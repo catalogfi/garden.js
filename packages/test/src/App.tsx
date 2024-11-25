@@ -9,6 +9,7 @@ import {
 } from '@gardenfi/orderbook';
 import './App.css';
 import { switchOrAddNetwork } from '@gardenfi/core';
+import { useBitcoinWallet } from '@gardenfi/wallet-connectors';
 
 const chainToAsset = {
   ethereum_localnet: WBTCEthereumLocalnetAsset,
@@ -22,8 +23,11 @@ function App() {
   const { connectors } = useConnect();
   const { address: EvmAddress } = useAccount();
   const { data: walletClient } = useWalletClient();
-  const { initializeSecretManager, swap } = useGarden();
+  const { initializeSecretManager, swapAndInitiate } = useGarden();
   const [loading, setLoading] = useState(false);
+  const { availableWallets, provider } = useBitcoinWallet();
+  console.log('provider :', provider);
+  console.log('availableWallets :', availableWallets);
 
   const [swapParams, setSwapParams] = useState({
     inputToken: chainToAsset.ethereum_localnet,
@@ -200,7 +204,7 @@ function App() {
             const receiveAmount =
               swapParams.outputAmount * 10 ** swapParams.outputToken.decimals;
             if (
-              !swap ||
+              !swapAndInitiate ||
               !EvmAddress ||
               !swapParams.inputAmount ||
               !swapParams.outputAmount
@@ -217,7 +221,7 @@ function App() {
             });
 
             setLoading(true);
-            const res = await swap({
+            const res = await swapAndInitiate({
               fromAsset: swapParams.inputToken,
               toAsset: swapParams.outputToken,
               sendAmount: sendAmount.toString(),

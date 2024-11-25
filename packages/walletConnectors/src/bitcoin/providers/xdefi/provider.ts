@@ -1,7 +1,8 @@
 import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
-import { IInjectedBitcoinProvider, Network } from '../../bitcoin.types';
+import { IInjectedBitcoinProvider } from '../../bitcoin.types';
 import { XdefiBitcoinProvider } from './xdefi.types';
 import { getBalance } from '../../utils';
+import { Network } from '@gardenfi/utils';
 
 export class XdefiProvider implements IInjectedBitcoinProvider {
   #xdefiProvider: XdefiBitcoinProvider;

@@ -1,4 +1,4 @@
-import { Network } from 'src/bitcoin/bitcoin.types';
+import { Network } from '@gardenfi/utils';
 
 export interface UnisatBitcoinProvider {
   _selectedAddress: string;

@@ -1,4 +1,5 @@
 import { AsyncResult } from '@catalogfi/utils';
+import { Network } from '@gardenfi/utils';
 
 export type Balance = {
   confirmed: number;
@@ -10,6 +11,11 @@ export type Connect = {
   address: string;
   provider: IInjectedBitcoinProvider;
   network: Network;
+  id: string;
+};
+
+export type ProviderEvents = {
+  accountsChanged: (accounts: string[]) => void;
 };
 
 export interface IInjectedBitcoinProvider {
@@ -29,19 +35,14 @@ export interface IInjectedBitcoinProvider {
   //no need to take fee rates as user can set it in the wallet while signing the transaction
   sendBitcoin: (
     toAddress: string,
-    satoshis: number
+    satoshis: number,
   ) => AsyncResult<string, string>;
   getNetwork: () => AsyncResult<Network, string>;
   switchNetwork: () => AsyncResult<Network, string>;
   connect: (network?: Network) => AsyncResult<Connect, string>;
   disconnect: () => AsyncResult<string, string>;
-  on: (event: string, callback: (data: any) => void) => void;
-  off: (event: string, callback: (data: any) => void) => void;
-}
-
-export enum Network {
-  MAINNET = 'mainnet',
-  TESTNET = 'testnet',
+  on<E extends keyof ProviderEvents>(event: E, cb: ProviderEvents[E]): void;
+  off<E extends keyof ProviderEvents>(event: E, cb: ProviderEvents[E]): void;
 }
 
 export type SelectedAccount = {

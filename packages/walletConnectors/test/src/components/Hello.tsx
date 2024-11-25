@@ -10,8 +10,14 @@ export const Hello = () => {
   const [sendAmount, setSendAmount] = useState<number>(0);
   const [sendAddress, setSendAddress] = useState('');
   const [hash, setHash] = useState<string | null>(null);
-  const { walletList, account, provider, connect, network, updateAccount } =
-    useBitcoinWallet();
+  const {
+    availableWallets,
+    account,
+    provider,
+    connect,
+    network,
+    updateAccount,
+  } = useBitcoinWallet();
 
   const updateInfo = async () => {
     if (!provider) return;
@@ -22,8 +28,8 @@ export const Hello = () => {
         return;
       }
       setBalance(res.val);
-    })
-  }
+    });
+  };
 
   useEffect(() => {
     updateInfo();
@@ -31,7 +37,7 @@ export const Hello = () => {
 
   return (
     <>
-      {Object.entries(walletList).map(([name, wallet], i) => (
+      {Object.entries(availableWallets).map(([name, wallet], i) => (
         <div
           onClick={async () => {
             const res = await connect(wallet);
@@ -49,14 +55,20 @@ export const Hello = () => {
       <div>Account: {account}</div>
       <div>Network: {network}</div>
       <div>
-        <div
-          style={{ cursor: 'pointer' }}
-        >
-          total balance: {balance.total}
-        </div>
+        <div style={{ cursor: 'pointer' }}>total balance: {balance.total}</div>
         <div>confirmed balance: {balance.confirmed}</div>
         <div>unconfirmed balance: {balance.unconfirmed}</div>
-        {hash && <div>hash: <a href={`https://mempool.space/testnet/tx/${hash}`} target='_blank'>{hash}</a></div>}
+        {hash && (
+          <div>
+            hash:{' '}
+            <a
+              href={`https://mempool.space/testnet/tx/${hash}`}
+              target="_blank"
+            >
+              {hash}
+            </a>
+          </div>
+        )}
       </div>
       <div
         style={{
@@ -103,7 +115,7 @@ export const Hello = () => {
         <button
           onClick={async () => {
             if (!provider) {
-              console.error("could not find provider");
+              console.error('could not find provider');
               return;
             }
             const res = await provider.switchNetwork();
@@ -113,7 +125,6 @@ export const Hello = () => {
             }
             await updateInfo();
           }}
-          
         >
           Switch Network
         </button>

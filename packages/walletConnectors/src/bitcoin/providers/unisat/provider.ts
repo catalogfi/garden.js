@@ -1,6 +1,7 @@
 import { UnisatBitcoinProvider } from './unisat.types';
 import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
-import { IInjectedBitcoinProvider, Network } from '../../bitcoin.types';
+import { IInjectedBitcoinProvider } from '../../bitcoin.types';
+import { Network } from '@gardenfi/utils';
 
 export class UnisatProvider implements IInjectedBitcoinProvider {
   #unisatProvider: UnisatBitcoinProvider;
