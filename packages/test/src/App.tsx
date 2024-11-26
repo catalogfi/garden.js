@@ -22,7 +22,7 @@ function App() {
   const { connectors } = useConnect();
   const { address: EvmAddress } = useAccount();
   const { data: walletClient } = useWalletClient();
-  const { initializeSecretManager, swap } = useGarden();
+  const { initializeSecretManager, swapAndInitiate } = useGarden();
   const [loading, setLoading] = useState(false);
 
   const [swapParams, setSwapParams] = useState({
@@ -200,7 +200,7 @@ function App() {
             const receiveAmount =
               swapParams.outputAmount * 10 ** swapParams.outputToken.decimals;
             if (
-              !swap ||
+              !swapAndInitiate ||
               !EvmAddress ||
               !swapParams.inputAmount ||
               !swapParams.outputAmount
@@ -217,7 +217,7 @@ function App() {
             });
 
             setLoading(true);
-            const res = await swap({
+            const res = await swapAndInitiate({
               fromAsset: swapParams.inputToken,
               toAsset: swapParams.outputToken,
               sendAmount: sendAmount.toString(),
