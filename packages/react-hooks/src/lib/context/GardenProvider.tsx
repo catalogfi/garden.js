@@ -103,6 +103,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   };
 
   const swapAndInitiate = async (params: SwapParams) => {
+    console.log('swap params from gardenProvider', params);
     if (!orderbook || !walletClient || !auth)
       return Err('Orderbook or walletClient or auth not initialized');
 

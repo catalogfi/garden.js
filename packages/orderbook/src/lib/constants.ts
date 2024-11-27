@@ -69,6 +69,7 @@ type SupportedAssets = {
     arbitrum_sepolia_0xd5fedb4cecb0f1d32788a190d9eb47d94d23ee4e: Asset;
     base_sepolia_0x00ab86f54f436cfe15253845f139955ae0c00baf: Asset;
     base_sepolia_0xb391ca6d0a76cd2a927bc314856e8a374a225cfc: Asset;
+    bera_testnet_0x1dc94fdcad8aee13cfd34db8a26d26e31572805c: Asset;
   };
   mainnet: {
     bitcoin_primary: Asset;
@@ -137,6 +138,15 @@ export const SupportedAssets: SupportedAssets = {
       logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
       tokenAddress: '0xD72Fc3e7D52301b3e5f7d4E3366F88d5C8747520',
       atomicSwapAddress: '0xB391CA6D0A76CD2A927bC314856E8a374a225CFc',
+    },
+    bera_testnet_0x1dc94fdcad8aee13cfd34db8a26d26e31572805c: {
+      name: 'Wrapped Bitcoin',
+      decimals: 8,
+      symbol: 'WBTC',
+      chain: Chains.bera_testnet,
+      logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
+      tokenAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
+      atomicSwapAddress: '0x1dC94FdcAd8Aee13cfd34Db8a26d26E31572805c',
     },
   },
   mainnet: {
