@@ -15,14 +15,18 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
   async connect(network?: Network): AsyncResult<Connect, string> {
     try {
       if (!network) network = Network.MAINNET;
-      const accounts = await this.#unisatProvider.getAccounts();
+      const accounts = await this.#unisatProvider.requestAccounts();
       if (accounts.length > 0) this.address = accounts[0];
 
       const currentNetwork = await this.getNetwork();
       if (currentNetwork.error)
         return Err('Could not get network', currentNetwork.error);
 
-      if (currentNetwork.val !== network) await this.switchNetwork();
+      if (currentNetwork.val !== network) {
+        const switchRes = await this.switchNetwork();
+        if (switchRes.error)
+          return Err('Failed to switch network', switchRes.error);
+      }
 
       return Ok({
         address: this.address,

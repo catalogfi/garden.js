@@ -1,5 +1,3 @@
-import { Network } from '@gardenfi/utils';
-
 export interface UnisatBitcoinProvider {
   _selectedAddress: string;
   getAccounts: () => Promise<string[]>;
@@ -11,7 +9,7 @@ export interface UnisatBitcoinProvider {
     total: number;
   }>;
   getNetwork: () => Promise<string>;
-  switchNetwork: (network: Network) => Promise<string>;
+  switchNetwork: (network: string) => Promise<string>;
   getPublicKey(): Promise<string>;
   on: (event: string, callback: (data: any) => void) => void;
   removeListener: (event: string, callback: (data: any) => void) => void;
