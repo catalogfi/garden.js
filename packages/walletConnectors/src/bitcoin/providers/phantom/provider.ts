@@ -4,10 +4,10 @@ import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
 import * as bitcoin from 'bitcoinjs-lib';
 import axios from 'axios';
 import { initEccLib } from 'bitcoinjs-lib';
-import * as secp256k1 from '@bitcoinerlab/secp256k1';
+import * as ecc from 'tiny-secp256k1';
 
 // Initialize the ECC library
-initEccLib(secp256k1);
+initEccLib(ecc);
 
 interface UTXO {
   txid: string;

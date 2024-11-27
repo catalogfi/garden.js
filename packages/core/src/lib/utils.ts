@@ -3,6 +3,7 @@ import {
   arbitrumSepolia,
   base,
   baseSepolia,
+  berachainTestnetbArtio,
   mainnet,
   sepolia,
   Chain as viemChain,
@@ -145,6 +146,7 @@ export const evmToViemChainMap: Record<EvmChain, viemChain> = {
   arbitrum_localnet: ArbitrumLocalnet,
   base_sepolia: baseSepolia,
   base: base,
+  bera_testnet: berachainTestnetbArtio,
 };
 
 /**
