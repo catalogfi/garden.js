@@ -1,7 +1,9 @@
 import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
-import { IInjectedBitcoinProvider, Network } from '../../bitcoin.types';
+import { Connect, IInjectedBitcoinProvider } from '../../bitcoin.types';
 import { XdefiBitcoinProvider } from './xdefi.types';
 import { getBalance } from '../../utils';
+import { Network } from '@gardenfi/utils';
+import { walletIDs } from './../../constants';
 
 export class XdefiProvider implements IInjectedBitcoinProvider {
   #xdefiProvider: XdefiBitcoinProvider;
@@ -11,12 +13,7 @@ export class XdefiProvider implements IInjectedBitcoinProvider {
     this.#xdefiProvider = xdefiProvider;
   }
 
-  async connect(
-    network?: Network,
-  ): AsyncResult<
-    { address: string; provider: IInjectedBitcoinProvider; network: Network },
-    string
-  > {
+  async connect(network?: Network): AsyncResult<Connect, string> {
     try {
       if (!window.xfi || !window.xfi.bitcoin)
         return Err('Xdefi wallet not found');
@@ -38,6 +35,7 @@ export class XdefiProvider implements IInjectedBitcoinProvider {
         address: res[0],
         provider: provider,
         network: provider.#xdefiProvider.network,
+        id: walletIDs.Xdefi,
       });
     } catch (error) {
       return Err('Error while connecting to the Xdefi wallet', error);

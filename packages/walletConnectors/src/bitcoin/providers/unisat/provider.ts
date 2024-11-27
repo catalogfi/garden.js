@@ -1,6 +1,8 @@
 import { UnisatBitcoinProvider } from './unisat.types';
 import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
-import { IInjectedBitcoinProvider, Network } from '../../bitcoin.types';
+import { Connect, IInjectedBitcoinProvider } from '../../bitcoin.types';
+import { Network } from '@gardenfi/utils';
+import { walletIDs } from './../../constants';
 
 export class UnisatProvider implements IInjectedBitcoinProvider {
   #unisatProvider: UnisatBitcoinProvider;
@@ -10,27 +12,27 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
     this.#unisatProvider = unisatProvider;
   }
 
-  async connect(
-    network?: Network,
-  ): AsyncResult<
-    { address: string; provider: IInjectedBitcoinProvider; network: Network },
-    string
-  > {
+  async connect(network?: Network): AsyncResult<Connect, string> {
     try {
       if (!network) network = Network.MAINNET;
-      const accounts = await this.#unisatProvider.getAccounts();
+      const accounts = await this.#unisatProvider.requestAccounts();
       if (accounts.length > 0) this.address = accounts[0];
 
       const currentNetwork = await this.getNetwork();
       if (currentNetwork.error)
         return Err('Could not get network', currentNetwork.error);
 
-      if (currentNetwork.val !== network) await this.switchNetwork();
+      if (currentNetwork.val !== network) {
+        const switchRes = await this.switchNetwork();
+        if (switchRes.error)
+          return Err('Failed to switch network', switchRes.error);
+      }
 
       return Ok({
         address: this.address,
         provider: this,
         network: network,
+        id: walletIDs.Unisat,
       });
     } catch (error) {
       return Err('Error while connecting to the Unisat wallet', error);

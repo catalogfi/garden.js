@@ -1,39 +1,22 @@
 import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
-import { IInjectedBitcoinProvider, Network } from '../../bitcoin.types';
+import { Connect, IInjectedBitcoinProvider } from '../../bitcoin.types';
 import { OKXBitcoinProvider } from './okx.types';
+import { Network } from '@gardenfi/utils';
+import { walletIDs } from './../../constants';
 
 export class OKXProvider implements IInjectedBitcoinProvider {
-  #mainnetProvider: OKXBitcoinProvider;
-  #testnetProvider: OKXBitcoinProvider;
-  #currentNetwork: Network;
+  #provider: OKXBitcoinProvider;
+  #network: Network;
   public address: string = '';
 
-  constructor(
-    mainnetProvider: OKXBitcoinProvider,
-    testnetProvider: OKXBitcoinProvider,
-  ) {
-    this.#mainnetProvider = mainnetProvider;
-    this.#testnetProvider = testnetProvider;
-    this.#currentNetwork = Network.MAINNET; // Default to mainnet
+  constructor(provider: OKXBitcoinProvider, network: Network) {
+    this.#provider = provider;
+    this.#network = network;
   }
 
-  get #currentProvider(): OKXBitcoinProvider {
-    return this.#currentNetwork === Network.MAINNET
-      ? this.#mainnetProvider
-      : this.#testnetProvider;
-  }
-
-  async connect(
-    network?: Network,
-  ): AsyncResult<
-    { address: string; provider: IInjectedBitcoinProvider; network: Network },
-    string
-  > {
-    if (!network) network = Network.MAINNET;
+  async connect(): AsyncResult<Connect, string> {
     try {
-      this.#currentNetwork = network;
-
-      const result = await this.#currentProvider.connect();
+      const result = await this.#provider.connect();
       if (!result || !result.address) {
         return Err('Failed to connect to OKX wallet');
       }
@@ -42,7 +25,8 @@ export class OKXProvider implements IInjectedBitcoinProvider {
       return Ok({
         address: this.address,
         provider: this,
-        network: this.#currentNetwork,
+        network: this.#network,
+        id: walletIDs.OKX,
       });
     } catch (error) {
       return Err('Error while connecting to the OKX wallet', error);
@@ -51,12 +35,12 @@ export class OKXProvider implements IInjectedBitcoinProvider {
 
   async getPublicKey(): AsyncResult<string, string> {
     return await executeWithTryCatch(async () => {
-      return await this.#currentProvider.getPublicKey();
+      return await this.#provider.getPublicKey();
     }, 'Error while getting public key from OKX wallet');
   }
 
   async requestAccounts(): AsyncResult<string[], string> {
-    const connectResult = await this.connect(this.#currentNetwork);
+    const connectResult = await this.connect();
     if (connectResult.error) {
       return Err(connectResult.error);
     }
@@ -64,31 +48,29 @@ export class OKXProvider implements IInjectedBitcoinProvider {
   }
 
   async getAccounts(): AsyncResult<string[], string> {
-    if (this.#currentNetwork === Network.TESTNET) {
+    if (this.#network === Network.TESTNET) {
       return await this.requestAccounts();
     }
     return await executeWithTryCatch(async () => {
-      return await this.#mainnetProvider.getAccounts();
+      return await this.#provider.getAccounts();
     }, 'Error while getting accounts from OKX wallet');
   }
 
   async getNetwork(): AsyncResult<Network, string> {
-    return Ok(this.#currentNetwork);
+    return Ok(this.#network);
   }
 
   async switchNetwork(): AsyncResult<Network, string> {
-    this.#currentNetwork =
-      this.#currentNetwork === Network.MAINNET
-        ? Network.TESTNET
-        : Network.MAINNET;
+    this.#network =
+      this.#network === Network.MAINNET ? Network.TESTNET : Network.MAINNET;
     // Re-connect with the new network provider
-    const connectResult = await this.connect(this.#currentNetwork);
+    const connectResult = await this.connect();
     if (connectResult.error) {
       return Err(
-        `Failed to connect to ${this.#currentNetwork}: ${connectResult.error}`,
+        `Failed to connect to ${this.#network}: ${connectResult.error}`,
       );
     }
-    return Ok(this.#currentNetwork);
+    return Ok(this.#network);
   }
 
   async getBalance(): AsyncResult<
@@ -96,7 +78,7 @@ export class OKXProvider implements IInjectedBitcoinProvider {
     string
   > {
     return await executeWithTryCatch(async () => {
-      return await this.#currentProvider.getBalance();
+      return await this.#provider.getBalance();
     }, 'Error while getting balance from OKX wallet');
   }
 
@@ -105,22 +87,21 @@ export class OKXProvider implements IInjectedBitcoinProvider {
     satoshis: number,
   ): AsyncResult<string, string> {
     return await executeWithTryCatch(async () => {
-      return await this.#currentProvider.sendBitcoin(toAddress, satoshis);
+      return await this.#provider.sendBitcoin(toAddress, satoshis);
     }, 'Error while sending bitcoin from OKX wallet');
   }
 
-  on(event: string, callback: (data: any) => void): void {
-    this.#mainnetProvider.on(event, callback);
-    this.#testnetProvider.on(event, callback);
+  on(event: 'accountsChanged', callback: (data: string[]) => void): void {
+    this.#provider.on(event, callback);
   }
 
-  off(event: string, callback: (data: any) => void): void {
-    this.#mainnetProvider.off(event, callback);
-    this.#testnetProvider.off(event, callback);
+  off(event: 'accountsChanged', callback: (data: string[]) => void): void {
+    this.#provider.off(event, callback);
   }
 
   disconnect = (): AsyncResult<string, string> => {
     this.address = '';
+    this.#provider.disconnect();
     return Promise.resolve(Ok('Disconnected OKX wallet'));
   };
 }

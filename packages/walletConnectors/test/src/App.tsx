@@ -1,12 +1,13 @@
+import { BTCWalletProvider } from '../../src';
 import './App.css';
-import { BTCWalletProvider } from './../../src';
 import { Hello } from './components/Hello';
+import { Network } from '@gardenfi/utils';
 
 function App() {
   // console.log('suppported wallets', SupportedBTCWallets);
 
   return (
-    <BTCWalletProvider>
+    <BTCWalletProvider network={Network.TESTNET}>
       <Hello />
     </BTCWalletProvider>
   );

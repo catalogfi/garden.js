@@ -1,4 +1,4 @@
-import { Network } from '../../bitcoin.types';
+import { Network } from '@gardenfi/utils';
 
 type RequestFunction = (
   { method, params }: { method: string; params: any[] },
