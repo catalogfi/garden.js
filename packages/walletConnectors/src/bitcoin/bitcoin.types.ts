@@ -1,3 +1,4 @@
+import { walletIDs } from './constants';
 import { AsyncResult } from '@catalogfi/utils';
 import { Network } from '@gardenfi/utils';
 
@@ -11,8 +12,10 @@ export type Connect = {
   address: string;
   provider: IInjectedBitcoinProvider;
   network: Network;
-  id: string;
+  id: WalletId;
 };
+
+export type WalletId = (typeof walletIDs)[keyof typeof walletIDs];
 
 export type ProviderEvents = {
   accountsChanged: (accounts: string[]) => void;

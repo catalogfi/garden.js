@@ -43,7 +43,7 @@ createRoot(document.getElementById('root')!).render(
             environment: environment.testnet,
           }}
         >
-          <BTCWalletProvider network={Network.TESTNET}>
+          <BTCWalletProvider network={Network.TESTNET} store={localStorage}>
             <App />
           </BTCWalletProvider>
         </GardenProvider>

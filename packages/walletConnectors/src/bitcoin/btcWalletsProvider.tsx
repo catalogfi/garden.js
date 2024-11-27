@@ -5,7 +5,12 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
-import { BitcoinWallets, IInjectedBitcoinProvider } from './bitcoin.types';
+import {
+  BitcoinWallets,
+  Connect,
+  IInjectedBitcoinProvider,
+  WalletId,
+} from './bitcoin.types';
 import { OKXProvider } from './providers/okx/provider';
 import { OKXBitcoinProvider } from './providers/okx/okx.types';
 import { Err, Ok, Void } from '@catalogfi/utils';
@@ -13,7 +18,7 @@ import { UnisatBitcoinProvider } from './providers/unisat/unisat.types';
 import { XVerseBitcoinProvider } from './providers/xverse/xverse.types';
 import { XdefiBitcoinProvider } from './providers/xdefi/xdefi.types';
 import { PhantomBitcoinProvider } from './providers/phantom/phantom.types';
-// import { UnisatProvider } from './providers/unisat/provider';
+import { UnisatProvider } from './providers/unisat/provider';
 // import { XverseProvider } from './providers/xverse/provider';
 // import { XdefiProvider } from './providers/xdefi/provider';
 // import { PhantomProvider } from './providers/phantom/provider';
@@ -23,6 +28,7 @@ import {
   BTCWalletProviderProps,
 } from './btcWalletsProvider.types';
 import { Network } from '@gardenfi/utils';
+import { walletIDs } from './constants';
 
 declare global {
   interface Window {
@@ -64,6 +70,7 @@ export const BTCWalletProvider = ({
     if (res.error) return Err(res.error);
 
     if (res.val.network !== network) return Err('Network mismatch');
+    console.log('connect val resp :', res.val);
 
     setProvider(res.val.provider);
     setAccount(res.val.address);
@@ -102,12 +109,25 @@ export const BTCWalletProvider = ({
     }
   }, [provider]);
 
-  //adds wallet to the wallet list
+  //adds wallet to the available wallet list
   const addToWalletList = (name: string, wallet: IInjectedBitcoinProvider) => {
     setAvailableWallets((p) => ({
       ...p,
       [name]: wallet,
     }));
+  };
+
+  const isAlreadyConnected = (id: WalletId, network: Network) => {
+    const previousConnectedData = store.getItem('bitcoinWallet');
+    if (previousConnectedData) {
+      const isAlreadyConnected: Connect = JSON.parse(previousConnectedData);
+      if (
+        isAlreadyConnected.id === id &&
+        isAlreadyConnected.network === network
+      )
+        return true;
+    }
+    return false;
   };
 
   const updateWalletList = async () => {
@@ -119,21 +139,34 @@ export const BTCWalletProvider = ({
           network,
         );
         addToWalletList(BitcoinWallets.OKX_WALLET, okxProvider);
-        const res = await okxProvider.getAccounts();
-        setAccount(res.val[0]);
+
+        if (isAlreadyConnected(walletIDs.OKX, Network.TESTNET)) {
+          const res = await okxProvider.getAccounts();
+          setAccount(res.val[0]);
+          setProvider(okxProvider);
+        }
       } else if (network === Network.MAINNET && window.okxwallet.bitcoin) {
         const okxProvider = new OKXProvider(window.okxwallet.bitcoin, network);
         addToWalletList(BitcoinWallets.OKX_WALLET, okxProvider);
-        const res = await okxProvider.getAccounts();
-        setAccount(res.val[0]);
+
+        if (isAlreadyConnected(walletIDs.OKX, Network.MAINNET)) {
+          const res = await okxProvider.getAccounts();
+          setAccount(res.val[0]);
+          setProvider(okxProvider);
+        }
       }
     }
-    // if (window.unisat) {
-    //   const uniProvider = new UnisatProvider(window.unisat);
-    //   addToWalletList(BitcoinWallets.UNISAT, uniProvider);
-    //   const res = await uniProvider.getAccounts();
-    //   setAccount(res.val[0]);
-    // }
+    if (window.unisat) {
+      const uniProvider = new UnisatProvider(window.unisat);
+      addToWalletList(BitcoinWallets.UNISAT, uniProvider);
+
+      if (provider || account) return;
+      if (!isAlreadyConnected(walletIDs.Unisat, network)) return;
+
+      const res = await uniProvider.getAccounts();
+      setAccount(res.val[0]);
+      setProvider(uniProvider);
+    }
     // if (window.XverseProviders && window.XverseProviders.BitcoinProvider) {
     //   const xverseProvider = new XverseProvider(
     //     window.XverseProviders.BitcoinProvider,

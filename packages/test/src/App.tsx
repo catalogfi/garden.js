@@ -25,9 +25,9 @@ function App() {
   const { data: walletClient } = useWalletClient();
   const { initializeSecretManager, swapAndInitiate } = useGarden();
   const [loading, setLoading] = useState(false);
-  const { availableWallets, provider } = useBitcoinWallet();
-  console.log('provider :', provider);
+  const { availableWallets, connect, account, provider } = useBitcoinWallet();
   console.log('availableWallets :', availableWallets);
+  console.log('provider :', provider);
 
   const [swapParams, setSwapParams] = useState({
     inputToken: chainToAsset.ethereum_localnet,
@@ -79,6 +79,37 @@ function App() {
               </div>
             );
           })}
+        </div>
+        <div>
+          <div>Account: {account}</div>
+          <h2>BTC Wallets</h2>
+          {Object.entries(availableWallets).map(([name, wallet], i) => (
+            <div
+              onClick={async () => {
+                const res = await connect(wallet);
+                if (res.error) {
+                  console.error(res.error);
+                  return;
+                }
+              }}
+              key={i}
+              style={{ cursor: 'pointer', display: 'flex' }}
+            >
+              Connect {name}
+            </div>
+          ))}
+          <div
+            onClick={async () => {
+              if (!provider) return;
+              const res = await provider.sendBitcoin(
+                'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru',
+                100000,
+              );
+              console.log('res :', res);
+            }}
+          >
+            Send Bitcoin
+          </div>
         </div>
         <div>
           <h2>Networks</h2>

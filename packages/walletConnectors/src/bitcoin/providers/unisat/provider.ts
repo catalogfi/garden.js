@@ -1,7 +1,8 @@
 import { UnisatBitcoinProvider } from './unisat.types';
 import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
-import { IInjectedBitcoinProvider } from '../../bitcoin.types';
+import { Connect, IInjectedBitcoinProvider } from '../../bitcoin.types';
 import { Network } from '@gardenfi/utils';
+import { walletIDs } from './../../constants';
 
 export class UnisatProvider implements IInjectedBitcoinProvider {
   #unisatProvider: UnisatBitcoinProvider;
@@ -11,12 +12,7 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
     this.#unisatProvider = unisatProvider;
   }
 
-  async connect(
-    network?: Network,
-  ): AsyncResult<
-    { address: string; provider: IInjectedBitcoinProvider; network: Network },
-    string
-  > {
+  async connect(network?: Network): AsyncResult<Connect, string> {
     try {
       if (!network) network = Network.MAINNET;
       const accounts = await this.#unisatProvider.getAccounts();
@@ -32,6 +28,7 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
         address: this.address,
         provider: this,
         network: network,
+        id: walletIDs.Unisat,
       });
     } catch (error) {
       return Err('Error while connecting to the Unisat wallet', error);

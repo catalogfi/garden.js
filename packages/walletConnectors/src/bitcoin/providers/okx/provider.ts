@@ -2,6 +2,7 @@ import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
 import { Connect, IInjectedBitcoinProvider } from '../../bitcoin.types';
 import { OKXBitcoinProvider } from './okx.types';
 import { Network } from '@gardenfi/utils';
+import { walletIDs } from './../../constants';
 
 export class OKXProvider implements IInjectedBitcoinProvider {
   #provider: OKXBitcoinProvider;
@@ -25,7 +26,7 @@ export class OKXProvider implements IInjectedBitcoinProvider {
         address: this.address,
         provider: this,
         network: this.#network,
-        id: 'OKX_WALLET',
+        id: walletIDs.OKX,
       });
     } catch (error) {
       return Err('Error while connecting to the OKX wallet', error);

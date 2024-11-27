@@ -23,5 +23,13 @@ export const SupportedWallets = {
     name: 'Phantom',
     icon: '',
     description: 'Phantom wallet',
-  }
+  },
 };
+
+export const walletIDs = {
+  OKX: 'okx',
+  Unisat: 'unisat',
+  Xverse: 'xverse',
+  Xdefi: 'xdefi',
+  Phantom: 'phantom',
+} as const;
