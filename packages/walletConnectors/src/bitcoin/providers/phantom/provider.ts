@@ -8,7 +8,6 @@ import * as ecc from 'tiny-secp256k1';
 import { Network } from '@gardenfi/utils';
 import { walletIDs } from './../../constants';
 
-// Initialize the ECC library
 initEccLib(ecc);
 
 interface UTXO {
