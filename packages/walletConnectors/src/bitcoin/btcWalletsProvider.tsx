@@ -60,23 +60,31 @@ export const BTCWalletProvider = ({
 }: BTCWalletProviderProps) => {
   const [provider, setProvider] = useState<IInjectedBitcoinProvider>();
   const [account, setAccount] = useState<string>();
+  const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const [availableWallets, setAvailableWallets] = useState<AvailableWallets>(
     {},
   );
 
   //connect to the specified wallet and set the provider and account
   const connect = async (bitcoinWallet: IInjectedBitcoinProvider) => {
+    setIsConnecting(true);
     const res = await bitcoinWallet.connect(network);
-    if (res.error) return Err(res.error);
+    if (res.error) {
+      setIsConnecting(false);
+      return Err(res.error);
+    }
 
-    if (res.val.network !== network) return Err('Network mismatch');
-    console.log('connect val resp :', res.val);
+    if (res.val.network !== network) {
+      setIsConnecting(false);
+      return Err('Network mismatch');
+    }
 
     setProvider(res.val.provider);
     setAccount(res.val.address);
 
     store.setItem('bitcoinWallet', JSON.stringify(res.val));
 
+    setIsConnecting(false);
     return Ok(Void);
   };
 
@@ -218,6 +226,7 @@ export const BTCWalletProvider = ({
         provider,
         account,
         network,
+        isConnecting,
         updateAccount,
         disconnect,
       }}
