@@ -208,6 +208,41 @@ export class GardenHTLC implements IHTLCWallet {
     return await this.signer.send(this.address(), this.initiateAmount, fee);
   }
 
+  async generateInstantRefundSACP(receiver: string, fee?: number) {
+    const { tx, usedUtxos } = await this._buildRawTx(receiver, fee);
+    const output = this.getOutputScript();
+
+    const hashType =
+      bitcoin.Transaction.SIGHASH_SINGLE |
+      bitcoin.Transaction.SIGHASH_ANYONECANPAY;
+    const instantRefundLeafHash = this.leafHash(Leaf.INSTANT_REFUND);
+
+    const values = usedUtxos.map((utxo) => utxo.value);
+    const outputs = generateOutputs(output, usedUtxos.length);
+
+    for (let i = 0; i < tx.ins.length; i++) {
+      const hash = tx.hashForWitnessV1(
+        i,
+        outputs,
+        values,
+        hashType,
+        instantRefundLeafHash,
+      );
+
+      const signature = await this.signer.signSchnorr(hash);
+      tx.setWitness(i, [
+        // first is initiator's signature
+        signature,
+        // second is redeemer's signature
+        // this is then modified by the redeemer to include their signature
+        signature,
+        this.instantRefundLeaf(),
+        this.generateControlBlockFor(Leaf.INSTANT_REFUND),
+      ]);
+    }
+    return tx.toHex();
+  }
+
   /**
    * Instantly refunds the funds to the initiator given the counterparty's signatures and pubkey
    *
