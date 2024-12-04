@@ -7,6 +7,7 @@ import { walletIDs } from './../../constants';
 export class UnisatProvider implements IInjectedBitcoinProvider {
   #unisatProvider: UnisatBitcoinProvider;
   public address: string = '';
+  public id = walletIDs.Unisat;
 
   constructor(unisatProvider: UnisatBitcoinProvider) {
     this.#unisatProvider = unisatProvider;

@@ -7,6 +7,7 @@ import { Network } from '@gardenfi/utils';
 export class XverseProvider implements IInjectedBitcoinProvider {
   #xverseProvider: XVerseBitcoinProvider;
   public address = '';
+  public id = walletIDs.Xverse;
 
   constructor(private provider: XVerseBitcoinProvider) {
     this.#xverseProvider = provider;

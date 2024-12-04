@@ -30,6 +30,7 @@ interface UTXO {
 export class PhantomProvider implements IInjectedBitcoinProvider {
   #phantomProvider: PhantomBitcoinProvider;
   public address: string = '';
+  public id = walletIDs.Phantom;
   private mempoolApiBaseUrl: string = 'https://mempool.space/api';
 
   constructor(phantomProvider: PhantomBitcoinProvider) {

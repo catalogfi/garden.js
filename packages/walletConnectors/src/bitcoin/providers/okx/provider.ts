@@ -8,6 +8,7 @@ export class OKXProvider implements IInjectedBitcoinProvider {
   #provider: OKXBitcoinProvider;
   #network: Network;
   public address: string = '';
+  public id = walletIDs.OKX;
 
   constructor(provider: OKXBitcoinProvider, network: Network) {
     this.#provider = provider;

@@ -21,7 +21,10 @@ export type ProviderEvents = {
   accountsChanged: (accounts: string[]) => void;
 };
 
+type walletId = (typeof walletIDs)[keyof typeof walletIDs];
+
 export interface IInjectedBitcoinProvider {
+  id: walletId;
   address: string;
   getBalance: () => AsyncResult<Balance, string>;
   // selectedAccount: SelectedAccount;
@@ -57,12 +60,4 @@ export interface BitcoinWallet {
   name: string;
   symbol: string;
   connect: () => AsyncResult<IInjectedBitcoinProvider, string>;
-}
-
-export enum BitcoinWallets {
-  OKX_WALLET = 'OKX_WALLET',
-  UNISAT = 'UNISAT',
-  XVERSE = 'XVERSE',
-  XDEFI = 'XDEFI',
-  PHANTOM = 'PHANTOM',
 }

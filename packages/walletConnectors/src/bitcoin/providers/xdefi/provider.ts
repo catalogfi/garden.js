@@ -8,6 +8,7 @@ import { walletIDs } from './../../constants';
 export class XdefiProvider implements IInjectedBitcoinProvider {
   #xdefiProvider: XdefiBitcoinProvider;
   public address: string = '';
+  public id = walletIDs.Xdefi;
 
   constructor(xdefiProvider: XdefiBitcoinProvider) {
     this.#xdefiProvider = xdefiProvider;
