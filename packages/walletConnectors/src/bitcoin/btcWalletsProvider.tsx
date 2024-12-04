@@ -5,12 +5,7 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
-import {
-  BitcoinWallets,
-  Connect,
-  IInjectedBitcoinProvider,
-  WalletId,
-} from './bitcoin.types';
+import { Connect, IInjectedBitcoinProvider } from './bitcoin.types';
 import { OKXProvider } from './providers/okx/provider';
 import { OKXBitcoinProvider } from './providers/okx/okx.types';
 import { Err, Ok, Void } from '@catalogfi/utils';
@@ -19,9 +14,9 @@ import { XVerseBitcoinProvider } from './providers/xverse/xverse.types';
 import { XdefiBitcoinProvider } from './providers/xdefi/xdefi.types';
 import { PhantomBitcoinProvider } from './providers/phantom/phantom.types';
 import { UnisatProvider } from './providers/unisat/provider';
+import { PhantomProvider } from './providers/phantom/provider';
 // import { XverseProvider } from './providers/xverse/provider';
 // import { XdefiProvider } from './providers/xdefi/provider';
-// import { PhantomProvider } from './providers/phantom/provider';
 import {
   AvailableWallets,
   BTCWalletProviderContextType,
@@ -125,55 +120,26 @@ export const BTCWalletProvider = ({
     }));
   };
 
-  const isAlreadyConnected = (id: WalletId, network: Network) => {
-    const previousConnectedData = store.getItem('bitcoinWallet');
-    if (previousConnectedData) {
-      const isAlreadyConnected: Connect = JSON.parse(previousConnectedData);
-      if (
-        isAlreadyConnected.id === id &&
-        isAlreadyConnected.network === network
-      )
-        return true;
-    }
-    return false;
-  };
-
   const updateWalletList = async () => {
-    //TODO: only get accounts if the wallet is stored in localstorage which means already connected else don't fetch addresses
-    if (window.okxwallet) {
-      if (network === Network.TESTNET && window.okxwallet.bitcoinTestnet) {
-        const okxProvider = new OKXProvider(
-          window.okxwallet.bitcoinTestnet,
-          network,
-        );
-        addToWalletList(BitcoinWallets.OKX_WALLET, okxProvider);
-
-        if (isAlreadyConnected(walletIDs.OKX, Network.TESTNET)) {
-          const res = await okxProvider.getAccounts();
-          setAccount(res.val[0]);
-          setProvider(okxProvider);
-        }
-      } else if (network === Network.MAINNET && window.okxwallet.bitcoin) {
-        const okxProvider = new OKXProvider(window.okxwallet.bitcoin, network);
-        addToWalletList(BitcoinWallets.OKX_WALLET, okxProvider);
-
-        if (isAlreadyConnected(walletIDs.OKX, Network.MAINNET)) {
-          const res = await okxProvider.getAccounts();
-          setAccount(res.val[0]);
-          setProvider(okxProvider);
-        }
-      }
+    if (
+      window.okxwallet &&
+      network === Network.MAINNET &&
+      window.okxwallet.bitcoin
+    ) {
+      const okxProvider = new OKXProvider(window.okxwallet.bitcoin, network);
+      addToWalletList(walletIDs.OKX, okxProvider);
+    }
+    if (
+      network === Network.MAINNET &&
+      window.phantom &&
+      window.phantom.bitcoin
+    ) {
+      const phantomProvider = new PhantomProvider(window.phantom.bitcoin);
+      addToWalletList(walletIDs.Phantom, phantomProvider);
     }
     if (window.unisat) {
       const uniProvider = new UnisatProvider(window.unisat);
-      addToWalletList(BitcoinWallets.UNISAT, uniProvider);
-
-      if (provider || account) return;
-      if (!isAlreadyConnected(walletIDs.Unisat, network)) return;
-
-      const res = await uniProvider.getAccounts();
-      setAccount(res.val[0]);
-      setProvider(uniProvider);
+      addToWalletList(walletIDs.Unisat, uniProvider);
     }
     // if (window.XverseProviders && window.XverseProviders.BitcoinProvider) {
     //   const xverseProvider = new XverseProvider(
@@ -189,12 +155,21 @@ export const BTCWalletProvider = ({
     //   const res = await xdefiProvider.getAccounts();
     //   setAccount(res.val[0]);
     // }
-    // if (window.phantom && window.phantom.bitcoin) {
-    //   const phantomProvider = new PhantomProvider(window.phantom.bitcoin);
-    //   addToWalletList(BitcoinWallets.PHANTOM, phantomProvider);
-    //   const res = await phantomProvider.getAccounts();
-    //   setAccount(res.val[0]);
-    // }
+  };
+
+  const initializeProviderAndAccount = async () => {
+    const previousConnectedData = store.getItem('bitcoinWallet');
+    if (previousConnectedData) {
+      const isAlreadyConnected: Connect = JSON.parse(previousConnectedData);
+      if (availableWallets[isAlreadyConnected.id]) {
+        const addresses = await availableWallets[
+          isAlreadyConnected.id
+        ].getAccounts();
+        if (addresses.error && !addresses.val[0]) return;
+        setProvider(availableWallets[isAlreadyConnected.id]);
+        setAccount(addresses.val[0]);
+      }
+    }
   };
 
   //updates the available wallets list
@@ -202,15 +177,19 @@ export const BTCWalletProvider = ({
     updateWalletList();
   }, []);
 
+  // if the wallet is already connected then set the provider and account
+  useEffect(() => {
+    if (!availableWallets) return;
+    initializeProviderAndAccount();
+  }, [availableWallets]);
+
   useEffect(() => {
     if (!provider) return;
 
     const handleAccountsChanged = async (accounts: string[]) => {
       if (accounts.length === 0) return;
-
       setAccount(accounts[0]);
     };
-
     provider.on('accountsChanged', handleAccountsChanged);
 
     return () => {

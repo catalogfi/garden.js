@@ -27,7 +27,6 @@ function App() {
   const [loading, setLoading] = useState(false);
   const { availableWallets, connect, account, provider } = useBitcoinWallet();
   console.log('availableWallets :', availableWallets);
-  console.log('provider :', provider);
 
   const [swapParams, setSwapParams] = useState({
     inputToken: chainToAsset.ethereum_localnet,
@@ -102,10 +101,10 @@ function App() {
             onClick={async () => {
               if (!provider) return;
               const res = await provider.sendBitcoin(
-                'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru',
+                'bc1pqx4petqw4gfrzs7qfcyle95xsn7w39ukmtyy95zfytcldjztf0tqhe7rsj',
                 100000,
               );
-              console.log('res :', res);
+              console.log('res :', res.error);
             }}
           >
             Send Bitcoin

@@ -265,6 +265,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@catalogfi/wallets@npm:^0.2.54":
+  version: 0.2.54
+  resolution: "@catalogfi/wallets@npm:0.2.54"
+  dependencies:
+    "@catalogfi/extension": "npm:^0.1.1"
+    "@catalogfi/utils": "npm:^0.1.10"
+    "@noble/hashes": "npm:^1.4.0"
+    bip32: "npm:^4.0.0"
+    bip39: "npm:^3.1.0"
+    bitcoinjs-lib: "npm:^6.1.5"
+    bufferutil: "npm:^4.0.8"
+    dotenv: "npm:^16.3.1"
+    ecpair: "npm:^2.1.0"
+    tiny-secp256k1: "npm:^2.2.3"
+    typechain: "npm:^8.3.2"
+    utf-8-validate: "npm:^6.0.3"
+    uuid: "npm:^9.0.1"
+    viem: "npm:^2.20.1"
+    yup: "npm:^1.4.0"
+  checksum: 10c0/ea8a7f48c4251ff698e5ef51ceea836551d49f01d680664257c51906102f5e2d1a55bc172ca7e6ccda2cc27ed596b4eaa5de1a24eb2ab12f1466fa4ec47a87d8
+  languageName: node
+  linkType: hard
+
 "@coinbase/wallet-sdk@npm:4.1.0":
   version: 4.1.0
   resolution: "@coinbase/wallet-sdk@npm:4.1.0"
@@ -649,7 +672,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@gardenfi/test@workspace:packages/test"
   dependencies:
-    "@catalogfi/wallets": "npm:^0.2.51"
+    "@catalogfi/wallets": "npm:^0.2.54"
     "@esbuild-plugins/node-globals-polyfill": "npm:^0.2.3"
     "@eslint/js": "npm:^9.11.1"
     "@gardenfi/core": "workspace:^"
@@ -700,6 +723,7 @@ __metadata:
   resolution: "@gardenfi/wallet-connectors@workspace:packages/walletConnectors"
   dependencies:
     "@catalogfi/utils": "npm:^0.1.11"
+    "@catalogfi/wallets": "npm:^0.2.54"
     "@gardenfi/utils": "workspace:^"
     "@types/react": "npm:^18"
     "@types/ws": "npm:^8.5.7"

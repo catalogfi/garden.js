@@ -7,6 +7,11 @@ import { initEccLib } from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
 import { Network } from '@gardenfi/utils';
 import { walletIDs } from './../../constants';
+import {
+  BitcoinNetwork,
+  BitcoinProvider,
+  BitcoinWallet,
+} from '@catalogfi/wallets';
 
 initEccLib(ecc);
 
@@ -102,62 +107,48 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
     satoshis: number,
   ): AsyncResult<string, string> {
     return await executeWithTryCatch(async () => {
+      //considering only mainnet because phantom doesn't support testnet
       const network = bitcoin.networks.bitcoin;
-      const psbt = new bitcoin.Psbt({ network });
 
-      const utxos = await this.getUnspentOutputs();
-      let totalInput = 0;
-      utxos.forEach((utxo) => {
-        psbt.addInput({
-          hash: utxo.txid,
-          index: utxo.vout,
-          witnessUtxo: {
-            script: bitcoin.address.toOutputScript(this.address, network),
-            value: BigInt(utxo.value),
+      const provider = new BitcoinProvider(BitcoinNetwork.Mainnet);
+      try {
+        const { txHex, utxoCount } = await BitcoinWallet.generateUnsignedPSBT(
+          provider,
+          network,
+          this.address,
+          toAddress,
+          satoshis,
+        );
+        console.log('txHex :', txHex);
+
+        const signedPsbtBytes = await this.#phantomProvider.signPSBT(
+          this.fromHexString(txHex),
+          {
+            inputsToSign: [
+              {
+                address: this.address,
+                signingIndexes: Array.from({ length: utxoCount }, (_, i) => i),
+                sigHash: bitcoin.Transaction.SIGHASH_ALL,
+              },
+            ],
           },
-        });
-        totalInput += utxo.value;
-      });
+        );
 
-      psbt.addOutput({
-        address: toAddress,
-        value: BigInt(satoshis),
-      });
+        const signedPsbt = bitcoin.Psbt.fromBuffer(
+          Buffer.from(signedPsbtBytes),
+        );
+        signedPsbt.finalizeAllInputs();
 
-      //TODO: make this dynamic
-      const fee = 1000; // Set fee
-      const change = totalInput - satoshis - fee;
-      if (change > 0) {
-        psbt.addOutput({
-          address: this.address, // change goes back to sender
-          value: BigInt(change),
-        });
+        const tx = signedPsbt.extractTransaction();
+        const txId = tx.getId();
+
+        await provider.broadcast(tx.toHex());
+
+        return txId;
+      } catch (error) {
+        console.log('error :', error);
+        throw new Error('Failed to send bitcoin');
       }
-
-      const serializedPsbt = psbt.toHex();
-
-      const signedPsbtBytes = await this.#phantomProvider.signPSBT(
-        this.fromHexString(serializedPsbt),
-        {
-          inputsToSign: [
-            {
-              address: this.address,
-              signingIndexes: Array.from(Array(utxos.length).keys()),
-              sigHash: bitcoin.Transaction.SIGHASH_ALL,
-            },
-          ],
-        },
-      );
-
-      const signedPsbt = bitcoin.Psbt.fromBuffer(Buffer.from(signedPsbtBytes));
-      signedPsbt.finalizeAllInputs();
-
-      const tx = signedPsbt.extractTransaction();
-      const txId = tx.getId();
-
-      await this.broadcastTransaction(tx.toHex());
-
-      return txId;
     }, 'Error while sending bitcoin from Phantom wallet');
   }
 
