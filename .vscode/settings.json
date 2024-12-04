@@ -25,6 +25,7 @@
     "prevout",
     "Psbt",
     "regtest",
+    "SACP",
     "satoshis",
     "secp",
     "SIGHASH",

@@ -1,5 +1,5 @@
 import { ISecretManager } from './../secretManager/secretManager.types';
-import { AsyncResult, Err, Ok, trim0x } from '@catalogfi/utils';
+import { AsyncResult, Err, Fetcher, Ok, trim0x } from '@catalogfi/utils';
 import {
   GardenEvents,
   IGardenJS,
@@ -21,6 +21,7 @@ import {
   Orderbook,
 } from '@gardenfi/orderbook';
 import {
+  APIResponse,
   fetchBitcoinBlockNumber,
   fetchEVMBlockNumber,
   IAuth,
@@ -40,6 +41,7 @@ import { GardenHTLC } from '../bitcoin/htlc';
 import { ExecutorCache } from './cache/executorCache';
 import BigNumber from 'bignumber.js';
 import { IBlockNumberFetcher } from './blockNumber';
+import { OrderStatus } from '../status';
 
 export class Garden implements IGardenJS {
   private secretManager: ISecretManager;
@@ -61,6 +63,7 @@ export class Garden implements IGardenJS {
   private evmAddress: string;
   private orderExecutorCache: IOrderExecutorCache;
   private blockNumberFetcher: IBlockNumberFetcher | undefined;
+  private refundSacpCache = new Map<string, any>();
 
   constructor(config: {
     orderbookURl: string;
@@ -270,6 +273,19 @@ export class Garden implements IGardenJS {
         for (let i = 0; i < ordersWithStatus.length; i++) {
           const order = ordersWithStatus[i];
           const orderAction = parseActionFromStatus(order.status);
+
+          //post refund sacp for bitcoin orders
+          if (
+            isBitcoin(order.source_swap.chain) &&
+            order.status === OrderStatus.InitiateDetected
+          ) {
+            const walletRes = this.getWallet(order.source_swap.chain);
+            if (walletRes.error) {
+              this.emit('error', order, walletRes.error);
+              continue;
+            }
+            await this.postRefundSACP(order, walletRes.val as IBitcoinWallet);
+          }
 
           switch (orderAction) {
             case OrderActions.Redeem: {
@@ -513,6 +529,47 @@ export class Garden implements IGardenJS {
         return Ok(this.wallets.btcWallet);
       default:
         return Err('Unsupported chain for wallet');
+    }
+  }
+
+  private async postRefundSACP(order: MatchedOrder, wallet: IBitcoinWallet) {
+    const cachedOrder = this.refundSacpCache.get(order.create_order.create_id);
+    if (cachedOrder?.initTxHash === order.source_swap.initiate_tx_hash) return;
+
+    const bitcoinExecutor = await GardenHTLC.from(
+      wallet,
+      Number(order.source_swap.amount),
+      order.create_order.secret_hash,
+      toXOnly(order.source_swap.initiator),
+      toXOnly(order.source_swap.redeemer),
+      order.source_swap.timelock,
+    );
+    const userBTCAddress =
+      order.create_order.additional_data.bitcoin_optional_recipient;
+    if (!userBTCAddress) return;
+
+    try {
+      const sacp = await bitcoinExecutor.generateInstantRefundSACP(
+        userBTCAddress,
+      );
+      const url = this.orderbookUrl + '/orders/add-instant-refund-sacp';
+      const res = await Fetcher.post<APIResponse<string>>(url, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          order_id: order.create_order.create_id,
+          instant_refund_tx_bytes: sacp,
+        }),
+      });
+      if (res.status === 'Ok') {
+        this.refundSacpCache.set(order.create_order.create_id, {
+          initTxHash: order.source_swap.initiate_tx_hash,
+        });
+      }
+    } catch (error) {
+      this.emit('error', order, 'Failed to generate and post SACP: ' + error);
+      return;
     }
   }
 
