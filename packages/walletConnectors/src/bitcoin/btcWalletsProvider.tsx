@@ -170,11 +170,11 @@ export const BTCWalletProvider = ({
       const _provider = availableWallets[isAlreadyConnected.id];
       if (_provider) {
         const addresses = await _provider.getAccounts();
-        if (addresses.error && !addresses.val[0]) return;
+        if (addresses.error || !addresses.val[0]) return;
 
-        const network = await _provider.getNetwork();
-        if (network.error) return;
-        if (network.val !== isAlreadyConnected.network) return;
+        const currentNetwork = await _provider.getNetwork();
+        if (currentNetwork.error) return;
+        if (currentNetwork.val !== network) return;
 
         setProvider(_provider);
         setAccount(addresses.val[0]);
