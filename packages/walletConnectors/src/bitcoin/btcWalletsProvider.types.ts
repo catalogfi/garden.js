@@ -18,6 +18,7 @@ export type BTCWalletProviderContextType = {
   network: Network | undefined;
   disconnect: () => Result<void, string>;
   isConnecting: boolean;
+  isConnected: boolean;
 };
 
 export type BTCWalletProviderProps = {

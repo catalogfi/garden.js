@@ -26,7 +26,9 @@ function App() {
   const { initializeSecretManager, swapAndInitiate } = useGarden();
   const [loading, setLoading] = useState(false);
   const { availableWallets, connect, account, provider } = useBitcoinWallet();
-  console.log('availableWallets :', availableWallets);
+  console.log('account :', account);
+  console.log('provider :', provider);
+  // console.log('availableWallets :', availableWallets);
 
   const [swapParams, setSwapParams] = useState({
     inputToken: chainToAsset.ethereum_localnet,

@@ -4,6 +4,7 @@ import React, {
   useContext,
   useEffect,
   useCallback,
+  useMemo,
 } from 'react';
 import { Connect, IInjectedBitcoinProvider } from './bitcoin.types';
 import { OKXProvider } from './providers/okx/provider';
@@ -58,6 +59,11 @@ export const BTCWalletProvider = ({
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const [availableWallets, setAvailableWallets] = useState<AvailableWallets>(
     {},
+  );
+
+  const isConnected = useMemo(
+    () => !!provider && !!account,
+    [provider, account],
   );
 
   //connect to the specified wallet and set the provider and account
@@ -161,12 +167,16 @@ export const BTCWalletProvider = ({
     const previousConnectedData = store.getItem('bitcoinWallet');
     if (previousConnectedData) {
       const isAlreadyConnected: Connect = JSON.parse(previousConnectedData);
-      if (availableWallets[isAlreadyConnected.id]) {
-        const addresses = await availableWallets[
-          isAlreadyConnected.id
-        ].getAccounts();
+      const _provider = availableWallets[isAlreadyConnected.id];
+      if (_provider) {
+        const addresses = await _provider.getAccounts();
         if (addresses.error && !addresses.val[0]) return;
-        setProvider(availableWallets[isAlreadyConnected.id]);
+
+        const network = await _provider.getNetwork();
+        if (network.error) return;
+        if (network.val !== isAlreadyConnected.network) return;
+
+        setProvider(_provider);
         setAccount(addresses.val[0]);
       }
     }
@@ -208,6 +218,7 @@ export const BTCWalletProvider = ({
         isConnecting,
         updateAccount,
         disconnect,
+        isConnected,
       }}
     >
       {children}
