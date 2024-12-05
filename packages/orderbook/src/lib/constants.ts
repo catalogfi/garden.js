@@ -67,10 +67,10 @@ type SupportedAssets = {
     ethereum_sepolia_0x3c6a17b8cd92976d1d91e491c93c98cd81998265: Asset;
     arbitrum_sepolia_0x1cd0bbd55fd66b4c5f7dfe434efd009c09e628d1: Asset;
     arbitrum_sepolia_0xd5fedb4cecb0f1d32788a190d9eb47d94d23ee4e: Asset;
-    arbitrum_sepolia_0x6e87ef92e68cfd5acb09482957483509756dcec2: Asset;
+    arbitrum_sepolia_0xdfe6d9363ee96152d39391009a6723819d9e25eb: Asset;
     base_sepolia_0x00ab86f54f436cfe15253845f139955ae0c00baf: Asset;
     base_sepolia_0xb391ca6d0a76cd2a927bc314856e8a374a225cfc: Asset;
-    base_sepolia_0x48fad35812c3f47c161c59424f32f5164c9f3876: Asset;
+    base_sepolia_0xbcdad29ac77e5bb27fd528ab0045af630259fe4f: Asset;
     bera_testnet_0x1dc94fdcad8aee13cfd34db8a26d26e31572805c: Asset;
   };
   mainnet: {
@@ -123,14 +123,14 @@ export const SupportedAssets: SupportedAssets = {
       tokenAddress: '0x13DCec0762EcC5E666c207ab44Dc768e5e33070F',
       atomicSwapAddress: '0xD5FeDb4ceCB0F1D32788a190d9EB47D94D23eE4e',
     },
-    arbitrum_sepolia_0x6e87ef92e68cfd5acb09482957483509756dcec2: {
+    arbitrum_sepolia_0xdfe6d9363ee96152d39391009a6723819d9e25eb: {
       name: 'iBTC',
       decimals: 8,
       symbol: 'iBTC',
       chain: Chains.arbitrum_sepolia,
       logo: 'https://garden-finance.imgix.net/token-images/dlcBTCIcon.svg',
-      tokenAddress: '0x8219B871534F29ff7434519287131a875e0D8eCa',
-      atomicSwapAddress: '0x6e87eF92E68CFD5aCb09482957483509756DceC2',
+      tokenAddress: '0x685437f025c5f33a94818408c286bc1f023201fc',
+      atomicSwapAddress: '0xdfe6d9363ee96152d39391009a6723819d9e25eb',
     },
     base_sepolia_0x00ab86f54f436cfe15253845f139955ae0c00baf: {
       name: 'Wrapped Bitcoin',
@@ -150,14 +150,14 @@ export const SupportedAssets: SupportedAssets = {
       tokenAddress: '0xD72Fc3e7D52301b3e5f7d4E3366F88d5C8747520',
       atomicSwapAddress: '0xB391CA6D0A76CD2A927bC314856E8a374a225CFc',
     },
-    base_sepolia_0x48fad35812c3f47c161c59424f32f5164c9f3876: {
+    base_sepolia_0xbcdad29ac77e5bb27fd528ab0045af630259fe4f: {
       name: 'iBTC',
       decimals: 8,
       symbol: 'iBTC',
       chain: Chains.base_sepolia,
       logo: 'https://garden-finance.imgix.net/token-images/dlcBTCIcon.svg',
-      tokenAddress: '0xbaFb499B60F9E30fd82A54342cb7695C92F5B527',
-      atomicSwapAddress: '0x48fAd35812C3F47c161C59424f32f5164C9F3876',
+      tokenAddress: '0x0b0D554D9573bAe1a7556d220847f45182918B28',
+      atomicSwapAddress: '0xbcdad29ac77e5bb27fd528ab0045af630259fe4f',
     },
     bera_testnet_0x1dc94fdcad8aee13cfd34db8a26d26e31572805c: {
       name: 'Wrapped Bitcoin',
