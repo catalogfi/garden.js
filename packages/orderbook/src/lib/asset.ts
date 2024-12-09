@@ -41,7 +41,7 @@ export const Chains = {
   bitcoin_regtest: 'bitcoin_regtest',
   ethereum: 'ethereum',
   base: 'base',
-  ethereum_arbitrum: 'ethereum_arbitrum',
+  arbitrum: 'arbitrum',
   ethereum_sepolia: 'ethereum_sepolia',
   arbitrum_localnet: 'arbitrum_localnet',
   arbitrum_sepolia: 'arbitrum_sepolia',
@@ -81,7 +81,7 @@ export const isBitcoin = (chain: Chain) => {
 export const isEVM = (chain: Chain) => {
   return (
     chain === Chains.ethereum ||
-    chain === Chains.ethereum_arbitrum ||
+    chain === Chains.arbitrum ||
     chain === Chains.ethereum_sepolia ||
     chain === Chains.ethereum_localnet ||
     chain === Chains.arbitrum_localnet ||
@@ -93,18 +93,18 @@ export const isEVM = (chain: Chain) => {
 };
 
 export const TimeLocks: Record<Chain, number> = {
-  [Chains.bitcoin]: 288,
-  [Chains.bitcoin_testnet]: 288,
-  [Chains.bitcoin_regtest]: 288,
-  [Chains.ethereum]: 14400,
-  [Chains.ethereum_arbitrum]: 14400,
-  [Chains.ethereum_sepolia]: 14400,
-  [Chains.arbitrum_localnet]: 14400,
-  [Chains.arbitrum_sepolia]: 14400,
-  [Chains.ethereum_localnet]: 14400,
-  [Chains.base_sepolia]: 14400,
-  [Chains.base]: 86400,
-  [Chains.bera_testnet]: 57600,
+  [Chains.bitcoin]: 144,
+  [Chains.bitcoin_testnet]: 144,
+  [Chains.bitcoin_regtest]: 144,
+  [Chains.ethereum]: 7200,
+  [Chains.arbitrum]: 7200,
+  [Chains.ethereum_sepolia]: 7200,
+  [Chains.arbitrum_localnet]: 7200,
+  [Chains.arbitrum_sepolia]: 7200,
+  [Chains.ethereum_localnet]: 7200,
+  [Chains.base_sepolia]: 7200,
+  [Chains.base]: 43200,
+  [Chains.bera_testnet]: 28800,
 };
 
 export const getBlockchainType = (chain: Chain) => {

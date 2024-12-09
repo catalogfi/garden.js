@@ -139,7 +139,7 @@ const updatedSepolia = {
 
 export const evmToViemChainMap: Record<EvmChain, viemChain> = {
   ethereum: mainnet,
-  ethereum_arbitrum: arbitrum,
+  arbitrum: arbitrum,
   ethereum_sepolia: updatedSepolia,
   arbitrum_sepolia: arbitrumSepolia,
   ethereum_localnet: EthereumLocalnet,

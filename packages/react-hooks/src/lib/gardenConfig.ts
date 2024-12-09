@@ -21,8 +21,8 @@ export const GARDEN_CONFIG: Partial<Record<environment, GardenConfigType>> = {
       'https://prod-mainnet-virtual-balance-pr-5.onrender.com',
   },
   [environment.mainnet]: {
-    orderBookUrl: 'https://relayer-prod.onrender.com',
-    quoteUrl: 'https://quote-prod.onrender.com',
+    orderBookUrl: 'https://orderbookv2.garden.finance/',
+    quoteUrl: 'https://quotev2.garden.finance',
     bitcoinRPCUrl: 'https://mempool.space/api',
     blockNumberFetcherUrl: 'https://info-8ocl.onrender.com',
   },
