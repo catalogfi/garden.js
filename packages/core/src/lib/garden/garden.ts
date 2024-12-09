@@ -26,6 +26,7 @@ import {
   fetchEVMBlockNumber,
   IAuth,
   sleep,
+  Url,
 } from '@gardenfi/utils';
 import { IQuote } from '../quote/quote.types';
 import { isValidBitcoinPubKey, toXOnly } from '../utils';
@@ -52,7 +53,7 @@ export class Garden implements IGardenJS {
   private orderBook: IOrderbook;
   private quote: IQuote;
   private getOrderThreshold = 20;
-  private orderbookUrl: string;
+  private orderbookUrl: Url;
   private auth: IAuth;
   //TODO: do not use relay if set to false
   private useRelay = true;
@@ -84,7 +85,7 @@ export class Garden implements IGardenJS {
     this.quote = config.quote;
     this.secretManager = config.secretManager;
     this.wallets = config.wallets;
-    this.orderbookUrl = config.orderbookURl;
+    this.orderbookUrl = new Url(config.orderbookURl);
     this.auth = config.auth;
     this.orderExecutorCache = new ExecutorCache();
 
@@ -377,7 +378,11 @@ export class Garden implements IGardenJS {
       this.emit('log', order.create_order.create_id, 'already redeemed');
       return;
     }
-    const evmRelay = new EvmRelay(order, this.orderbookUrl, this.auth);
+    const evmRelay = new EvmRelay(
+      order,
+      this.orderbookUrl.toString(),
+      this.auth,
+    );
     const res = await evmRelay.redeem(order.create_order.create_id, secret);
     if (res.error) {
       this.emit('error', order, res.error);
@@ -552,7 +557,8 @@ export class Garden implements IGardenJS {
       const sacp = await bitcoinExecutor.generateInstantRefundSACP(
         userBTCAddress,
       );
-      const url = this.orderbookUrl + '/orders/add-instant-refund-sacp';
+      const url = this.orderbookUrl.endpoint('orders/add-instant-refund-sacp');
+
       const res = await Fetcher.post<APIResponse<string>>(url, {
         headers: {
           'Content-Type': 'application/json',
