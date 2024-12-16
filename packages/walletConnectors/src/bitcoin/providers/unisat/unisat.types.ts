@@ -1,3 +1,6 @@
+/**
+ * @reference https://docs.unisat.io/dev/unisat-developer-center/unisat-wallet
+ */
 export interface UnisatBitcoinProvider {
   _selectedAddress: string;
   getAccounts: () => Promise<string[]>;
@@ -8,10 +11,23 @@ export interface UnisatBitcoinProvider {
     unconfirmed: number;
     total: number;
   }>;
-  getNetwork: () => Promise<string>;
-  switchNetwork: (network: string) => Promise<string>;
+  getChain: () => Promise<UnisatChain>;
+  switchChain: (chain: UnisatChainEnum) => Promise<UnisatChain>;
   getPublicKey(): Promise<string>;
   on: (event: string, callback: (data: any) => void) => void;
   removeListener: (event: string, callback: (data: any) => void) => void;
   disconnect: () => void;
 }
+
+export type UnisatChain = {
+  enum: UnisatChainEnum;
+  name: string;
+  network: UnisatNetwork;
+};
+
+export enum UnisatChainEnum {
+  BITCOIN_MAINNET = 'BITCOIN_MAINNET',
+  BITCOIN_TESTNET4 = 'BITCOIN_TESTNET4',
+}
+
+export type UnisatNetwork = 'livenet' | 'testnet';

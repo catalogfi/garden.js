@@ -165,7 +165,7 @@ export type AdditionalData = {
     sig: string;
     input_token_price: number;
     output_token_price: number;
-    deadline: string;
+    deadline: number;
     bitcoin_optional_recipient?: string;
     [key: string]: any;
   };
@@ -229,6 +229,7 @@ export type Swap = {
   initiate_block_number: string | null;
   redeem_block_number: string | null;
   refund_block_number: string | null;
+  required_confirmations: number;
 };
 
 export type MatchedOrder = {

@@ -1,4 +1,4 @@
-import { UnisatBitcoinProvider } from './unisat.types';
+import { UnisatBitcoinProvider, UnisatChainEnum } from './unisat.types';
 import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
 import { Connect, IInjectedBitcoinProvider } from '../../bitcoin.types';
 import { Network } from '@gardenfi/utils';
@@ -16,8 +16,6 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
   async connect(network?: Network): AsyncResult<Connect, string> {
     try {
       if (!network) network = Network.MAINNET;
-      const accounts = await this.#unisatProvider.requestAccounts();
-      if (accounts.length > 0) this.address = accounts[0];
 
       const currentNetwork = await this.getNetwork();
       if (currentNetwork.error)
@@ -28,6 +26,8 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
         if (switchRes.error)
           return Err('Failed to switch network', switchRes.error);
       }
+      const accounts = await this.#unisatProvider.requestAccounts();
+      if (accounts.length > 0) this.address = accounts[0];
 
       return Ok({
         address: this.address,
@@ -56,9 +56,13 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
 
   async getNetwork() {
     return await executeWithTryCatch(async () => {
-      const network = await this.#unisatProvider.getNetwork();
-      if (network === 'livenet') return Network.MAINNET;
-      return Network.TESTNET;
+      const network = await this.#unisatProvider.getChain();
+      if (network.enum === UnisatChainEnum.BITCOIN_MAINNET) {
+        return Network.MAINNET;
+      } else if (network.enum === UnisatChainEnum.BITCOIN_TESTNET4) {
+        return Network.TESTNET;
+      }
+      throw new Error('Invalid or unsupported network' + network.enum);
     }, 'Error while getting network from Unisat wallet');
   }
 
@@ -71,20 +75,17 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
 
       const toNetwork =
         currentNetwork.val === Network.MAINNET
-          ? Network.TESTNET
-          : Network.MAINNET;
+          ? UnisatChainEnum.BITCOIN_TESTNET4
+          : UnisatChainEnum.BITCOIN_MAINNET;
 
-      await this.#unisatProvider.switchNetwork(toNetwork);
+      await this.#unisatProvider.switchChain(toNetwork);
 
       const newNetwork = await this.getNetwork();
       if (newNetwork.error) {
         return Err('Failed to verify network switch');
       }
-      if (newNetwork.val !== toNetwork) {
-        return Err('Network switch failed');
-      }
 
-      return Ok(toNetwork);
+      return Ok(newNetwork.val);
     } catch (error) {
       return Err('Error while switching network in Unisat:', error);
     }

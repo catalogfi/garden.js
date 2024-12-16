@@ -100,6 +100,17 @@ function App() {
             </div>
           ))}
           <div
+            style={{
+              cursor: 'pointer',
+            }}
+            onClick={async () => {
+              if (!provider) return;
+              await provider.switchNetwork();
+            }}
+          >
+            SwitchNetwork
+          </div>
+          <div
             onClick={async () => {
               if (!provider) return;
               const res = await provider.sendBitcoin(
