@@ -40,9 +40,10 @@ export type {
   Strategies,
 } from './lib/quote/quote.types';
 
+export { constructOrderPair, validateBTCAddress } from './lib/utils';
+
 export {
-  switchOrAddNetwork,
-  constructOrderPair,
+  citreaTestnet,
   evmToViemChainMap,
-  validateBTCAddress,
-} from './lib/utils';
+  switchOrAddNetwork,
+} from './lib/switchOrAddNetwork';

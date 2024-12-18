@@ -72,6 +72,7 @@ type SupportedAssets = {
     base_sepolia_0xb391ca6d0a76cd2a927bc314856e8a374a225cfc: Asset;
     base_sepolia_0xbcdad29ac77e5bb27fd528ab0045af630259fe4f: Asset;
     bera_testnet_0x1dc94fdcad8aee13cfd34db8a26d26e31572805c: Asset;
+    citrea_testnet_0xad9d14ca82d9bf97fff745ffc7d48172a1c0969e: Asset;
   };
   mainnet: {
     bitcoin_primary: Asset;
@@ -173,6 +174,15 @@ export const SupportedAssets: SupportedAssets = {
       logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
       tokenAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
       atomicSwapAddress: '0x1dC94FdcAd8Aee13cfd34Db8a26d26E31572805c',
+    },
+    citrea_testnet_0xad9d14ca82d9bf97fff745ffc7d48172a1c0969e: {
+      name: 'Wrapped Citrea Bitcoin',
+      decimals: 18,
+      symbol: 'WCBTC',
+      chain: Chains.citrea_testnet,
+      logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
+      tokenAddress: '0x8d0c9d1c17aE5e40ffF9bE350f57840E9E66Cd93',
+      atomicSwapAddress: '0xaD9d14CA82d9BF97fFf745fFC7d48172A1c0969E',
     },
   },
   mainnet: {
