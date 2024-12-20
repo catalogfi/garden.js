@@ -4,34 +4,14 @@ import {
   OrderWithStatus,
   ParseOrderStatus,
 } from '@gardenfi/core';
-import { IOrderbook, Orderbook } from '@gardenfi/orderbook';
-import { IAuth } from '@gardenfi/utils';
-import { useEffect, useState } from 'react';
-import { useWalletClient } from 'wagmi';
+import { IOrderbook } from '@gardenfi/orderbook';
+import { useEffect } from 'react';
 
 export const useOrderbook = (
-  orderBookUrl: string,
-  auth: IAuth | undefined,
-  setPendingOrders: React.Dispatch<
-    React.SetStateAction<OrderWithStatus[] | undefined>
-  >,
-  blockNumberFetcher?: IBlockNumberFetcher,
+  orderbook: IOrderbook,
+  blockNumberFetcher: IBlockNumberFetcher,
+  setPendingOrders: (orders: OrderWithStatus[]) => void,
 ) => {
-  const [orderbook, setOrderbook] = useState<IOrderbook>();
-  const { data: walletClient } = useWalletClient();
-
-  //Initialize orderbook
-  useEffect(() => {
-    if (!walletClient || !orderBookUrl || !auth) return;
-
-    const orderbook = new Orderbook({
-      url: orderBookUrl,
-      walletClient: walletClient,
-      auth,
-    });
-    setOrderbook(orderbook);
-  }, [walletClient, orderBookUrl, auth]);
-
   useEffect(() => {
     if (!orderbook || !blockNumberFetcher) return;
 

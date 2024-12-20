@@ -1,5 +1,5 @@
-import { IBaseWallet } from '@catalogfi/wallets';
-import { with0x } from '@gardenfi/utils';
+import { BitcoinNetwork, IBaseWallet } from '@catalogfi/wallets';
+import { Environment, with0x } from '@gardenfi/utils';
 import { Chain } from '@gardenfi/orderbook';
 import { sha256 } from 'viem';
 import * as varuint from 'varuint-bitcoin';
@@ -136,3 +136,14 @@ export function validateBTCAddress(address: string, networkType: NetworkType) {
     return false;
   }
 }
+
+export const getBitcoinNetwork = (network: Environment): BitcoinNetwork => {
+  switch (network) {
+    case Environment.MAINNET:
+      return BitcoinNetwork.Mainnet;
+    case Environment.TESTNET:
+      return BitcoinNetwork.Testnet;
+    default:
+      throw new Error(`Invalid bitcoin network ${network}`);
+  }
+};

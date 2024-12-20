@@ -1,7 +1,7 @@
 import { MatchedOrder } from '@gardenfi/orderbook';
 import { Swap } from '@gardenfi/orderbook';
-import { OrderActions } from './garden.types';
-import { OrderStatus, SwapStatus } from '../status';
+import { OrderActions } from './garden/garden.types';
+import { OrderStatus, SwapStatus } from './status';
 
 /**
  * Parse the order status based on the current block number and checks if its expired or initiated or redeemed or refunded
@@ -161,25 +161,24 @@ export const filterDeadlineExpiredOrders = (
   orders: MatchedOrder[],
 ): MatchedOrder[] => {
   return orders.filter((order) => {
-    const { source_swap, create_order } = order;
-    const { initiate_tx_hash, initiate_block_number } = source_swap;
-    const { deadline } = create_order.additional_data;
-
-    // Initiated and confirmed
-    if (initiate_tx_hash && Number(initiate_block_number)) {
-      return true;
-    }
-
-    // Initiated but not confirmed yet, check for 12-hour deadline
-    if (initiate_tx_hash && !Number(initiate_block_number)) {
-      return !isExpired(Number(deadline), 12);
-    }
-
-    // Not initiated yet, check for 1-hour deadline
-    if (!initiate_tx_hash) {
-      return !isExpired(Number(deadline), 1);
-    }
-
-    return true;
+    return !isOrderExpired(order);
   });
+};
+
+export const isOrderExpired = (order: MatchedOrder): boolean => {
+  const { source_swap, create_order } = order;
+  const { initiate_tx_hash, initiate_block_number } = source_swap;
+  const { deadline } = create_order.additional_data;
+
+  // Initiated and confirmed
+  if (initiate_tx_hash && Number(initiate_block_number)) return false;
+
+  // Initiated but not confirmed yet, check for 12-hour deadline
+  if (initiate_tx_hash && !Number(initiate_block_number))
+    return isExpired(Number(deadline), 12);
+
+  // Not initiated yet, check for 1-hour deadline
+  if (!initiate_tx_hash) return isExpired(Number(deadline), 1);
+
+  return false;
 };

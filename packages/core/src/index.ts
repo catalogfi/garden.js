@@ -10,8 +10,8 @@ export type {
 } from './lib/garden/garden.types';
 export { OrderActions } from './lib/garden/garden.types';
 
-export { BlockNumberFetcher } from './lib/garden/blockNumber';
-export type { IBlockNumberFetcher, Network } from './lib/garden/blockNumber';
+export { BlockNumberFetcher } from './lib/blockNumberFetcher/blockNumber';
+export type { IBlockNumberFetcher } from './lib/blockNumberFetcher/blockNumber';
 
 export { EvmRelay } from './lib/evm/relay/evmRelay';
 export type { IEVMRelay } from './lib/evm/relay/evmRelay.types';
@@ -25,7 +25,7 @@ export {
   isExpired,
   filterDeadlineExpiredOrders,
   parseActionFromStatus,
-} from './lib/garden/orderStatusParser';
+} from './lib/orderStatusParser';
 
 export { SecretManager } from './lib/secretManager/secretManager';
 export type {

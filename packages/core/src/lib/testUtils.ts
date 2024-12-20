@@ -111,8 +111,8 @@ export const createOrderObject = (
   strategyId: string,
   btcAddress?: string,
 ) => {
-  const sendAmount = '100000';
-  const receiveAmount = '99990';
+  const sendAmount = 1_00_000;
+  const receiveAmount = 99_700;
   const fromAsset =
     fromChain === Chains.arbitrum_localnet
       ? WBTCArbitrumLocalnetAsset
@@ -131,8 +131,8 @@ export const createOrderObject = (
   const order: SwapParams = {
     fromAsset,
     toAsset,
-    sendAmount,
-    receiveAmount,
+    sendAmount: sendAmount.toString(),
+    receiveAmount: receiveAmount.toString(),
     additionalData,
     minDestinationConfirmations: 3,
   };

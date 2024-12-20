@@ -17,3 +17,9 @@ export enum Network {
   MAINNET = 'mainnet',
   TESTNET = 'testnet',
 }
+
+export enum Environment {
+  MAINNET = 'mainnet',
+  TESTNET = 'testnet',
+  LOCALNET = 'localnet',
+}

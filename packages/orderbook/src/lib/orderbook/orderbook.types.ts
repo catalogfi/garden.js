@@ -131,12 +131,9 @@ export interface IOrderbook extends IOrderProvider {
    * @param paginationConfig - The configuration for the pagination
    * @returns {() => void} A function to unsubscribe from the order updates
    */
-  subscribeToOrders<T extends boolean>(
-    matched: T,
+  subscribeToOrders(
     interval: number,
-    cb: (
-      orders: PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
-    ) => Promise<void>,
+    cb: (orders: PaginatedData<MatchedOrder>) => Promise<void>,
     paginationConfig?: PaginationConfig,
     pending?: boolean,
   ): Promise<() => void>;

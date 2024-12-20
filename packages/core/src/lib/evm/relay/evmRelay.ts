@@ -15,23 +15,24 @@ import { AtomicSwapABI } from '../abi/atomicSwap';
 export class EvmRelay implements IEVMRelay {
   private url: Url;
   private auth: IAuth;
-  private order: MatchedOrder;
 
-  constructor(order: MatchedOrder, url: string, auth: IAuth) {
+  constructor(url: string | Url, auth: IAuth) {
     this.url = new Url('/relayer', url);
     this.auth = auth;
-    this.order = order;
   }
 
-  async init(walletClient: WalletClient): AsyncResult<string, string> {
+  async init(
+    walletClient: WalletClient,
+    order: MatchedOrder,
+  ): AsyncResult<string, string> {
     if (!walletClient.account) return Err('No account found');
     if (
       walletClient.account.address.toLowerCase() !==
-      this.order.source_swap.initiator.toLowerCase()
+      order.source_swap.initiator.toLowerCase()
     )
       return Err('Account address and order initiator mismatch');
 
-    const { create_order, source_swap } = this.order;
+    const { create_order, source_swap } = order;
 
     if (
       !source_swap.amount ||
@@ -51,7 +52,7 @@ export class EvmRelay implements IEVMRelay {
       if (auth.error) return Err(auth.error);
 
       const atomicSwap = getContract({
-        address: with0x(this.order.source_swap.asset),
+        address: with0x(order.source_swap.asset),
         abi: AtomicSwapABI,
         client: walletClient,
       });
@@ -60,7 +61,7 @@ export class EvmRelay implements IEVMRelay {
       const approval = await checkAllowanceAndApprove(
         Number(amount),
         token,
-        this.order.source_swap.asset,
+        order.source_swap.asset,
         walletClient,
       );
       if (approval.error) return Err(approval.error);

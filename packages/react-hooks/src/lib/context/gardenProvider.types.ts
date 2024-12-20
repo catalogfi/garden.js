@@ -1,24 +1,11 @@
+import { WalletClient } from 'viem';
 import { OrderWithStatus } from '@gardenfi/core';
 import { AsyncResult } from '@catalogfi/utils';
-import {
-  IGardenJS,
-  IQuote,
-  ISecretManager,
-  QuoteResponse,
-  SecretManager,
-  SwapParams,
-} from '@gardenfi/core';
+import { IGardenJS, IQuote, QuoteResponse, SwapParams } from '@gardenfi/core';
 import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
-import { IStore } from '@gardenfi/utils';
-import { environment } from '../gardenConfig';
+import { Environment, IStore } from '@gardenfi/utils';
 
 export type GardenContextType = {
-  orderBookUrl?: string;
-  /**
-   * Initializing secretManager is necessary for executing orders.
-   * @returns {AsyncResult<SecretManager, string>} - The secret manager instance.
-   */
-  initializeSecretManager?: () => AsyncResult<SecretManager, string>;
   /**
    * The orderbook instance.
    * @returns {IOrderbook}
@@ -43,26 +30,19 @@ export type GardenContextType = {
    */
   getQuote?: (params: QuoteParams) => AsyncResult<QuoteResponse, string>;
   /**
-   * The secret manager instance.
-   * @returns {ISecretManager}
-   */
-  secretManager?: ISecretManager;
-  /**
    * The garden instance.
    * @returns {IGardenJS}
    */
   garden?: IGardenJS;
   /**
-   * Initiates the order in the EVM chain. This can be useful if the initiation is failed when `swap` function is called.
-   * @param order - The order to initiate.
-   * @returns {AsyncResult<MatchedOrder, string>} - The initiated order.
-   * @NOTE This is only required if the source chain is EVM.
-   */
-  evmInitiate?: (order: MatchedOrder) => AsyncResult<MatchedOrder, string>;
-  /**
    * Indicates if the orders are executing.
    */
   isExecuting: boolean;
+
+  /**
+   * Indicates if the executor is required based on pending orders.
+   */
+  isExecutorRequired: boolean;
 
   /**
    * The quote instance.
@@ -75,7 +55,8 @@ export type GardenProviderProps = {
   children: React.ReactNode;
   config: {
     store: IStore;
-    environment: environment;
+    environment: Environment;
+    walletClient: WalletClient;
     orderBookUrl?: string;
     quoteUrl?: string;
     bitcoinRPCUrl?: string;

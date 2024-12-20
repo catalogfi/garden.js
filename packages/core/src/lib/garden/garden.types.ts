@@ -1,6 +1,13 @@
 import { AsyncResult } from '@catalogfi/utils';
-import { Asset, MatchedOrder } from '@gardenfi/orderbook';
+import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
 import { OrderStatus } from '../status';
+import { Environment, SiweOpts } from '@gardenfi/utils';
+import { WalletClient } from 'viem';
+import { ISecretManager } from '../secretManager/secretManager.types';
+import { IQuote } from '../quote/quote.types';
+import { IBlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
+import { IEVMRelay } from '../evm/relay/evmRelay.types';
+import { IBitcoinWallet } from '@catalogfi/wallets';
 
 export type SwapParams = {
   /**
@@ -59,25 +66,78 @@ export type GardenEvents = {
 
 export type EventCallback = (...args: any[]) => void;
 
+/**
+ * Interface representing the GardenJS library.
+ */
 export interface IGardenJS {
   /**
    * Create Order
-   * @param {SwapParams} - The parameters for creating the order.
+   * @param {SwapParams} params - The parameters for creating the order.
+   * @returns {AsyncResult<MatchedOrder, string>} The result of the swap operation.
    */
   swap(params: SwapParams): AsyncResult<MatchedOrder, string>;
-  /**
-   * Subscribe to orders. This will poll the orderbook and call callback for each order.
-   * @param cb - Callback function to be called for each order. This callback will take orderExecutor as an argument.
-   * @param interval - Polling interval in milliseconds.
-   */
-  // subscribeOrders(
-  //   cb: (orderExecutor: IOrderExecutor) => Promise<void>,
-  //   interval?: number,
-  // ): Promise<() => void>;
 
+  /**
+   * Execute an action.
+   * @returns {Promise<() => void>} A promise that resolves to a function to cancel the execution.
+   */
   execute(): Promise<() => void>;
+
+  /**
+   * Register an event listener.
+   * @param {E} event - The event to listen for.
+   * @param {GardenEvents[E]} cb - The callback function to be called when the event is triggered.
+   */
   on<E extends keyof GardenEvents>(event: E, cb: GardenEvents[E]): void;
+
+  /**
+   * Unregister an event listener.
+   * @param {E} event - The event to stop listening for.
+   * @param {GardenEvents[E]} cb - The callback function to be removed.
+   */
   off<E extends keyof GardenEvents>(event: E, cb: GardenEvents[E]): void;
+
+  /**
+   * The URL of the orderbook.
+   * @readonly
+   */
+  get orderbookUrl(): string;
+
+  /**
+   * The EVM relay.
+   * @readonly
+   */
+  get evmRelay(): IEVMRelay;
+
+  /**
+   * The current quote.
+   * @readonly
+   */
+  get quote(): IQuote;
+
+  /**
+   * The BTC wallet.
+   * @readonly
+   */
+  get btcWallet(): IBitcoinWallet | undefined;
+
+  /**
+   * The orderbook.
+   * @readonly
+   */
+  get orderbook(): IOrderbook;
+
+  /**
+   * The block number fetcher.
+   * @readonly
+   */
+  get blockNumberFetcher(): IBlockNumberFetcher;
+
+  /**
+   * The secret manager.
+   * @readonly
+   */
+  get secretManager(): ISecretManager;
 }
 
 export type OrderCacheValue = {
@@ -96,6 +156,16 @@ export interface IOrderExecutorCache {
   get(order: MatchedOrder, action: OrderActions): OrderCacheValue | null;
   remove(order: MatchedOrder, action: OrderActions): void;
 }
+
+export type GardenProps = {
+  environment: Environment;
+  evmWallet: WalletClient;
+  secretManager?: ISecretManager;
+  siweOpts?: SiweOpts;
+  orderbookURl?: string;
+  quote?: IQuote;
+  blockNumberFetcher?: IBlockNumberFetcher;
+};
 
 /**
  * Actions that can be performed on the order.

@@ -1,8 +1,6 @@
 import { AsyncResult, Err, Fetcher, Ok } from '@catalogfi/utils';
 import { Chain } from '@gardenfi/orderbook';
-import { Url } from '@gardenfi/utils';
-
-export type Network = 'testnet' | 'mainnet';
+import { Environment, Url } from '@gardenfi/utils';
 
 type Response = {
   [key in Chain]: number;
@@ -15,7 +13,7 @@ export interface IBlockNumberFetcher {
 export class BlockNumberFetcher implements IBlockNumberFetcher {
   private url: Url;
 
-  constructor(url: string, network: Network) {
+  constructor(url: string, network: Environment) {
     this.url = new Url('/blocknumber/' + network, url);
   }
 

@@ -122,12 +122,9 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
    * @param paginationConfig - The configuration for the pagination
    * @returns {() => void} A function to unsubscribe from the order updates
    */
-  async subscribeToOrders<T extends boolean>(
-    matched: T,
+  async subscribeToOrders(
     interval: number,
-    cb: (
-      orders: PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
-    ) => Promise<void>,
+    cb: (orders: PaginatedData<MatchedOrder>) => Promise<void>,
     paginationConfig?: PaginationConfig,
     pending?: boolean,
   ): Promise<() => void> {
@@ -136,7 +133,7 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
 
     return await super.subscribeOrders(
       address,
-      matched,
+      true,
       interval,
       cb,
       pending,
