@@ -2,8 +2,8 @@ import React, { createContext, FC, useEffect, useMemo, useState } from 'react';
 import { useOrderbook } from '../hooks/useOrderbook';
 import {
   Garden,
+  IGardenJS,
   OrderStatus,
-  OrderWithStatus,
   switchOrAddNetwork,
 } from '@gardenfi/core';
 import { SwapParams } from '@gardenfi/core';
@@ -25,22 +25,13 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   children,
   config,
 }) => {
-  const [pendingOrders, setPendingOrders] = useState<OrderWithStatus[]>([]);
+  const [garden, setGarden] = useState<IGardenJS>();
 
-  const garden = useMemo(() => {
-    if (!config.walletClient.account?.address)
-      throw new Error("WalletClient doesn't have an account");
+  const { pendingOrders } = useOrderbook(garden);
 
-    return new Garden({
-      environment: config.environment,
-      evmWallet: config.walletClient,
-    });
-  }, []);
-
-  const isExecuting = useMemo(
-    () => garden.secretManager.isInitialized,
-    [garden],
-  );
+  const isExecuting = useMemo(() => {
+    return !!garden?.secretManager.isInitialized;
+  }, [garden]);
 
   const isExecutorRequired = useMemo(() => {
     return !!pendingOrders.find((order) => {
@@ -58,18 +49,26 @@ export const GardenProvider: FC<GardenProviderProps> = ({
 
   const getQuote = useMemo(
     () =>
-      async ({ fromAsset, toAsset, amount, isExactOut = false }: QuoteParams) =>
-        await garden.quote.getQuote(
+      async ({
+        fromAsset,
+        toAsset,
+        amount,
+        isExactOut = false,
+      }: QuoteParams) => {
+        if (!garden) return;
+
+        return await garden.quote.getQuote(
           constructOrderpair(fromAsset, toAsset),
           amount,
           isExactOut,
-        ),
+        );
+      },
     [garden],
   );
 
-  useOrderbook(garden.orderbook, garden.blockNumberFetcher, setPendingOrders);
-
   const swapAndInitiate = async (params: SwapParams) => {
+    if (!garden || !config.walletClient) return Err('Garden not initialized');
+
     const order = await garden.swap(params);
     if (order.error) return Err(order.error);
 
@@ -99,31 +98,25 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     return Ok(updatedOrder);
   };
 
-  // Execute orders (redeem or refund)
+  // Initialize Garden
   useEffect(() => {
-    if (!garden.secretManager.isInitialized) return;
-    console.log('started executor', garden.secretManager.isInitialized);
+    if (!config.walletClient) return;
+    if (!config.walletClient.account?.address)
+      throw new Error("WalletClient doesn't have an account");
 
-    const unsubscribe = garden.execute();
-
-    const handlePendingOrdersChange = (orders: OrderWithStatus[]) =>
-      setPendingOrders(orders);
-    garden.on('onPendingOrdersChanged', handlePendingOrdersChange);
-
-    return () => {
-      (async () => {
-        const unsubscribeFn = await unsubscribe;
-        unsubscribeFn();
-      })();
-      garden.off('onPendingOrdersChanged', handlePendingOrdersChange);
-    };
-  }, [garden]);
+    setGarden(
+      new Garden({
+        environment: config.environment,
+        evmWallet: config.walletClient,
+      }),
+    );
+  }, [config.walletClient]);
 
   return (
     <GardenContext.Provider
       value={{
-        orderBook: garden.orderbook,
-        quote: garden.quote,
+        orderBook: garden?.orderbook,
+        quote: garden?.quote,
         swapAndInitiate,
         pendingOrders,
         getQuote,

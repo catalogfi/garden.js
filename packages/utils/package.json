@@ -1,6 +1,6 @@
 {
   "name": "@gardenfi/utils",
-  "version": "0.0.1-beta.19",
+  "version": "0.0.1-beta.20",
   "type": "module",
   "scripts": {
     "build": "vite build",

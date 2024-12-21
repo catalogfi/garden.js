@@ -1,6 +1,6 @@
 import { WalletClient } from 'viem';
 import { OrderWithStatus } from '@gardenfi/core';
-import { AsyncResult } from '@catalogfi/utils';
+import { AsyncResult, Result } from '@catalogfi/utils';
 import { IGardenJS, IQuote, QuoteResponse, SwapParams } from '@gardenfi/core';
 import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
 import { Environment, IStore } from '@gardenfi/utils';
@@ -28,7 +28,9 @@ export type GardenContextType = {
    * @param params
    * @returns
    */
-  getQuote?: (params: QuoteParams) => AsyncResult<QuoteResponse, string>;
+  getQuote?: (
+    params: QuoteParams,
+  ) => Promise<Result<QuoteResponse, string> | undefined>;
   /**
    * The garden instance.
    * @returns {IGardenJS}
@@ -56,7 +58,7 @@ export type GardenProviderProps = {
   config: {
     store: IStore;
     environment: Environment;
-    walletClient: WalletClient;
+    walletClient?: WalletClient;
     orderBookUrl?: string;
     quoteUrl?: string;
     bitcoinRPCUrl?: string;

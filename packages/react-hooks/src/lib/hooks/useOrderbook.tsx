@@ -1,24 +1,41 @@
 import {
   filterDeadlineExpiredOrders,
-  IBlockNumberFetcher,
+  IGardenJS,
   OrderWithStatus,
   ParseOrderStatus,
 } from '@gardenfi/core';
-import { IOrderbook } from '@gardenfi/orderbook';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
-export const useOrderbook = (
-  orderbook: IOrderbook,
-  blockNumberFetcher: IBlockNumberFetcher,
-  setPendingOrders: (orders: OrderWithStatus[]) => void,
-) => {
+export const useOrderbook = (garden: IGardenJS | undefined) => {
+  const [pendingOrders, setPendingOrders] = useState<OrderWithStatus[]>([]);
+
+  // Execute orders (redeem or refund)
   useEffect(() => {
-    if (!orderbook || !blockNumberFetcher) return;
+    if (!garden || !garden.secretManager.isInitialized) return;
+    console.log('started executor', garden.secretManager.isInitialized);
 
-    blockNumberFetcher.fetchBlockNumbers().then((res) => {
+    const unsubscribe = garden.execute();
+
+    const handlePendingOrdersChange = (orders: OrderWithStatus[]) =>
+      setPendingOrders(orders);
+    garden.on('onPendingOrdersChanged', handlePendingOrdersChange);
+
+    return () => {
+      (async () => {
+        const unsubscribeFn = await unsubscribe;
+        unsubscribeFn();
+      })();
+      garden.off('onPendingOrdersChanged', handlePendingOrdersChange);
+    };
+  }, [garden]);
+
+  useEffect(() => {
+    if (!garden) return;
+
+    garden.blockNumberFetcher.fetchBlockNumbers().then((res) => {
       if (res.error) return;
       const { val: blockNumbers } = res;
-      orderbook
+      garden.orderbook
         .fetchOrders(true, true, {
           per_page: 500,
         })
@@ -45,6 +62,7 @@ export const useOrderbook = (
           setPendingOrders(orderWithStatus);
         });
     });
-  }, [orderbook, blockNumberFetcher]);
-  return { orderbook };
+  }, [garden]);
+
+  return { pendingOrders };
 };
