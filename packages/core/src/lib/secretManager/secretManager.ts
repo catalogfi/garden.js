@@ -2,10 +2,13 @@ import { Err, Ok, trim0x } from '@catalogfi/utils';
 import { sha256, WalletClient } from 'viem';
 import ECPairFactory from 'ecpair';
 import * as ecc from 'tiny-secp256k1';
-import { with0x } from '@gardenfi/utils';
-import { ISecretManager } from './secretManager.types';
+import { EventBroker, with0x } from '@gardenfi/utils';
+import { ISecretManager, SecretManagerEvents } from './secretManager.types';
 
-export class SecretManager implements ISecretManager {
+export class SecretManager
+  extends EventBroker<SecretManagerEvents>
+  implements ISecretManager
+{
   private privKey?: string;
   private walletClient?: WalletClient;
 
@@ -14,6 +17,7 @@ export class SecretManager implements ISecretManager {
   }
 
   private constructor(privKey?: string, walletClient?: WalletClient) {
+    super();
     this.privKey = privKey;
     this.walletClient = walletClient;
   }
@@ -30,6 +34,7 @@ export class SecretManager implements ISecretManager {
     if (this.privKey) return Ok('Already initialized');
     const res = await this.derivePrivKeyFromWalletClient();
     if (res.error) return Err(res.error);
+    this.emit('initialized', true);
     return Ok('Initialized');
   }
 
@@ -63,7 +68,9 @@ export class SecretManager implements ISecretManager {
         },
       });
 
-      return Ok(trim0x(sha256(signature)));
+      this.privKey = trim0x(sha256(signature));
+
+      return Ok(this.privKey);
     } catch (error) {
       return Err('Failed to initialize: ' + error);
     }
@@ -78,7 +85,6 @@ export class SecretManager implements ISecretManager {
       if (privKey.error) {
         return Err(privKey.error);
       }
-      this.privKey = privKey.val;
     }
 
     if (!this.privKey) return Err('No private key found');

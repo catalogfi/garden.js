@@ -340,7 +340,6 @@ export class Garden implements IGardenJS {
         if (ordersWithStatus.error) return;
 
         this.emit('onPendingOrdersChanged', ordersWithStatus.val);
-        console.log('ordersWithStatus.val :', ordersWithStatus.val.length);
 
         //initialize swappers and execute orders
         for (let i = 0; i < ordersWithStatus.val.length; i++) {

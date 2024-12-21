@@ -10,9 +10,27 @@ export const useOrderbook = (garden: IGardenJS | undefined) => {
   const [pendingOrders, setPendingOrders] = useState<OrderWithStatus[]>([]);
 
   // Execute orders (redeem or refund)
+  const [isInitialized, setIsInitialized] = useState(false);
+
   useEffect(() => {
-    if (!garden || !garden.secretManager.isInitialized) return;
-    console.log('started executor', garden.secretManager.isInitialized);
+    if (!garden) return;
+
+    const checkInitialization = () => {
+      if (garden.secretManager.isInitialized) {
+        setIsInitialized(true);
+      }
+    };
+
+    checkInitialization();
+    garden.secretManager.on('initialized', checkInitialization);
+
+    return () => {
+      garden.secretManager.off('initialized', checkInitialization);
+    };
+  }, [garden]);
+
+  useEffect(() => {
+    if (!garden || !isInitialized) return;
 
     const unsubscribe = garden.execute();
 
@@ -27,11 +45,11 @@ export const useOrderbook = (garden: IGardenJS | undefined) => {
       })();
       garden.off('onPendingOrdersChanged', handlePendingOrdersChange);
     };
-  }, [garden]);
+  }, [garden, isInitialized]);
 
+  // Fetch orders for the first time
   useEffect(() => {
     if (!garden) return;
-
     garden.blockNumberFetcher.fetchBlockNumbers().then((res) => {
       if (res.error) return;
       const { val: blockNumbers } = res;

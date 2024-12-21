@@ -4,6 +4,7 @@ import {
   Garden,
   IGardenJS,
   OrderStatus,
+  QuoteResponse,
   switchOrAddNetwork,
 } from '@gardenfi/core';
 import { SwapParams } from '@gardenfi/core';
@@ -12,7 +13,7 @@ import type {
   GardenProviderProps,
   QuoteParams,
 } from './gardenProvider.types';
-import { Err, Ok } from '@catalogfi/utils';
+import { AsyncResult, Err, Ok } from '@catalogfi/utils';
 import { isBitcoin, MatchedOrder } from '@gardenfi/orderbook';
 import { constructOrderpair } from '../utils';
 
@@ -26,6 +27,8 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   config,
 }) => {
   const [garden, setGarden] = useState<IGardenJS>();
+  const [getQuote, setGetQuote] =
+    useState<(params: QuoteParams) => AsyncResult<QuoteResponse, string>>();
 
   const { pendingOrders } = useOrderbook(garden);
 
@@ -46,25 +49,6 @@ export const GardenProvider: FC<GardenProviderProps> = ({
       );
     });
   }, [pendingOrders]);
-
-  const getQuote = useMemo(
-    () =>
-      async ({
-        fromAsset,
-        toAsset,
-        amount,
-        isExactOut = false,
-      }: QuoteParams) => {
-        if (!garden) return;
-
-        return await garden.quote.getQuote(
-          constructOrderpair(fromAsset, toAsset),
-          amount,
-          isExactOut,
-        );
-      },
-    [garden],
-  );
 
   const swapAndInitiate = async (params: SwapParams) => {
     if (!garden || !config.walletClient) return Err('Garden not initialized');
@@ -111,6 +95,26 @@ export const GardenProvider: FC<GardenProviderProps> = ({
       }),
     );
   }, [config.walletClient]);
+
+  // Initialize getQuote
+  useEffect(() => {
+    if (!garden) return;
+    setGetQuote(
+      () =>
+        async ({
+          fromAsset,
+          toAsset,
+          amount,
+          isExactOut = false,
+        }: QuoteParams) => {
+          return await garden.quote.getQuote(
+            constructOrderpair(fromAsset, toAsset),
+            amount,
+            isExactOut,
+          );
+        },
+    );
+  }, [garden]);
 
   return (
     <GardenContext.Provider

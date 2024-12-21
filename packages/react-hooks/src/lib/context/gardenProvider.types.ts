@@ -28,9 +28,7 @@ export type GardenContextType = {
    * @param params
    * @returns
    */
-  getQuote?: (
-    params: QuoteParams,
-  ) => Promise<Result<QuoteResponse, string> | undefined>;
+  getQuote?: (params: QuoteParams) => Promise<Result<QuoteResponse, string>>;
   /**
    * The garden instance.
    * @returns {IGardenJS}
