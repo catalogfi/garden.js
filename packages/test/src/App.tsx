@@ -5,8 +5,8 @@ import { Swap } from './components/Swap';
 
 function App() {
   const { data: walletClient } = useWalletClient();
-  console.log('walletClient :', walletClient);
-  return walletClient ? (
+  // console.log('walletClient :', walletClient);
+  return (
     <GardenProvider
       config={{
         store: localStorage,
@@ -16,7 +16,7 @@ function App() {
     >
       <Swap />
     </GardenProvider>
-  ) : null;
+  );
 }
 
 export default App;
