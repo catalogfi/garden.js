@@ -6,7 +6,7 @@ import axios from 'axios';
 import { initEccLib } from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
 import { Network } from '@gardenfi/utils';
-import { walletIDs } from './../../constants';
+import { WALLET_CONFIG } from './../../constants';
 import {
   BitcoinNetwork,
   BitcoinProvider,
@@ -30,10 +30,10 @@ interface UTXO {
 export class PhantomProvider implements IInjectedBitcoinProvider {
   #phantomProvider: PhantomBitcoinProvider;
   public address: string = '';
-  public id = walletIDs.Phantom;
+  public id = WALLET_CONFIG.Phantom.id;
   private mempoolApiBaseUrl: string = 'https://mempool.space/api';
-  public name = 'Phantom Wallet';
-  public icon = 'https://garden-finance.imgix.net/wallets/phantom.svg';
+  public name = WALLET_CONFIG.Phantom.name;
+  public icon = WALLET_CONFIG.Phantom.icon;
 
   constructor(phantomProvider: PhantomBitcoinProvider) {
     this.#phantomProvider = phantomProvider;
@@ -66,7 +66,7 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
         address: this.address,
         provider: provider,
         network: network.val,
-        id: walletIDs.Phantom,
+        id: WALLET_CONFIG.Phantom.id,
       });
     } catch (error) {
       return Err('Error while connecting to Phantom wallet: ' + error);

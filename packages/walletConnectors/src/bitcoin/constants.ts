@@ -26,10 +26,30 @@ export const SupportedWallets = {
   },
 };
 
-export const walletIDs = {
-  OKX: 'okx',
-  Unisat: 'unisat',
-  Xverse: 'xverse',
-  Xdefi: 'xdefi',
-  Phantom: 'phantom',
+export const WALLET_CONFIG = {
+  OKX: {
+    id: 'okx',
+    name: 'OKX wallet',
+    icon: 'https://garden-finance.imgix.net/wallets/okx.svg'
+  },
+  Unisat: {
+    id: 'unisat',
+    name: 'Unisat wallet',
+    icon: 'https://garden-finance.imgix.net/wallets/unisat.svg'
+  },
+  Xverse: {
+    id: 'xverse',
+    name: 'Xverse wallet',
+    icon: 'https://cdn.prod.website-files.com/624b08d53d7ac60ccfc11d8d/64637a04ad4e523a3e07675c_32x32.png'
+  },
+  Xdefi: {
+    id: 'xdefi',
+    name: 'Xdefi wallet',
+    icon: 'https://garden-finance.s3.ap-south-2.amazonaws.com/wallets/xdefi.svg'
+  },
+  Phantom: {
+    id: 'phantom',
+    name: 'Phantom wallet',
+    icon: 'https://garden-finance.imgix.net/wallets/phantom.svg'
+  },
 } as const;

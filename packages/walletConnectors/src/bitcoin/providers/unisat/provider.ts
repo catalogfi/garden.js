@@ -2,14 +2,14 @@ import { UnisatBitcoinProvider, UnisatChainEnum } from './unisat.types';
 import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
 import { Connect, IInjectedBitcoinProvider } from '../../bitcoin.types';
 import { Network } from '@gardenfi/utils';
-import { walletIDs } from './../../constants';
+import { WALLET_CONFIG } from './../../constants';
 
 export class UnisatProvider implements IInjectedBitcoinProvider {
   #unisatProvider: UnisatBitcoinProvider;
   public address: string = '';
-  public id = walletIDs.Unisat;
-  public name = 'Unisat wallet';
-  public icon = 'https://garden-finance.imgix.net/wallets/unisat.svg';
+  public id = WALLET_CONFIG.Unisat.id;
+  public name = WALLET_CONFIG.Unisat.name;
+  public icon = WALLET_CONFIG.Unisat.icon;
 
   constructor(unisatProvider: UnisatBitcoinProvider) {
     this.#unisatProvider = unisatProvider;
@@ -35,7 +35,7 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
         address: this.address,
         provider: this,
         network: network,
-        id: walletIDs.Unisat,
+        id: WALLET_CONFIG.Unisat.id,
       });
     } catch (error) {
       return Err('Error while connecting to the Unisat wallet', error);
