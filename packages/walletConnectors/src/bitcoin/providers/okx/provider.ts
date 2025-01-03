@@ -2,14 +2,16 @@ import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
 import { Connect, IInjectedBitcoinProvider } from '../../bitcoin.types';
 import { OKXBitcoinProvider } from './okx.types';
 import { Network } from '@gardenfi/utils';
-import { walletIDs } from './../../constants';
+import { WALLET_CONFIG } from './../../constants';
 
 export class OKXProvider implements IInjectedBitcoinProvider {
   #provider: OKXBitcoinProvider;
   #network: Network;
   public address: string = '';
-  public id = walletIDs.OKX;
-
+  public id = WALLET_CONFIG.OKX.id;
+  public name = WALLET_CONFIG.OKX.name;
+  public icon = WALLET_CONFIG.OKX.icon;
+  
   constructor(provider: OKXBitcoinProvider, network: Network) {
     this.#provider = provider;
     this.#network = network;
@@ -27,7 +29,7 @@ export class OKXProvider implements IInjectedBitcoinProvider {
         address: this.address,
         provider: this,
         network: this.#network,
-        id: walletIDs.OKX,
+        id: WALLET_CONFIG.OKX.id,
       });
     } catch (error) {
       return Err('Error while connecting to the OKX wallet', error);

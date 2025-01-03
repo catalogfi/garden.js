@@ -1,4 +1,4 @@
-import { walletIDs } from './../../constants';
+import { WALLET_CONFIG } from './../../constants';
 import { Balance, IInjectedBitcoinProvider } from '../../bitcoin.types';
 import { XVerseBitcoinProvider } from './xverse.types';
 import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
@@ -7,7 +7,9 @@ import { Network } from '@gardenfi/utils';
 export class XverseProvider implements IInjectedBitcoinProvider {
   #xverseProvider: XVerseBitcoinProvider;
   public address = '';
-  public id = walletIDs.Xverse;
+  public id = WALLET_CONFIG.Xverse.id;
+  public name = WALLET_CONFIG.Xverse.name;
+  public icon = WALLET_CONFIG.Xverse.icon;
 
   constructor(private provider: XVerseBitcoinProvider) {
     this.#xverseProvider = provider;
@@ -40,7 +42,7 @@ export class XverseProvider implements IInjectedBitcoinProvider {
         address: this.address,
         provider: provider,
         network: network.val,
-        id: walletIDs.Xverse,
+        id: WALLET_CONFIG.Xverse.id,
       });
     } catch (error) {
       return Err('Error while connecting to the XVerse wallet', error);

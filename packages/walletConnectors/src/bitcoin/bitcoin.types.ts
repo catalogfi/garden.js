@@ -1,6 +1,6 @@
-import { walletIDs } from './constants';
 import { AsyncResult } from '@catalogfi/utils';
 import { Network } from '@gardenfi/utils';
+import { WALLET_CONFIG } from './constants';
 
 export type Balance = {
   confirmed: number;
@@ -15,17 +15,19 @@ export type Connect = {
   id: WalletId;
 };
 
-export type WalletId = (typeof walletIDs)[keyof typeof walletIDs];
+export type WalletId = (typeof WALLET_CONFIG)[keyof typeof WALLET_CONFIG]['id'];
+
 
 export type ProviderEvents = {
   accountsChanged: (accounts: string[]) => void;
 };
 
-type walletId = (typeof walletIDs)[keyof typeof walletIDs];
-
 export interface IInjectedBitcoinProvider {
-  id: walletId;
+  id: WalletId;
   address: string;
+  name: string;
+  icon: string;
+  
   getBalance: () => AsyncResult<Balance, string>;
   // selectedAccount: SelectedAccount;
   /**

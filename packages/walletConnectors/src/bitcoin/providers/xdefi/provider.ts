@@ -3,12 +3,14 @@ import { Connect, IInjectedBitcoinProvider } from '../../bitcoin.types';
 import { XdefiBitcoinProvider } from './xdefi.types';
 import { getBalance } from '../../utils';
 import { Network } from '@gardenfi/utils';
-import { walletIDs } from './../../constants';
+import { WALLET_CONFIG } from './../../constants';
 
 export class XdefiProvider implements IInjectedBitcoinProvider {
   #xdefiProvider: XdefiBitcoinProvider;
   public address: string = '';
-  public id = walletIDs.Xdefi;
+  public id = WALLET_CONFIG.Xdefi.id;
+  public name = WALLET_CONFIG.Xdefi.name;
+  public icon = WALLET_CONFIG.Xdefi.icon;
 
   constructor(xdefiProvider: XdefiBitcoinProvider) {
     this.#xdefiProvider = xdefiProvider;
@@ -36,7 +38,7 @@ export class XdefiProvider implements IInjectedBitcoinProvider {
         address: res[0],
         provider: provider,
         network: provider.#xdefiProvider.network,
-        id: walletIDs.Xdefi,
+        id: WALLET_CONFIG.Xdefi.id,
       });
     } catch (error) {
       return Err('Error while connecting to the Xdefi wallet', error);
