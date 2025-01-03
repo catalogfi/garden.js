@@ -22,10 +22,8 @@ export type ProviderEvents = {
   accountsChanged: (accounts: string[]) => void;
 };
 
-type walletId = (typeof WALLET_CONFIG)[keyof typeof WALLET_CONFIG]['id'];
-
 export interface IInjectedBitcoinProvider {
-  id: walletId;
+  id: WalletId;
   address: string;
   name: string;
   icon: string;
