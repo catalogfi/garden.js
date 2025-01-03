@@ -8,6 +8,8 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
   #unisatProvider: UnisatBitcoinProvider;
   public address: string = '';
   public id = walletIDs.Unisat;
+  public name = 'Unisat wallet';
+  public icon = 'https://garden-finance.imgix.net/wallets/unisat.svg';
 
   constructor(unisatProvider: UnisatBitcoinProvider) {
     this.#unisatProvider = unisatProvider;

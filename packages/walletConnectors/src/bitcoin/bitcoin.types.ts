@@ -26,6 +26,9 @@ type walletId = (typeof walletIDs)[keyof typeof walletIDs];
 export interface IInjectedBitcoinProvider {
   id: walletId;
   address: string;
+  name: string;
+  icon: string;
+  
   getBalance: () => AsyncResult<Balance, string>;
   // selectedAccount: SelectedAccount;
   /**

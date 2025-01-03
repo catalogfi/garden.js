@@ -9,6 +9,8 @@ export class XdefiProvider implements IInjectedBitcoinProvider {
   #xdefiProvider: XdefiBitcoinProvider;
   public address: string = '';
   public id = walletIDs.Xdefi;
+  public name = '';
+  public icon = '';
 
   constructor(xdefiProvider: XdefiBitcoinProvider) {
     this.#xdefiProvider = xdefiProvider;

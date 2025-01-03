@@ -32,6 +32,8 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
   public address: string = '';
   public id = walletIDs.Phantom;
   private mempoolApiBaseUrl: string = 'https://mempool.space/api';
+  public name = 'Phantom Wallet';
+  public icon = 'https://garden-finance.imgix.net/wallets/phantom.svg';
 
   constructor(phantomProvider: PhantomBitcoinProvider) {
     this.#phantomProvider = phantomProvider;

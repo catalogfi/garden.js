@@ -9,6 +9,8 @@ export class OKXProvider implements IInjectedBitcoinProvider {
   #network: Network;
   public address: string = '';
   public id = walletIDs.OKX;
+  public name = 'OKX Wallet';
+  public icon = 'https://garden-finance.imgix.net/wallets/okx.svg';
 
   constructor(provider: OKXBitcoinProvider, network: Network) {
     this.#provider = provider;
