@@ -5,8 +5,6 @@ import pkg from './package.json';
 import eslint from 'vite-plugin-eslint';
 
 export default defineConfig({
-  cacheDir: '../node_modules/.vite/orderbook',
-
   plugins: [
     eslint(),
     dts({

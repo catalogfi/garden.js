@@ -1,0 +1,47 @@
+{
+  "name": "@gardenfi/react-hooks",
+  "version": "0.0.2-beta.16",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "typings": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js",
+      "types": "./dist/src/index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run",
+    "dev": "vite build --watch"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@catalogfi/utils": "^0.1.6",
+    "@catalogfi/wallets": "^0.2.51",
+    "@gardenfi/core": "workspace:^",
+    "@gardenfi/orderbook": "workspace:^",
+    "@gardenfi/utils": "workspace:^",
+    "react": "^18.3.1",
+    "viem": "^2.21.15",
+    "wagmi": "^2.12.16"
+  },
+  "devDependencies": {
+    "@types/react": "^18",
+    "dotenv": "^16.3.1",
+    "typescript": "^5.2.2",
+    "vite": "^5.1.6",
+    "vite-plugin-dts": "^3.7.3",
+    "vitest": "^1.6.0"
+  },
+  "sideEffects": false
+}

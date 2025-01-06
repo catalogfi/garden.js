@@ -1,208 +1,123 @@
+export type AssetCommon = {
+  name: string;
+  decimals: number;
+  symbol: string;
+  chain: Chain;
+  logo?: string;
+  atomicSwapAddress: string;
+};
+
+export type AssetToken = AssetCommon & {
+  tokenAddress: string;
+};
+
+export type Asset = AssetToken;
+
+export enum BlockchainType {
+  Bitcoin = 'Bitcoin',
+  EVM = 'EVM',
+}
+
+export enum NetworkType {
+  mainnet = 'mainnet',
+  testnet = 'testnet',
+  localnet = 'localnet',
+}
+
+export type Network = {
+  [networkName: string]: {
+    chainId: number;
+    fillerAddresses: string[];
+    networkLogo: string;
+    explorer: string;
+    networkType: NetworkType;
+    assets?: Asset[];
+  };
+};
+
 export const Chains = {
-  ethereum_sepolia: "ethereum_sepolia",
-  ethereum: "ethereum",
-  bitcoin: "bitcoin",
-  bitcoin_testnet: "bitcoin_testnet",
-  bitcoin_regtest: "bitcoin_regtest",
-  ethereum_arbitrum: "ethereum_arbitrum",
-  ethereum_arbitrumlocalnet: "ethereum_arbitrumlocalnet",
-  ethereum_localnet: "ethereum_localnet",
+  bitcoin: 'bitcoin',
+  bitcoin_testnet: 'bitcoin_testnet',
+  bitcoin_regtest: 'bitcoin_regtest',
+  ethereum: 'ethereum',
+  base: 'base',
+  arbitrum: 'arbitrum',
+  ethereum_sepolia: 'ethereum_sepolia',
+  arbitrum_localnet: 'arbitrum_localnet',
+  arbitrum_sepolia: 'arbitrum_sepolia',
+  ethereum_localnet: 'ethereum_localnet',
+  base_sepolia: 'base_sepolia',
+  bera_testnet: 'bera_testnet',
+  citrea_testnet: 'citrea_testnet',
 } as const;
 
 export type Chain = keyof typeof Chains;
+
 export type EvmChain = keyof Omit<
   typeof Chains,
-  "bitcoin" | "bitcoin_testnet" | "bitcoin_regtest"
+  'bitcoin' | 'bitcoin_testnet' | 'bitcoin_regtest'
 >;
-
-export type AssetCommon = {
-  name: string;
-  symbol: string;
-  decimals: number;
-  chain: Chain;
-  isToken: boolean;
-  thumbnail: string;
-};
-
-export type AssetNative = AssetCommon;
-
-export type AssetToken = AssetCommon & {
-  address: string;
-  isToken: true;
-};
-
-export type Asset = AssetToken | AssetNative;
-
-export const Assets = {
-  ethereum: {
-    WBTC: {
-      name: "Wrapped Bitcoin",
-      symbol: "WBTC",
-      decimals: 8,
-      chain: Chains.ethereum,
-      isToken: true,
-      thumbnail:
-        "https://cryptologos.cc/logos/wrapped-bitcoin-wbtc-logo.svg?v=029",
-      address: "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
-    },
-  },
-  ethereum_sepolia: {
-    WBTC: {
-      name: "Wrapped Bitcoin",
-      symbol: "WBTC",
-      decimals: 8,
-      chain: Chains.ethereum_sepolia,
-      isToken: true,
-      thumbnail: "https://cryptologos.cc/logos/wrapped-bitcoin-wbtc-logo.svg",
-      address: "0xaD9d14CA82d9BF97fFf745fFC7d48172A1c0969E",
-    },
-  },
-  ethereum_arbitrumlocalnet: {
-    WBTC: {
-      name: "Wrapped Bitcoin",
-      symbol: "WBTC",
-      decimals: 8,
-      chain: Chains.ethereum_arbitrumlocalnet,
-      isToken: true,
-      thumbnail: "https://cryptologos.cc/logos/wrapped-bitcoin-wbtc-logo.svg",
-      address: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-    },
-  },
-  ethereum_localnet: {
-    WBTC: {
-      name: "Wrapped Bitcoin",
-      symbol: "WBTC",
-      decimals: 8,
-      chain: Chains.ethereum_localnet,
-      isToken: true,
-      thumbnail: "https://cryptologos.cc/logos/wrapped-bitcoin-wbtc-logo.svg",
-      address: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-    },
-  },
-  bitcoin: {
-    BTC: {
-      name: "Bitcoin",
-      symbol: "BTC",
-      decimals: 8,
-      thumbnail: "https://cryptologos.cc/logos/bitcoin-btc-logo.svg",
-      chain: Chains.bitcoin,
-      isToken: false,
-    },
-  },
-  bitcoin_testnet: {
-    BTC: {
-      name: "Bitcoin Testnet",
-      symbol: "BTC",
-      decimals: 8,
-      thumbnail: "https://cryptologos.cc/logos/bitcoin-btc-logo.svg",
-      chain: Chains.bitcoin_testnet,
-      isToken: false,
-    },
-  },
-  bitcoin_regtest: {
-    BTC: {
-      name: "Bitcoin Regtest",
-      symbol: "BTC",
-      decimals: 8,
-      thumbnail: "https://cryptologos.cc/logos/bitcoin-btc-logo.svg",
-      chain: Chains.bitcoin_regtest,
-      isToken: false,
-    },
-  },
-  ethereum_arbitrum: {
-    WBTC: {
-      name: "Wrapped Bitcoin",
-      symbol: "WBTC",
-      decimals: 8,
-      chain: Chains.ethereum_arbitrum,
-      isToken: true,
-      thumbnail: "https://cryptologos.cc/logos/bitcoin-btc-logo.svg",
-      address: "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f",
-    },
-  },
-};
-
-export type SupportedContracts = Partial<Record<Chain, string>>;
-
-export type ChainData = {
-  nativeAsset: Asset;
-};
-
-export const ChainsData: Record<Chain, ChainData> = {
-  bitcoin: {
-    nativeAsset: Assets.bitcoin.BTC,
-  },
-  bitcoin_testnet: {
-    nativeAsset: Assets.bitcoin_testnet.BTC,
-  },
-  bitcoin_regtest: {
-    nativeAsset: {
-      name: "Bitcoin Regtest",
-      symbol: "rBTC",
-      decimals: 8,
-      chain: Chains.bitcoin_regtest,
-      isToken: false,
-      thumbnail: "https://cryptologos.cc/logos/bitcoin-btc-logo.svg",
-    },
-  },
-  ethereum: {
-    nativeAsset: {
-      name: "Ethereum",
-      symbol: "ETH",
-      decimals: 18,
-      chain: Chains.ethereum,
-      isToken: false,
-      thumbnail: "https://cryptologos.cc/logos/ethereum-eth-logo.svg",
-    },
-  },
-  ethereum_sepolia: {
-    nativeAsset: {
-      name: "Ethereum",
-      symbol: "ETH",
-      decimals: 18,
-      chain: Chains.ethereum_sepolia,
-      isToken: false,
-      thumbnail: "https://cryptologos.cc/logos/ethereum-eth-logo.svg",
-    },
-  },
-  ethereum_arbitrum: {
-    nativeAsset: {
-      name: "Ethereum",
-      symbol: "ETH",
-      decimals: 18,
-      chain: Chains.ethereum_arbitrum,
-      isToken: false,
-      thumbnail: "https://cryptologos.cc/logos/arbitrum-arb-logo.svg",
-    },
-  },
-  ethereum_arbitrumlocalnet: {
-    nativeAsset: {
-      name: "Ethereum",
-      symbol: "ETH",
-      decimals: 18,
-      chain: Chains.ethereum_arbitrumlocalnet,
-      isToken: false,
-      thumbnail: "https://cryptologos.cc/logos/arbitrum-arb-logo.svg",
-    },
-  },
-  ethereum_localnet: {
-    nativeAsset: {
-      name: "Ethereum",
-      symbol: "ETH",
-      decimals: 18,
-      chain: Chains.ethereum_localnet,
-      isToken: false,
-      thumbnail: "https://cryptologos.cc/logos/ethereum-eth-logo.svg",
-    },
-  },
-};
 
 export const isMainnet = (chain: Chain) => {
   return !(
     chain === Chains.ethereum_sepolia ||
     chain === Chains.bitcoin_testnet ||
     chain === Chains.bitcoin_regtest ||
-    chain === Chains.ethereum_arbitrumlocalnet ||
-    chain === Chains.ethereum_localnet
+    chain === Chains.arbitrum_localnet ||
+    chain === Chains.ethereum_localnet ||
+    chain === Chains.arbitrum_sepolia ||
+    chain === Chains.base_sepolia ||
+    chain === Chains.bera_testnet ||
+    chain === Chains.citrea_testnet
   );
+};
+
+export const isBitcoin = (chain: Chain) => {
+  return (
+    chain === Chains.bitcoin ||
+    chain === Chains.bitcoin_testnet ||
+    chain === Chains.bitcoin_regtest
+  );
+};
+
+export const isEVM = (chain: Chain) => {
+  return (
+    chain === Chains.ethereum ||
+    chain === Chains.arbitrum ||
+    chain === Chains.ethereum_sepolia ||
+    chain === Chains.ethereum_localnet ||
+    chain === Chains.arbitrum_localnet ||
+    chain === Chains.arbitrum_sepolia ||
+    chain === Chains.base_sepolia ||
+    chain === Chains.base ||
+    chain === Chains.bera_testnet ||
+    chain === Chains.citrea_testnet
+  );
+};
+
+export const TimeLocks: Record<Chain, number> = {
+  [Chains.bitcoin]: 144,
+  [Chains.bitcoin_testnet]: 144,
+  [Chains.bitcoin_regtest]: 144,
+  [Chains.ethereum]: 7200,
+  [Chains.arbitrum]: 7200,
+  [Chains.ethereum_sepolia]: 7200,
+  [Chains.arbitrum_localnet]: 7200,
+  [Chains.arbitrum_sepolia]: 7200,
+  [Chains.ethereum_localnet]: 7200,
+  [Chains.base_sepolia]: 7200,
+  [Chains.base]: 43200,
+  [Chains.bera_testnet]: 28800,
+  [Chains.citrea_testnet]: 28800,
+};
+
+export const getBlockchainType = (chain: Chain) => {
+  if (isBitcoin(chain)) return BlockchainType.Bitcoin;
+  if (isEVM(chain)) return BlockchainType.EVM;
+  throw new Error('Invalid or unsupported chain');
+};
+
+export const getTimeLock = (chain: Chain) => {
+  if (!TimeLocks[chain]) throw new Error('Invalid or unsupported chain');
+  return TimeLocks[chain];
 };

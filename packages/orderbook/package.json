@@ -1,46 +1,46 @@
 {
-    "name": "@gardenfi/orderbook",
-    "version": "0.1.11",
-    "type": "module",
-    "dependencies": {
-        "@catalogfi/utils": "^0.1.6",
-        "@catalogfi/wallets": "0.2.43",
-        "bufferutil": "^4.0.8",
-        "ethers": "6.8.0",
-        "siwe": "^2.1.4",
-        "utf-8-validate": "^6.0.3",
-        "ws": "^8.14.2"
+  "name": "@gardenfi/orderbook",
+  "version": "0.2.0-beta.44",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "typings": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js",
+      "types": "./dist/src/index.d.ts"
     },
-    "scripts": {
-        "build": "vite build",
-        "test": "vitest run",
-        "dev": "vite build --watch"
-    },
-    "files": [
-        "dist"
-    ],
-    "main": "./dist/index.cjs",
-    "module": "./dist/index.js",
-    "typings": "./dist/src/index.d.ts",
-    "exports": {
-        ".": {
-            "require": "./dist/index.cjs",
-            "import": "./dist/index.js",
-            "types": "./dist/src/index.d.ts"
-        },
-        "./package.json": "./package.json"
-    },
-    "publishConfig": {
-        "access": "public",
-        "registry": "https://registry.npmjs.org/"
-    },
-    "devDependencies": {
-        "@types/ws": "^8.5.7",
-        "dotenv": "^16.3.1",
-        "typescript": "^5.2.2",
-        "vite": "^5.1.6",
-        "vite-plugin-dts": "^3.7.3",
-        "vitest": "^1.6.0"
-    },
-    "sideEffects": false
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run",
+    "dev": "vite build --watch"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@catalogfi/utils": "^0.1.6",
+    "@gardenfi/utils": "workspace:^",
+    "bufferutil": "^4.0.8",
+    "siwe": "^2.1.4",
+    "utf-8-validate": "^6.0.3",
+    "viem": "^2.21.15",
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.7",
+    "dotenv": "^16.3.1",
+    "typescript": "^5.2.2",
+    "vite": "^5.1.6",
+    "vite-plugin-dts": "^3.7.3",
+    "vitest": "^1.6.0"
+  },
+  "sideEffects": false
 }

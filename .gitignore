@@ -5,3 +5,5 @@ packages/*/dist/**/*
 .DS_Store
 
 **/*/tsconfig.tsbuildinfo
+
+packages/react-hooks/test/node_modules

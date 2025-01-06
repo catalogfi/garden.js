@@ -1,0 +1,46 @@
+{
+  "name": "@gardenfi/wallet-connectors",
+  "version": "0.1.0-beta.11",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run",
+    "dev": "vite build --watch"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "typings": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js",
+      "types": "./dist/src/index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "devDependencies": {
+    "@types/react": "^18",
+    "@types/ws": "^8.5.7",
+    "dotenv": "^16.3.1",
+    "typescript": "^5.2.2",
+    "vite": "^5.1.6",
+    "vite-plugin-dts": "^3.7.3",
+    "vitest": "^1.6.0"
+  },
+  "sideEffects": false,
+  "dependencies": {
+    "@catalogfi/utils": "^0.1.11",
+    "@catalogfi/wallets": "^0.2.54",
+    "@gardenfi/utils": "workspace:^",
+    "bitcoinjs-lib": "^7.0.0-rc.0",
+    "react": "^18.3.1",
+    "tiny-secp256k1": "^2.2.3"
+  }
+}

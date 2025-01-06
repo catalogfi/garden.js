@@ -1,14 +1,19 @@
-import { IBaseWallet } from '@catalogfi/wallets';
-import { trim0x, with0x } from '@catalogfi/utils';
+import { BitcoinNetwork, IBaseWallet } from '@catalogfi/wallets';
+import { Environment, with0x } from '@gardenfi/utils';
 import { Chain } from '@gardenfi/orderbook';
-import { sha256 } from 'ethers';
+import { sha256 } from 'viem';
 import * as varuint from 'varuint-bitcoin';
+import { trim0x } from '@catalogfi/utils';
+import * as secp256k1 from 'tiny-secp256k1';
+import * as bitcoin from 'bitcoinjs-lib';
+import * as ecc from 'tiny-secp256k1';
+import { NetworkType } from '@gardenfi/orderbook';
 
 export const computeSecret = async (
   fromChain: Chain,
   toChain: Chain,
   wallets: Partial<Record<Chain, IBaseWallet>>,
-  nonce: number
+  nonce: number,
 ) => {
   const initiatorWallet = wallets[fromChain as Chain];
   const followerWallet = wallets[toChain as Chain];
@@ -20,18 +25,18 @@ export const computeSecret = async (
     const msg = sha256(
       with0x(
         Buffer.from(
-          'catalog.js' + nonce + (await followerWallet.getAddress())
-        ).toString('hex')
-      )
+          'catalog.js' + nonce + (await followerWallet.getAddress()),
+        ).toString('hex'),
+      ),
     ).slice(2);
     sig = await initiatorWallet.sign(msg);
   } else {
     const msg = sha256(
       with0x(
         Buffer.from(
-          'catalog.js' + nonce + (await initiatorWallet.getAddress())
-        ).toString('hex')
-      )
+          'catalog.js' + nonce + (await initiatorWallet.getAddress()),
+        ).toString('hex'),
+      ),
     ).slice(2);
     sig = await followerWallet.sign(msg);
   }
@@ -60,7 +65,7 @@ export function assert(condition: boolean, message: string): void {
 }
 
 /**
- * concats the leaf version, the length of the script, and the script itself
+ * concat the leaf version, the length of the script, and the script itself
  */
 export function serializeScript(leafScript: Buffer) {
   return Buffer.concat([
@@ -70,7 +75,7 @@ export function serializeScript(leafScript: Buffer) {
 }
 
 /**
- * concats the length of the script and the script itself
+ * concat the length of the script and the script itself
  */
 export function prefixScriptLength(s: Buffer): Buffer {
   const varintLen = varuint.encodingLength(s.length);
@@ -87,3 +92,58 @@ export function sortLeaves(leaf1: Buffer, leaf2: Buffer) {
   }
   return [leaf1, leaf2];
 }
+
+export const toXOnly = (pubKey: string) =>
+  pubKey.length === 64 ? pubKey : pubKey.slice(2);
+
+export const isValidBitcoinPubKey = (pubKey: string): boolean => {
+  if (!pubKey) return false;
+
+  try {
+    const pubKeyBuffer = Buffer.from(pubKey, 'hex');
+    return secp256k1.isPoint(pubKeyBuffer);
+  } catch (e) {
+    return false;
+  }
+};
+
+export const constructOrderPair = (
+  sourceChain: Chain,
+  sourceAsset: string,
+  destChain: Chain,
+  destAsset: string,
+) =>
+  sourceChain +
+  ':' +
+  sourceAsset.toLowerCase() +
+  '::' +
+  destChain +
+  ':' +
+  destAsset.toLowerCase();
+
+export function validateBTCAddress(address: string, networkType: NetworkType) {
+  if (!address) return false;
+  const network =
+    networkType === 'mainnet'
+      ? bitcoin.networks.bitcoin
+      : bitcoin.networks.testnet;
+  bitcoin.initEccLib(ecc);
+  try {
+    bitcoin.address.toOutputScript(address, network);
+    return true;
+  } catch (e) {
+    // console.error(e);
+    return false;
+  }
+}
+
+export const getBitcoinNetwork = (network: Environment): BitcoinNetwork => {
+  switch (network) {
+    case Environment.MAINNET:
+      return BitcoinNetwork.Mainnet;
+    case Environment.TESTNET:
+      return BitcoinNetwork.Testnet;
+    default:
+      throw new Error(`Invalid bitcoin network ${network}`);
+  }
+};
