@@ -78,6 +78,36 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     return Ok(updatedOrder);
   };
 
+  const evmInitiate = async (order: MatchedOrder) => {
+    if (!garden || !config.walletClient) return Err('garden not initialized');
+
+    if (isBitcoin(order.source_swap.chain))
+      return Err('Not an EVM order: sourceSwap.chain is Bitcoin');
+
+    // switch network if needed
+    const switchRes = await switchOrAddNetwork(
+      order.source_swap.chain,
+      config.walletClient,
+    );
+    if (switchRes.error)
+      return Err('Failed to switch network: ' + switchRes.error);
+    const newWalletClient = switchRes.val.walletClient;
+
+    //only initiate if EVM
+    const initRes = await garden.evmRelay.init(newWalletClient, order);
+    if (initRes.error) return Err(initRes.error);
+
+    const updatedOrder: MatchedOrder = {
+      ...order,
+      source_swap: {
+        ...order.source_swap,
+        initiate_tx_hash: initRes.val,
+      },
+    };
+
+    return Ok(updatedOrder);
+  };
+
   // Initialize Garden
   useEffect(() => {
     if (!config.walletClient) return;
@@ -127,6 +157,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         garden: garden,
         isExecuting,
         isExecutorRequired,
+        evmInitiate,
       }}
     >
       {children}

@@ -49,6 +49,14 @@ export type GardenContextType = {
    * @returns {IQuote}
    */
   quote?: IQuote;
+
+  /**
+   * Initiates the order in the EVM chain. This can be useful if the initiation is failed when `swapAndInitiate` function is called.
+   * @param order - The order to initiate.
+   * @returns {AsyncResult<MatchedOrder, string>} - The initiated order.
+   * @NOTE This is only required if the source chain is EVM.
+   */
+  evmInitiate?: (order: MatchedOrder) => AsyncResult<MatchedOrder, string>;
 };
 
 export type GardenProviderProps = {
