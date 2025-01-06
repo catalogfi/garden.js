@@ -8,17 +8,13 @@ import { useEffect, useState } from 'react';
 
 export const useOrderbook = (garden: IGardenJS | undefined) => {
   const [pendingOrders, setPendingOrders] = useState<OrderWithStatus[]>([]);
-
-  // Execute orders (redeem or refund)
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     if (!garden) return;
 
     const checkInitialization = () => {
-      if (garden.secretManager.isInitialized) {
-        setIsInitialized(true);
-      }
+      if (garden.secretManager.isInitialized) setIsInitialized(true);
     };
 
     checkInitialization();
@@ -36,6 +32,7 @@ export const useOrderbook = (garden: IGardenJS | undefined) => {
 
     const handlePendingOrdersChange = (orders: OrderWithStatus[]) =>
       setPendingOrders(orders);
+
     garden.on('onPendingOrdersChanged', handlePendingOrdersChange);
 
     return () => {
@@ -82,5 +79,5 @@ export const useOrderbook = (garden: IGardenJS | undefined) => {
     });
   }, [garden]);
 
-  return { pendingOrders };
+  return { pendingOrders, isExecuting: isInitialized };
 };

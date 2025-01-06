@@ -69,6 +69,7 @@ export class SecretManager
       });
 
       this.privKey = trim0x(sha256(signature));
+      this.emit('initialized', true);
 
       return Ok(this.privKey);
     } catch (error) {

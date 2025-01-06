@@ -62,10 +62,6 @@ import { IEVMRelay } from '../evm/relay/evmRelay.types';
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment;
   private _secretManager: ISecretManager;
-  private readonly eventListeners: Map<
-    keyof GardenEvents,
-    Array<GardenEvents[keyof GardenEvents]>
-  > = new Map();
   private _orderBook: IOrderbook;
   private _quote: IQuote;
   private getOrderThreshold = 20;

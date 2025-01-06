@@ -30,11 +30,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   const [getQuote, setGetQuote] =
     useState<(params: QuoteParams) => AsyncResult<QuoteResponse, string>>();
 
-  const { pendingOrders } = useOrderbook(garden);
-
-  const isExecuting = useMemo(() => {
-    return !!garden?.secretManager.isInitialized;
-  }, [garden]);
+  const { pendingOrders, isExecuting } = useOrderbook(garden);
 
   const isExecutorRequired = useMemo(() => {
     return !!pendingOrders.find((order) => {
