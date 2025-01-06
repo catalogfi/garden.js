@@ -1,6 +1,6 @@
 {
   "name": "@gardenfi/orderbook",
-  "version": "0.2.0-beta.43",
+  "version": "0.2.0-beta.44",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

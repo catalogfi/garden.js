@@ -1,7 +1,7 @@
 import { AsyncResult } from '@catalogfi/utils';
 import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
 import { OrderStatus } from '../status';
-import { Environment, SiweOpts } from '@gardenfi/utils';
+import { Environment, EventBroker, SiweOpts } from '@gardenfi/utils';
 import { WalletClient } from 'viem';
 import { ISecretManager } from '../secretManager/secretManager.types';
 import { IQuote } from '../quote/quote.types';
@@ -69,7 +69,7 @@ export type EventCallback = (...args: any[]) => void;
 /**
  * Interface representing the GardenJS library.
  */
-export interface IGardenJS {
+export interface IGardenJS extends EventBroker<GardenEvents> {
   /**
    * Create Order
    * @param {SwapParams} params - The parameters for creating the order.

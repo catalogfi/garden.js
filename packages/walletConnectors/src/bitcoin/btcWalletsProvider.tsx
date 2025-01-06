@@ -24,7 +24,6 @@ import {
   BTCWalletProviderProps,
 } from './btcWalletsProvider.types';
 import { Network } from '@gardenfi/utils';
-import { walletIDs } from './constants';
 
 declare global {
   interface Window {
@@ -119,10 +118,10 @@ export const BTCWalletProvider = ({
   }, [provider]);
 
   //adds wallet to the available wallet list
-  const addToWalletList = (name: string, wallet: IInjectedBitcoinProvider) => {
+  const addToWalletList = (wallet: IInjectedBitcoinProvider) => {
     setAvailableWallets((p) => ({
       ...p,
-      [name]: wallet,
+      [wallet.id]: wallet,
     }));
   };
 
@@ -133,7 +132,7 @@ export const BTCWalletProvider = ({
       window.okxwallet.bitcoin
     ) {
       const okxProvider = new OKXProvider(window.okxwallet.bitcoin, network);
-      addToWalletList(walletIDs.OKX, okxProvider);
+      addToWalletList(okxProvider);
     }
     // if (
     //   network === Network.MAINNET &&
@@ -145,7 +144,7 @@ export const BTCWalletProvider = ({
     // }
     if (window.unisat) {
       const uniProvider = new UnisatProvider(window.unisat);
-      addToWalletList(walletIDs.Unisat, uniProvider);
+      addToWalletList(uniProvider);
     }
     // if (window.XverseProviders && window.XverseProviders.BitcoinProvider) {
     //   const xverseProvider = new XverseProvider(
