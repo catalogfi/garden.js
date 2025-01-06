@@ -24,6 +24,7 @@ import {
 import {
   APIResponse,
   Environment,
+  EventBroker,
   fetchBitcoinBlockNumber,
   fetchEVMBlockNumber,
   IAuth,
@@ -58,7 +59,7 @@ import { Quote } from '../quote/quote';
 import { SecretManager } from '../secretManager/secretManager';
 import { IEVMRelay } from '../evm/relay/evmRelay.types';
 
-export class Garden implements IGardenJS {
+export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment;
   private _secretManager: ISecretManager;
   private readonly eventListeners: Map<
@@ -78,6 +79,7 @@ export class Garden implements IGardenJS {
   private _btcWallet: IBitcoinWallet | undefined;
 
   constructor(config: GardenProps) {
+    super();
     this.environment = config.environment;
     const api =
       config.environment === Environment.MAINNET
@@ -91,7 +93,7 @@ export class Garden implements IGardenJS {
       );
 
     this._auth = new Siwe(
-      new Url(api.orderbook),
+      new Url(config.orderbookURl ?? api.orderbook),
       config.evmWallet,
       config.siweOpts,
     );
@@ -334,6 +336,8 @@ export class Garden implements IGardenJS {
     return await this._orderBook.subscribeToOrders(
       interval,
       async (pendingOrders) => {
+        if (pendingOrders.data.length === 0) return;
+
         const ordersWithStatus = await this.filterExpiredAndAssignStatus(
           pendingOrders.data,
         );
@@ -648,30 +652,6 @@ export class Garden implements IGardenJS {
     }
   }
 
-  private emit<E extends keyof GardenEvents>(
-    event: E,
-    ...args: Parameters<GardenEvents[E]>
-  ): void {
-    const listeners = this.eventListeners.get(event) ?? [];
-    listeners.forEach((cb) => {
-      (cb as (...args: Parameters<GardenEvents[E]>) => void)(...args);
-    });
-  }
-
-  on<E extends keyof GardenEvents>(event: E, cb: GardenEvents[E]): void {
-    const listeners = this.eventListeners.get(event) ?? [];
-    listeners.push(cb);
-    this.eventListeners.set(event, listeners);
-  }
-
-  off<E extends keyof GardenEvents>(event: E, cb: GardenEvents[E]): void {
-    const listeners = this.eventListeners.get(event) ?? [];
-    const index = listeners.indexOf(cb);
-    if (index !== -1) {
-      listeners.splice(index, 1);
-    }
-  }
-
   private async fetchCurrentBlockNumbers(
     order: MatchedOrder,
     wallets: {
@@ -703,6 +683,8 @@ export class Garden implements IGardenJS {
   }
 
   private async filterExpiredAndAssignStatus(orders: MatchedOrder[]) {
+    if (orders.length === 0) return Ok([]);
+
     const blockNumbers = await this._blockNumberFetcher?.fetchBlockNumbers();
     if (blockNumbers.error) return Err(blockNumbers.error);
 

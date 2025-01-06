@@ -5,7 +5,7 @@ import { Swap } from './components/Swap';
 
 function App() {
   const { data: walletClient } = useWalletClient();
-  // console.log('walletClient :', walletClient);
+
   return (
     <GardenProvider
       config={{

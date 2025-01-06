@@ -108,7 +108,7 @@ export interface IOrderbook extends IOrderProvider {
   ): AsyncResult<string, string>;
 
   /**
-   * Wrapper for the getOrder method in the OrdersProvider class to abstract the address parameter.
+   * Wrapper for the getOrders method in the OrdersProvider class to abstract the address parameter.
    * @param matched - Whether to get matched or unmatched orders
    * @param paginationConfig - The pagination configuration
    * @param pending - Whether to get pending orders

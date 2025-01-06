@@ -3,7 +3,7 @@ export type Events = Record<string, (...args: any[]) => void>;
 export class EventBroker<E extends Events> {
   private readonly listeners: Map<keyof E, Array<E[keyof E]>> = new Map();
 
-  emit<K extends keyof E>(event: K, ...args: Parameters<E[K]>): void {
+  protected emit<K extends keyof E>(event: K, ...args: Parameters<E[K]>): void {
     const listeners = this.listeners.get(event) ?? [];
     listeners.forEach((cb) => {
       (cb as (...args: Parameters<E[K]>) => void)(...args);

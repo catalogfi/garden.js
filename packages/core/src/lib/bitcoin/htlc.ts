@@ -3,6 +3,7 @@ import * as bitcoin from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
 import { generateInternalkey } from './internalKey';
 import { Taptree } from 'bitcoinjs-lib/src/types';
+import { serializeTaprootSignature } from 'bitcoinjs-lib/src/psbt/bip371';
 import { assert, xOnlyPubkey } from '../utils';
 import { serializeScript, sortLeaves } from '../utils';
 import { htlcErrors } from '../errors';
@@ -208,6 +209,38 @@ export class GardenHTLC implements IHTLCWallet {
     return await this.signer.send(this.address(), this.initiateAmount, fee);
   }
 
+  async generateRedeemSACP(secret: string, receiver: string, fee?: number) {
+    const { tx, usedUtxos } = await this._buildRawTx(receiver, fee);
+    const output = this.getOutputScript();
+
+    const hashType =
+      bitcoin.Transaction.SIGHASH_SINGLE |
+      bitcoin.Transaction.SIGHASH_ANYONECANPAY;
+    const redeemLeafHash = this.leafHash(Leaf.REDEEM);
+
+    const values = usedUtxos.map((utxo) => utxo.value);
+    const outputs = generateOutputs(output, usedUtxos.length);
+
+    for (let i = 0; i < tx.ins.length; i++) {
+      const hash = tx.hashForWitnessV1(
+        i,
+        outputs,
+        values,
+        hashType,
+        redeemLeafHash,
+      );
+
+      const signature = await this.signer.signSchnorr(hash);
+      tx.setWitness(i, [
+        serializeTaprootSignature(signature, hashType),
+        Buffer.from(secret, 'hex'),
+        this.redeemLeaf(),
+        this.generateControlBlockFor(Leaf.REDEEM),
+      ]);
+    }
+    return tx.toHex();
+  }
+
   async generateInstantRefundSACP(receiver: string, fee?: number) {
     const { tx, usedUtxos } = await this._buildRawTx(receiver, fee);
     const output = this.getOutputScript();
@@ -232,10 +265,10 @@ export class GardenHTLC implements IHTLCWallet {
       const signature = await this.signer.signSchnorr(hash);
       tx.setWitness(i, [
         // first is initiator's signature
-        signature,
+        serializeTaprootSignature(signature, hashType),
         // second is redeemer's signature
         // this is then modified by the redeemer to include their signature
-        signature,
+        serializeTaprootSignature(signature, hashType),
         this.instantRefundLeaf(),
         this.generateControlBlockFor(Leaf.INSTANT_REFUND),
       ]);

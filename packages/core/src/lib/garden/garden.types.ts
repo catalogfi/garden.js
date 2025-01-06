@@ -84,20 +84,6 @@ export interface IGardenJS {
   execute(): Promise<() => void>;
 
   /**
-   * Register an event listener.
-   * @param {E} event - The event to listen for.
-   * @param {GardenEvents[E]} cb - The callback function to be called when the event is triggered.
-   */
-  on<E extends keyof GardenEvents>(event: E, cb: GardenEvents[E]): void;
-
-  /**
-   * Unregister an event listener.
-   * @param {E} event - The event to stop listening for.
-   * @param {GardenEvents[E]} cb - The callback function to be removed.
-   */
-  off<E extends keyof GardenEvents>(event: E, cb: GardenEvents[E]): void;
-
-  /**
    * The URL of the orderbook.
    * @readonly
    */

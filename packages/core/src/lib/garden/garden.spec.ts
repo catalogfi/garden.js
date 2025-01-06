@@ -8,10 +8,12 @@ import {
   Chains,
   isBitcoin,
   MatchedOrder,
-  SupportedAssets,
+  // SupportedAssets,
 } from '@gardenfi/orderbook';
 import { sleep } from '@catalogfi/utils';
 import { arbitrumSepolia, sepolia } from 'viem/chains';
+import { Quote } from './../quote/quote';
+// import { Orderbook } from 'gardenfi/orderbook';
 
 describe('swap and execute using garden', () => {
   // const bitcoinAddress = 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru';
@@ -31,9 +33,14 @@ describe('swap and execute using garden', () => {
     transport: http(),
   });
 
+  const quote = new Quote('https://quote-choas.onrender.com/');
+  const orderBookUrl = 'https://evm-swapper-relay-1.onrender.com/';
+
   const garden = new Garden({
     environment: Environment.TESTNET,
     evmWallet: arbitrumWalletClient,
+    orderbookURl: orderBookUrl,
+    quote,
   });
   let wallets: Partial<{ [key in Chain]: WalletClient }> = {};
 
@@ -45,18 +52,29 @@ describe('swap and execute using garden', () => {
 
   let order: MatchedOrder;
 
-  it.skip('should create an order', async () => {
+  it('should create an order', async () => {
     const orderObj = {
-      fromAsset:
-        SupportedAssets.testnet
-          .arbitrum_sepolia_0x1cd0bbd55fd66b4c5f7dfe434efd009c09e628d1,
-      toAsset:
-        SupportedAssets.testnet
-          .ethereum_sepolia_0x3c6a17b8cd92976d1d91e491c93c98cd81998265,
-      sendAmount: '1000000'.toString(),
-      receiveAmount: '997000'.toString(),
+      fromAsset: {
+        name: 'SEED',
+        decimals: 18,
+        symbol: 'SEED',
+        chain: Chains.ethereum_sepolia,
+        tokenAddress: '0x0dD677b602F9b90328d97ebB7Dc250587E019C68',
+        atomicSwapAddress: '0x9A8c82C0D0a08242732DB21532d49cBf37812b1c',
+      },
+      toAsset: {
+        name: 'BTC',
+        decimals: 8,
+        symbol: 'BTC',
+        chain: Chains.bitcoin_testnet,
+        tokenAddress: 'primary',
+        atomicSwapAddress: 'primary',
+      },
+      sendAmount: '1000000000000000000000'.toString(),
+      receiveAmount: '1060225'.toString(),
       additionalData: {
-        strategyId: 'aa1dea56',
+        strategyId: 'es1cbtry',
+        btcAddress: 'tb1qxs3h0ac9mne3zle4jxucsrmef3ltx496769fgk',
       },
       minDestinationConfirmations: 3,
     };
@@ -78,7 +96,7 @@ describe('swap and execute using garden', () => {
   }, 60000);
 
   //TODO: also add bitcoin init
-  it.skip('Initiate the swap', async () => {
+  it('Initiate the swap', async () => {
     if (isBitcoin(order.source_swap.chain)) {
       console.warn('Bitcoin swap, skipping initiation');
     }
@@ -112,6 +130,9 @@ describe('swap and execute using garden', () => {
     });
     garden.on('log', (id, message) => {
       console.log('log :', id, message);
+    });
+    garden.on('onPendingOrdersChanged', (orders) => {
+      console.log('pendingrders :', orders.length);
     });
     await garden.execute();
     await sleep(150000);
