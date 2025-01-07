@@ -1,15 +1,15 @@
 {
   "name": "@gardenfi/core",
-  "version": "0.3.0-beta.21",
+  "version": "2.0.2",
   "type": "module",
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "vite build",
     "test": "vitest run",
     "dev": "vite build --watch"
   },
+  "files": [
+    "dist"
+  ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "typings": "./dist/src/index.d.ts",
