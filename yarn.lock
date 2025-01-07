@@ -671,7 +671,6 @@ __metadata:
     vite: "npm:^5.1.6"
     vite-plugin-dts: "npm:^3.7.3"
     vitest: "npm:^1.6.0"
-    wagmi: "npm:^2.12.16"
   languageName: unknown
   linkType: soft
 
@@ -9579,7 +9578,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wagmi@npm:^2.12.16, wagmi@npm:^2.12.17":
+"wagmi@npm:^2.12.17":
   version: 2.12.26
   resolution: "wagmi@npm:2.12.26"
   dependencies:

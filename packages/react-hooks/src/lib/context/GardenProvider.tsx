@@ -118,7 +118,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
       new Garden({
         environment: config.environment,
         evmWallet: config.walletClient,
-        siweOpts: {
+        siweOpts: config.siweOpts ?? {
           domain: window.location.hostname,
           store: config.store,
         },

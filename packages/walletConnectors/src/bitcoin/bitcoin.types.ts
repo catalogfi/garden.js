@@ -17,7 +17,6 @@ export type Connect = {
 
 export type WalletId = (typeof WALLET_CONFIG)[keyof typeof WALLET_CONFIG]['id'];
 
-
 export type ProviderEvents = {
   accountsChanged: (accounts: string[]) => void;
 };
@@ -27,7 +26,7 @@ export interface IInjectedBitcoinProvider {
   address: string;
   name: string;
   icon: string;
-  
+
   getBalance: () => AsyncResult<Balance, string>;
   // selectedAccount: SelectedAccount;
   /**

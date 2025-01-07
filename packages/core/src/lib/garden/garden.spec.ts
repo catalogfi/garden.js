@@ -36,10 +36,7 @@ describe('swap and execute using garden', () => {
   const quote = new Quote('https://quote-choas.onrender.com/');
   const orderBookUrl = 'https://evm-swapper-relay-1.onrender.com/';
 
-  const garden = new Garden({
-    environment: Environment.TESTNET,
-    evmWallet: arbitrumWalletClient,
-    orderbookURl: orderBookUrl,
+   rderbookURl: orderBookUrl,
     quote,
   });
   let wallets: Partial<{ [key in Chain]: WalletClient }> = {};
