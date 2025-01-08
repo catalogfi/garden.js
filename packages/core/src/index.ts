@@ -47,3 +47,5 @@ export {
   evmToViemChainMap,
   switchOrAddNetwork,
 } from './lib/switchOrAddNetwork';
+
+export { API } from './lib/constants';
