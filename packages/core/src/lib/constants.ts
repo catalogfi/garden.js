@@ -9,5 +9,9 @@ export const API = {
     quote: 'https://price.garden.finance',
     info: 'https://info.garden.finance',
   },
-  localnet: {},
+  localnet: {
+    orderbook: '',
+    quote: '',
+    info: '',
+  },
 } as const;

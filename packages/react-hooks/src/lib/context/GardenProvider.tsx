@@ -1,9 +1,11 @@
 import React, { createContext, FC, useEffect, useMemo, useState } from 'react';
 import { useOrderbook } from '../hooks/useOrderbook';
 import {
+  API,
   Garden,
   IGardenJS,
   OrderStatus,
+  Quote,
   QuoteResponse,
   switchOrAddNetwork,
 } from '@gardenfi/core';
@@ -29,6 +31,10 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   const [garden, setGarden] = useState<IGardenJS>();
   const [getQuote, setGetQuote] =
     useState<(params: QuoteParams) => AsyncResult<QuoteResponse, string>>();
+
+  const quote = useMemo(() => {
+    return new Quote(config.quoteUrl || API[config.environment].quote);
+  }, [config.quoteUrl, config.environment]);
 
   const { pendingOrders, isExecuting } = useOrderbook(garden);
 
@@ -150,7 +156,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     <GardenContext.Provider
       value={{
         orderBook: garden?.orderbook,
-        quote: garden?.quote,
+        quote: quote,
         swapAndInitiate,
         pendingOrders,
         getQuote,
