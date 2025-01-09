@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "baseUrl": "./",
-    "module": "ESNext",
+    "module": "NodeNext",
     "checkJs": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
@@ -11,7 +11,8 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "composite": true,
-    "jsx": "react"
+    "jsx": "react",
+    "moduleResolution": "nodenext"
   },
   "files": [],
   "include": ["src/**/*.ts", "src/**/*.tsx"],
@@ -22,6 +23,15 @@
     },
     {
       "path": "./tsconfig.spec.json"
+    },
+    {
+      "path": "../core"
+    },
+    {
+      "path": "../orderbook"
+    },
+    {
+      "path": "../utils"
     }
   ]
 }
