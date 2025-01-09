@@ -10,36 +10,48 @@ export default defineConfig({
     dts({
       outDir: './dist',
       pathsToAliases: false,
-      entryRoot: '.',
+      entryRoot: './src',
+      include: ['src/**/*.ts'],
+      exclude: ['./node_modules'],
     }),
   ],
-
-  // Uncomment this if you are using workers.
-  // worker: {
-  //  plugins: [ nxViteTsPaths() ],
-  // },
-  // Configuration for building your library.
-  // See: https://vitejs.dev/guide/build.html#library-mode
   build: {
+    minify: false,
     lib: {
-      // Could also be a dictionary or array of multiple entry points.
-      entry: 'src/index.ts',
+      entry: ['src/index.ts'],
       name: 'catalog',
-      fileName: 'index',
-      // Change this to the formats you want to support.
-      // Don't forget to update your package.json as well.
       formats: ['es', 'cjs'],
+      fileName: (format) => `index.${format}.js`,
     },
-
     rollupOptions: {
-      // External packages that should not be bundled into your library.
       external: [
+        // Explicitly handle all dependencies as external
         ...Object.keys(pkg.dependencies || {}),
-        // ...[...builtinModules, ...builtinModules.map((m) => `node:${m}`)],
+        ...Object.keys(pkg.devDependencies || {}),
+        /node_modules/, // This pattern will match all node_modules
       ],
       output: {
-        // preserveModules: true,
+        preserveModules: true,
+        preserveModulesRoot: 'src',
+        dir: './dist',
+        format: 'es',
+        entryFileNames: ({ name: fileName }) => {
+          // Ensure we're only processing source files
+          if (fileName.includes('node_modules')) {
+            return '[name].js';
+          }
+          return `${fileName}.js`;
+        },
+        chunkFileNames: '[name].js',
+        manualChunks: undefined,
+        indent: '    ',
+        generatedCode: {
+          constBindings: true,
+          arrowFunctions: true,
+          objectShorthand: true,
+        },
       },
     },
+    sourcemap: true,
   },
 });
