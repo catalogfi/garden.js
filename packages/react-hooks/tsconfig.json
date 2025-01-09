@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "baseUrl": "./",
-    "module": "NodeNext",
+    "module": "ESNext",
     "checkJs": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
@@ -12,7 +12,7 @@
     "noFallthroughCasesInSwitch": true,
     "composite": true,
     "jsx": "react",
-    "moduleResolution": "nodenext"
+    "moduleResolution": "bundler"
   },
   "files": [],
   "include": ["src/**/*.ts", "src/**/*.tsx"],

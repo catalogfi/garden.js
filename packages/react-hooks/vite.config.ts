@@ -11,7 +11,7 @@ export default defineConfig({
       outDir: './dist',
       pathsToAliases: false,
       entryRoot: './src',
-      include: ['src/**/*.ts'],
+      include: ['src/**/*.ts', 'src/**/*.tsx'],
       exclude: ['./node_modules'],
     }),
   ],

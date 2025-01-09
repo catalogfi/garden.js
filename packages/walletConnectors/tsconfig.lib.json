@@ -7,12 +7,7 @@
     "declaration": true,
     "types": ["node", "vite/client"]
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.json",
-    "src/bitcoin/btcWalletsProvider.tsx",
-    "src/bitcoin/constants.tsx"
-  ],
+  "include": ["src/**/*.ts", "src/**/*.json", "src/**/*.tsx"],
   "exclude": [
     "jest.config.ts",
     "src/**/*.spec.ts",
