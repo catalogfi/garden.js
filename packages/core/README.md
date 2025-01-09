@@ -20,7 +20,7 @@ The `@gardenfi/core` package provides an abstraction layer over the `@catalogfi/
 3. [Documentation](#documentation)
 4. [Contributions](#contributions)
 5. [License](#license)
-6. [Keep Updated](#keep-updated)
+6. [Keep Updated](#stay-updated)
 
 ## Installation
 
