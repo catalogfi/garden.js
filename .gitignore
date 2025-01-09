@@ -9,3 +9,5 @@ packages/*/dist/**/*
 packages/react-hooks/test/node_modules
 
 debugger.txt
+
+template.MD
