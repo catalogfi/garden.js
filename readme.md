@@ -10,6 +10,9 @@ The Garden SDK is a set of typescript packages that allow you to bridge Bitcoin 
 
 - [@gardenfi/orderbook](./packages/orderbook/README.md): Allows you to create orders and listen to them.
 - [@gardenfi/core](./packages/core/README.md): Allows you to interact with orders once you setup your wallets.
+- [@gardenfi/utils](./packages/utils/README.md): Utilities for the SDK.
+- [@gardenfi/react-hooks](./packages/react-hooks/README.md): React hooks for the SDK.
+- [@gardenfi/wallet-connectors](./packages/walletConnectors/README.md): Wallet connectors for the SDK.
 
 ## Docs
 
