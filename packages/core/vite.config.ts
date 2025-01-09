@@ -11,8 +11,8 @@ export default defineConfig({
       outDir: './dist',
       pathsToAliases: false,
       entryRoot: './src',
-      copyDtsFiles: true,
       include: ['src/**/*.ts'],
+      exclude: ['./node_modules'],
     }),
   ],
   build: {
@@ -24,14 +24,25 @@ export default defineConfig({
       fileName: (format) => `index.${format}.js`,
     },
     rollupOptions: {
-      external: [...Object.keys(pkg.dependencies || {})],
+      external: [
+        // Explicitly handle all dependencies as external
+        ...Object.keys(pkg.dependencies || {}),
+        ...Object.keys(pkg.devDependencies || {}),
+        /node_modules/, // This pattern will match all node_modules
+      ],
       output: {
         preserveModules: true,
-        preserveModulesRoot: 'src', // Use 'src' as the root directory for preserving structure
-        dir: './dist', // Ensure all files go to the `dist` directory
+        preserveModulesRoot: 'src',
+        dir: './dist',
         format: 'es',
-        entryFileNames: ({ name }) => `${name}.js`,
-        chunkFileNames: ({ name }) => '[name].js',
+        entryFileNames: ({ name: fileName }) => {
+          // Ensure we're only processing source files
+          if (fileName.includes('node_modules')) {
+            return '[name].js';
+          }
+          return `${fileName}.js`;
+        },
+        chunkFileNames: '[name].js',
         manualChunks: undefined,
         indent: '    ',
         generatedCode: {
@@ -39,8 +50,8 @@ export default defineConfig({
           arrowFunctions: true,
           objectShorthand: true,
         },
-        sourcemap: true,
       },
     },
+    sourcemap: true,
   },
 });
