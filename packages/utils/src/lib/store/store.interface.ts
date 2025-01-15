@@ -1,3 +1,5 @@
+import { AsyncResult } from '@catalogfi/utils';
+
 /**
  * Interface for a Store.
  *
@@ -29,6 +31,8 @@ export interface IStore {
    *
    */
   removeItem(key: string): void;
+  getAsyncItem?(key: string): AsyncResult<string, null>;
+  initialize?(): Promise<void>;
 }
 
 export enum StoreKeys {
