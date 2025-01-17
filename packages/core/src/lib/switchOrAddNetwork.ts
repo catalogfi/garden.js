@@ -50,6 +50,27 @@ export const citreaTestnet = defineChain({
   testnet: true,
 });
 
+export const monadTestnet = defineChain({
+  id: 10143,
+  name: 'Monad Testnet',
+  nativeCurrency: { name: 'Monad', symbol: 'MON', decimals: 18 },
+  rpcUrls: {
+    default: {
+      http: [
+        'https://rpc.monad-testnet.category.xyz/rpc/SPa4TbSgMJxz5ywmzYvvc9O5nkAVGTgOcsi7yErG',
+      ],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Monad Explorer',
+      url: 'https://explorer.monad-devnet.devnet101.com',
+      apiUrl: 'https://explorer.monad-devnet.devnet101.com/api/',
+    },
+  },
+  testnet: true,
+});
+
 export const evmToViemChainMap: Record<EvmChain, viemChain> = {
   ethereum: mainnet,
   arbitrum: arbitrum,
@@ -61,6 +82,7 @@ export const evmToViemChainMap: Record<EvmChain, viemChain> = {
   base: base,
   bera_testnet: berachainTestnetbArtio,
   citrea_testnet: citreaTestnet,
+  monad_testnet: monadTestnet,
 };
 
 /**

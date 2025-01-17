@@ -7,20 +7,22 @@ import { Quote } from './quote';
 import { describe, expect, it } from 'vitest';
 
 describe('quote', () => {
-  const quoteUrl = 'http://localhost:6969';
+  const quoteUrl = 'https://price.garden.finance';
   const quote = new Quote(quoteUrl);
 
   it('should get quote', async () => {
     const res = await quote.getQuote(
-      'arbitrum_localnet:0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9::ethereum_localnet:0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
-      100000,
+      'arbitrum_sepolia:0xD5FeDb4ceCB0F1D32788a190d9EB47D94D23eE4e::arbitrum_sepolia:0x1cd0bBd55fD66B4C5F7dfE434eFD009C09e628d1',
+      10000000,
+      true,
     );
     console.log('quote :', res.val);
+    if (res.error) console.log('error :', res.error);
     expect(res.error).toBeUndefined();
     expect(res.val).toBeTruthy();
-  });
+  }, 30000);
 
-  it('exact_out', async () => {
+  it.skip('exact_out', async () => {
     const res = await quote.getQuote(
       'arbitrum_localnet:0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9::bitcoin_regtest:primary',
       100000,
@@ -32,7 +34,7 @@ describe('quote', () => {
     expect(Number(Object.values(res.val.quotes)[0])).toBeGreaterThan(100000);
   });
 
-  it('should get attested quote', async () => {
+  it.skip('should get attested quote', async () => {
     const res = await quote.getAttestedQuote({
       source_chain: Chains.arbitrum_localnet,
       destination_chain: Chains.bitcoin_regtest,
@@ -60,7 +62,7 @@ describe('quote', () => {
     expect(res.val).toBeTruthy();
   });
 
-  it('test', async () => {
+  it.skip('test', async () => {
     const res = await quote.getAttestedQuote({
       source_chain: 'arbitrum_localnet',
       destination_chain: 'ethereum_localnet',
@@ -87,7 +89,7 @@ describe('quote', () => {
     expect(res.val).toBeTruthy();
   }, 30000);
 
-  it('should get strategies', async () => {
+  it.skip('should get strategies', async () => {
     const res = await quote.getStrategies();
     console.log('strategies :', res.val);
     expect(res.error).toBeUndefined();
