@@ -12,7 +12,7 @@ import {
 } from '@gardenfi/orderbook';
 import { sleep } from '@catalogfi/utils';
 import { arbitrumSepolia, sepolia } from 'viem/chains';
-import { Quote } from './../quote/quote';
+// import { Quote } from './../quote/quote';
 // import { Orderbook } from 'gardenfi/orderbook';
 
 describe('swap and execute using garden', () => {
@@ -33,11 +33,14 @@ describe('swap and execute using garden', () => {
     transport: http(),
   });
 
-  const quote = new Quote('https://quote-choas.onrender.com/');
-  const orderBookUrl = 'https://evm-swapper-relay-1.onrender.com/';
+  // const quote = new Quote('https://quote-choas.onrender.com/');
+  // const orderBookUrl = 'https://evm-swapper-relay-1.onrender.com/';
 
-   rderbookURl: orderBookUrl,
-    quote,
+  const garden = new Garden({
+    // orderbookURl: orderBookUrl,
+    // quote,
+    environment: Environment.TESTNET,
+    evmWallet: arbitrumWalletClient,
   });
   let wallets: Partial<{ [key in Chain]: WalletClient }> = {};
 
