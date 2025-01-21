@@ -115,7 +115,7 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
     amt: number,
     fee?: number,
   ): Promise<{
-    txHex: any;
+    txHex: string;
     utxoCount: number;
   }> {
     if (!fee) fee = await provider.suggestFee(fromAddress, amt, Urgency.FAST);
@@ -137,10 +137,10 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
     console.log(utxosWithRawTx);
 
     const totalUTXOValue = utxosWithRawTx.reduce(
-      (acc: number, utxo: any) => acc + utxo.value,
+      (acc, utxo) => acc + utxo.value,
       0,
     );
-    console.log('total utxo value :  ', totalUTXOValue);
+
     const change = totalUTXOValue - amt - fee;
 
     if (totalUTXOValue < amt + fee)
