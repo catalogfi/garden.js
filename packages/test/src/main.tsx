@@ -36,7 +36,7 @@ createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <BTCWalletProvider network={Network.MAINNET} store={localStorage}>
+        <BTCWalletProvider network={Network.TESTNET} store={localStorage}>
           <App />
         </BTCWalletProvider>
       </QueryClientProvider>
