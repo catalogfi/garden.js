@@ -15,7 +15,7 @@ import { XVerseBitcoinProvider } from './providers/xverse/xverse.types';
 import { XdefiBitcoinProvider } from './providers/xdefi/xdefi.types';
 import { PhantomBitcoinProvider } from './providers/phantom/phantom.types';
 import { UnisatProvider } from './providers/unisat/provider';
-// import { PhantomProvider } from './providers/phantom/provider';
+import { PhantomProvider } from './providers/phantom/provider';
 // import { XverseProvider } from './providers/xverse/provider';
 // import { XdefiProvider } from './providers/xdefi/provider';
 import {
@@ -134,14 +134,14 @@ export const BTCWalletProvider = ({
       const okxProvider = new OKXProvider(window.okxwallet.bitcoin, network);
       addToWalletList(okxProvider);
     }
-    // if (
-    //   network === Network.MAINNET &&
-    //   window.phantom &&
-    //   window.phantom.bitcoin
-    // ) {
-    //   const phantomProvider = new PhantomProvider(window.phantom.bitcoin);
-    //   addToWalletList(walletIDs.Phantom, phantomProvider);
-    // }
+    if (
+      network === Network.MAINNET &&
+      window.phantom &&
+      window.phantom.bitcoin
+    ) {
+      const phantomProvider = new PhantomProvider(window.phantom.bitcoin);
+      addToWalletList(phantomProvider);
+    }
     if (window.unisat) {
       const uniProvider = new UnisatProvider(window.unisat);
       addToWalletList(uniProvider);
