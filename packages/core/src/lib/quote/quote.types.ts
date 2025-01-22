@@ -21,6 +21,7 @@ export interface IQuote {
     orderpair: string,
     amount: number,
     isExactOut: boolean,
+    signal?: AbortSignal
   ): AsyncResult<QuoteResponse, string>;
 
   /**

@@ -78,4 +78,5 @@ export type QuoteParams = {
   toAsset: Asset;
   amount: number;
   isExactOut?: boolean;
+  signal?: AbortSignal;
 };

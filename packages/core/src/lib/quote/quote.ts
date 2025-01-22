@@ -19,14 +19,14 @@ export class Quote implements IQuote {
     this.quoteUrl = new Url('/quote', quoteUrl);
   }
 
-  async getQuote(orderpair: string, amount: number, isExactOut = false) {
+  async getQuote(orderpair: string, amount: number, isExactOut = false, signal ?: AbortSignal) {
     try {
       const url = this.quoteUrl.addSearchParams({
         order_pair: orderpair,
         amount: amount.toString(),
         exact_out: isExactOut.toString(),
       });
-      const res = await Fetcher.get<APIResponse<QuoteResponse>>(url);
+      const res = await Fetcher.get<APIResponse<QuoteResponse>>(url, {signal});
 
       if (res.error) return Err(res.error);
       if (!res.result)
