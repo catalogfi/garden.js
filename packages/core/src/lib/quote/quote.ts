@@ -32,7 +32,7 @@ export class Quote implements IQuote {
         exact_out: isExactOut.toString(),
       });
       const res = await Fetcher.get<APIResponse<QuoteResponse>>(url, {
-        retryCount: 1,
+        retryCount: 0,
         ...request,
       });
 
