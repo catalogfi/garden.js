@@ -31,7 +31,10 @@ export class Quote implements IQuote {
         amount: amount.toString(),
         exact_out: isExactOut.toString(),
       });
-      const res = await Fetcher.get<APIResponse<QuoteResponse>>(url, request);
+      const res = await Fetcher.get<APIResponse<QuoteResponse>>(url, {
+        retryCount: 1,
+        ...request,
+      });
 
       if (res.error) return Err(res.error);
       if (!res.result)

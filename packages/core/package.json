@@ -1,6 +1,6 @@
 {
   "name": "@gardenfi/core",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "type": "module",
   "scripts": {
     "build": "vite build",
