@@ -31,6 +31,6 @@
   },
   "packageManager": "yarn@4.3.1",
   "dependencies": {
-    "@catalogfi/utils": "^0.1.11"
+    "@catalogfi/utils": "^0.1.12"
   }
 }

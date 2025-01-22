@@ -35,7 +35,6 @@
   },
   "sideEffects": false,
   "dependencies": {
-    "@catalogfi/utils": "^0.1.11",
     "axios": "^1.7.2",
     "jwt-decode": "^4.0.0",
     "viem": "^2.21.15"

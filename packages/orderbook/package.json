@@ -26,7 +26,6 @@
     "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
-    "@catalogfi/utils": "^0.1.6",
     "@gardenfi/utils": "workspace:^",
     "bufferutil": "^4.0.8",
     "siwe": "^2.1.4",

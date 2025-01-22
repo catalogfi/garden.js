@@ -8,11 +8,12 @@ import {
   Chains,
   isBitcoin,
   MatchedOrder,
+  SupportedAssets,
   // SupportedAssets,
 } from '@gardenfi/orderbook';
 import { sleep } from '@catalogfi/utils';
 import { arbitrumSepolia, sepolia } from 'viem/chains';
-import { Quote } from './../quote/quote';
+// import { Quote } from './../quote/quote';
 // import { Orderbook } from 'gardenfi/orderbook';
 
 describe('swap and execute using garden', () => {
@@ -33,11 +34,14 @@ describe('swap and execute using garden', () => {
     transport: http(),
   });
 
-  const quote = new Quote('https://quote-choas.onrender.com/');
-  const orderBookUrl = 'https://evm-swapper-relay-1.onrender.com/';
+  // const quote = new Quote('https://quote-choas.onrender.com/');
+  // const orderBookUrl = 'https://evm-swapper-relay-1.onrender.com/';
 
-   rderbookURl: orderBookUrl,
-    quote,
+  const garden = new Garden({
+    // orderbookURl: orderBookUrl,
+    // quote,
+    environment: Environment.TESTNET,
+    evmWallet: arbitrumWalletClient,
   });
   let wallets: Partial<{ [key in Chain]: WalletClient }> = {};
 
@@ -51,29 +55,15 @@ describe('swap and execute using garden', () => {
 
   it('should create an order', async () => {
     const orderObj = {
-      fromAsset: {
-        name: 'SEED',
-        decimals: 18,
-        symbol: 'SEED',
-        chain: Chains.ethereum_sepolia,
-        tokenAddress: '0x0dD677b602F9b90328d97ebB7Dc250587E019C68',
-        atomicSwapAddress: '0x9A8c82C0D0a08242732DB21532d49cBf37812b1c',
-      },
-      toAsset: {
-        name: 'BTC',
-        decimals: 8,
-        symbol: 'BTC',
-        chain: Chains.bitcoin_testnet,
-        tokenAddress: 'primary',
-        atomicSwapAddress: 'primary',
-      },
+      fromAsset: SupportedAssets.testnet.arbitrum_sepolia_SEED,
+      toAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
       sendAmount: '1000000000000000000000'.toString(),
-      receiveAmount: '1060225'.toString(),
+      receiveAmount: '928861'.toString(),
       additionalData: {
-        strategyId: 'es1cbtry',
-        btcAddress: 'tb1qxs3h0ac9mne3zle4jxucsrmef3ltx496769fgk',
+        strategyId: 'aae4btyr',
+        btcAddress: 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru',
       },
-      minDestinationConfirmations: 3,
+      minDestinationConfirmations: 0,
     };
 
     const result = await garden.swap(orderObj);

@@ -1,6 +1,6 @@
 import { WalletClient } from 'viem';
 import { OrderWithStatus } from '@gardenfi/core';
-import { AsyncResult, Result } from '@catalogfi/utils';
+import { AsyncResult, Request, Result } from '@catalogfi/utils';
 import { IGardenJS, IQuote, QuoteResponse, SwapParams } from '@gardenfi/core';
 import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
 import { Environment, IStore, SiweOpts } from '@gardenfi/utils';
@@ -78,5 +78,5 @@ export type QuoteParams = {
   toAsset: Asset;
   amount: number;
   isExactOut?: boolean;
-  signal?: AbortSignal;
+  request?: Request;
 };
