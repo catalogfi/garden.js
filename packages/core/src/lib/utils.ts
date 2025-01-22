@@ -7,7 +7,6 @@ import { trim0x } from '@catalogfi/utils';
 import * as secp256k1 from 'tiny-secp256k1';
 import * as bitcoin from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
-import { NetworkType } from '@gardenfi/orderbook';
 
 export const computeSecret = async (
   fromChain: Chain,
@@ -121,12 +120,16 @@ export const constructOrderPair = (
   ':' +
   destAsset.toLowerCase();
 
-export function validateBTCAddress(address: string, networkType: NetworkType) {
+export function validateBTCAddress(address: string, networkType: Environment) {
   if (!address) return false;
   const network =
-    networkType === 'mainnet'
+    networkType === Environment.MAINNET
       ? bitcoin.networks.bitcoin
-      : bitcoin.networks.testnet;
+      : networkType === Environment.TESTNET
+      ? bitcoin.networks.testnet
+      : bitcoin.networks.regtest;
+
+  if (!network) return false;
   bitcoin.initEccLib(ecc);
   try {
     bitcoin.address.toOutputScript(address, network);
