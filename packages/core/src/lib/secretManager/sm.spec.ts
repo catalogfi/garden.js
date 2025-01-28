@@ -34,7 +34,7 @@ describe('secret manager', () => {
   });
 
   it('should generate secret', async () => {
-    const sign = await secretManager.generateSecret(1);
+    const sign = await secretManager.generateSecret('hello');
     console.log('sign :', sign.val);
     expect(sign.val).toBeTruthy();
     expect(sign.error).toBeFalsy();

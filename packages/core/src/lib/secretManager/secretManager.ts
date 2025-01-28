@@ -93,7 +93,7 @@ export class SecretManager
     return Ok(this.privKey);
   }
 
-  async generateSecret(nonce: number) {
+  async generateSecret(nonce: string) {
     const signature = await this.signMessage(nonce);
     if (signature.error) return Err(signature.error);
 
@@ -102,7 +102,7 @@ export class SecretManager
     return Ok({ secret, secretHash });
   }
 
-  private async signMessage(nonce: number) {
+  private async signMessage(nonce: string) {
     if (!this.privKey) {
       const privKey = await this.getMasterPrivKey();
       if (privKey.error) return Err(privKey.error);
