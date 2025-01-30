@@ -5,11 +5,11 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "lib": ["DOM", "ES2020"],
-    "module": "CommonJS",
+    "module": "ESNext",
     "paths": {
       "gardenfi/*": ["./packages/*/src"]
     },
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "strict": true,
     "target": "ES2020"
