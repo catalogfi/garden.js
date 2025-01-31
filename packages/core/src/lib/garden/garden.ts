@@ -157,18 +157,8 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
     const { sendAddress, receiveAddress, timelock } = validate.val;
 
-    let _nonce = params.nonce;
-    if (!_nonce) {
-      if (!this._evmWallet.account) return Err('EVM Wallet not found');
-
-      const nonceRes = await this._orderBook.getOrdersCount(
-        this._evmWallet.account.address,
-      );
-      if (nonceRes.error) return Err(nonceRes.error);
-      _nonce = nonceRes.val + 1;
-    }
-
-    const secrets = await this._secretManager.generateSecret(_nonce);
+    const nonce = Date.now().toString();
+    const secrets = await this._secretManager.generateSecret(nonce);
     if (secrets.error) return Err(secrets.error);
 
     const { strategyId, btcAddress } = params.additionalData;
@@ -189,7 +179,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       source_amount: params.sendAmount,
       destination_amount: params.receiveAmount,
       fee: '1',
-      nonce: _nonce.toString(),
+      nonce: nonce,
       timelock: timelock,
       secret_hash: trim0x(secrets.val.secretHash),
       min_destination_confirmations: params.minDestinationConfirmations ?? 0,
@@ -362,7 +352,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           switch (orderAction) {
             case OrderActions.Redeem: {
               const secrets = await this._secretManager.generateSecret(
-                Number(order.create_order.nonce),
+                order.create_order.nonce,
               );
               if (secrets.error) {
                 this.emit('error', order, secrets.error);
