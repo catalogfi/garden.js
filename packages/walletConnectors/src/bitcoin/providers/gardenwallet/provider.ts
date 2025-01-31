@@ -38,19 +38,19 @@ export class GardenWalletProvider implements IInjectedBitcoinProvider {
         id: WALLET_CONFIG.GardenWallet.id,
       });
     } catch (error) {
-      return Err('Error while connecting to the Unisat wallet', error);
+      return Err('Error while connecting to the garden wallet', error);
     }
   }
   async requestAccounts() {
     return await executeWithTryCatch(async () => {
       return await this.#gardentWalletProvider.requestAccounts();
-    }, 'Error while requesting accounts from the Unisat wallet');
+    }, 'Error while requesting accounts from the garden wallet');
   }
 
   async getAccounts() {
     return await executeWithTryCatch(async () => {
       return await this.#gardentWalletProvider.getAccounts();
-    }, 'Error while getting accounts from the Unisat wallet');
+    }, 'Error while getting accounts from the garden wallet');
   }
 
   async getNetwork() {
@@ -59,7 +59,7 @@ export class GardenWalletProvider implements IInjectedBitcoinProvider {
       if (network === 'mainnet') return Network.MAINNET;
       if (network === 'testnet') return Network.TESTNET;
       throw new Error('Invalid or unsupported network');
-    }, 'Error while getting network from Unisat wallet');
+    }, 'Error while getting network from garden wallet');
   }
 
   async switchNetwork(): AsyncResult<Network, string> {
@@ -79,7 +79,7 @@ export class GardenWalletProvider implements IInjectedBitcoinProvider {
 
       return Ok(newNetwork.val);
     } catch (error) {
-      return Err('Error while switching network in Unisat:', error);
+      return Err('Error while switching network in garden:', error);
     }
   }
 
@@ -87,19 +87,19 @@ export class GardenWalletProvider implements IInjectedBitcoinProvider {
     return await executeWithTryCatch(async () => {
       const response = await this.#gardentWalletProvider.getBalance();
       return response;
-    }, 'Error while getting balance from Unisat wallet');
+    }, 'Error while getting balance from garden wallet');
   }
 
   async getPublicKey() {
     return await executeWithTryCatch(async () => {
       return await this.#gardentWalletProvider.getPublicKey();
-    }, 'Error while getting public key from Unisat wallet');
+    }, 'Error while getting public key from garden wallet');
   }
 
   async sendBitcoin(toAddress: string, satoshis: number) {
     return await executeWithTryCatch(async () => {
       return await this.#gardentWalletProvider.sendBitcoin(toAddress, satoshis);
-    }, 'Error while sending bitcoin from Unisat wallet');
+    }, 'Error while sending bitcoin from garden wallet');
   }
 
   on(event: string, callback: (data: any) => void) {
