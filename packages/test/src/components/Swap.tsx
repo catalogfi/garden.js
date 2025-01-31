@@ -4,7 +4,7 @@ import SwapComponent from './SwapComponent/SwapComponent';
 
 export const Swap = () => {
   return (
-    <div className="flex w-full">
+    <div className="flex w-full md:flex-row flex-col">
       <Sidebar />
       <SwapComponent />
     </div>
