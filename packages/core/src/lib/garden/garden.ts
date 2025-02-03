@@ -70,6 +70,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private orderExecutorCache: IOrderExecutorCache;
   private _blockNumberFetcher: IBlockNumberFetcher;
   private refundSacpCache = new Map<string, any>();
+  private redeemSacpCache = new Map<string, any>();
   private _evmRelay: IEVMRelay;
   private _evmWallet: WalletClient;
   private _btcWallet: IBitcoinWallet | undefined;
@@ -373,10 +374,15 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                     return;
                   }
 
-                  await this.btcRedeem(
-                    destWallet.val as IBitcoinWallet,
-                    order,
+                  // await this.btcRedeem(
+                  //   destWallet.val as IBitcoinWallet,
+                  //   order,
+                  //   secrets.val.secret,
+                  // );
+                  await this.postRedeemSACP(
                     secrets.val.secret,
+                    order,
+                    destWallet.val as IBitcoinWallet,
                   );
                   break;
                 }
@@ -395,7 +401,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                   this.emit(
                     'error',
                     order,
-                    'EVM refund is automatically done by relay service',
+                    "EVM refund is automatically done by garden's relay service",
                   );
                   break;
                 }
@@ -631,6 +637,60 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         this.refundSacpCache.set(order.create_order.create_id, {
           initTxHash: order.source_swap.initiate_tx_hash,
         });
+      }
+    } catch (error) {
+      this.emit('error', order, 'Failed to generate and post SACP: ' + error);
+      return;
+    }
+  }
+
+  private async postRedeemSACP(
+    secret: string,
+    order: MatchedOrder,
+    wallet: IBitcoinWallet,
+  ) {
+    const cachedOrder = this.redeemSacpCache.get(order.create_order.create_id);
+    if (cachedOrder) return;
+    console.log('secret :', secret);
+
+    console.log('posting redeem sacp', order.create_order.create_id);
+    const bitcoinExecutor = await GardenHTLC.from(
+      wallet,
+      Number(order.destination_swap.amount),
+      order.create_order.secret_hash,
+      toXOnly(order.destination_swap.initiator),
+      toXOnly(order.destination_swap.redeemer),
+      order.destination_swap.timelock,
+    );
+    const userBTCAddress =
+      order.create_order.additional_data.bitcoin_optional_recipient;
+    if (!userBTCAddress) return;
+
+    try {
+      const sacp = await bitcoinExecutor.generateRedeemSACP(
+        trim0x(secret),
+        userBTCAddress,
+      );
+      const url = this._orderbookUrl.endpoint('orders/add-redeem-sacp');
+      console.log('sacp :', sacp);
+
+      const res = await Fetcher.post<APIResponse<string>>(url, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          order_id: order.create_order.create_id,
+          redeem_tx_bytes: sacp,
+        }),
+      });
+      if (res.status === 'Ok' && res.result) {
+        this.emit(
+          'log',
+          order.create_order.create_id,
+          `redeem sacp success: ${res.result}`,
+        );
+        this.emit('success', order, OrderActions.Redeem, res.result);
+        this.redeemSacpCache.set(order.create_order.create_id, {});
       }
     } catch (error) {
       this.emit('error', order, 'Failed to generate and post SACP: ' + error);
