@@ -143,6 +143,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
           domain: window.location.hostname,
           store: config.store,
         },
+        apiKey: config.apiKey,
       }),
     );
   }, [config.walletClient]);
