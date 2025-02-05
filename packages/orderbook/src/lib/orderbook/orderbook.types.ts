@@ -80,7 +80,8 @@ export type OrderbookOpts = {
 export interface OrderbookConfig {
   url?: string;
   walletClient: WalletClient;
-  auth: IAuth;
+  auth?: IAuth;
+  apiKey?: string;
 }
 
 /**

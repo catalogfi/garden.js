@@ -145,6 +145,7 @@ export interface IOrderExecutorCache {
 
 export type GardenProps = {
   environment: Environment;
+  apiKey?: string;
   evmWallet: WalletClient;
   secretManager?: ISecretManager;
   siweOpts?: SiweOpts;

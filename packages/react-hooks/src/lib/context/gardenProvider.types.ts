@@ -70,6 +70,7 @@ export type GardenProviderProps = {
     bitcoinRPCUrl?: string;
     blockNumberFetcherUrl?: string;
     siweOpts?: SiweOpts;
+    apiKey?: string;
   };
 };
 

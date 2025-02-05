@@ -22,8 +22,9 @@ import { OrdersProvider } from '../orders/ordersProvider';
  */
 export class Orderbook extends OrdersProvider implements IOrderbook {
   private Url: Url;
-  private auth: IAuth;
+  private auth?: IAuth;
   private walletClient: WalletClient;
+  private apiKey?: string;
 
   /**
    * Creates an instance of Orderbook. Does not login to the orderbook.
@@ -39,7 +40,7 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
 
     this.Url = url;
     this.walletClient = orderbookConfig.walletClient;
-
+    this.apiKey = orderbookConfig.apiKey;
     this.auth = orderbookConfig.auth;
   }
 
@@ -48,6 +49,9 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
    * @param {OrderbookConfig} orderbookConfig - The configuration object for the orderbook.
    */
   static async init(orderbookConfig: OrderbookConfig) {
+    if (!orderbookConfig.auth) {
+      return new Orderbook(orderbookConfig);
+    }
     await orderbookConfig.auth.getToken();
 
     return new Orderbook(orderbookConfig);
@@ -61,18 +65,24 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
   async createOrder(
     order: CreateOrderRequestWithAdditionalData,
   ): AsyncResult<string, string> {
-    const auth = await this.auth.getToken();
-    if (auth.error) return Err(auth.error);
+    const auth = await this.auth?.getToken();
+    if (auth?.error) return Err(auth.error);
 
     try {
+      const headers: Record<string, string> = {
+        Authorization: Authorization(auth?.val || ''),
+        'Content-Type': 'application/json',
+      };
+
+      if (this.apiKey) {
+        headers['api-key'] = this.apiKey;
+      }
+
       const res = await Fetcher.post<CreateOrderResponse>(
         this.Url.endpoint('create-order'),
         {
           body: JSON.stringify(order),
-          headers: {
-            Authorization: Authorization(auth.val),
-            'Content-Type': 'application/json',
-          },
+          headers,
         },
       );
       if (res.error) return Err(res.error);

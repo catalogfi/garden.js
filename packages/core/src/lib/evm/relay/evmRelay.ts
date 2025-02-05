@@ -14,11 +14,13 @@ import { AtomicSwapABI } from '../abi/atomicSwap';
 
 export class EvmRelay implements IEVMRelay {
   private url: Url;
-  private auth: IAuth;
+  private auth?: IAuth;
+  private apiKey?: string;
 
-  constructor(url: string | Url, auth: IAuth) {
+  constructor(url: string | Url, auth?: IAuth, apiKey?: string) {
     this.url = new Url('/relayer', url);
     this.auth = auth;
+    this.apiKey = apiKey;
   }
 
   async init(
@@ -48,8 +50,8 @@ export class EvmRelay implements IEVMRelay {
     const amount = BigInt(source_swap.amount);
 
     try {
-      const auth = await this.auth.getToken();
-      if (auth.error) return Err(auth.error);
+      const auth = await this.auth?.getToken();
+      if (auth?.error) return Err(auth.error);
 
       const atomicSwap = getContract({
         address: with0x(order.source_swap.asset),
@@ -93,6 +95,15 @@ export class EvmRelay implements IEVMRelay {
         },
       });
 
+      const headers: Record<string, string> = {
+        Authorization: Authorization(auth?.val || ''),
+        'Content-Type': 'application/json',
+      };
+
+      if (this.apiKey) {
+        headers['api-key'] = this.apiKey;
+      }
+
       const res = await Fetcher.post<APIResponse<string>>(
         this.url.endpoint('initiate'),
         {
@@ -101,10 +112,7 @@ export class EvmRelay implements IEVMRelay {
             signature,
             perform_on: 'Source',
           }),
-          headers: {
-            Authorization: Authorization(auth.val),
-            'Content-Type': 'application/json',
-          },
+          headers,
         },
       );
       if (res.error) return Err(res.error);
@@ -117,8 +125,17 @@ export class EvmRelay implements IEVMRelay {
 
   async redeem(orderId: string, secret: string): AsyncResult<string, string> {
     try {
-      const auth = await this.auth.getToken();
-      if (auth.error) return Err(auth.error);
+      const auth = await this.auth?.getToken();
+      if (auth?.error) return Err(auth.error);
+
+      const headers: Record<string, string> = {
+        Authorization: Authorization(auth?.val || ''),
+        'Content-Type': 'application/json',
+      };
+
+      if (this.apiKey) {
+        headers['api-key'] = this.apiKey;
+      }
 
       const res = await Fetcher.post<APIResponse<string>>(
         this.url.endpoint('redeem'),
@@ -128,10 +145,7 @@ export class EvmRelay implements IEVMRelay {
             secret: trim0x(secret),
             perform_on: 'Destination',
           }),
-          headers: {
-            Authorization: Authorization(auth.val),
-            'Content-Type': 'application/json',
-          },
+          headers,
         },
       );
 
