@@ -70,7 +70,7 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
 
     try {
       const headers: Record<string, string> = {
-        Authorization: Authorization(auth?.val || ''),
+        ...(auth?.val ? { Authorization: Authorization(auth?.val) } : {}),
         'Content-Type': 'application/json',
       };
 
