@@ -58,6 +58,7 @@ import { API } from '../constants';
 import { Quote } from '../quote/quote';
 import { SecretManager } from '../secretManager/secretManager';
 import { IEVMRelay } from '../evm/relay/evmRelay.types';
+import { Auth } from '@gardenfi/utils';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment;
@@ -66,7 +67,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private _quote: IQuote;
   private getOrderThreshold = 20;
   private _orderbookUrl: Url;
-  private _auth: IAuth | undefined;
+  private _auth: IAuth;
   private orderExecutorCache: IOrderExecutorCache;
   private _blockNumberFetcher: IBlockNumberFetcher;
   private refundSacpCache = new Map<string, any>();
@@ -89,27 +90,20 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       );
     this._quote = config.quote ?? new Quote(api.quote);
     this._orderbookUrl = new Url(config.orderbookURl ?? api.orderbook);
-    if (config.apiKey === undefined) {
-      this._auth = new Siwe(
+    this._auth = new Auth({
+      siwe: config.apiKey ? undefined : new Siwe(
         new Url(config.orderbookURl ?? api.orderbook),
         config.evmWallet,
         config.siweOpts,
-      );
-      this._orderBook = new Orderbook({
-        url: config.orderbookURl ?? api.orderbook,
-        walletClient: config.evmWallet,
-        auth: this._auth,
-      });
-      this._evmRelay = new EvmRelay(this._orderbookUrl, this._auth);
-    }
-    else {
-      this._orderBook = new Orderbook({
-        url: config.orderbookURl ?? api.orderbook,
-        walletClient: config.evmWallet,
-        apiKey: config.apiKey,
-      });
-      this._evmRelay = new EvmRelay(this._orderbookUrl, undefined, config?.apiKey ?? "");
-    }
+      ),
+      apiKey: config.apiKey
+    });
+    this._orderBook = new Orderbook({
+      url: config.orderbookURl ?? api.orderbook,
+      walletClient: config.evmWallet,
+      auth: this._auth,
+    });
+    this._evmRelay = new EvmRelay(this._orderbookUrl, this._auth);
     this._secretManager =
       config.secretManager ?? SecretManager.fromWalletClient(config.evmWallet);
     this.orderExecutorCache = new ExecutorCache();

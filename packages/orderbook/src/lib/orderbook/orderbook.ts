@@ -11,7 +11,7 @@ import {
   PaginationConfig,
 } from './orderbook.types';
 import { MAINNET_ORDERBOOK_API } from '../api';
-import { Authorization, IAuth, Url } from '@gardenfi/utils';
+import { IAuth, Url } from '@gardenfi/utils';
 import { OrdersProvider } from '../orders/ordersProvider';
 
 /**
@@ -22,9 +22,8 @@ import { OrdersProvider } from '../orders/ordersProvider';
  */
 export class Orderbook extends OrdersProvider implements IOrderbook {
   private Url: Url;
-  private auth?: IAuth;
+  private auth: IAuth;
   private walletClient: WalletClient;
-  private apiKey?: string;
 
   /**
    * Creates an instance of Orderbook. Does not login to the orderbook.
@@ -38,9 +37,12 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
     );
     super(url);
 
+    if (!orderbookConfig.auth) {
+      throw new Error('Auth is required');
+    }
+
     this.Url = url;
     this.walletClient = orderbookConfig.walletClient;
-    this.apiKey = orderbookConfig.apiKey;
     this.auth = orderbookConfig.auth;
   }
 
@@ -49,11 +51,7 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
    * @param {OrderbookConfig} orderbookConfig - The configuration object for the orderbook.
    */
   static async init(orderbookConfig: OrderbookConfig) {
-    if (!orderbookConfig.auth) {
-      return new Orderbook(orderbookConfig);
-    }
-    await orderbookConfig.auth.getToken();
-
+    await orderbookConfig.auth.siwe?.getToken();
     return new Orderbook(orderbookConfig);
   }
 
@@ -65,24 +63,18 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
   async createOrder(
     order: CreateOrderRequestWithAdditionalData,
   ): AsyncResult<string, string> {
-    const auth = await this.auth?.getToken();
-    if (auth?.error) return Err(auth.error);
+    const headers = await this.auth.getAuthHeaders();
+    if (headers.error) return Err(headers.error);
 
     try {
-      const headers: Record<string, string> = {
-        ...(auth?.val ? { Authorization: Authorization(auth?.val) } : {}),
-        'Content-Type': 'application/json',
-      };
-
-      if (this.apiKey) {
-        headers['api-key'] = this.apiKey;
-      }
-
       const res = await Fetcher.post<CreateOrderResponse>(
         this.Url.endpoint('create-order'),
         {
           body: JSON.stringify(order),
-          headers,
+          headers: {
+            ...headers.val,
+            'Content-Type': 'application/json',
+          },
         },
       );
       if (res.error) return Err(res.error);
