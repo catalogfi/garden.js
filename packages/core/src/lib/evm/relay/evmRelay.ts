@@ -50,6 +50,9 @@ export class EvmRelay implements IEVMRelay {
     const amount = BigInt(source_swap.amount);
 
     try {
+      if (!this.auth?.getToken && !this.apiKey) {
+        return Err('No authentication method provided');
+      }
       const auth = await this.auth?.getToken();
       if (auth?.error) return Err(auth.error);
 
@@ -96,7 +99,7 @@ export class EvmRelay implements IEVMRelay {
       });
 
       const headers: Record<string, string> = {
-        Authorization: Authorization(auth?.val || ''),
+        ...(auth?.val ? { Authorization: Authorization(auth?.val) } : {}),
         'Content-Type': 'application/json',
       };
 
@@ -125,11 +128,14 @@ export class EvmRelay implements IEVMRelay {
 
   async redeem(orderId: string, secret: string): AsyncResult<string, string> {
     try {
+      if (!this.auth?.getToken && !this.apiKey) {
+        return Err('No authentication method provided');
+      }
       const auth = await this.auth?.getToken();
       if (auth?.error) return Err(auth.error);
 
       const headers: Record<string, string> = {
-        Authorization: Authorization(auth?.val || ''),
+        ...(auth?.val ? { Authorization: Authorization(auth?.val) } : {}),
         'Content-Type': 'application/json',
       };
 
