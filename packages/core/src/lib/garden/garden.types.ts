@@ -62,6 +62,7 @@ export type GardenEvents = {
   success: (order: MatchedOrder, action: OrderActions, result: string) => void;
   onPendingOrdersChanged: (orders: OrderWithStatus[]) => void;
   log: (id: string, message: string) => void;
+  rbf: (order: MatchedOrder, result: string) => void;
 };
 
 export type EventCallback = (...args: any[]) => void;

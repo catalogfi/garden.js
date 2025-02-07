@@ -36,6 +36,6 @@
   "sideEffects": false,
   "dependencies": {
     "jwt-decode": "^4.0.0",
-    "viem": "^2.21.15"
+    "viem": "^2.21.23"
   }
 }

@@ -82,8 +82,8 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       config.environment === Environment.MAINNET
         ? API.mainnet
         : config.environment === Environment.TESTNET
-          ? API.testnet
-          : undefined;
+        ? API.testnet
+        : undefined;
     if (!api)
       throw new Error(
         'API not found, invalid environment ' + config.environment,
@@ -91,12 +91,14 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this._quote = config.quote ?? new Quote(api.quote);
     this._orderbookUrl = new Url(config.orderbookURl ?? api.orderbook);
     this._auth = new Auth({
-      siwe: config.apiKey ? undefined : new Siwe(
-        new Url(config.orderbookURl ?? api.orderbook),
-        config.evmWallet,
-        config.siweOpts,
-      ),
-      apiKey: config.apiKey
+      siwe: config.apiKey
+        ? undefined
+        : new Siwe(
+            new Url(config.orderbookURl ?? api.orderbook),
+            config.evmWallet,
+            config.siweOpts,
+          ),
+      apiKey: config.apiKey,
     });
     this._orderBook = new Orderbook({
       url: config.orderbookURl ?? api.orderbook,
@@ -307,7 +309,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       } else if (
         orderRes.val &&
         orderRes.val.create_order.create_id.toLowerCase() ===
-        createOrderID.toLowerCase()
+          createOrderID.toLowerCase()
       ) {
         return Ok(orderRes.val);
       }
@@ -548,13 +550,14 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         order.create_order.additional_data?.bitcoin_optional_recipient,
       );
 
-      if (rbf)
+      if (rbf) {
         this.emit(
           'log',
           order.create_order.create_id,
           'rbf: btc redeem success',
         );
-      else this.emit('success', order, OrderActions.Redeem, res);
+        this.emit('rbf', order, res);
+      } else this.emit('success', order, OrderActions.Redeem, res);
       this.orderExecutorCache.set(order, OrderActions.Redeem, res, initTx);
     } catch (error) {
       this.emit('error', order, 'Failed btc redeem: ' + error);
@@ -653,15 +656,15 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
     const sourceBlockNumber = isBitcoin(order.source_swap.chain)
       ? await fetchBitcoinBlockNumber(
-        await (wallets.source as IBitcoinWallet).getProvider(),
-      )
+          await (wallets.source as IBitcoinWallet).getProvider(),
+        )
       : await fetchEVMBlockNumber(wallets.source as WalletClient);
     if (sourceBlockNumber.error) return Err(sourceBlockNumber.error);
 
     const destinationBlockNumber = isBitcoin(order.destination_swap.chain)
       ? await fetchBitcoinBlockNumber(
-        await (wallets.destination as IBitcoinWallet).getProvider(),
-      )
+          await (wallets.destination as IBitcoinWallet).getProvider(),
+        )
       : await fetchEVMBlockNumber(wallets.destination as WalletClient);
     if (destinationBlockNumber.error) return Err(destinationBlockNumber.error);
 

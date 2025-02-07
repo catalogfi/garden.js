@@ -234,5 +234,14 @@ export const SupportedAssets = {
       tokenAddress: '0x050C24dBf1eEc17babE5fc585F06116A259CC77A',
       atomicSwapAddress: '0xdc74a45e86dedf1ff7c6dac77e0c2f082f9e4f72',
     },
+    bera_LBTC: {
+      name: 'Lombard Bitcoin',
+      decimals: 8,
+      symbol: 'LBTC',
+      chain: Chains.bera,
+      logo: 'https://garden-finance.imgix.net/token-images/LBTC.svg',
+      tokenAddress: '0xecAc9C5F704e954931349Da37F60E39f515c11c1',
+      atomicSwapAddress: '0x39f3294352208905fc6ebf033954E6c6455CdB4C',
+    },
   },
 } as const;
