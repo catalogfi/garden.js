@@ -5,7 +5,6 @@ import { IEVMRelay } from './evmRelay.types';
 import { AsyncResult, Err, Fetcher, Ok, trim0x } from '@catalogfi/utils';
 import {
   APIResponse,
-  Authorization,
   IAuth,
   Url,
   with0x,
@@ -48,7 +47,7 @@ export class EvmRelay implements IEVMRelay {
     const amount = BigInt(source_swap.amount);
 
     try {
-      const auth = await this.auth.getToken();
+      const auth = await this.auth.getAuthHeaders();
       if (auth.error) return Err(auth.error);
 
       const atomicSwap = getContract({
@@ -93,6 +92,11 @@ export class EvmRelay implements IEVMRelay {
         },
       });
 
+      const headers: Record<string, string> = {
+        ...auth.val,
+        'Content-Type': 'application/json',
+      };
+
       const res = await Fetcher.post<APIResponse<string>>(
         this.url.endpoint('initiate'),
         {
@@ -101,10 +105,7 @@ export class EvmRelay implements IEVMRelay {
             signature,
             perform_on: 'Source',
           }),
-          headers: {
-            Authorization: Authorization(auth.val),
-            'Content-Type': 'application/json',
-          },
+          headers,
         },
       );
       if (res.error) return Err(res.error);
@@ -117,8 +118,8 @@ export class EvmRelay implements IEVMRelay {
 
   async redeem(orderId: string, secret: string): AsyncResult<string, string> {
     try {
-      const auth = await this.auth.getToken();
-      if (auth.error) return Err(auth.error);
+      const headers = await this.auth.getAuthHeaders();
+      if (headers.error) return Err(headers.error);
 
       const res = await Fetcher.post<APIResponse<string>>(
         this.url.endpoint('redeem'),
@@ -129,7 +130,7 @@ export class EvmRelay implements IEVMRelay {
             perform_on: 'Destination',
           }),
           headers: {
-            Authorization: Authorization(auth.val),
+            ...headers.val,
             'Content-Type': 'application/json',
           },
         },

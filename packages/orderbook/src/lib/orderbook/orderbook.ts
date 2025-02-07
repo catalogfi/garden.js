@@ -11,7 +11,7 @@ import {
   PaginationConfig,
 } from './orderbook.types';
 import { MAINNET_ORDERBOOK_API } from '../api';
-import { Authorization, IAuth, Url } from '@gardenfi/utils';
+import { IAuth, Url } from '@gardenfi/utils';
 import { OrdersProvider } from '../orders/ordersProvider';
 
 /**
@@ -37,9 +37,12 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
     );
     super(url);
 
+    if (!orderbookConfig.auth) {
+      throw new Error('Auth is required');
+    }
+
     this.Url = url;
     this.walletClient = orderbookConfig.walletClient;
-
     this.auth = orderbookConfig.auth;
   }
 
@@ -48,8 +51,7 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
    * @param {OrderbookConfig} orderbookConfig - The configuration object for the orderbook.
    */
   static async init(orderbookConfig: OrderbookConfig) {
-    await orderbookConfig.auth.getToken();
-
+    await orderbookConfig.auth.siwe?.getToken();
     return new Orderbook(orderbookConfig);
   }
 
@@ -61,8 +63,8 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
   async createOrder(
     order: CreateOrderRequestWithAdditionalData,
   ): AsyncResult<string, string> {
-    const auth = await this.auth.getToken();
-    if (auth.error) return Err(auth.error);
+    const headers = await this.auth.getAuthHeaders();
+    if (headers.error) return Err(headers.error);
 
     try {
       const res = await Fetcher.post<CreateOrderResponse>(
@@ -70,7 +72,7 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
         {
           body: JSON.stringify(order),
           headers: {
-            Authorization: Authorization(auth.val),
+            ...headers.val,
             'Content-Type': 'application/json',
           },
         },

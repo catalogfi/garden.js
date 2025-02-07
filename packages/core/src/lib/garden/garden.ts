@@ -58,6 +58,7 @@ import { API } from '../constants';
 import { Quote } from '../quote/quote';
 import { SecretManager } from '../secretManager/secretManager';
 import { IEVMRelay } from '../evm/relay/evmRelay.types';
+import { Auth } from '@gardenfi/utils';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment;
@@ -81,25 +82,27 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       config.environment === Environment.MAINNET
         ? API.mainnet
         : config.environment === Environment.TESTNET
-        ? API.testnet
-        : undefined;
+          ? API.testnet
+          : undefined;
     if (!api)
       throw new Error(
         'API not found, invalid environment ' + config.environment,
       );
-
-    this._auth = new Siwe(
-      new Url(config.orderbookURl ?? api.orderbook),
-      config.evmWallet,
-      config.siweOpts,
-    );
     this._quote = config.quote ?? new Quote(api.quote);
+    this._orderbookUrl = new Url(config.orderbookURl ?? api.orderbook);
+    this._auth = new Auth({
+      siwe: config.apiKey ? undefined : new Siwe(
+        new Url(config.orderbookURl ?? api.orderbook),
+        config.evmWallet,
+        config.siweOpts,
+      ),
+      apiKey: config.apiKey
+    });
     this._orderBook = new Orderbook({
       url: config.orderbookURl ?? api.orderbook,
       walletClient: config.evmWallet,
       auth: this._auth,
     });
-    this._orderbookUrl = new Url(config.orderbookURl ?? api.orderbook);
     this._evmRelay = new EvmRelay(this._orderbookUrl, this._auth);
     this._secretManager =
       config.secretManager ?? SecretManager.fromWalletClient(config.evmWallet);
@@ -304,7 +307,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       } else if (
         orderRes.val &&
         orderRes.val.create_order.create_id.toLowerCase() ===
-          createOrderID.toLowerCase()
+        createOrderID.toLowerCase()
       ) {
         return Ok(orderRes.val);
       }
@@ -650,15 +653,15 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
     const sourceBlockNumber = isBitcoin(order.source_swap.chain)
       ? await fetchBitcoinBlockNumber(
-          await (wallets.source as IBitcoinWallet).getProvider(),
-        )
+        await (wallets.source as IBitcoinWallet).getProvider(),
+      )
       : await fetchEVMBlockNumber(wallets.source as WalletClient);
     if (sourceBlockNumber.error) return Err(sourceBlockNumber.error);
 
     const destinationBlockNumber = isBitcoin(order.destination_swap.chain)
       ? await fetchBitcoinBlockNumber(
-          await (wallets.destination as IBitcoinWallet).getProvider(),
-        )
+        await (wallets.destination as IBitcoinWallet).getProvider(),
+      )
       : await fetchEVMBlockNumber(wallets.destination as WalletClient);
     if (destinationBlockNumber.error) return Err(destinationBlockNumber.error);
 
