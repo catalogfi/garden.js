@@ -50,6 +50,7 @@ export const Chains = {
   bera_testnet: 'bera_testnet',
   citrea_testnet: 'citrea_testnet',
   bera: 'bera',
+  monad_testnet: 'monad_testnet',
 } as const;
 
 export type Chain = keyof typeof Chains;
@@ -69,7 +70,8 @@ export const isMainnet = (chain: Chain) => {
     chain === Chains.arbitrum_sepolia ||
     chain === Chains.base_sepolia ||
     chain === Chains.bera_testnet ||
-    chain === Chains.citrea_testnet
+    chain === Chains.citrea_testnet ||
+    chain === Chains.monad_testnet
   );
 };
 
@@ -93,7 +95,8 @@ export const isEVM = (chain: Chain) => {
     chain === Chains.base ||
     chain === Chains.bera_testnet ||
     chain === Chains.citrea_testnet ||
-    chain === Chains.bera
+    chain === Chains.bera ||
+    chain === Chains.monad_testnet
   );
 };
 
@@ -112,6 +115,7 @@ export const TimeLocks: Record<Chain, number> = {
   [Chains.bera_testnet]: 28800,
   [Chains.citrea_testnet]: 28800,
   [Chains.bera]: 43200,
+  [Chains.monad_testnet]: 172800,
 };
 
 export const getBlockchainType = (chain: Chain) => {

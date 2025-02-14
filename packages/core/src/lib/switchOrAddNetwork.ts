@@ -8,6 +8,8 @@ import {
   mainnet,
   sepolia,
   Chain as viemChain,
+  monadTestnet,
+  citreaTestnet,
 } from 'viem/chains';
 import {
   ArbitrumLocalnet,
@@ -15,7 +17,7 @@ import {
   EthereumLocalnet,
   EvmChain,
 } from '@gardenfi/orderbook';
-import { createWalletClient, custom, defineChain, WalletClient } from 'viem';
+import { createWalletClient, custom, WalletClient } from 'viem';
 import { AsyncResult, Err, Ok } from '@catalogfi/utils';
 
 interface EthereumWindow extends Window {
@@ -32,25 +34,6 @@ const updatedSepolia = {
   },
 };
 
-export const citreaTestnet = defineChain({
-  id: 5115,
-  name: 'Citrea Testnet',
-  nativeCurrency: { name: '', symbol: 'cBTC', decimals: 18 },
-  rpcUrls: {
-    default: {
-      http: ['https://rpc.testnet.citrea.xyz'],
-    },
-  },
-  blockExplorers: {
-    default: {
-      name: 'Citrea Explorer',
-      url: 'https://explorer.testnet.citrea.xyz',
-      apiUrl: 'https://explorer.testnet.citrea.xyz/api/v2/',
-    },
-  },
-  testnet: true,
-});
-
 export const evmToViemChainMap: Record<EvmChain, viemChain> = {
   ethereum: mainnet,
   arbitrum: arbitrum,
@@ -63,6 +46,7 @@ export const evmToViemChainMap: Record<EvmChain, viemChain> = {
   bera_testnet: berachainTestnetbArtio,
   citrea_testnet: citreaTestnet,
   bera: berachain,
+  monad_testnet: monadTestnet,
 };
 
 /**

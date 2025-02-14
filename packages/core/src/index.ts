@@ -43,7 +43,6 @@ export type {
 export { constructOrderPair, validateBTCAddress } from './lib/utils';
 
 export {
-  citreaTestnet,
   evmToViemChainMap,
   switchOrAddNetwork,
 } from './lib/switchOrAddNetwork';
