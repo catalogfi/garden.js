@@ -47,7 +47,7 @@ import {
 } from '../orderStatusParser';
 import { EvmRelay } from '../evm/relay/evmRelay';
 import { GardenHTLC } from '../bitcoin/htlc';
-import { ExecutorCache } from './cache/executorCache';
+import { Cache, ExecutorCache } from './cache/executorCache';
 import BigNumber from 'bignumber.js';
 import {
   BlockNumberFetcher,
@@ -74,6 +74,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private _evmRelay: IEVMRelay;
   private _evmWallet: WalletClient;
   private _btcWallet: IBitcoinWallet | undefined;
+  private bitcoinRedeemCache = new Cache<{
+    redeemedFromUTXO: string;
+    redeemedAt: number;
+    redeemTxHash: string;
+  }>();
 
   constructor(config: GardenProps) {
     super();
@@ -469,22 +474,32 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     order: MatchedOrder,
     secret: string,
   ) {
-    const cache = this.orderExecutorCache.get(order, OrderActions.Redeem);
-    const initTx = order.destination_swap.initiate_tx_hash
+    const _cache = this.bitcoinRedeemCache.get(order.create_order.create_id);
+    const fillerInitTx = order.destination_swap.initiate_tx_hash
       .split(',')
       .at(-1)
       ?.split(':')
       .at(0);
-    if (!initTx) {
+    if (!fillerInitTx) {
       this.emit('error', order, 'Failed to get initiate_tx_hash');
       return;
     }
 
     let rbf = false;
-    if (cache) {
-      if (cache.btcRedeemUTXO && cache.btcRedeemUTXO !== initTx) {
+    if (_cache) {
+      if (_cache.redeemedFromUTXO && _cache.redeemedFromUTXO !== fillerInitTx) {
         rbf = true;
         this.emit('log', order.create_order.create_id, 'rbf btc redeem');
+      } else if (
+        _cache.redeemedAt &&
+        Date.now() - _cache.redeemedAt > 1000 * 60 * 15 // 15 minutes
+      ) {
+        this.emit(
+          'log',
+          order.create_order.create_id,
+          'redeem not confirmed in last 15 minutes',
+        );
+        rbf = true;
       } else {
         this.emit(
           'log',
@@ -494,6 +509,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         return;
       }
     } else if (
+      //check if redeem tx is valid if cache is not found.
       order.destination_swap.redeem_tx_hash &&
       !Number(order.destination_swap.redeem_block_number)
     ) {
@@ -504,23 +520,33 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
         let isValidRedeem = false;
         for (const input of tx.vin) {
-          if (input.txid === initTx) {
+          if (input.txid === fillerInitTx) {
             isValidRedeem = true;
             break;
           }
         }
         if (isValidRedeem) {
-          this.orderExecutorCache.set(
-            order,
-            OrderActions.Redeem,
-            order.destination_swap.redeem_tx_hash,
-            initTx,
-          );
           this.emit(
             'log',
             order.create_order.create_id,
             'already a valid redeem',
           );
+          let redeemedAt = 0;
+          try {
+            const [_redeemedAt] = await (
+              await wallet.getProvider()
+            ).getTransactionTimes([order.destination_swap.redeem_tx_hash]);
+            if (_redeemedAt !== 0) redeemedAt = _redeemedAt;
+          } catch (error) {
+            // Ignore error - fallback to using current timestamp
+            redeemedAt = Date.now();
+          }
+
+          this.bitcoinRedeemCache.set(order.create_order.create_id, {
+            redeemedFromUTXO: fillerInitTx,
+            redeemedAt,
+            redeemTxHash: order.destination_swap.redeem_tx_hash,
+          });
           return;
         }
         rbf = true;
@@ -543,7 +569,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         toXOnly(order.destination_swap.initiator),
         toXOnly(order.destination_swap.redeemer),
         order.destination_swap.timelock,
-        rbf ? [initTx] : [],
+        rbf ? [fillerInitTx] : [],
       );
       const res = await bitcoinExecutor.redeem(
         trim0x(secret),
@@ -558,8 +584,13 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         );
         this.emit('rbf', order, res);
       } else this.emit('success', order, OrderActions.Redeem, res);
-      this.orderExecutorCache.set(order, OrderActions.Redeem, res, initTx);
+      this.bitcoinRedeemCache.set(order.create_order.create_id, {
+        redeemedFromUTXO: fillerInitTx,
+        redeemedAt: Date.now(),
+        redeemTxHash: res,
+      });
     } catch (error) {
+      console.log('error', error);
       this.emit('error', order, 'Failed btc redeem: ' + error);
     }
   }

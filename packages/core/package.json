@@ -1,6 +1,6 @@
 {
   "name": "@gardenfi/core",
-  "version": "2.0.12",
+  "version": "2.0.16",
   "type": "module",
   "scripts": {
     "build": "vite build",
@@ -26,7 +26,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
-    "@catalogfi/wallets": "^0.2.51",
+    "@catalogfi/wallets": "^0.2.58",
     "@gardenfi/orderbook": "workspace:^",
     "@gardenfi/utils": "workspace:^",
     "bignumber.js": "^9.1.2",

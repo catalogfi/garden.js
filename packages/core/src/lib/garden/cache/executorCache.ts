@@ -32,3 +32,15 @@ export class ExecutorCache implements IOrderExecutorCache {
     return;
   }
 }
+
+export class Cache<T> {
+  private cache: Record<string, T> = {};
+
+  set(key: string, value: T): void {
+    this.cache[key] = value;
+  }
+
+  get(key: string): T | null {
+    return this.cache[key] || null;
+  }
+}

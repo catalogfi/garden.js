@@ -55,13 +55,11 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         toAsset,
         amount,
         isExactOut = false,
-        request,
       }: QuoteParams) => {
         return await quote.getQuote(
           constructOrderpair(fromAsset, toAsset),
           amount,
           isExactOut,
-          request,
         );
       },
     [quote],

@@ -1,6 +1,6 @@
 {
   "name": "@gardenfi/react-hooks",
-  "version": "2.0.15",
+  "version": "2.0.19",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -26,7 +26,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
-    "@catalogfi/wallets": "^0.2.51",
+    "@catalogfi/wallets": "^0.2.58",
     "@gardenfi/core": "workspace:^",
     "@gardenfi/orderbook": "workspace:^",
     "@gardenfi/utils": "workspace:^",

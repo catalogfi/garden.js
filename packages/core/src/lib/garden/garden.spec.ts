@@ -13,6 +13,7 @@ import {
 } from '@gardenfi/orderbook';
 import { sleep } from '@catalogfi/utils';
 import { arbitrumSepolia, sepolia } from 'viem/chains';
+// import { BitcoinNetwork, BitcoinProvider } from '@catalogfi/wallets';
 // import { Quote } from './../quote/quote';
 // import { Orderbook } from 'gardenfi/orderbook';
 
@@ -20,6 +21,7 @@ describe('swap and execute using garden', () => {
   // const bitcoinAddress = 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru';
   const pk =
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
+  // const address = '0x52FE8afbbB800a33edcbDB1ea87be2547EB30000';
   const account = privateKeyToAccount(with0x(pk));
   console.log('account :', account.address);
 
@@ -119,9 +121,22 @@ describe('swap and execute using garden', () => {
       console.log('log :', id, message);
     });
     garden.on('onPendingOrdersChanged', (orders) => {
-      console.log('pendingrders :', orders.length);
+      console.log('pendingorders :', orders.length);
+    });
+    garden.on('rbf', (order, result) => {
+      console.log('rbf :', order.create_order.create_id, result);
     });
     await garden.execute();
     await sleep(150000);
   }, 150000);
 });
+
+// describe('get btc tx', () => {
+//   const provider = new BitcoinProvider(BitcoinNetwork.Testnet);
+//   it('should get btc tx', async () => {
+//     const tx = await provider.getTransaction(
+//       'ac3f0bc4d98b1fe8da1f21f1cadadb33a3e903ee10260836fc3a853df125fabd',
+//     );
+//     console.log('tx :', tx);
+//   });
+// });
