@@ -279,9 +279,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@catalogfi/wallets@npm:^0.2.58":
-  version: 0.2.58
-  resolution: "@catalogfi/wallets@npm:0.2.58"
+"@catalogfi/wallets@npm:^0.2.59":
+  version: 0.2.59
+  resolution: "@catalogfi/wallets@npm:0.2.59"
   dependencies:
     "@catalogfi/extension": "npm:^0.1.1"
     "@catalogfi/utils": "npm:^0.1.12"
@@ -298,7 +298,7 @@ __metadata:
     uuid: "npm:^9.0.1"
     viem: "npm:^2.20.1"
     yup: "npm:^1.4.0"
-  checksum: 10c0/78d2feaed27d19f4705990ff8448f18b1e8dab375ebc9d218a6afc9542df7ea6dae8e71ca2ca8fca69346cf595a22fd2cf51d0f7103bc04297a7d36fdad03244
+  checksum: 10c0/f916c6c940e9e54bedbe81eebcb5e44c1bdf241911e05d56a9434d559b22d8ab992e9a73e922f836003bc0cdc1c2d58ebab4b97c317211a3ed367d8897320d75
   languageName: node
   linkType: hard
 
@@ -624,7 +624,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@gardenfi/core@workspace:packages/core"
   dependencies:
-    "@catalogfi/wallets": "npm:^0.2.58"
+    "@catalogfi/wallets": "npm:^0.2.59"
     "@gardenfi/orderbook": "workspace:^"
     "@gardenfi/utils": "workspace:^"
     bignumber.js: "npm:^9.1.2"
@@ -663,7 +663,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@gardenfi/react-hooks@workspace:packages/react-hooks"
   dependencies:
-    "@catalogfi/wallets": "npm:^0.2.58"
+    "@catalogfi/wallets": "npm:^0.2.59"
     "@gardenfi/core": "workspace:^"
     "@gardenfi/orderbook": "workspace:^"
     "@gardenfi/utils": "workspace:^"

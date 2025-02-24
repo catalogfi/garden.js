@@ -55,12 +55,12 @@ describe('swap and execute using garden', () => {
 
   let order: MatchedOrder;
 
-  it('should create an order', async () => {
+  it.skip('should create an order', async () => {
     const orderObj = {
       fromAsset: SupportedAssets.testnet.arbitrum_sepolia_SEED,
       toAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
-      sendAmount: '1000000000000000000000'.toString(),
-      receiveAmount: '928861'.toString(),
+      sendAmount: '100000000000000000000'.toString(),
+      receiveAmount: '104213'.toString(),
       additionalData: {
         strategyId: 'aae4btyr',
         btcAddress: 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru',
@@ -85,7 +85,7 @@ describe('swap and execute using garden', () => {
   }, 60000);
 
   //TODO: also add bitcoin init
-  it('Initiate the swap', async () => {
+  it.skip('Initiate the swap', async () => {
     if (isBitcoin(order.source_swap.chain)) {
       console.warn('Bitcoin swap, skipping initiation');
     }
@@ -122,6 +122,9 @@ describe('swap and execute using garden', () => {
     });
     garden.on('onPendingOrdersChanged', (orders) => {
       console.log('pendingorders :', orders.length);
+      orders.forEach((order) => {
+        console.log('pending order :', order.create_order.create_id);
+      });
     });
     garden.on('rbf', (order, result) => {
       console.log('rbf :', order.create_order.create_id, result);

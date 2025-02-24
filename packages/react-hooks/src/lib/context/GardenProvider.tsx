@@ -48,6 +48,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   const quote = useMemo(() => {
     return new Quote(config.quoteUrl || API[config.environment].quote);
   }, [config.quoteUrl, config.environment]);
+
   const getQuote = useMemo(
     () =>
       async ({
@@ -55,11 +56,13 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         toAsset,
         amount,
         isExactOut = false,
+        request,
       }: QuoteParams) => {
         return await quote.getQuote(
           constructOrderpair(fromAsset, toAsset),
           amount,
           isExactOut,
+          request,
         );
       },
     [quote],
