@@ -30,7 +30,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
 }) => {
   const [garden, setGarden] = useState<IGardenJS>();
 
-  const { pendingOrders, isExecuting, digestValue } = useOrderbook(
+  const { pendingOrders, isExecuting, digestKey } = useOrderbook(
     garden,
     config.walletClient?.account?.address,
   );
@@ -139,8 +139,8 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     if (!config.walletClient) return;
     if (!config.walletClient.account?.address)
       throw new Error("WalletClient doesn't have an account");
-    const secretManager = digestValue
-      ? SecretManager.fromDigestKey(digestValue)
+    const secretManager = digestKey
+      ? SecretManager.fromDigestKey(digestKey)
       : undefined;
     setGarden(
       new Garden({
@@ -154,7 +154,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         secretManager,
       }),
     );
-  }, [config.walletClient, digestValue]);
+  }, [config.walletClient, digestKey]);
 
   return (
     <GardenContext.Provider
