@@ -27,7 +27,7 @@ export const useOrderbook = (
 
         if (!address) return;
 
-        garden.secretManager.getMasterDigestKey().then((dkRes) => {
+        garden.secretManager.getDigestKey().then((dkRes) => {
           if (dkRes.error) {
             console.error('Failed to get Master DigestKey:', dkRes.error);
             return;

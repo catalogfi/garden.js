@@ -77,7 +77,7 @@ export class SecretManager
     }
   }
 
-  async getMasterDigestKey() {
+  async getDigestKey() {
     if (!this.digestKey && !this.walletClient)
       return Err('No private key or wallet client found');
 
@@ -104,7 +104,7 @@ export class SecretManager
 
   private async signMessage(nonce: string) {
     if (!this.digestKey) {
-      const digestKey = await this.getMasterDigestKey();
+      const digestKey = await this.getDigestKey();
       if (digestKey.error) return Err(digestKey.error);
 
       this.digestKey = digestKey.val;

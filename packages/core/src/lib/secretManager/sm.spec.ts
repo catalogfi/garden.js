@@ -25,8 +25,8 @@ describe('secret manager', () => {
   const secretManager2 = SecretManager.fromWalletClient(walletClient2);
 
   it('should return master private key', async () => {
-    const pk = await secretManager.getMasterDigestKey();
-    const pk2 = await secretManager2.getMasterDigestKey();
+    const pk = await secretManager.getDigestKey();
+    const pk2 = await secretManager2.getDigestKey();
     console.log('pk :', pk);
     console.log('pk :', pk2);
     expect(pk).toEqual(pk2);
