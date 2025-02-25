@@ -4,7 +4,7 @@ import {
   OrderWithStatus,
   ParseOrderStatus,
 } from '@gardenfi/core';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Address } from 'viem';
 
 export const useOrderbook = (
@@ -13,9 +13,9 @@ export const useOrderbook = (
 ) => {
   const [pendingOrders, setPendingOrders] = useState<OrderWithStatus[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
-  const digestKeyMap = useRef<Record<string, string>>({});
+  const [digestKeyMap, setDigestKeyMap] = useState<Record<string, string>>({});
 
-  const digestKey = address ? digestKeyMap.current[address] : undefined;
+  const digestKey = address ? digestKeyMap[address] : undefined;
 
   useEffect(() => {
     if (!garden) return;
@@ -31,10 +31,10 @@ export const useOrderbook = (
             console.error('Failed to get Master DigestKey:', dkRes.error);
             return;
           }
-          digestKeyMap.current = {
-            ...digestKeyMap.current,
+          setDigestKeyMap((prevMap) => ({
+            ...prevMap,
             [address]: dkRes.val,
-          };
+          }));
         });
       }
     };

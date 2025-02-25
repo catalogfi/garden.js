@@ -142,6 +142,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     const secretManager = digestKey
       ? SecretManager.fromDigestKey(digestKey)
       : undefined;
+
     setGarden(
       new Garden({
         environment: config.environment,
