@@ -9,21 +9,21 @@ export class SecretManager
   extends EventBroker<SecretManagerEvents>
   implements ISecretManager
 {
-  private privKey?: string;
+  private digestKey?: string;
   private walletClient?: WalletClient;
 
   get isInitialized() {
-    return !!this.privKey;
+    return !!this.digestKey;
   }
 
-  private constructor(privKey?: string, walletClient?: WalletClient) {
+  private constructor(digestKey?: string, walletClient?: WalletClient) {
     super();
-    this.privKey = privKey;
+    this.digestKey = digestKey;
     this.walletClient = walletClient;
   }
 
-  static fromPrivKey(privKey: string) {
-    return new SecretManager(trim0x(privKey));
+  static fromDigestKey(digestKey: string) {
+    return new SecretManager(trim0x(digestKey));
   }
 
   static fromWalletClient(walletClient: WalletClient) {
@@ -31,14 +31,14 @@ export class SecretManager
   }
 
   async initialize() {
-    if (this.privKey) return Ok('Already initialized');
-    const res = await this.derivePrivKeyFromWalletClient();
+    if (this.digestKey) return Ok('Already initialized');
+    const res = await this.deriveDigestKeyFromWalletClient();
     if (res.error) return Err(res.error);
     this.emit('initialized', true);
     return Ok('Initialized');
   }
 
-  private async derivePrivKeyFromWalletClient() {
+  private async deriveDigestKeyFromWalletClient() {
     if (!this.walletClient) return Err('No walletClient found');
     if (!this.walletClient.account) return Err('No account found');
 
@@ -68,29 +68,29 @@ export class SecretManager
         },
       });
 
-      this.privKey = trim0x(sha256(signature));
+      this.digestKey = trim0x(sha256(signature));
       this.emit('initialized', true);
 
-      return Ok(this.privKey);
+      return Ok(this.digestKey);
     } catch (error) {
       return Err('Failed to initialize: ' + error);
     }
   }
 
-  async getMasterPrivKey() {
-    if (!this.privKey && !this.walletClient)
+  async getDigestKey() {
+    if (!this.digestKey && !this.walletClient)
       return Err('No private key or wallet client found');
 
-    if (!this.privKey && this.walletClient) {
-      const privKey = await this.derivePrivKeyFromWalletClient();
-      if (privKey.error) {
-        return Err(privKey.error);
+    if (!this.digestKey && this.walletClient) {
+      const digestKey = await this.deriveDigestKeyFromWalletClient();
+      if (digestKey.error) {
+        return Err(digestKey.error);
       }
     }
 
-    if (!this.privKey) return Err('No private key found');
+    if (!this.digestKey) return Err('No private key found');
 
-    return Ok(this.privKey);
+    return Ok(this.digestKey);
   }
 
   async generateSecret(nonce: string) {
@@ -103,11 +103,11 @@ export class SecretManager
   }
 
   private async signMessage(nonce: string) {
-    if (!this.privKey) {
-      const privKey = await this.getMasterPrivKey();
-      if (privKey.error) return Err(privKey.error);
+    if (!this.digestKey) {
+      const digestKey = await this.getDigestKey();
+      if (digestKey.error) return Err(digestKey.error);
 
-      this.privKey = privKey.val;
+      this.digestKey = digestKey.val;
     }
 
     const ECPair = ECPairFactory(ecc);
@@ -116,11 +116,11 @@ export class SecretManager
     const signMessageBuffer = Buffer.from(signMessage, 'utf8');
     const hash = sha256(signMessageBuffer);
 
-    const privKeyBuf = Buffer.from(trim0x(this.privKey), 'hex');
-    if (privKeyBuf.length !== 32) {
+    const digestKeyBuf = Buffer.from(trim0x(this.digestKey), 'hex');
+    if (digestKeyBuf.length !== 32) {
       return Err('Invalid private key length. Expected 32 bytes.');
     }
-    const keyPair = ECPair.fromPrivateKey(privKeyBuf);
+    const keyPair = ECPair.fromPrivateKey(digestKeyBuf);
     const signature = keyPair.sign(Buffer.from(trim0x(hash), 'hex'));
     return Ok(signature.toString('hex'));
   }

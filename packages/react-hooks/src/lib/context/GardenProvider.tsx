@@ -6,6 +6,7 @@ import {
   IGardenJS,
   OrderStatus,
   Quote,
+  SecretManager,
   switchOrAddNetwork,
 } from '@gardenfi/core';
 import { SwapParams } from '@gardenfi/core';
@@ -29,7 +30,10 @@ export const GardenProvider: FC<GardenProviderProps> = ({
 }) => {
   const [garden, setGarden] = useState<IGardenJS>();
 
-  const { pendingOrders, isExecuting } = useOrderbook(garden);
+  const { pendingOrders, isExecuting, digestKey } = useOrderbook(
+    garden,
+    config.walletClient?.account?.address,
+  );
 
   const isExecutorRequired = useMemo(() => {
     return !!pendingOrders.find((order) => {
@@ -135,6 +139,9 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     if (!config.walletClient) return;
     if (!config.walletClient.account?.address)
       throw new Error("WalletClient doesn't have an account");
+    const secretManager = digestKey
+      ? SecretManager.fromDigestKey(digestKey)
+      : undefined;
 
     setGarden(
       new Garden({
@@ -145,9 +152,10 @@ export const GardenProvider: FC<GardenProviderProps> = ({
           store: config.store,
         },
         apiKey: config.apiKey,
+        secretManager,
       }),
     );
-  }, [config.walletClient]);
+  }, [config.walletClient, digestKey]);
 
   return (
     <GardenContext.Provider

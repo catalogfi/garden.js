@@ -153,11 +153,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private async initializeSMandBTCWallet() {
     if (this._secretManager.isInitialized && this._btcWallet)
       return Ok(this._btcWallet);
-    const privKey = await this._secretManager.getMasterPrivKey();
-    if (privKey.error) return Err(privKey.error);
+    const digestKey = await this._secretManager.getDigestKey();
+    if (digestKey.error) return Err(digestKey.error);
 
     const provider = new BitcoinProvider(getBitcoinNetwork(this.environment));
-    this._btcWallet = BitcoinWallet.fromPrivateKey(privKey.val, provider);
+    this._btcWallet = BitcoinWallet.fromPrivateKey(digestKey.val, provider);
     return Ok(this._btcWallet);
   }
 
