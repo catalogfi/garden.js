@@ -5,24 +5,21 @@ import {
   ParseOrderStatus,
 } from '@gardenfi/core';
 import { useEffect, useState } from 'react';
-import { WalletClient } from 'viem';
+import { Address } from 'viem';
 
 export const useOrderbook = (
   garden: IGardenJS | undefined,
-  walletClient: WalletClient | undefined,
+  address: Address | undefined,
 ) => {
   const [pendingOrders, setPendingOrders] = useState<OrderWithStatus[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [digestKeyMap, setDigestKeyMap] = useState<Map<string, string>>(
-    new Map(),
-  );
+  const [digestKeyMap, setDigestKeyMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!garden) return;
 
     const checkInitialization = () => {
       if (garden.secretManager.isInitialized) {
-        const address = walletClient?.account?.address;
         setIsInitialized(true);
 
         if (!address) return;
@@ -32,11 +29,10 @@ export const useOrderbook = (
             console.error('Failed to get Master DigestKey:', dkRes.error);
             return;
           }
-          setDigestKeyMap((prevMap) => {
-            const newMap = new Map(prevMap);
-            newMap.set(address, dkRes.val);
-            return newMap;
-          });
+          setDigestKeyMap((prevMap) => ({
+            ...prevMap,
+            [address]: dkRes.val,
+          }));
         });
       }
     };
@@ -103,5 +99,7 @@ export const useOrderbook = (
     });
   }, [garden]);
 
-  return { pendingOrders, isExecuting: isInitialized, digestKeyMap };
+  const digestValue = address ? digestKeyMap[address] : undefined;
+
+  return { pendingOrders, isExecuting: isInitialized, digestValue };
 };

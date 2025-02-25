@@ -30,13 +30,10 @@ export const GardenProvider: FC<GardenProviderProps> = ({
 }) => {
   const [garden, setGarden] = useState<IGardenJS>();
 
-  const { pendingOrders, isExecuting, digestKeyMap } = useOrderbook(
+  const { pendingOrders, isExecuting, digestValue } = useOrderbook(
     garden,
-    config.walletClient,
+    config.walletClient?.account?.address,
   );
-
-  const address = config.walletClient?.account?.address;
-  const digestKey = address ? digestKeyMap.get(address) : undefined;
 
   const isExecutorRequired = useMemo(() => {
     return !!pendingOrders.find((order) => {
@@ -142,34 +139,22 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     if (!config.walletClient) return;
     if (!config.walletClient.account?.address)
       throw new Error("WalletClient doesn't have an account");
-    if (digestKey) {
-      const secretManager = SecretManager.fromDigestKey(digestKey);
-      setGarden(
-        new Garden({
-          environment: config.environment,
-          evmWallet: config.walletClient,
-          siweOpts: config.siweOpts ?? {
-            domain: window.location.hostname,
-            store: config.store,
-          },
-          apiKey: config.apiKey,
-          secretManager,
-        }),
-      );
-    } else {
-      setGarden(
-        new Garden({
-          environment: config.environment,
-          evmWallet: config.walletClient,
-          siweOpts: config.siweOpts ?? {
-            domain: window.location.hostname,
-            store: config.store,
-          },
-          apiKey: config.apiKey,
-        }),
-      );
-    }
-  }, [config.walletClient, digestKey]);
+    const secretManager = digestValue
+      ? SecretManager.fromDigestKey(digestValue)
+      : undefined;
+    setGarden(
+      new Garden({
+        environment: config.environment,
+        evmWallet: config.walletClient,
+        siweOpts: config.siweOpts ?? {
+          domain: window.location.hostname,
+          store: config.store,
+        },
+        apiKey: config.apiKey,
+        secretManager,
+      }),
+    );
+  }, [config.walletClient, digestValue]);
 
   return (
     <GardenContext.Provider
