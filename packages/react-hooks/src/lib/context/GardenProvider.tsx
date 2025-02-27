@@ -153,6 +153,8 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         },
         apiKey: config.apiKey,
         secretManager,
+        quote: config.quoteUrl ?? API[config.environment].quote,
+        orderbookURl: config.orderBookUrl ?? API[config.environment].orderbook,
       }),
     );
   }, [config.walletClient, digestKey]);

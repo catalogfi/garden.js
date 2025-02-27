@@ -151,7 +151,7 @@ export type GardenProps = {
   secretManager?: ISecretManager;
   siweOpts?: SiweOpts;
   orderbookURl?: string;
-  quote?: IQuote;
+  quote?: string;
   blockNumberFetcher?: IBlockNumberFetcher;
 };
 

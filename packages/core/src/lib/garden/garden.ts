@@ -93,7 +93,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       throw new Error(
         'API not found, invalid environment ' + config.environment,
       );
-    this._quote = config.quote ?? new Quote(api.quote);
+    this._quote = new Quote(config.quote ?? api.quote);
     this._orderbookUrl = new Url(config.orderbookURl ?? api.orderbook);
     this._auth = new Auth({
       siwe: config.apiKey
