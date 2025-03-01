@@ -15,6 +15,8 @@ import { XVerseBitcoinProvider } from './providers/xverse/xverse.types';
 import { XdefiBitcoinProvider } from './providers/xdefi/xdefi.types';
 import { PhantomBitcoinProvider } from './providers/phantom/phantom.types';
 import { UnisatProvider } from './providers/unisat/provider';
+import { GardenWalletProvider } from './providers/gardenwallet/provider';
+import { GardenWalletBitcoinProvider } from './providers/gardenwallet/gardenwallet.types';
 // import { PhantomProvider } from './providers/phantom/provider';
 // import { XverseProvider } from './providers/xverse/provider';
 // import { XdefiProvider } from './providers/xdefi/provider';
@@ -41,6 +43,7 @@ declare global {
     phantom?: {
       bitcoin: PhantomBitcoinProvider;
     };
+    bitcoin?: GardenWalletBitcoinProvider;
   }
 }
 
@@ -145,6 +148,11 @@ export const BTCWalletProvider = ({
     if (window.unisat) {
       const uniProvider = new UnisatProvider(window.unisat);
       addToWalletList(uniProvider);
+    }
+
+    if (window.bitcoin) {
+      const gardenWalletProvider = new GardenWalletProvider(window.bitcoin);
+      addToWalletList(gardenWalletProvider);
     }
     // if (window.XverseProviders && window.XverseProviders.BitcoinProvider) {
     //   const xverseProvider = new XverseProvider(
