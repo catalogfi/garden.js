@@ -6,9 +6,11 @@ import { createWalletClient, http } from 'viem';
 import { sepolia } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 
-describe('Siwe', () => {
-  //Provide a valid OrderbookApi and pk before running the test
-  const OrderbookApi = 'http://localhost:4426';
+describe.each([
+  'https://orderbook-stage.hashira.io',
+  'https://orderbook.garden.finance',
+])('Siwe - Orderbook API: %s', (OrderbookApi) => {
+  // Provide a valid private key before running the test
   const pk =
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
 
@@ -24,22 +26,22 @@ describe('Siwe', () => {
   describe('construction', () => {
     it('should be made with https domains', async () => {
       new Siwe(url, walletClient, {
-        domain: 'https://random-domain.com',
+        domain: OrderbookApi,
       });
     });
   });
 
   it('should generate a valid token', async () => {
     const siwe = new Siwe(url, walletClient, {
-      domain: 'https://random-domain.com',
+      domain: OrderbookApi,
     });
     const token = await siwe.getToken();
-    expect(token).toBeTruthy();
+    expect(token.ok).toBeTruthy();
   });
 
   it('should return the same token if it has already been generated', async () => {
     const siwe = new Siwe(url, walletClient, {
-      domain: 'https://random-domain.com',
+      domain: OrderbookApi,
     });
     const firstToken = await siwe.getToken();
     const secondToken = await siwe.getToken();
