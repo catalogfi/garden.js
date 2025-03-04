@@ -37,6 +37,7 @@ export class Siwe implements ISiwe {
       const utcTimestampNow = Math.floor(Date.now() / 1000) + 120; // auth should be valid for atleast 2 minutes
       
       if (!parsedToken.address && !parsedToken.user_id) return Ok(false);
+      
       const isAddressMatch = parsedToken.address
         ? parsedToken.address.toLowerCase() === account.toLowerCase()
         : false;
