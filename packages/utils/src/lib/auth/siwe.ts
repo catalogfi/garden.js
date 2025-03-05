@@ -34,19 +34,11 @@ export class Siwe implements ISiwe {
     try {
       const parsedToken = parseJwt(token);
       if (!parsedToken) return Ok(false);
-      const utcTimestampNow = Math.floor(Date.now() / 1000) + 120; // auth should be valid for atleast 2 minutes
-      
-      if (!parsedToken.address && !parsedToken.user_id) return Ok(false);
-      
-      const isAddressMatch = parsedToken.address
-        ? parsedToken.address.toLowerCase() === account.toLowerCase()
-        : false;
-
-      const isUserIdMatch = parsedToken.user_id
-        ? parsedToken.user_id.toLowerCase() === account.toLowerCase()
-        : false;
-
-      return Ok(parsedToken.exp > utcTimestampNow && isAddressMatch || isUserIdMatch);
+      const utcTimestampNow = Math.floor(Date.now() / 1000) + 120;
+      return Ok(
+        parsedToken.exp > utcTimestampNow &&
+        parsedToken.user_id.toLowerCase() === account.toLowerCase(),
+      );
     } catch (error) {
       return Ok(false);
     }
@@ -147,8 +139,7 @@ export class Siwe implements ISiwe {
 export const parseJwt = (token: string) => {
   try {
     return jwtDecode(token) as {
-      user_id?: string;
-      address?: string;
+      user_id: string;
       exp: number;
     };
   } catch {
