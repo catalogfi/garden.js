@@ -66,6 +66,8 @@ export type GardenProviderProps = {
     environment: Environment;
     walletClient?: WalletClient;
     orderBookUrl?: string;
+    indexerUrl?: string;
+    infoServer?: string;
     quoteUrl?: string;
     bitcoinRPCUrl?: string;
     blockNumberFetcherUrl?: string;

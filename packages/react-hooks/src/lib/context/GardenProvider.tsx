@@ -155,6 +155,8 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         secretManager,
         quote: config.quoteUrl ?? API[config.environment].quote,
         orderbookURl: config.orderBookUrl ?? API[config.environment].orderbook,
+        indexerUrl: config.indexerUrl ?? "",
+        infoServer: config.infoServer ?? API[config.environment].info,
       }),
     );
   }, [config.walletClient, digestKey]);

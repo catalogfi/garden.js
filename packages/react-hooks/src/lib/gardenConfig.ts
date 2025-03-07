@@ -1,5 +1,3 @@
-import { BitcoinNetwork } from '@catalogfi/wallets';
-
 export type GardenConfigType = {
   orderBookUrl: string;
   quoteUrl: string;
@@ -10,6 +8,7 @@ export type GardenConfigType = {
 export enum environment {
   mainnet = 'mainnet',
   testnet = 'testnet',
+  localnet = 'localnet',
 }
 
 export const GARDEN_CONFIG: Partial<Record<environment, GardenConfigType>> = {
@@ -26,6 +25,12 @@ export const GARDEN_CONFIG: Partial<Record<environment, GardenConfigType>> = {
     bitcoinRPCUrl: 'https://mempool.space/api',
     blockNumberFetcherUrl: 'https://info-8ocl.onrender.com',
   },
+  [environment.localnet]: {
+    orderBookUrl: 'http://20.127.146.112:4426/',
+    quoteUrl: 'http://20.127.146.112:6969',
+    bitcoinRPCUrl: 'http://20.127.146.112:18443',
+    blockNumberFetcherUrl: 'http://20.127.146.112:9898',
+  }
 } as const;
 
 export const getConfigForNetwork = (network: environment): GardenConfigType => {
@@ -34,15 +39,4 @@ export const getConfigForNetwork = (network: environment): GardenConfigType => {
     throw new Error(`Configuration for network ${network} not found`);
   }
   return config;
-};
-
-export const getBitcoinNetwork = (network: environment): BitcoinNetwork => {
-  switch (network) {
-    case environment.mainnet:
-      return BitcoinNetwork.Mainnet;
-    case environment.testnet:
-      return BitcoinNetwork.Testnet;
-    default:
-      throw new Error(`Invalid bitcoin network ${network}`);
-  }
 };
