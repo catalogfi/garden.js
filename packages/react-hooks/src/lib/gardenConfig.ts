@@ -26,10 +26,10 @@ export const GARDEN_CONFIG: Partial<Record<environment, GardenConfigType>> = {
     blockNumberFetcherUrl: 'https://info-8ocl.onrender.com',
   },
   [environment.localnet]: {
-    orderBookUrl: 'http://20.127.146.112:4426/',
-    quoteUrl: 'http://20.127.146.112:6969',
-    bitcoinRPCUrl: 'http://20.127.146.112:18443',
-    blockNumberFetcherUrl: 'http://20.127.146.112:9898',
+    orderBookUrl: 'https://orderbook-merry.hashira.io',
+    quoteUrl: 'https://quote-merry.hashira.io',
+    bitcoinRPCUrl: 'https://indexer-merry.hashira.io',
+    blockNumberFetcherUrl: 'https://info-merry.hashira.io',
   }
 } as const;
 

@@ -54,7 +54,7 @@ export const ArbitrumLocalnet: Chain = {
   },
   rpcUrls: {
     default: {
-      http: ['http://20.127.146.112:8546/'],
+      http: ['https://arb-merry.hashira.io/'],
     },
   },
   testnet: true,
@@ -69,7 +69,7 @@ export const EthereumLocalnet: Chain = {
   },
   rpcUrls: {
     default: {
-      http: ['http://20.127.146.112:8545/'],
+      http: ['https://eth-merry.hashira.io/'],
     },
   },
   testnet: true,

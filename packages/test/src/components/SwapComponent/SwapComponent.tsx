@@ -48,7 +48,7 @@ export const SwapComponent = () => {
     if (isBitcoin(swapParams.fromAsset.chain || swapParams.toAsset.chain)) {
       const bitcoinProvider = new BitcoinProvider(
         BitcoinNetwork.Regtest,
-        'http://20.127.146.112:30000',
+        'https://indexer-merry.hashira.io',
       );
 
       const newBtcWallet = BitcoinWallet.createRandom(bitcoinProvider);

@@ -16,8 +16,8 @@ import { Auth, Siwe, Url } from '@gardenfi/utils';
 // import { OrderStatus } from '../order/order.types';
 
 describe('evmRelay', () => {
-  const relayUrl = 'http://20.127.146.112:4426/';
-  const attestedQuoteUrl = 'http://20.127.146.112:6969/quote/attested';
+  const relayUrl = 'https://orderbook-merry.hashira.io/';
+  const attestedQuoteUrl = 'https://quote-merry.hashira.io/quote/attested';
   // const bitcoinIndexer = 'http://localhost:30000';
   const privKey =
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';

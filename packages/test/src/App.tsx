@@ -13,8 +13,8 @@ function App() {
         store: localStorage,
         environment,
         walletClient: walletClient,
-        indexerUrl: 'http://20.127.146.112:30000',
-        infoServer: 'http://20.127.146.112:9898',
+        indexerUrl: 'https://indexer-merry.hashira.io',
+        infoServer: 'https://info-merry.hashira.io',
       }}
     >
       <Swap />
