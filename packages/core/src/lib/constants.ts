@@ -10,8 +10,8 @@ export const API = {
     info: 'https://info.garden.finance',
   },
   localnet: {
-    orderbook: '',
-    quote: '',
-    info: '',
+    orderbook: 'http://20.127.146.112:4426',
+    quote: 'http://20.127.146.112:6969',
+    info: 'http://20.127.146.112:9898',
   },
 } as const;

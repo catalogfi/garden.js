@@ -10,6 +10,9 @@ const BitcoinExplorers = {
     Mempool: 'https://mempool.space',
     Blockstream: 'https://blockstream.info',
   },
+  localnet: {
+    Mempool: 'https://20.127.146.112:30000',
+  }
 };
 
 type BalanceResponse = {

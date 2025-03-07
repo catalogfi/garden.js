@@ -54,7 +54,7 @@ export const ArbitrumLocalnet: Chain = {
   },
   rpcUrls: {
     default: {
-      http: ['http://localhost:8546/'],
+      http: ['http://20.127.146.112:8546/'],
     },
   },
   testnet: true,
@@ -69,7 +69,7 @@ export const EthereumLocalnet: Chain = {
   },
   rpcUrls: {
     default: {
-      http: ['http://localhost:8545/'],
+      http: ['http://20.127.146.112:8545/'],
     },
   },
   testnet: true,

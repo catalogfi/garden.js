@@ -11,12 +11,13 @@ import {
   WBTCArbitrumLocalnetAsset,
   WBTCEthereumLocalnetAsset,
 } from '../../testUtils';
-import { Siwe, Url } from '@gardenfi/utils';
+import { Auth, Siwe, Url } from '@gardenfi/utils';
 // import { ParseOrderStatus } from '../order/parseOrderStatus';
 // import { OrderStatus } from '../order/order.types';
 
 describe('evmRelay', () => {
-  const relayUrl = 'http://localhost:4426/';
+  const relayUrl = 'http://20.127.146.112:4426/';
+  const attestedQuoteUrl = 'http://20.127.146.112:6969/quote/attested';
   // const bitcoinIndexer = 'http://localhost:30000';
   const privKey =
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
@@ -40,11 +41,12 @@ describe('evmRelay', () => {
   //   chain: ethereumClient.chain,
   //   transport: http(),
   // });
-  const auth = new Siwe(new Url(relayUrl), arbitrumWalletClient);
-  const relayer = new EvmRelay(relayUrl, arbitrumWalletClient, auth);
+  const auth = new Auth({ siwe: new Siwe(new Url(relayUrl), arbitrumWalletClient) });
+  const relayer = new EvmRelay(relayUrl, auth);
   const orderBook = new Orderbook({
     url: relayUrl,
     walletClient: arbitrumWalletClient,
+    auth: auth,
   });
   let orderId: string = '';
   const secret = sha256(randomBytes(32));
@@ -54,17 +56,24 @@ describe('evmRelay', () => {
     const currentBlockNumber = await arbitrumPublicClient.getBlockNumber();
 
     const createOrderConfig = {
-      fromAsset: WBTCArbitrumLocalnetAsset,
-      toAsset: WBTCEthereumLocalnetAsset,
-      sendAddress: arbitrumWalletClient.account.address,
-      receiveAddress: arbitrumWalletClient.account.address,
-      sendAmount: '100000',
-      receiveAmount: '99000',
-      secretHash: secretHash,
-      nonce: '1',
+      source_chain: WBTCArbitrumLocalnetAsset.chain,
+      destination_chain: WBTCEthereumLocalnetAsset.chain,
+      source_asset: WBTCArbitrumLocalnetAsset.tokenAddress,
+      destination_asset: WBTCEthereumLocalnetAsset.tokenAddress,
+      initiator_source_address: account.address,
+      initiator_destination_address: account.address,
+      source_amount: "100000",
+      destination_amount: "99990",
+      fee: "1",
+      nonce: 1741254355776,
       timelock: Number(currentBlockNumber) + 100,
-      minDestinationConfirmations: 3,
+      secret_hash: secretHash,
+      min_destination_confirmations: 0,
+      additional_data: {
+        strategy_id: "alel12"
+      }
     };
+
     console.log('creating order');
     const response = await orderBook.createOrder(createOrderConfig);
     console.log('response :', response.val);

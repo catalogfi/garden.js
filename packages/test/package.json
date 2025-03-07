@@ -13,6 +13,7 @@
     "@catalogfi/wallets": "^0.2.54",
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@gardenfi/core": "workspace:^",
+    "@gardenfi/garden-book": "0.1.68",
     "@gardenfi/orderbook": "workspace:^",
     "@gardenfi/react-hooks": "workspace:^",
     "@gardenfi/utils": "workspace:^",
@@ -28,7 +29,7 @@
     "vite-plugin-top-level-await": "^1.4.4",
     "vite-plugin-wasm": "^3.3.0",
     "wagmi": "^2.12.17",
-    "zustand": "^5.0.2"
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.11.1",
