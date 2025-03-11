@@ -2,7 +2,7 @@ import { SecretManager } from './secretManager';
 import { arbitrumSepolia, sepolia } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 import { createWalletClient, http } from 'viem';
-import { beforeAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 describe('secret manager', () => {
   const pk =
@@ -21,22 +21,12 @@ describe('secret manager', () => {
     transport: http(),
   });
 
-  let secretManager: SecretManager;
-  let secretManager2: SecretManager;
+  const secretManager = SecretManager.fromWalletClient(walletClient);
+  const secretManager2 = SecretManager.fromWalletClient(walletClient2);
 
-  beforeAll(async () => {
-    const instance = await SecretManager.fromWalletClient(walletClient);
-    const instance2 = await SecretManager.fromWalletClient(walletClient2);
-    if (instance.error || instance2.error) {
-      throw new Error(instance.error);
-    }
-    secretManager = instance.val;
-    secretManager2 = instance2.val;
-  });
-
-  it('should return master private key', () => {
-    const pk = secretManager.getMasterPrivKey();
-    const pk2 = secretManager2.getMasterPrivKey();
+  it('should return master private key', async () => {
+    const pk = await secretManager.getDigestKey();
+    const pk2 = await secretManager2.getDigestKey();
     console.log('pk :', pk);
     console.log('pk :', pk2);
     expect(pk).toEqual(pk2);
@@ -44,7 +34,7 @@ describe('secret manager', () => {
   });
 
   it('should generate secret', async () => {
-    const sign = secretManager.generateSecret(1);
+    const sign = await secretManager.generateSecret('hello');
     console.log('sign :', sign.val);
     expect(sign.val).toBeTruthy();
     expect(sign.error).toBeFalsy();

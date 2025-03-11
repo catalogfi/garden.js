@@ -1,44 +1,78 @@
 import {
   filterDeadlineExpiredOrders,
-  IBlockNumberFetcher,
+  IGardenJS,
   OrderWithStatus,
   ParseOrderStatus,
 } from '@gardenfi/core';
-import { IOrderbook, Orderbook } from '@gardenfi/orderbook';
-import { IAuth } from '@gardenfi/utils';
 import { useEffect, useState } from 'react';
-import { useWalletClient } from 'wagmi';
+import { Address } from 'viem';
 
 export const useOrderbook = (
-  orderBookUrl: string,
-  auth: IAuth | undefined,
-  setPendingOrders: React.Dispatch<
-    React.SetStateAction<OrderWithStatus[] | undefined>
-  >,
-  blockNumberFetcher?: IBlockNumberFetcher,
+  garden: IGardenJS | undefined,
+  address: Address | undefined,
 ) => {
-  const [orderbook, setOrderbook] = useState<IOrderbook>();
-  const { data: walletClient } = useWalletClient();
+  const [pendingOrders, setPendingOrders] = useState<OrderWithStatus[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [digestKeyMap, setDigestKeyMap] = useState<Record<string, string>>({});
 
-  //Initialize orderbook
-  useEffect(() => {
-    if (!walletClient || !orderBookUrl || !auth) return;
-
-    const orderbook = new Orderbook({
-      url: orderBookUrl,
-      walletClient: walletClient,
-      auth,
-    });
-    setOrderbook(orderbook);
-  }, [walletClient, orderBookUrl, auth]);
+  const digestKey = address ? digestKeyMap[address] : undefined;
 
   useEffect(() => {
-    if (!orderbook || !blockNumberFetcher) return;
+    if (!garden) return;
 
-    blockNumberFetcher.fetchBlockNumbers().then((res) => {
+    const checkInitialization = () => {
+      if (garden.secretManager.isInitialized) {
+        setIsInitialized(true);
+
+        if (!address) return;
+
+        garden.secretManager.getDigestKey().then((dkRes) => {
+          if (dkRes.error) {
+            console.error('Failed to get Master DigestKey:', dkRes.error);
+            return;
+          }
+          setDigestKeyMap((prevMap) => ({
+            ...prevMap,
+            [address]: dkRes.val,
+          }));
+        });
+      }
+    };
+
+    checkInitialization();
+    garden.secretManager.on('initialized', checkInitialization);
+
+    return () => {
+      garden.secretManager.off('initialized', checkInitialization);
+    };
+  }, [garden]);
+
+  useEffect(() => {
+    if (!garden || !isInitialized) return;
+
+    const unsubscribe = garden.execute();
+
+    const handlePendingOrdersChange = (orders: OrderWithStatus[]) =>
+      setPendingOrders(orders);
+
+    garden.on('onPendingOrdersChanged', handlePendingOrdersChange);
+
+    return () => {
+      (async () => {
+        const unsubscribeFn = await unsubscribe;
+        unsubscribeFn();
+      })();
+      garden.off('onPendingOrdersChanged', handlePendingOrdersChange);
+    };
+  }, [garden, isInitialized]);
+
+  // Fetch orders for the first time
+  useEffect(() => {
+    if (!garden) return;
+    garden.blockNumberFetcher.fetchBlockNumbers().then((res) => {
       if (res.error) return;
       const { val: blockNumbers } = res;
-      orderbook
+      garden.orderbook
         .fetchOrders(true, true, {
           per_page: 500,
         })
@@ -65,6 +99,7 @@ export const useOrderbook = (
           setPendingOrders(orderWithStatus);
         });
     });
-  }, [orderbook, blockNumberFetcher]);
-  return { orderbook };
+  }, [garden]);
+
+  return { pendingOrders, isExecuting: isInitialized, digestKey };
 };

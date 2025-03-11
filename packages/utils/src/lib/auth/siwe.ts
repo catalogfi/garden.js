@@ -1,4 +1,4 @@
-import { IAuth, SiweOpts } from './auth.types';
+import { AuthHeader, IAuth, ISiwe, SiweOpts } from './auth.types';
 import { AsyncResult, Err, Fetcher, Ok, Result } from '@catalogfi/utils';
 import { Url } from '../url';
 import { MemoryStorage } from '../store/memoryStorage';
@@ -7,8 +7,9 @@ import { APIResponse } from '../apiResponse.types';
 import { WalletClient } from 'viem';
 import { createSiweMessage } from 'viem/siwe';
 import { jwtDecode } from 'jwt-decode';
+import { Authorization } from '../utils';
 
-export class Siwe implements IAuth {
+export class Siwe implements ISiwe {
   private readonly API = 'https://api.garden.finance';
   private readonly url: Url;
   private store: IStore;
@@ -33,10 +34,10 @@ export class Siwe implements IAuth {
     try {
       const parsedToken = parseJwt(token);
       if (!parsedToken) return Ok(false);
-      const utcTimestampNow = Math.floor(Date.now() / 1000) + 120; // auth should be valid for atleast 2 minutes
+      const utcTimestampNow = Math.floor(Date.now() / 1000) + 120;
       return Ok(
         parsedToken.exp > utcTimestampNow &&
-          parsedToken.address.toLowerCase() === account.toLowerCase(),
+        parsedToken.user_id.toLowerCase() === account.toLowerCase(),
       );
     } catch (error) {
       return Ok(false);
@@ -138,10 +139,36 @@ export class Siwe implements IAuth {
 export const parseJwt = (token: string) => {
   try {
     return jwtDecode(token) as {
-      address: string;
+      user_id: string;
       exp: number;
     };
   } catch {
     return;
   }
 };
+
+// Create a new Auth class that implements IAuth
+export class Auth implements IAuth {
+  siwe?: ISiwe;
+  apiKey?: string;
+
+  constructor(opts: { siwe?: ISiwe; apiKey?: string }) {
+    if (!opts.siwe && !opts.apiKey) {
+      throw new Error('Either siwe or apiKey must be provided');
+    }
+    this.siwe = opts.siwe;
+    this.apiKey = opts.apiKey;
+  }
+
+  async getAuthHeaders(): AsyncResult<AuthHeader, string> {
+    if (this.siwe) {
+      const token = await this.siwe.getToken();
+      if (token.error) return Err(token.error);
+      return Ok({ Authorization: Authorization(token.val) });
+    }
+    if (this.apiKey) {
+      return Ok({ 'api-key': this.apiKey });
+    }
+    return Err('No authentication method available');
+  }
+}

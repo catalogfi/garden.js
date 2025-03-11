@@ -108,7 +108,7 @@ export interface IOrderbook extends IOrderProvider {
   ): AsyncResult<string, string>;
 
   /**
-   * Wrapper for the getOrder method in the OrdersProvider class to abstract the address parameter.
+   * Wrapper for the getOrders method in the OrdersProvider class to abstract the address parameter.
    * @param matched - Whether to get matched or unmatched orders
    * @param paginationConfig - The pagination configuration
    * @param pending - Whether to get pending orders
@@ -131,12 +131,9 @@ export interface IOrderbook extends IOrderProvider {
    * @param paginationConfig - The configuration for the pagination
    * @returns {() => void} A function to unsubscribe from the order updates
    */
-  subscribeToOrders<T extends boolean>(
-    matched: T,
+  subscribeToOrders(
     interval: number,
-    cb: (
-      orders: PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
-    ) => Promise<void>,
+    cb: (orders: PaginatedData<MatchedOrder>) => Promise<void>,
     paginationConfig?: PaginationConfig,
     pending?: boolean,
   ): Promise<() => void>;
@@ -165,7 +162,7 @@ export type AdditionalData = {
     sig: string;
     input_token_price: number;
     output_token_price: number;
-    deadline: string;
+    deadline: number;
     bitcoin_optional_recipient?: string;
     [key: string]: any;
   };
@@ -229,6 +226,7 @@ export type Swap = {
   initiate_block_number: string | null;
   redeem_block_number: string | null;
   refund_block_number: string | null;
+  required_confirmations: number;
 };
 
 export type MatchedOrder = {

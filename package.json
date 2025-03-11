@@ -10,7 +10,8 @@
     "test": "vitest run",
     "dev": "yarn workspaces foreach -Api -j unlimited --include \"packages/*\" run dev ",
     "patch:affected": "yarn workspaces foreach -p --topological --include \"packages/*\" --since=$0 run patch",
-    "publish:affected": "yarn workspaces foreach -p --include \"packages/*\" --since=main --no-private npm publish --tag beta"
+    "publish:affected": "yarn workspaces foreach -p --include \"packages/*\" --since=main --no-private npm publish",
+    "publish:affected:beta": "yarn workspaces foreach -p --include \"packages/*\" --since=main --no-private npm publish --tag beta"
   },
   "workspaces": [
     "packages/*"
@@ -29,5 +30,8 @@
     "vite-plugin-eslint": "^1.8.1",
     "vitest": "^1.6.0"
   },
-  "packageManager": "yarn@4.3.1"
+  "packageManager": "yarn@4.3.1",
+  "dependencies": {
+    "@catalogfi/utils": "^0.1.12"
+  }
 }

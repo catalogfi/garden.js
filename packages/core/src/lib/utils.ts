@@ -1,32 +1,12 @@
-import {
-  arbitrum,
-  arbitrumSepolia,
-  baseSepolia,
-  mainnet,
-  sepolia,
-  Chain as viemChain,
-} from 'viem/chains';
-
-import { IBaseWallet } from '@catalogfi/wallets';
-import { with0x } from '@gardenfi/utils';
-import {
-  ArbitrumLocalnet,
-  Chain,
-  EthereumLocalnet,
-  EvmChain,
-} from '@gardenfi/orderbook';
-import { createWalletClient, custom, sha256, WalletClient } from 'viem';
+import { BitcoinNetwork, IBaseWallet } from '@catalogfi/wallets';
+import { Environment, with0x } from '@gardenfi/utils';
+import { Chain } from '@gardenfi/orderbook';
+import { sha256 } from 'viem';
 import * as varuint from 'varuint-bitcoin';
-import { AsyncResult, Err, Ok, trim0x } from '@catalogfi/utils';
+import { trim0x } from '@catalogfi/utils';
 import * as secp256k1 from 'tiny-secp256k1';
 import * as bitcoin from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
-import { NetworkType } from '@gardenfi/orderbook';
-
-interface EthereumWindow extends Window {
-  ethereum?: any;
-}
-declare const window: EthereumWindow;
 
 export const computeSecret = async (
   fromChain: Chain,
@@ -126,90 +106,6 @@ export const isValidBitcoinPubKey = (pubKey: string): boolean => {
   }
 };
 
-const updatedSepolia = {
-  ...sepolia,
-  rpcUrls: {
-    default: {
-      http: ['https://ethereum-sepolia-rpc.publicnode.com'],
-    },
-  },
-};
-
-export const evmToViemChainMap: Record<EvmChain, viemChain> = {
-  ethereum: mainnet,
-  ethereum_arbitrum: arbitrum,
-  ethereum_sepolia: updatedSepolia,
-  arbitrum_sepolia: arbitrumSepolia,
-  ethereum_localnet: EthereumLocalnet,
-  arbitrum_localnet: ArbitrumLocalnet,
-  base_sepolia: baseSepolia,
-};
-
-/**
- * Switches or adds a network to the wallet
- * @param chain Garden supported chain
- * @param walletClient
- * @returns new walletClient with updated chain
- */
-export const switchOrAddNetwork = async (
-  chain: Chain,
-  walletClient: WalletClient,
-): AsyncResult<{ message: string; walletClient: WalletClient }, string> => {
-  const chainID = evmToViemChainMap[chain as EvmChain];
-  if (chainID) {
-    try {
-      if (chainID.id === walletClient.chain?.id) {
-        return Ok({ message: 'Already on the network', walletClient });
-      }
-      // switch the chain first
-      await walletClient.switchChain({ id: chainID.id });
-      const newWalletClient = createWalletClient({
-        account: walletClient.account,
-        chain: chainID,
-        transport: custom(window.ethereum!),
-      });
-
-      return Ok({
-        message: 'Switched chain',
-        walletClient: newWalletClient as WalletClient,
-      });
-    } catch (error) {
-      // If switching fails, attempt to add the network
-      if (isChainNotFoundError(error)) {
-        try {
-          await walletClient.addChain({ chain: chainID });
-          const newWalletClient = createWalletClient({
-            account: walletClient.account,
-            chain: chainID,
-            transport: custom(window.ethereum!),
-          });
-
-          return Ok({
-            message: 'Added network',
-            walletClient: newWalletClient as WalletClient,
-          });
-        } catch (addError) {
-          return Err('Failed to add network');
-        }
-      } else {
-        return Err('Failed to switch network');
-      }
-    }
-  } else {
-    return Err('Chain not supported');
-  }
-};
-
-const isChainNotFoundError = (error: unknown): error is { code: number } => {
-  // Error code 4902 indicates the chain is not available in the wallet
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    (error as any).code === 4902
-  );
-};
-
 export const constructOrderPair = (
   sourceChain: Chain,
   sourceAsset: string,
@@ -224,12 +120,16 @@ export const constructOrderPair = (
   ':' +
   destAsset.toLowerCase();
 
-export function validateBTCAddress(address: string, networkType: NetworkType) {
+export function validateBTCAddress(address: string, networkType: Environment) {
   if (!address) return false;
   const network =
-    networkType === 'mainnet'
+    networkType === Environment.MAINNET
       ? bitcoin.networks.bitcoin
-      : bitcoin.networks.testnet;
+      : networkType === Environment.TESTNET
+      ? bitcoin.networks.testnet
+      : bitcoin.networks.regtest;
+
+  if (!network) return false;
   bitcoin.initEccLib(ecc);
   try {
     bitcoin.address.toOutputScript(address, network);
@@ -239,3 +139,14 @@ export function validateBTCAddress(address: string, networkType: NetworkType) {
     return false;
   }
 }
+
+export const getBitcoinNetwork = (network: Environment): BitcoinNetwork => {
+  switch (network) {
+    case Environment.MAINNET:
+      return BitcoinNetwork.Mainnet;
+    case Environment.TESTNET:
+      return BitcoinNetwork.Testnet;
+    default:
+      throw new Error(`Invalid bitcoin network ${network}`);
+  }
+};

@@ -8,10 +8,10 @@ export type {
   EventCallback,
   OrderWithStatus,
 } from './lib/garden/garden.types';
-export { OrderActions, TimeLocks } from './lib/garden/garden.types';
+export { OrderActions } from './lib/garden/garden.types';
 
-export { BlockNumberFetcher } from './lib/garden/blockNumber';
-export type { IBlockNumberFetcher, Network } from './lib/garden/blockNumber';
+export { BlockNumberFetcher } from './lib/blockNumberFetcher/blockNumber';
+export type { IBlockNumberFetcher } from './lib/blockNumberFetcher/blockNumber';
 
 export { EvmRelay } from './lib/evm/relay/evmRelay';
 export type { IEVMRelay } from './lib/evm/relay/evmRelay.types';
@@ -25,7 +25,7 @@ export {
   isExpired,
   filterDeadlineExpiredOrders,
   parseActionFromStatus,
-} from './lib/garden/orderStatusParser';
+} from './lib/orderStatusParser';
 
 export { SecretManager } from './lib/secretManager/secretManager';
 export type {
@@ -40,9 +40,11 @@ export type {
   Strategies,
 } from './lib/quote/quote.types';
 
+export { constructOrderPair, validateBTCAddress } from './lib/utils';
+
 export {
-  switchOrAddNetwork,
-  constructOrderPair,
   evmToViemChainMap,
-  validateBTCAddress,
-} from './lib/utils';
+  switchOrAddNetwork,
+} from './lib/switchOrAddNetwork';
+
+export { API } from './lib/constants';

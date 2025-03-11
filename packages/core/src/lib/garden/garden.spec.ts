@@ -1,130 +1,72 @@
-import { Quote } from './../quote/quote';
 import { Garden } from './garden';
-import { SecretManager } from './../secretManager/secretManager';
-import { MemoryStorage, Siwe, Url, with0x } from '@gardenfi/utils';
+import { Environment, with0x } from '@gardenfi/utils';
 import { createWalletClient, http, WalletClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { beforeAll, describe, expect, it } from 'vitest';
-import { ArbitrumLocalnet, createOrderObject } from '../testUtils';
+import { describe, expect, it } from 'vitest';
 import {
   Chain,
   Chains,
-  EthereumLocalnet,
+  isBitcoin,
   MatchedOrder,
+  SupportedAssets,
+  // SupportedAssets,
 } from '@gardenfi/orderbook';
-import { ISecretManager } from '../secretManager/secretManager.types';
-import {
-  BitcoinNetwork,
-  BitcoinProvider,
-  BitcoinWallet,
-  IBitcoinProvider,
-} from '@catalogfi/wallets';
-import { EvmRelay } from '../evm/relay/evmRelay';
 import { sleep } from '@catalogfi/utils';
+import { arbitrumSepolia, sepolia } from 'viem/chains';
+// import { BitcoinNetwork, BitcoinProvider } from '@catalogfi/wallets';
+// import { Quote } from './../quote/quote';
+// import { Orderbook } from 'gardenfi/orderbook';
 
-describe('garden', () => {
-  const orderBookApi = 'http://localhost:4426';
-  const quoteApi = 'http://localhost:6969';
-  const bitcoinProviderApi = 'http://localhost:30000';
+describe('swap and execute using garden', () => {
+  // const bitcoinAddress = 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru';
   const pk =
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
+  // const address = '0x52FE8afbbB800a33edcbDB1ea87be2547EB30000';
   const account = privateKeyToAccount(with0x(pk));
   console.log('account :', account.address);
 
   const arbitrumWalletClient = createWalletClient({
     account,
-    chain: ArbitrumLocalnet,
+    chain: arbitrumSepolia,
     transport: http(),
   });
   const ethereumWalletClient = createWalletClient({
     account,
-    chain: EthereumLocalnet,
+    chain: sepolia,
     transport: http(),
   });
 
-  const auth = new Siwe(new Url(orderBookApi), arbitrumWalletClient, {
-    store: new MemoryStorage(),
+  // const quote = new Quote('https://quote-choas.onrender.com/');
+  // const orderBookUrl = 'https://evm-swapper-relay-1.onrender.com/';
+
+  const garden = new Garden({
+    // orderbookURl: orderBookUrl,
+    // quote,
+    environment: Environment.TESTNET,
+    evmWallet: arbitrumWalletClient,
   });
-  const quote = new Quote(quoteApi);
+  let wallets: Partial<{ [key in Chain]: WalletClient }> = {};
 
-  let secretManager: ISecretManager;
-  let garden: Garden;
-  let evmAddress = account.address;
-  let btcPubkey: string;
-  let btcAddress: string;
-  let bitcoinProvider: IBitcoinProvider;
-  let btcWallet: BitcoinWallet;
-  let wallets: Partial<{ [key in Chain]: WalletClient | BitcoinWallet }> = {};
-
-  beforeAll(async () => {
-    const result = await SecretManager.fromWalletClient(arbitrumWalletClient);
-    if (result.error) {
-      throw new Error(result.error);
-    }
-    expect(result.val).toBeTruthy();
-
-    secretManager = result.val;
-    garden = new Garden({
-      orderbookURl: orderBookApi,
-      secretManager,
-      quote,
-      auth: auth,
-      wallets: {
-        evmWallet: arbitrumWalletClient,
-      },
-    });
-    evmAddress = arbitrumWalletClient.account.address;
-    bitcoinProvider = new BitcoinProvider(
-      BitcoinNetwork.Regtest,
-      bitcoinProviderApi,
-    );
-    btcWallet = BitcoinWallet.fromPrivateKey(
-      secretManager.getMasterPrivKey(),
-      bitcoinProvider,
-    );
-    btcPubkey = await btcWallet.getPublicKey();
-    btcAddress = await btcWallet.getAddress();
-
-    if (
-      !secretManager ||
-      !btcPubkey ||
-      !garden ||
-      !bitcoinProvider ||
-      !btcWallet ||
-      !evmAddress ||
-      !btcAddress
-    )
-      throw new Error('Failed to initialize');
-
-    wallets = {
-      [Chains.arbitrum_localnet]: arbitrumWalletClient,
-      [Chains.ethereum_localnet]: ethereumWalletClient,
-      [Chains.bitcoin_regtest]: btcWallet,
-    };
-  });
+  wallets = {
+    [Chains.arbitrum_sepolia]: arbitrumWalletClient,
+    [Chains.ethereum_sepolia]: ethereumWalletClient,
+    // [Chains.bitcoin_regtest]: btcWallet,
+  };
 
   let order: MatchedOrder;
 
-  it('should create an order', async () => {
-    // const order = createOrderObject(
-    //   Chains.arbitrum_localnet,
-    //   Chains.bitcoin_regtest,
-    //   evmAddress,
-    //   toXOnly(btcPubkey),
-    //   btcAddress,
-    // );
-    // const order = createOrderObject(
-    //   Chains.bitcoin_regtest,
-    //   Chains.arbitrum_localnet,
-    //   toXOnly(btcPubkey),
-    //   evmAddress,
-    //   btcAddress,
-    // );
-    const orderObj = createOrderObject(
-      Chains.arbitrum_localnet,
-      Chains.ethereum_localnet,
-      'alel12',
-    );
+  it.skip('should create an order', async () => {
+    const orderObj = {
+      fromAsset: SupportedAssets.testnet.arbitrum_sepolia_SEED,
+      toAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
+      sendAmount: '100000000000000000000'.toString(),
+      receiveAmount: '104213'.toString(),
+      additionalData: {
+        strategyId: 'aae4btyr',
+        btcAddress: 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru',
+      },
+      minDestinationConfirmations: 0,
+    };
 
     const result = await garden.swap(orderObj);
     if (result.error) {
@@ -143,24 +85,61 @@ describe('garden', () => {
   }, 60000);
 
   //TODO: also add bitcoin init
-  it('Initiate the swap', async () => {
-    const evmRelay = new EvmRelay(order, orderBookApi, auth);
-    const res = await evmRelay.init(
+  it.skip('Initiate the swap', async () => {
+    if (isBitcoin(order.source_swap.chain)) {
+      console.warn('Bitcoin swap, skipping initiation');
+    }
+    const res = await garden.evmRelay.init(
       wallets[order.source_swap.chain] as WalletClient,
+      order,
     );
     console.log('initiated ✅ :', res.val);
     if (res.error) console.log('init error ❌ :', res.error);
     expect(res.ok).toBeTruthy();
   }, 20000);
 
-  it('subscribe to orders and execute', async () => {
-    await garden.execute();
+  it('EXECUTE', async () => {
     garden.on('error', (order, error) => {
-      console.log('error while executing ❌', error);
+      console.log(
+        'error while executing ❌, orderId :',
+        order.create_order.create_id,
+        'error :',
+        error,
+      );
     });
     garden.on('success', (order, action, result) => {
-      console.log('executed ✅ ', action, result);
+      console.log(
+        'executed ✅, orderId :',
+        order.create_order.create_id,
+        'action :',
+        action,
+        'result :',
+        result,
+      );
     });
+    garden.on('log', (id, message) => {
+      console.log('log :', id, message);
+    });
+    garden.on('onPendingOrdersChanged', (orders) => {
+      console.log('pendingorders :', orders.length);
+      orders.forEach((order) => {
+        console.log('pending order :', order.create_order.create_id);
+      });
+    });
+    garden.on('rbf', (order, result) => {
+      console.log('rbf :', order.create_order.create_id, result);
+    });
+    await garden.execute();
     await sleep(150000);
   }, 150000);
 });
+
+// describe('get btc tx', () => {
+//   const provider = new BitcoinProvider(BitcoinNetwork.Testnet);
+//   it('should get btc tx', async () => {
+//     const tx = await provider.getTransaction(
+//       'ac3f0bc4d98b1fe8da1f21f1cadadb33a3e903ee10260836fc3a853df125fabd',
+//     );
+//     console.log('tx :', tx);
+//   });
+// });

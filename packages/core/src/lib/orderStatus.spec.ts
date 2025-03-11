@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { isExpired, ParseOrderStatus } from './orderStatusParser';
 import { OrdersProvider } from '@gardenfi/orderbook';
-import { BlockNumberFetcher } from './blockNumber';
+import { BlockNumberFetcher } from './blockNumberFetcher/blockNumber';
+import { Environment } from 'gardenfi/utils';
 
 describe('orderStatus', () => {
   it('test IsExpired', async () => {
@@ -13,7 +14,7 @@ describe('orderStatus', () => {
   it('status', async () => {
     const blockNumberFetcher = new BlockNumberFetcher(
       'https://prod-mainnet-virtual-balance-pr-5.onrender.com/',
-      'testnet',
+      Environment.TESTNET,
     );
     const blockNumbers = await blockNumberFetcher.fetchBlockNumbers();
     console.log('blockNumbers :', blockNumbers.val);

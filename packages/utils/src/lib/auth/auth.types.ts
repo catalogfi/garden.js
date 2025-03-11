@@ -7,16 +7,17 @@ export type SiweOpts = {
   signingStatement?: string;
 };
 
-export interface IAuth {
-  /**
-   * Get a token from store if available or fetch from the wallet
-   * @returns verified token
-   */
+export type AuthHeader = {
+  [key: string]: string;
+};
+
+export interface ISiwe {
   getToken(): AsyncResult<string, string>;
-  /**
-   * Verify the token expiry and account
-   * @param token The token to verify
-   * @param account The account to verify the token against
-   */
   verifyToken(token: string, account: string): Result<boolean, string>;
+}
+
+export interface IAuth {
+  siwe?: ISiwe;
+  apiKey?: string;
+  getAuthHeaders(): AsyncResult<AuthHeader, string>;
 }

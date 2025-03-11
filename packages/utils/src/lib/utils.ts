@@ -12,3 +12,14 @@ export const Authorization = (authToken: string) => `Bearer ${authToken}`;
 
 export const sleep = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
+
+export enum Network {
+  MAINNET = 'mainnet',
+  TESTNET = 'testnet',
+}
+
+export enum Environment {
+  MAINNET = 'mainnet',
+  TESTNET = 'testnet',
+  LOCALNET = 'localnet',
+}

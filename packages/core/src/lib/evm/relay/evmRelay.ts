@@ -5,7 +5,6 @@ import { IEVMRelay } from './evmRelay.types';
 import { AsyncResult, Err, Fetcher, Ok, trim0x } from '@catalogfi/utils';
 import {
   APIResponse,
-  Authorization,
   IAuth,
   Url,
   with0x,
@@ -15,23 +14,24 @@ import { AtomicSwapABI } from '../abi/atomicSwap';
 export class EvmRelay implements IEVMRelay {
   private url: Url;
   private auth: IAuth;
-  private order: MatchedOrder;
 
-  constructor(order: MatchedOrder, url: string, auth: IAuth) {
+  constructor(url: string | Url, auth: IAuth) {
     this.url = new Url('/relayer', url);
     this.auth = auth;
-    this.order = order;
   }
 
-  async init(walletClient: WalletClient): AsyncResult<string, string> {
+  async init(
+    walletClient: WalletClient,
+    order: MatchedOrder,
+  ): AsyncResult<string, string> {
     if (!walletClient.account) return Err('No account found');
     if (
       walletClient.account.address.toLowerCase() !==
-      this.order.source_swap.initiator.toLowerCase()
+      order.source_swap.initiator.toLowerCase()
     )
       return Err('Account address and order initiator mismatch');
 
-    const { create_order, source_swap } = this.order;
+    const { create_order, source_swap } = order;
 
     if (
       !source_swap.amount ||
@@ -47,11 +47,11 @@ export class EvmRelay implements IEVMRelay {
     const amount = BigInt(source_swap.amount);
 
     try {
-      const auth = await this.auth.getToken();
+      const auth = await this.auth.getAuthHeaders();
       if (auth.error) return Err(auth.error);
 
       const atomicSwap = getContract({
-        address: with0x(this.order.source_swap.asset),
+        address: with0x(order.source_swap.asset),
         abi: AtomicSwapABI,
         client: walletClient,
       });
@@ -60,7 +60,7 @@ export class EvmRelay implements IEVMRelay {
       const approval = await checkAllowanceAndApprove(
         Number(amount),
         token,
-        this.order.source_swap.asset,
+        order.source_swap.asset,
         walletClient,
       );
       if (approval.error) return Err(approval.error);
@@ -92,6 +92,11 @@ export class EvmRelay implements IEVMRelay {
         },
       });
 
+      const headers: Record<string, string> = {
+        ...auth.val,
+        'Content-Type': 'application/json',
+      };
+
       const res = await Fetcher.post<APIResponse<string>>(
         this.url.endpoint('initiate'),
         {
@@ -100,10 +105,7 @@ export class EvmRelay implements IEVMRelay {
             signature,
             perform_on: 'Source',
           }),
-          headers: {
-            Authorization: Authorization(auth.val),
-            'Content-Type': 'application/json',
-          },
+          headers,
         },
       );
       if (res.error) return Err(res.error);
@@ -116,8 +118,8 @@ export class EvmRelay implements IEVMRelay {
 
   async redeem(orderId: string, secret: string): AsyncResult<string, string> {
     try {
-      const auth = await this.auth.getToken();
-      if (auth.error) return Err(auth.error);
+      const headers = await this.auth.getAuthHeaders();
+      if (headers.error) return Err(headers.error);
 
       const res = await Fetcher.post<APIResponse<string>>(
         this.url.endpoint('redeem'),
@@ -128,7 +130,7 @@ export class EvmRelay implements IEVMRelay {
             perform_on: 'Destination',
           }),
           headers: {
-            Authorization: Authorization(auth.val),
+            ...headers.val,
             'Content-Type': 'application/json',
           },
         },

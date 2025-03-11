@@ -41,7 +41,8 @@ export const Chains = {
   bitcoin_testnet: 'bitcoin_testnet',
   bitcoin_regtest: 'bitcoin_regtest',
   ethereum: 'ethereum',
-  ethereum_arbitrum: 'ethereum_arbitrum',
+  base: 'base',
+  arbitrum: 'arbitrum',
   ethereum_sepolia: 'ethereum_sepolia',
   arbitrum_localnet: 'arbitrum_localnet',
   arbitrum_sepolia: 'arbitrum_sepolia',
@@ -50,6 +51,10 @@ export const Chains = {
   solana: 'solana',
   solana_devnet: 'solana_devnet',
   solana_localnet: 'solana_localnet',
+  bera_testnet: 'bera_testnet',
+  citrea_testnet: 'citrea_testnet',
+  bera: 'bera',
+  monad_testnet: 'monad_testnet',
 } as const;
 
 export type Chain = keyof typeof Chains;
@@ -68,7 +73,10 @@ export const isMainnet = (chain: Chain) => {
     chain === Chains.ethereum_localnet ||
     chain === Chains.arbitrum_sepolia ||
     chain === Chains.base_sepolia ||
-    chain === Chains.solana
+    chain === Chains.solana ||
+    chain === Chains.bera_testnet ||
+    chain === Chains.citrea_testnet ||
+    chain === Chains.monad_testnet
   );
 };
 
@@ -83,13 +91,36 @@ export const isBitcoin = (chain: Chain) => {
 export const isEVM = (chain: Chain) => {
   return (
     chain === Chains.ethereum ||
-    chain === Chains.ethereum_arbitrum ||
+    chain === Chains.arbitrum ||
     chain === Chains.ethereum_sepolia ||
     chain === Chains.ethereum_localnet ||
     chain === Chains.arbitrum_localnet ||
     chain === Chains.arbitrum_sepolia ||
-    chain === Chains.base_sepolia
+    chain === Chains.base_sepolia ||
+    chain === Chains.base ||
+    chain === Chains.bera_testnet ||
+    chain === Chains.citrea_testnet ||
+    chain === Chains.bera ||
+    chain === Chains.monad_testnet
   );
+};
+
+export const TimeLocks: Record<Chain, number> = {
+  [Chains.bitcoin]: 144,
+  [Chains.bitcoin_testnet]: 144,
+  [Chains.bitcoin_regtest]: 144,
+  [Chains.ethereum]: 7200,
+  [Chains.arbitrum]: 7200,
+  [Chains.ethereum_sepolia]: 7200,
+  [Chains.arbitrum_localnet]: 7200,
+  [Chains.arbitrum_sepolia]: 7200,
+  [Chains.ethereum_localnet]: 7200,
+  [Chains.base_sepolia]: 7200,
+  [Chains.base]: 43200,
+  [Chains.bera_testnet]: 28800,
+  [Chains.citrea_testnet]: 28800,
+  [Chains.bera]: 43200,
+  [Chains.monad_testnet]: 172800,
 };
 
 export const getBlockchainType = (chain: Chain) => {
@@ -97,4 +128,9 @@ export const getBlockchainType = (chain: Chain) => {
   if (isEVM(chain)) return BlockchainType.EVM;
   if (chain.includes("solana")) return BlockchainType.Solana;
   throw new Error('Invalid or unsupported chain');
+};
+
+export const getTimeLock = (chain: Chain) => {
+  if (!TimeLocks[chain]) throw new Error('Invalid or unsupported chain');
+  return TimeLocks[chain];
 };

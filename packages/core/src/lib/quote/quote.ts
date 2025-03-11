@@ -1,4 +1,4 @@
-import { AsyncResult, Err, Fetcher, Ok } from '@catalogfi/utils';
+import { AsyncResult, Err, Fetcher, Ok, Request } from '@catalogfi/utils';
 import {
   IQuote,
   QuoteResponse,
@@ -19,14 +19,22 @@ export class Quote implements IQuote {
     this.quoteUrl = new Url('/quote', quoteUrl);
   }
 
-  async getQuote(orderpair: string, amount: number, isExactOut = false) {
+  async getQuote(
+    orderpair: string,
+    amount: number,
+    isExactOut = false,
+    request?: Request,
+  ) {
     try {
       const url = this.quoteUrl.addSearchParams({
         order_pair: orderpair,
         amount: amount.toString(),
         exact_out: isExactOut.toString(),
       });
-      const res = await Fetcher.get<APIResponse<QuoteResponse>>(url);
+      const res = await Fetcher.get<APIResponse<QuoteResponse>>(url, {
+        retryCount: 0,
+        ...request,
+      });
 
       if (res.error) return Err(res.error);
       if (!res.result)
@@ -85,6 +93,7 @@ export class Quote implements IQuote {
           id: value.id,
           minAmount: value.min_amount,
           maxAmount: value.max_amount,
+          fee: value.fee,
         };
       }
 

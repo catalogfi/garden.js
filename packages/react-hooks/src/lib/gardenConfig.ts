@@ -20,6 +20,12 @@ export const GARDEN_CONFIG: Partial<Record<environment, GardenConfigType>> = {
     blockNumberFetcherUrl:
       'https://prod-mainnet-virtual-balance-pr-5.onrender.com',
   },
+  [environment.mainnet]: {
+    orderBookUrl: 'https://orderbookv2.garden.finance/',
+    quoteUrl: 'https://quotev2.garden.finance',
+    bitcoinRPCUrl: 'https://mempool.space/api',
+    blockNumberFetcherUrl: 'https://info-8ocl.onrender.com',
+  },
 } as const;
 
 export const getConfigForNetwork = (network: environment): GardenConfigType => {

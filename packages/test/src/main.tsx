@@ -6,9 +6,9 @@ import { createConfig, http, WagmiProvider } from 'wagmi';
 import { arbitrum, mainnet } from 'wagmi/chains';
 import { injected, metaMask, safe } from 'wagmi/connectors';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { GardenProvider } from '@gardenfi/react-hooks';
 import { ArbitrumLocalnet, EthereumLocalnet } from '@gardenfi/orderbook';
-import { BitcoinNetwork } from '@catalogfi/wallets';
+import { BTCWalletProvider } from '@gardenfi/wallet-connectors';
+import { Network } from '@gardenfi/utils';
 
 export const SupportedChains = [
   mainnet,
@@ -36,15 +36,9 @@ createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <GardenProvider
-          config={{
-            store: localStorage,
-            network: BitcoinNetwork.Testnet,
-            orderBookUrl: 'http://localhost:4426'
-          }}
-        >
+        <BTCWalletProvider network={Network.MAINNET} store={localStorage}>
           <App />
-        </GardenProvider>
+        </BTCWalletProvider>
       </QueryClientProvider>
     </WagmiProvider>
   </React.StrictMode>,
