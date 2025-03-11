@@ -12,15 +12,13 @@ import Transaction from '../transactions/Transactions';
 import { BitcoinProvider, BitcoinWallet } from '@catalogfi/wallets';
 
 export const SwapComponent = () => {
-  const { swapParams, setAdditionalId } = useSwapStore();
+  const { swapParams, setAdditionalId, btcWallet, setBtcWallet } = useSwapStore();
   const { address: EvmAddress } = useAccount();
   const { account } = useBitcoinWallet();
   const { provider } = useBitcoinWallet();
   const { swapAndInitiate } = useGarden();
   const [loading, setLoading] = useState(false);
   const [funding, setFunding] = useState(false);
-  const [btcWallet, setBtcWallet] = useState<BitcoinWallet | null>(null);
-  const [btcAddress, setBtcAddress] = useState('');
 
   async function fund(addr: string): Promise<void> {
     try {
@@ -48,7 +46,7 @@ export const SwapComponent = () => {
     if (isBitcoin(swapParams.fromAsset.chain || swapParams.toAsset.chain)) {
       const bitcoinProvider = new BitcoinProvider(
         BitcoinNetwork.Regtest,
-        'https://indexer-merry.hashira.io',
+        'https://indexer.merry.dev',
       );
 
       const newBtcWallet = BitcoinWallet.createRandom(bitcoinProvider);
@@ -57,11 +55,9 @@ export const SwapComponent = () => {
       if (!newBtcWallet) return;
 
       const newBtcAddress = await newBtcWallet.getAddress();
-      setBtcAddress(newBtcAddress);
+      setAdditionalId(swapParams.additionalData.strategyId, newBtcAddress);
 
       await fund(account ?? newBtcAddress);
-      setAdditionalId(swapParams.additionalData.strategyId, account ?? btcAddress);
-      
       setFunding(false);
     }
   };
@@ -84,8 +80,6 @@ export const SwapComponent = () => {
     const outputAmountInDecimals = new BigNumber(swapParams.receiveAmount)
       .multipliedBy(10 ** swapParams.toAsset.decimals)
       .toFixed();
-
-    console.log(swapParams.additionalData);
 
     const res = await swapAndInitiate({
       fromAsset: swapParams.fromAsset,

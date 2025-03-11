@@ -7,6 +7,12 @@ import { injected, metaMask, safe } from 'wagmi/connectors';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BTCWalletProvider } from '@gardenfi/wallet-connectors';
 import { Network } from '@gardenfi/utils';
+import { InjectedConnector } from 'starknetkit/injected';
+import {
+  mainnet as starknet_mainnet,
+  sepolia as starknet_sepolia,
+} from '@starknet-react/chains';
+import { StarknetConfig, publicProvider } from '@starknet-react/core';
 
 import {
   arbitrum,
@@ -23,7 +29,7 @@ import {
   berachain,
   citreaTestnet,
   monadTestnet,
-} from "wagmi/chains";
+} from 'wagmi/chains';
 
 export const SupportedChains = [
   mainnet,
@@ -63,17 +69,28 @@ export const config = createConfig({
   },
 });
 
+const chains = [starknet_mainnet, starknet_sepolia];
+const connectors = [
+  new InjectedConnector({ options: { id: 'braavos', name: 'Braavos' } }),
+  new InjectedConnector({ options: { id: 'argentX', name: 'Argent X' } }),
+];
 
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <BTCWalletProvider network={Network.TESTNET} store={localStorage}>
-          <App />
-        </BTCWalletProvider>
-      </QueryClientProvider>
+      <StarknetConfig
+        chains={chains}
+        provider={publicProvider()}
+        connectors={connectors}
+      >
+        <QueryClientProvider client={queryClient}>
+          <BTCWalletProvider network={Network.TESTNET} store={localStorage}>
+            <App />
+          </BTCWalletProvider>
+        </QueryClientProvider>
+      </StarknetConfig>
     </WagmiProvider>
   </React.StrictMode>,
 );

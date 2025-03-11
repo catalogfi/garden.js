@@ -5,7 +5,6 @@ import { Url } from '../url';
 import { createWalletClient, http } from 'viem';
 import { sepolia } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
-import { verify } from 'crypto';
 
 describe.each([
   'https://orderbook-stage.hashira.io',

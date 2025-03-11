@@ -38,6 +38,7 @@ import { WalletClient } from 'viem';
 import {
   BitcoinProvider,
   BitcoinWallet,
+  IBitcoinProvider,
   IBitcoinWallet,
 } from '@catalogfi/wallets';
 import {
@@ -67,8 +68,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private _quote: IQuote;
   private getOrderThreshold = 20;
   private _orderbookUrl: Url;
-  private _indexerUrl: string;
-  private _infoServer: string;
   private _auth: IAuth;
   private orderExecutorCache: IOrderExecutorCache;
   private _blockNumberFetcher: IBlockNumberFetcher;
@@ -115,18 +114,17 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       walletClient: config.evmWallet,
       auth: this._auth,
     });
-    this._indexerUrl = config.indexerUrl ?? "";
-    this._infoServer = config.infoServer ?? api.info;
     this._evmRelay = new EvmRelay(this._orderbookUrl, this._auth);
     this._secretManager =
       config.secretManager ?? SecretManager.fromWalletClient(config.evmWallet);
     this.orderExecutorCache = new ExecutorCache();
     this._evmWallet = config.evmWallet;
+    this._btcWallet = config.btcWallet;
     if (!config.evmWallet.account)
       throw new Error('Account not found in evmWallet');
     this._blockNumberFetcher =
       config.blockNumberFetcher ??
-      new BlockNumberFetcher(this._infoServer, config.environment);
+      new BlockNumberFetcher(api.info, config.environment);
   }
 
   get orderbookUrl() {
@@ -163,14 +161,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     const digestKey = await this._secretManager.getDigestKey();
     if (digestKey.error) return Err(digestKey.error);
 
-    if(this.environment === Environment.LOCALNET) {
-      const provider = new BitcoinProvider(getBitcoinNetwork(this.environment), this._indexerUrl);
+    if(!this._btcWallet) {
+      const provider: IBitcoinProvider = new BitcoinProvider(getBitcoinNetwork(this.environment));
       this._btcWallet = BitcoinWallet.fromPrivateKey(digestKey.val, provider);
-      return Ok(this._btcWallet);
     }
-
-    const provider = new BitcoinProvider(getBitcoinNetwork(this.environment));
-    this._btcWallet = BitcoinWallet.fromPrivateKey(digestKey.val, provider);
     return Ok(this._btcWallet);
   }
 

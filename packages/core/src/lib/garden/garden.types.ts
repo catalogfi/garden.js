@@ -153,8 +153,7 @@ export type GardenProps = {
   orderbookURl?: string;
   quote?: string;
   blockNumberFetcher?: IBlockNumberFetcher;
-  indexerUrl?: string;
-  infoServer?: string;
+  btcWallet?: IBitcoinWallet;
 };
 
 /**

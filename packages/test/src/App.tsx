@@ -2,10 +2,12 @@ import { GardenProvider } from '@gardenfi/react-hooks';
 import { useWalletClient } from 'wagmi';
 import { Swap } from './components/Swap';
 import { useEnvironmentStore } from './store/useEnvironmentStore';
+import { useSwapStore } from './store/swapStore';
 
 function App() {
   const { data: walletClient } = useWalletClient();
   const environment = useEnvironmentStore((state) => state.environment);
+  const { btcWallet } = useSwapStore();
 
   return (
     <GardenProvider
@@ -13,8 +15,7 @@ function App() {
         store: localStorage,
         environment,
         walletClient: walletClient,
-        indexerUrl: 'https://indexer-merry.hashira.io',
-        infoServer: 'https://info-merry.hashira.io',
+        btcWallet: btcWallet,
       }}
     >
       <Swap />

@@ -15,7 +15,7 @@ export const fund = async (address: string) => {
   });
 };
 
-export const mineBtcBlocks = async (blocks: number, address: string) => {
+export const mineBtcBlocks = async (blocks: number, address: string, url?: string) => {
   const body = {
     jsonrpc: '1.0',
     id: 'mine',
@@ -27,7 +27,7 @@ export const mineBtcBlocks = async (blocks: number, address: string) => {
     Authorization: `Basic ${btoa('admin1:123')}`,
   });
 
-  const response = await Fetcher.post('http://localhost:18443/', {
+  const response = await Fetcher.post(url ?? 'https://btcnode.merry.dev/', {
     headers,
     body: JSON.stringify(body),
   });
@@ -54,7 +54,7 @@ export const ArbitrumLocalnet: Chain = {
   },
   rpcUrls: {
     default: {
-      http: ['https://arb-merry.hashira.io/'],
+      http: ['https://arb.merry.dev/'],
     },
   },
   testnet: true,
@@ -69,7 +69,7 @@ export const EthereumLocalnet: Chain = {
   },
   rpcUrls: {
     default: {
-      http: ['https://eth-merry.hashira.io/'],
+      http: ['https://eth.merry.dev/'],
     },
   },
   testnet: true,
@@ -117,14 +117,14 @@ export const createOrderObject = (
     fromChain === Chains.arbitrum_localnet
       ? WBTCArbitrumLocalnetAsset
       : fromChain === Chains.ethereum_localnet
-      ? WBTCEthereumLocalnetAsset
-      : bitcoinRegtestAsset;
+        ? WBTCEthereumLocalnetAsset
+        : bitcoinRegtestAsset;
   const toAsset =
     toChain === Chains.arbitrum_localnet
       ? WBTCArbitrumLocalnetAsset
       : toChain === Chains.ethereum_localnet
-      ? WBTCEthereumLocalnetAsset
-      : bitcoinRegtestAsset;
+        ? WBTCEthereumLocalnetAsset
+        : bitcoinRegtestAsset;
 
   const additionalData = { btcAddress, strategyId };
 

@@ -5,13 +5,13 @@ export const ArbitrumLocalnet: Chain = {
   id: 31338,
   name: 'Arbitrum Localnet',
   nativeCurrency: {
-    name: 'Arbitrum',
-    symbol: 'ARB',
+    name: 'Ethereum',
+    symbol: 'ETH',
     decimals: 18,
   },
   rpcUrls: {
     default: {
-      http: ['http://20.127.146.112:8546/'],
+      http: ['https://arb.merry.dev/'],
     },
   },
   testnet: true,
@@ -26,7 +26,7 @@ export const EthereumLocalnet: Chain = {
   },
   rpcUrls: {
     default: {
-      http: ['http://20.127.146.112:8545/'],
+      http: ['https://eth.merry.dev/'],
     },
   },
   testnet: true,

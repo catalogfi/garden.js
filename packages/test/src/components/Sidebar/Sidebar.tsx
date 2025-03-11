@@ -2,6 +2,7 @@ import { BTCWallets } from "./BTCWallets";
 import { Details } from "./Details";
 import { EVMWallets } from "./EVMWallets";
 import LogoutButtons from "./LogoutButtons";
+import { StarknetWallets } from "./StarknetWallets";
 import { SupportedChains } from "./SupportedChains";
 import SwitchNetwork from "./SwitchNetwork";
 
@@ -15,6 +16,7 @@ export const Sidebar = () => {
       <Details />
       <EVMWallets />
       <BTCWallets />
+      <StarknetWallets />
       <SupportedChains />
       <SwitchNetwork />
     </div>

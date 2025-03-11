@@ -1,13 +1,13 @@
-import { FC, useMemo } from "react";
-import { SwapInfo } from "../common/SwapInfo";
-import { MatchedOrder } from "@gardenfi/orderbook";
+import { FC, useMemo } from 'react';
+import { SwapInfo } from '../common/SwapInfo';
+import { MatchedOrder } from '@gardenfi/orderbook';
 import {
   formatAmount,
   getAssetFromSwap,
   getDayDifference,
-} from "../../utils/utils";
-import { OrderStatus } from "@gardenfi/core";
-import { assetInfoStore } from "../../store/assetInfoStore";
+} from '../../utils/utils';
+import { OrderStatus } from '@gardenfi/core';
+import { assetInfoStore } from '../../store/assetInfoStore';
 
 type TransactionProps = {
   order: MatchedOrder;
@@ -17,13 +17,13 @@ type TransactionProps = {
 };
 
 enum StatusLabel {
-  Completed = "Completed",
-  Pending = "In progress...",
-  Expired = "Expired",
-  ShouldInitiate = "Awaiting deposit",
-  InitiateDetected = "Deposit detected (0/1)",
-  Initiated = "Deposit detected",
-  Redeeming = "Redeeming",
+  Completed = 'Completed',
+  Pending = 'In progress...',
+  Expired = 'Expired',
+  ShouldInitiate = 'Awaiting deposit',
+  InitiateDetected = 'Deposit detected (0/1)',
+  Initiated = 'Deposit detected',
+  Redeeming = 'Redeeming',
 }
 
 const getOrderStatusLabel = (status: OrderStatus) => {
@@ -62,38 +62,38 @@ export const TransactionRow: FC<TransactionProps> = ({
 
   const sendAsset = useMemo(
     () => getAssetFromSwap(source_swap, assets),
-    [source_swap, assets]
+    [source_swap, assets],
   );
   const receiveAsset = useMemo(
     () => getAssetFromSwap(destination_swap, assets),
-    [destination_swap, assets]
+    [destination_swap, assets],
   );
   const statusLabel = useMemo(
     () => status && getOrderStatusLabel(status),
-    [status]
+    [status],
   );
   const sendAmount = useMemo(
     () => formatAmount(create_order.source_amount, sendAsset?.decimals ?? 0),
-    [create_order.source_amount, sendAsset?.decimals]
+    [create_order.source_amount, sendAsset?.decimals],
   );
   const receiveAmount = useMemo(
     () =>
       formatAmount(
         create_order.destination_amount,
-        receiveAsset?.decimals ?? 0
+        receiveAsset?.decimals ?? 0,
       ),
-    [create_order.destination_amount, receiveAsset?.decimals]
+    [create_order.destination_amount, receiveAsset?.decimals],
   );
   const dayDifference = useMemo(
     () => getDayDifference(create_order.updated_at),
-    [create_order.updated_at]
+    [create_order.updated_at],
   );
 
   const handleTransactionClick = () => {
     if (order?.create_order?.create_id) {
       window.open(
         `https://gardenexplorer.hashira.io/order/${create_order.create_id}`,
-        "_blank"
+        '_blank',
       );
     }
   };
@@ -102,7 +102,9 @@ export const TransactionRow: FC<TransactionProps> = ({
 
   return (
     <div
-      className={`flex flex-col gap-1 p-4 ${isFirst ? "rounded-t-2xl" : ""} ${isLast ? "rounded-b-2xl" : ""} ${"cursor-pointer hover:bg-white/50" }`}
+      className={`flex flex-col gap-1 p-4 ${isFirst ? 'rounded-t-2xl' : ''} ${
+        isLast ? 'rounded-b-2xl' : ''
+      } ${'cursor-pointer hover:bg-white/50'}`}
       onClick={handleTransactionClick}
     >
       <div className={`flex flex-col gap-1 `}>
@@ -113,12 +115,8 @@ export const TransactionRow: FC<TransactionProps> = ({
           receiveAmount={receiveAmount}
         />
         <div className="flex justify-between">
-          <p>
-            {statusLabel}
-          </p>
-          <p>
-            {dayDifference}
-          </p>
+          <p>{statusLabel}</p>
+          <p>{dayDifference}</p>
         </div>
       </div>
     </div>

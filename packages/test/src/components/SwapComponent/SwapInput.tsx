@@ -58,7 +58,6 @@ export const SwapInput = () => {
         if(account) setAdditionalId(strategy, account);
         else setAdditionalId(strategy);
       } else setAdditionalId(strategy);
-      console.log(strategy);
     } else {
       setReceiveAmount('');
     }

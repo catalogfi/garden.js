@@ -11,7 +11,7 @@ const BitcoinExplorers = {
     Blockstream: 'https://blockstream.info',
   },
   localnet: {
-    Mempool: 'https://indexer-merry.hashira.io',
+    Mempool: 'https://indexer.merry.dev',
   }
 };
 

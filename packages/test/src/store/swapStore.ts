@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { Asset, SupportedAssets } from "@gardenfi/orderbook";
 import { useEnvironmentStore } from "../store/useEnvironmentStore";
+import { BitcoinWallet } from "@catalogfi/wallets";
 
 export const getAssets = (environment: string) => {
     const assets =
@@ -24,17 +25,19 @@ type SwapParams = {
     toAsset?: Asset;
     sendAmount?: string;
     receiveAmount?: string;
-    additionalData: { strategyId: string, btcAddress?: string };
+    additionalData: { strategyId: string; btcAddress?: string };
 };
 
 type SwapStore = {
     assets: Record<string, Asset>;
     swapParams: SwapParams;
+    btcWallet: BitcoinWallet | undefined;
     setFromAsset: (asset: Asset) => void;
     setToAsset: (asset: Asset) => void;
     setSendAmount: (amount: string) => void;
     setReceiveAmount: (amount: string) => void;
     setAdditionalId: (strategyId: string, btcAddress?: string) => void;
+    setBtcWallet: (wallet: BitcoinWallet | undefined) => void;
     refreshAssets: () => void;
 };
 
@@ -47,6 +50,7 @@ export const useSwapStore = create<SwapStore>((set, get) => {
         swapParams: {
             additionalData: { strategyId: "" },
         },
+        btcWallet: undefined,
 
         setFromAsset: (asset) =>
             set((state) => ({ swapParams: { ...state.swapParams, fromAsset: asset } })),
@@ -63,6 +67,7 @@ export const useSwapStore = create<SwapStore>((set, get) => {
                     additionalData: { strategyId, btcAddress },
                 },
             })),
+        setBtcWallet: (wallet) => set({ btcWallet: wallet }),
 
         refreshAssets: () => {
             const updatedEnvironment = useEnvironmentStore.getState().environment;

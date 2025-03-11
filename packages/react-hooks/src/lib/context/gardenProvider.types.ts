@@ -4,6 +4,7 @@ import { AsyncResult, Request, Result } from '@catalogfi/utils';
 import { IGardenJS, IQuote, QuoteResponse, SwapParams } from '@gardenfi/core';
 import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
 import { Environment, IStore, SiweOpts } from '@gardenfi/utils';
+import { IBitcoinWallet } from '@catalogfi/wallets';
 
 export type GardenContextType = {
   /**
@@ -65,9 +66,8 @@ export type GardenProviderProps = {
     store: IStore;
     environment: Environment;
     walletClient?: WalletClient;
+    btcWallet?: IBitcoinWallet;
     orderBookUrl?: string;
-    indexerUrl?: string;
-    infoServer?: string;
     quoteUrl?: string;
     bitcoinRPCUrl?: string;
     blockNumberFetcherUrl?: string;
