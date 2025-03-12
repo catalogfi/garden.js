@@ -12,7 +12,8 @@ import Transaction from '../transactions/Transactions';
 import { BitcoinProvider, BitcoinWallet } from '@catalogfi/wallets';
 
 export const SwapComponent = () => {
-  const { swapParams, setAdditionalId, btcWallet, setBtcWallet } = useSwapStore();
+  const { swapParams, setAdditionalId, btcWallet, setBtcWallet } =
+    useSwapStore();
   const { address: EvmAddress } = useAccount();
   const { account } = useBitcoinWallet();
   const { provider } = useBitcoinWallet();
@@ -21,6 +22,8 @@ export const SwapComponent = () => {
   const [funding, setFunding] = useState(false);
 
   async function fund(addr: string): Promise<void> {
+    console.log('Funding address:', addr);
+
     try {
       const response = await fetch('/fund', {
         method: 'POST',
@@ -43,23 +46,21 @@ export const SwapComponent = () => {
   const handleCreate = async () => {
     if (!swapParams.fromAsset || !swapParams.toAsset) return;
     setFunding(true);
-    if (isBitcoin(swapParams.fromAsset.chain || swapParams.toAsset.chain)) {
-      const bitcoinProvider = new BitcoinProvider(
-        BitcoinNetwork.Regtest,
-        'https://indexer.merry.dev',
-      );
+    const bitcoinProvider = new BitcoinProvider(
+      BitcoinNetwork.Regtest,
+      'https://indexer.merry.dev',
+    );
 
-      const newBtcWallet = BitcoinWallet.createRandom(bitcoinProvider);
-      setBtcWallet(newBtcWallet);
+    const newBtcWallet = BitcoinWallet.createRandom(bitcoinProvider);
+    setBtcWallet(newBtcWallet);
 
-      if (!newBtcWallet) return;
+    if (!newBtcWallet) return;
 
-      const newBtcAddress = await newBtcWallet.getAddress();
-      setAdditionalId(swapParams.additionalData.strategyId, newBtcAddress);
+    const newBtcAddress = await newBtcWallet.getAddress();
+    if (isBitcoin(swapParams.fromAsset.chain || swapParams.toAsset.chain)) setAdditionalId(swapParams.additionalData.strategyId, newBtcAddress);
 
-      await fund(account ?? newBtcAddress);
-      setFunding(false);
-    }
+    await fund(account ?? newBtcAddress);
+    setFunding(false);
   };
   const handleSwap = async () => {
     if (
