@@ -5,8 +5,8 @@ import { Environment } from '@gardenfi/utils';
 describe('blockNumber', () => {
   it('should fetch all block number', async () => {
     const fetcher = new BlockNumberFetcher(
-      'https://info.garden.finance/',
-      Environment.TESTNET,
+      'https://info.merry.dev/',
+      Environment.LOCALNET,
     );
     const res = await fetcher.fetchBlockNumbers();
 

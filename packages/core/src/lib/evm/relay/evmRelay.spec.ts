@@ -2,27 +2,28 @@ import { EvmRelay } from './evmRelay';
 import { privateKeyToAccount } from 'viem/accounts';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createWalletClient, http, createPublicClient, sha256 } from 'viem';
-import { MatchedOrder, Orderbook } from '@gardenfi/orderbook';
+import { CreateOrderReqWithStrategyId, MatchedOrder, Orderbook } from '@gardenfi/orderbook';
 import { randomBytes } from 'crypto';
 import { sleep } from '@catalogfi/utils';
 import {
   ArbitrumLocalnet,
-  // EthereumLocalnet,
   WBTCArbitrumLocalnetAsset,
   WBTCEthereumLocalnetAsset,
 } from '../../testUtils';
-import { Auth, Siwe, Url } from '@gardenfi/utils';
+import { Auth, Environment, Siwe, Url } from '@gardenfi/utils';
+import { Garden } from '@gardenfi/core';
+import { BitcoinNetwork, BitcoinProvider, BitcoinWallet } from '@catalogfi/wallets';
 // import { ParseOrderStatus } from '../order/parseOrderStatus';
 // import { OrderStatus } from '../order/order.types';
 
 describe('evmRelay', () => {
   const relayUrl = 'https://orderbook.merry.dev/';
-  const attestedQuoteUrl = 'https://quote.merry.dev/quote/attested';
   // const bitcoinIndexer = 'http://localhost:30000';
   const privKey =
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
 
   const account = privateKeyToAccount(privKey);
+  console.log('Account address:', account.address);
   const arbitrumWalletClient = createWalletClient({
     account,
     chain: ArbitrumLocalnet,
@@ -48,9 +49,39 @@ describe('evmRelay', () => {
     walletClient: arbitrumWalletClient,
     auth: auth,
   });
+  const btcWallet = BitcoinWallet.fromPrivateKey(
+    'ca15db40a48aba44d613949a52b09721e901f02adf397d7e436e2a7f24024b58',
+    new BitcoinProvider(BitcoinNetwork.Regtest, 'https://indexer.merry.dev'),
+  );
+
+  const garden = new Garden({
+    environment: Environment.LOCALNET,
+    evmWallet: arbitrumWalletClient as any,
+    btcWallet,
+  });
+
   let orderId: string = '';
   const secret = sha256(randomBytes(32));
   const secretHash = sha256(secret);
+
+  async function getAttestedQuote(
+    orderWithStrategyId: CreateOrderReqWithStrategyId,
+  ) {
+    console.log('Getting attested quote...');
+    const attestedQuoteResult = await garden.quote.getAttestedQuote(
+      orderWithStrategyId,
+    );
+    if (attestedQuoteResult.ok) {
+      console.log('✅ Attested Quote:', attestedQuoteResult.val);
+      return attestedQuoteResult.val;
+    } else {
+      console.error(
+        '❌ Error fetching attested quote:',
+        attestedQuoteResult.error,
+      );
+      return null;
+    }
+  }
 
   beforeAll(async () => {
     const currentBlockNumber = await arbitrumPublicClient.getBlockNumber();
@@ -58,30 +89,35 @@ describe('evmRelay', () => {
     const createOrderConfig = {
       source_chain: WBTCArbitrumLocalnetAsset.chain,
       destination_chain: WBTCEthereumLocalnetAsset.chain,
-      source_asset: WBTCArbitrumLocalnetAsset.tokenAddress,
-      destination_asset: WBTCEthereumLocalnetAsset.tokenAddress,
+      source_asset: WBTCArbitrumLocalnetAsset.atomicSwapAddress,
+      destination_asset: WBTCEthereumLocalnetAsset.atomicSwapAddress,
       initiator_source_address: account.address,
       initiator_destination_address: account.address,
-      source_amount: "100000",
-      destination_amount: "99990",
+      source_amount: "10000",
+      destination_amount: "9990",
       fee: "1",
-      nonce: 1741254355776,
+      nonce: "1741254355776",
       timelock: Number(currentBlockNumber) + 100,
-      secret_hash: secretHash,
+      secret_hash: secretHash.replace(/^0x/, ''),
       min_destination_confirmations: 0,
       additional_data: {
-        strategy_id: "alel12"
+        strategy_id: "alel12",
       }
     };
 
     console.log('creating order');
-    const response = await orderBook.createOrder(createOrderConfig);
-    console.log('response :', response.val);
-    if (response.error) console.log('response.error :', response.error);
-    orderId = response.val;
-    expect(response.ok).toBeTruthy();
-    expect(true).toBe(true);
-  });
+
+    const attestedQuote = await getAttestedQuote(createOrderConfig);
+
+    if (attestedQuote) {
+      const response = await orderBook.createOrder(attestedQuote);
+      console.log('response :', response.val);
+      if (response.error) console.log('response.error :', response.error);
+      orderId = response.val;
+      expect(response.ok).toBeTruthy();
+      expect(true).toBe(true);
+    }
+  }, 50000);
 
   it('should create a order', () => {
     expect(orderId).toBeDefined();
@@ -112,12 +148,11 @@ describe('evmRelay', () => {
         return;
       }
 
-      const blockNumber = await arbitrumPublicClient.getBlockNumber();
+      // const blockNumber = await arbitrumPublicClient.getBlockNumber();
 
       const res = await relayer.init(
         arbitrumWalletClient,
-        // WBTCArbitrumLocalnetAsset,
-        Number(blockNumber),
+        order
       );
       console.log('res :', res.val);
       if (res.error) console.log('res.error :', res.error);

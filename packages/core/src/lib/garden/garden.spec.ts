@@ -1,15 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { BitcoinProvider, BitcoinWallet, BitcoinNetwork } from '@catalogfi/wallets';
-import { Environment, sleep } from '@gardenfi/utils';
+import { Environment } from '@gardenfi/utils';
 import { privateKeyToAccount } from 'viem/accounts';
 import { createWalletClient, http } from 'viem';
-import { isBitcoin, MatchedOrder, SupportedAssets } from '@gardenfi/orderbook';
+import { MatchedOrder, SupportedAssets } from '@gardenfi/orderbook';
 import { arbitrumSepolia } from 'viem/chains';
 import { Garden } from './garden';
 
 const PRIVATE_KEY = '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
 
-describe('BTC to WBTC Swap on Localnet', () => {
+describe('Arb WBTC to Eth WBTC Swap on Localnet', () => {
   const account = privateKeyToAccount(PRIVATE_KEY);
 
   const evmWalletClient = createWalletClient({
@@ -39,13 +39,12 @@ describe('BTC to WBTC Swap on Localnet', () => {
     console.log('Generated BTC Address:', btcAddress);
 
     const orderParams = {
-      fromAsset: SupportedAssets.localnet.bitcoinRegtest,
-      toAsset: SupportedAssets.localnet.arbitrum_localnet_WBTC,
+      fromAsset: SupportedAssets.localnet.arbitrum_localnet_WBTC,
+      toAsset: SupportedAssets.localnet.ethereum_localnet_WBTC,
       sendAmount: '100000',
-      receiveAmount: '90000',
+      receiveAmount: '99990',
       additionalData: {
-        strategyId: 'bralc9',
-        btcAddress: btcAddress,
+        strategyId: 'alel12',
       },
       minDestinationConfirmations: 0,
     };
@@ -68,11 +67,7 @@ describe('BTC to WBTC Swap on Localnet', () => {
   }, 60000);
 
   it('should initiate and execute the swap', async () => {
-    if (isBitcoin(order.source_swap.chain)) {
-      console.warn('Bitcoin swap detected, initiating manually...');
-    }
-
-    // Initiate Swap
+    // Initiate the swap
     const res = await garden.evmRelay.init(evmWalletClient, order);
     console.log('Swap initiated ✅:', res.val);
     expect(res.ok).toBeTruthy();
@@ -80,7 +75,6 @@ describe('BTC to WBTC Swap on Localnet', () => {
     // Execute the swap
     console.log('Executing swap...');
     await garden.execute();
-    await sleep(30000); // Wait for execution to complete
     console.log('Swap executed ✅');
 
     expect(order.destination_swap.redeem_tx_hash).toBeTruthy();
@@ -90,7 +84,7 @@ describe('BTC to WBTC Swap on Localnet', () => {
 // Helper function for funding BTC address
 async function fund(addr: string): Promise<void> {
   try {
-    const response = await fetch('/fund', {
+    const response = await fetch('http://20.127.146.112:9090/fund', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
