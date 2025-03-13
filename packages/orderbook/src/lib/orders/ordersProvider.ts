@@ -12,8 +12,8 @@ import { ConstructUrl } from '../utils';
 export class OrdersProvider implements IOrderProvider {
   private url: Url;
 
-  constructor(url: string | Url) {
-    this.url = new Url('/orders', url);
+  constructor(url: string) {
+    this.url = new Url(url).endpoint('orders');
   }
 
   async getOrder<T extends boolean>(

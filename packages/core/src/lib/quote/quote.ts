@@ -52,7 +52,7 @@ export class Quote implements IQuote {
     try {
       const res = await Fetcher.post<
         APIResponse<CreateOrderRequestWithAdditionalData>
-      >(this.quoteUrl.endpoint('/attested').toString(), {
+      >(this.quoteUrl.endpoint('attested').toString(), {
         body: JSON.stringify(order),
         headers: {
           'Content-Type': 'application/json',
@@ -73,7 +73,7 @@ export class Quote implements IQuote {
   async getStrategies() {
     try {
       const res = await Fetcher.get<StrategiesResponse>(
-        this.quoteUrl.endpoint('/strategies'),
+        this.quoteUrl.endpoint('strategies'),
       );
 
       if (res.error) return Err(res.error);
