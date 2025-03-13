@@ -1,8 +1,7 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { GardenHTLC } from './htlc';
 import { generateInternalkey } from './internalKey';
-import { IBitcoinWallet } from '@catalogfi/wallets';
-import * as bitcoin from 'bitcoinjs-lib';
+import { BitcoinNetwork, BitcoinProvider, BitcoinWallet } from '@catalogfi/wallets';
 
 describe('GardenHTLC', () => {
   it('should log internal public key', () => {
@@ -12,21 +11,13 @@ describe('GardenHTLC', () => {
   });
 
   it('should create GardenHTLC instance correctly', async () => {
-    const mockSigner: IBitcoinWallet = {
-      getNetwork: vi.fn().mockResolvedValue(bitcoin.networks.testnet),
-      getAddress: vi.fn().mockResolvedValue('tb1pn8ds655835vw9d88azjauzy7upxdlzyshtr9ffnp2pczme0wnenszydyws'),
-      getProvider: vi.fn().mockResolvedValue({
-        suggestFee: vi.fn().mockResolvedValue(1000),
-        broadcast: vi.fn().mockResolvedValue('mockedTxId'),
-        getTransaction: vi.fn().mockResolvedValue({ txid: 'mockedTxId' }),
-        getUTXOs: vi.fn().mockResolvedValue([]),
-      }),
-      signSchnorr: vi.fn().mockResolvedValue(Buffer.from('mockedSignature', 'hex')),
-      send: vi.fn().mockResolvedValue('mockedTxId'),
-    } as unknown as IBitcoinWallet;
+    const btcWallet = BitcoinWallet.fromPrivateKey(
+        'ca15db40a48aba44d613949a52b09721e901f02adf397d7e436e2a7f24024b58',
+        new BitcoinProvider(BitcoinNetwork.Regtest, 'https://indexer.merry.dev'),
+      );
 
     const htlc = await GardenHTLC.from(
-      mockSigner,
+      btcWallet,
       99000,
       '3a728f1df9c9971c7fb5c586d2b919f297b21852a46f14a161c33afc4bddb0f8',
       'bcd6f4cfa96358c74dbc03fec5ba25da66bbc92a31b714ce339dd93db1a9ffac',
