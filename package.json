@@ -32,6 +32,7 @@
   },
   "packageManager": "yarn@4.3.1",
   "dependencies": {
-    "@catalogfi/utils": "^0.1.12"
+    "@catalogfi/utils": "^0.1.12",
+    "starknet": "^6.23.1"
   }
 }

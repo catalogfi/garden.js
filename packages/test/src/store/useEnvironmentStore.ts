@@ -7,6 +7,6 @@ interface EnvironmentState {
 }
 
 export const useEnvironmentStore = create<EnvironmentState>((set) => ({
-  environment: Environment.LOCALNET,
+  environment: Environment.TESTNET,
   setEnvironment: (env) => set({ environment: env }),
 }));
