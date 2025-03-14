@@ -27,8 +27,8 @@
   },
   "dependencies": {
     "@catalogfi/utils": "^0.1.6",
-    "@coral-xyz/anchor": "^0.30.1",
     "@catalogfi/wallets": "^0.2.59",
+    "@coral-xyz/anchor": "^0.30.1",
     "@gardenfi/orderbook": "workspace:^",
     "@gardenfi/utils": "workspace:^",
     "bignumber.js": "^9.1.2",

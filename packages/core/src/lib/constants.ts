@@ -6,12 +6,13 @@ export const API = {
   },
   testnet: {
     orderbook: 'https://orderbook.garden.finance',
-    quote: 'https://price.garden.finance',
+    // quote: 'https://price.garden.finance', Gives insufficient liquidity error for SOL
+    quote: 'http://localhost:6969',
     info: 'https://info.garden.finance',
   },
   localnet: {
-    orderbook: '',
-    quote: '',
+    orderbook: 'http://localhost:442',
+    quote: 'http://localhost:6969',
     info: '',
   },
 } as const;

@@ -7,7 +7,8 @@ import { ISecretManager } from '../secretManager/secretManager.types';
 import { IQuote } from '../quote/quote.types';
 import { IBlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
 import { IEVMRelay } from '../evm/relay/evmRelay.types';
-import { IBitcoinWallet } from '@catalogfi/wallets';
+import { BitcoinWallet, IBitcoinWallet } from '@catalogfi/wallets';
+import { AnchorProvider } from '@coral-xyz/anchor';
 
 export type SwapParams = {
   /**
@@ -102,6 +103,7 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
    */
   get evmRelay(): IEVMRelay;
 
+
   /**
    * The current quote.
    * @readonly
@@ -159,6 +161,10 @@ export type GardenProps = {
   orderbookURl?: string;
   quote?: string;
   blockNumberFetcher?: IBlockNumberFetcher;
+  solanaRelayUrl?: URL;
+  solanaRelayerAddress?: string;
+  solWallet?: AnchorProvider;
+  btcWallet?: BitcoinWallet;
 };
 
 /**

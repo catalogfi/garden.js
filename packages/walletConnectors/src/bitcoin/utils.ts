@@ -10,6 +10,12 @@ const BitcoinExplorers = {
     Mempool: 'https://mempool.space',
     Blockstream: 'https://blockstream.info',
   },
+  regtest: {
+    Mempool: "http://localhost:30000"
+  },
+  localnet: {
+    Mempool: "http://localhost:30000"
+  }
 };
 
 type BalanceResponse = {
@@ -35,6 +41,7 @@ export const getBalance = async (
   network: Network,
 ): AsyncResult<Balance, string> => {
   const explorers = BitcoinExplorers[network];
+  console.log("getBlance:: ", explorers, address, network,)
   if (!explorers) return Err('Invalid network');
 
   const blockstreamUrl =
