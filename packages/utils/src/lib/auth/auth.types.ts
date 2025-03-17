@@ -7,17 +7,33 @@ export type SiweOpts = {
   signingStatement?: string;
 };
 
-export type AuthHeader = {
-  [key: string]: string;
-};
-
-export interface ISiwe {
-  getToken(): AsyncResult<string, string>;
-  verifyToken(token: string, account: string): Result<boolean, string>;
+export enum AuthHeaderEnum {
+  Authorization = 'Authorization',
+  ApiKey = 'api-key',
 }
 
+export type AuthHeader =
+  | Record<AuthHeaderEnum.ApiKey, string>
+  | Record<AuthHeaderEnum.Authorization, string>;
+
 export interface IAuth {
-  siwe?: ISiwe;
-  apiKey?: string;
+  /**
+   * Get a token from store if available or fetch from the wallet
+   * @returns verified token
+   */
+  getToken(): AsyncResult<string, string>;
+  /**
+   * Verify the token expiry and account
+   * @param token The token to verify
+   * @param account The account to verify the token against
+   */
+  verifyToken(token: string, account: string): Result<boolean, string>;
+
+  /**
+   * Retrieves the authentication token and formats it into the appropriate header object.
+   * Example: For API keys, returns { 'api-key': apiKey }
+   * Example: For SIWE, returns { Authorization: 'Bearer token' }
+   * @returns An AsyncResult containing the formatted auth header object or an error message
+   */
   getAuthHeaders(): AsyncResult<AuthHeader, string>;
 }

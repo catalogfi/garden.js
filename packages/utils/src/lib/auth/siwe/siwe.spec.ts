@@ -1,7 +1,7 @@
-import { with0x } from './../utils';
-import { parseJwt, Siwe } from './siwe';
+import { parseJwt, with0x } from '../../utils';
+import { Siwe } from './siwe';
 import { describe, it, expect } from 'vitest';
-import { Url } from '../url';
+import { Url } from '../../url';
 import { createWalletClient, http } from 'viem';
 import { sepolia } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -50,8 +50,11 @@ describe.each([
   });
 
   it('test parseJWT', async () => {
-    const parsedToken = parseJwt(
-      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhZGRyZXNzIjoiMHgzMTM5QzMzYjcyMTgyMzdCYmQyMjIzNUM3ODA3ODczMTIxNmZEMDViIiwiZXhwIjoxNzI5MjQ1MDA4fQ.Bqe0GYxzww498G0CRYnMfx8x68tmJ_fq59imIZGO54U',
+    const parsedToken = parseJwt<{
+      user_id: string;
+      exp: number;
+    }>(
+      'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiMHhkNTNENGYxMDBBYUJBMzE0YkYwMzNmOTlmODZhMzEyQmZiZERGMTEzIiwiZXhwIjoxNzQxOTQyMzYzfQ.F21W1k_D_IRIns7KacdTkGkrxF5dTjbRA4JQnbmLIHY',
     );
     console.log('parsedToken :', parsedToken);
     expect(parsedToken).toBeTruthy();

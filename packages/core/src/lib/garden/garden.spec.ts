@@ -13,6 +13,7 @@ import {
 } from '@gardenfi/orderbook';
 import { sleep } from '@catalogfi/utils';
 import { arbitrumSepolia, sepolia } from 'viem/chains';
+import { SecretManager } from 'gardenfi/core';
 // import { BitcoinNetwork, BitcoinProvider } from '@catalogfi/wallets';
 // import { Quote } from './../quote/quote';
 // import { Orderbook } from 'gardenfi/orderbook';
@@ -39,12 +40,15 @@ describe('swap and execute using garden', () => {
   // const quote = new Quote('https://quote-choas.onrender.com/');
   // const orderBookUrl = 'https://evm-swapper-relay-1.onrender.com/';
 
+  const secretManager = SecretManager.fromWalletClient(ethereumWalletClient);
   const garden = new Garden({
-    // orderbookURl: orderBookUrl,
-    // quote,
     environment: Environment.TESTNET,
     evmWallet: arbitrumWalletClient,
+    secretManager,
   });
+
+  // let secret = await secretManager.generateSecret(order.create_order.nonce);
+
   let wallets: Partial<{ [key in Chain]: WalletClient }> = {};
 
   wallets = {
@@ -52,10 +56,9 @@ describe('swap and execute using garden', () => {
     [Chains.ethereum_sepolia]: ethereumWalletClient,
     // [Chains.bitcoin_regtest]: btcWallet,
   };
-
   let order: MatchedOrder;
 
-  it.skip('should create an order', async () => {
+  it('should create an order', async () => {
     const orderObj = {
       fromAsset: SupportedAssets.testnet.arbitrum_sepolia_SEED,
       toAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
@@ -85,7 +88,7 @@ describe('swap and execute using garden', () => {
   }, 60000);
 
   //TODO: also add bitcoin init
-  it.skip('Initiate the swap', async () => {
+  it('Initiate the swap', async () => {
     if (isBitcoin(order.source_swap.chain)) {
       console.warn('Bitcoin swap, skipping initiation');
     }

@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, it, test } from 'vitest';
 import { Url } from './Url';
 
 describe('url', async () => {
@@ -7,5 +7,13 @@ describe('url', async () => {
     const newURL = url.endpoint('/id/matched');
     expect(url.pathname).toEqual('/orders');
     expect(newURL.pathname).toEqual('/orders/id/matched');
+  });
+
+  it.only('test', () => {
+    const url = new Url('https://api.hashira.io/orderbook');
+    const newURL = url.endpoint('/id/matched');
+    console.log('newURL :', newURL.toString());
+    // expect(url.pathname).toEqual('/orders');
+    // expect(newURL.pathname).toEqual('/orders/id/matched');
   });
 });

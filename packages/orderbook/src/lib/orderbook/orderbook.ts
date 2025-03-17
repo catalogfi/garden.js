@@ -31,9 +31,8 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
    * @param {OrderbookConfig} orderbookConfig - The configuration object for the orderbook.
    */
   constructor(orderbookConfig: OrderbookConfig) {
-    const url = new Url(
+    const url = new Url(orderbookConfig.url ?? MAINNET_ORDERBOOK_API).endpoint(
       '/relayer',
-      orderbookConfig.url ?? MAINNET_ORDERBOOK_API,
     );
     super(url);
 
