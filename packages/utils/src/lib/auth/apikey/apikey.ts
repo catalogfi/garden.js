@@ -76,6 +76,9 @@ export class ApiKey implements IAuth {
   }
 
   async getAuthHeaders(): AsyncResult<AuthHeader, string> {
-    return Ok({ [AuthHeaderEnum.ApiKey]: this.apiKey });
+    const token = await this.getToken();
+    if (token.ok) return Ok({ [AuthHeaderEnum.ApiKey]: token.val });
+
+    return Err(token.error ?? 'Failed to get auth token');
   }
 }

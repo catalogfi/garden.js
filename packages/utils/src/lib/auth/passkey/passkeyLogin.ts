@@ -20,6 +20,10 @@ export class PasskeyLogin {
   private userName: string | undefined;
 
   constructor(url: Url, store: IStore) {
+    if (!window) {
+      throw new Error('Passkey is only supported in the browser environment.');
+    }
+
     this.url = url.endpoint('passkey');
     this.store = store;
   }
