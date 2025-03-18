@@ -10,8 +10,6 @@ export type GardenConfigType = {
 export enum environment {
   mainnet = 'mainnet',
   testnet = 'testnet',
-  regtest = 'regtest',
-  localnet = 'localnet'
 }
 
 export const GARDEN_CONFIG: Partial<Record<environment, GardenConfigType>> = {
@@ -27,18 +25,6 @@ export const GARDEN_CONFIG: Partial<Record<environment, GardenConfigType>> = {
     quoteUrl: 'https://quotev2.garden.finance',
     bitcoinRPCUrl: 'https://mempool.space/api',
     blockNumberFetcherUrl: 'https://info-8ocl.onrender.com',
-  },
-  [environment.regtest]: {
-    orderBookUrl: "http://localhost:4426",
-    quoteUrl: 'http://localhost:6969',
-    bitcoinRPCUrl: 'http://localhost:30000',
-    blockNumberFetcherUrl: 'http://localhost:3008',
-  },
-  [environment.localnet]: {
-    orderBookUrl: "http://localhost:4426",
-    quoteUrl: 'http://localhost:6969',
-    bitcoinRPCUrl: 'http://localhost:30000',
-    blockNumberFetcherUrl: 'http://localhost:3008',
   }
 } as const;
 
@@ -56,8 +42,6 @@ export const getBitcoinNetwork = (network: environment): BitcoinNetwork => {
       return BitcoinNetwork.Mainnet;
     case environment.testnet:
       return BitcoinNetwork.Testnet;
-    case environment.regtest:
-      return BitcoinNetwork.Regtest;
     default:
       throw new Error(`Invalid bitcoin network ${network}`);
   }

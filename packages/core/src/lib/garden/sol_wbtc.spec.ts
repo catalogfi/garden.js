@@ -37,7 +37,8 @@ function setupGarden(
         solanaRelayUrl: TEST_RELAY_URL,
         orderbookURl: TEST_SWAPPER_RELAYER,
         solanaRelayerAddress: TEST_RELAYER_ADDRESS,
-        blockNumberFetcher: new BlockNumberFetcher(TEST_BLOCKFETCHER_URL, Environment.LOCALNET)
+        blockNumberFetcher: new BlockNumberFetcher(TEST_BLOCKFETCHER_URL, Environment.LOCALNET),
+        quote: "http://localhost:6969"
     });
 }
 

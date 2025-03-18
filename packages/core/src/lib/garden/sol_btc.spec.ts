@@ -42,7 +42,8 @@ function setupGarden(
         solanaRelayerAddress: TEST_RELAYER_ADDRESS,
         blockNumberFetcher: new BlockNumberFetcher(TEST_BLOCKFETCHER_URL, Environment.LOCALNET),
         btcWallet: btcWallet,
-        apiKey: "AAAAAGghjwU6Os1DVFgmUXj0GcNt5jTJPbBmXKw7xRARW-qivNy4nfpKVgMNebmmxig2o3v-6M4l_ZmCgLp3vKywfVXDYBcL3M4c"
+        apiKey: "AAAAAGghjwU6Os1DVFgmUXj0GcNt5jTJPbBmXKw7xRARW-qivNy4nfpKVgMNebmmxig2o3v-6M4l_ZmCgLp3vKywfVXDYBcL3M4c",
+        quote: "http://localhost:6969"
     })
 }
 
@@ -246,7 +247,7 @@ describe('==========SOL <--> BTC===========', () => {
             // 1. Create Order
             const orderObj = {
                 fromAsset: SupportedAssets.localnet.solana_localnet_SOL,
-                toAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
+                toAsset: SupportedAssets.localnet.bitcoin_regtest_BTC,
                 sendAmount: "20010",
                 receiveAmount: "2000",
                 additionalData: {
@@ -291,7 +292,7 @@ describe('==========SOL <--> BTC===========', () => {
 
         it("Should create, match and execute BTC -> SOL swap", async () => {
             const orderObj = {
-                fromAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
+                fromAsset: SupportedAssets.localnet.bitcoin_regtest_BTC,
                 toAsset: SupportedAssets.localnet.solana_localnet_SOL,
                 sendAmount: "10000",
                 receiveAmount: "10000",

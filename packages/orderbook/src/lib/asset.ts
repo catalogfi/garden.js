@@ -136,7 +136,7 @@ export const TimeLocks: Record<Chain, number> = {
 export const getBlockchainType = (chain: Chain) => {
   if (isBitcoin(chain)) return BlockchainType.Bitcoin;
   if (isEVM(chain)) return BlockchainType.EVM;
-  if (chain.includes("solana")) return BlockchainType.Solana;
+  if (isSolana(chain)) return BlockchainType.Solana;
   throw new Error('Invalid or unsupported chain');
 };
 

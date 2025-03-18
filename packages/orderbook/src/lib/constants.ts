@@ -1,21 +1,6 @@
 import { Chain } from 'viem';
 import { Asset, Chains } from './asset';
 
-export const SolanaLocalnet: Chain = {
-  id: 104,
-  name: 'Solana Localnet',
-  nativeCurrency: {
-    name: 'Sol',
-    symbol: 'SOL',
-    decimals: 9,
-  },
-  rpcUrls: {
-    default: {
-      http: ['http://localhost:8899/'],
-    },
-  },
-  testnet: true,
-};
 export const ArbitrumLocalnet: Chain = {
   id: 31338,
   name: 'Arbitrum Localnet',
@@ -87,13 +72,14 @@ export const SupportedAssets = {
     solana_localnet_SOL: SOLSolanaLocalnetAsset,
     arbitrum_localnet_WBTC: WBTCArbitrumLocalnetAsset,
     ethereum_localnet_WBTC: WBTCEthereumLocalnetAsset,
+    bitcoin_regtest_BTC: bitcoinRegtestAsset,
   },
   testnet: {
     bitcoin_testnet_BTC: {
       name: 'BTC',
       decimals: 8,
       symbol: 'BTC',
-      chain: Chains.bitcoin_regtest,
+      chain: Chains.bitcoin_testnet,
       tokenAddress: 'primary',
       atomicSwapAddress: 'primary',
     },

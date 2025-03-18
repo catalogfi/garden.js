@@ -6,8 +6,7 @@ export const API = {
   },
   testnet: {
     orderbook: 'https://orderbook.garden.finance',
-    // quote: 'https://price.garden.finance', Gives insufficient liquidity error for SOL
-    quote: 'http://localhost:6969',
+    quote: 'https://price.garden.finance',
     info: 'https://info.garden.finance',
   },
   localnet: {
