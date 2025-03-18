@@ -169,8 +169,17 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
 
   private async initializeSMandBTCWallet() {
-    if (this._secretManager.isInitialized && this._btcWallet)
+
+    // If we already have a wallet, return it regardless of secret manager state
+    if (this._btcWallet) {
       return Ok(this._btcWallet);
+    }
+
+    // Only try to create a new wallet if we don't have one yet
+    if (!this._secretManager.isInitialized) {
+      return Err("Secret manager is not initialized");
+    }
+
     const digestKey = await this._secretManager.getDigestKey();
     if (digestKey.error) return Err(digestKey.error);
 
@@ -180,7 +189,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       this._btcWallet = BitcoinWallet.fromPrivateKey(digestKey.val, provider);
       return Ok(this._btcWallet);
     } catch (error) {
-      return Err("Failed to initialize Bitcoin wallet: ", error);
+      return Err("Failed to initialize Bitcoin wallet: " + error);
     }
   }
 
@@ -558,41 +567,12 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this.emit('success', order, OrderActions.Redeem, res.val);
   }
 
-  // mineBtcBlocks = async (address: string) => {
-  //   console.log("Mining block to the address ...", address)
-  //   const body = {
-  //     jsonrpc: "1.0",
-  //     id: "mine",
-  //     method: "generatetoaddress",
-  //     params: [1, address],
-  //   };
-
-  //   const auth = Buffer.from("admin1:123").toString("base64");
-
-  //   try {
-  //     const response = await fetch("http://localhost:18443/", {
-  //       method: 'POST',
-  //       headers: {
-  //         Authorization: `Basic ${auth}`,
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify(body)
-  //     });
-
-  //     const data = await response.json();
-  //     console.log("block mined...", data);
-  //     return data;
-  //   } catch (error: any) {
-  //     console.error("Error:", error.response?.data || error.message);
-  //   }
-  // };
 
   private async btcRedeem(
     wallet: IBitcoinWallet,
     order: MatchedOrder,
     secret: string,
   ) {
-    console.log("BTC REdeem called:: ")
 
 
     const _cache = this.bitcoinRedeemCache.get(order.create_order.create_id);
@@ -692,7 +672,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         order.destination_swap.timelock,
         rbf ? [fillerInitTx] : [],
       );
-      console.log("bitcoinExector address", bitcoinExecutor.address);
       const redeemHex = await bitcoinExecutor.getRedeemHex(
         trim0x(secret),
         order.create_order.additional_data?.bitcoin_optional_recipient,

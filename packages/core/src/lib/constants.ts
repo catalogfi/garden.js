@@ -13,6 +13,6 @@ export const API = {
   localnet: {
     orderbook: 'http://localhost:442',
     quote: 'http://localhost:6969',
-    info: '',
+    info: 'https://info.garden.finance',
   },
 } as const;
