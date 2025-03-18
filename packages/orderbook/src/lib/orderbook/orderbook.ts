@@ -50,7 +50,7 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
    * @param {OrderbookConfig} orderbookConfig - The configuration object for the orderbook.
    */
   static async init(orderbookConfig: OrderbookConfig) {
-    await orderbookConfig.auth.siwe?.getToken();
+    await orderbookConfig.auth.getToken();
     return new Orderbook(orderbookConfig);
   }
 

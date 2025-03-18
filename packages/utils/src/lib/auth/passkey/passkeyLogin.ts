@@ -1,5 +1,5 @@
 import { AsyncResult, Err, Fetcher, Ok, Result } from '@catalogfi/utils';
-import { Url } from 'src/lib/url';
+import { Url } from '../../url/Url';
 import {
   ConditionalLoginChallenge,
   PasskeyToken,
@@ -68,13 +68,15 @@ export class PasskeyLogin {
       const challengeResponse = await Fetcher.post<
         APIResponse<RegisterChallenge>
       >(this.url.endpoint('register/begin'), {
-        body: JSON.stringify({ username: _username }),
-        headers: { credentials: 'include', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: _username.val }),
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
       });
       if (challengeResponse.error)
         return Err('Failed to start registration', challengeResponse.error);
 
       const challenge = challengeResponse.result?.challenge;
+
       if (!challenge) return Err('No challenge found');
       if (!challenge.publicKey.authenticatorSelection)
         return Err('No authenticator selection found');
@@ -86,17 +88,18 @@ export class PasskeyLogin {
         optionsJSON: challenge.publicKey,
       });
 
+
       const verificationResp = await Fetcher.post<APIResponse<PasskeyToken>>(
         this.url.endpoint('register/finish'),
         {
           body: JSON.stringify({
-            username: _username,
+            username: _username.val,
             credential: registrationResponse,
           }),
           headers: {
-            credentials: 'include',
             'Content-Type': 'application/json',
           },
+          credentials: 'include',
         },
       );
 
@@ -125,8 +128,9 @@ export class PasskeyLogin {
       const challengeResponse = await Fetcher.post<
         APIResponse<RegisterChallenge>
       >(this.url.endpoint('login/begin'), {
-        body: JSON.stringify({ username: _username }),
-        headers: { credentials: 'include', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: _username.val }),
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
       });
       if (challengeResponse.error)
         return Err('Failed to start login', challengeResponse.error);
@@ -141,13 +145,13 @@ export class PasskeyLogin {
         this.url.endpoint('login/finish'),
         {
           body: JSON.stringify({
-            username: _username,
+            username: _username.val,
             credential: authenticationResponse,
           }),
           headers: {
-            credentials: 'include',
             'Content-Type': 'application/json',
           },
+          credentials: 'include',
         },
       );
 
@@ -194,6 +198,7 @@ export class PasskeyLogin {
             credentials: 'include',
             'Content-Type': 'application/json',
           },
+          credentials: 'include',
         },
       );
 

@@ -134,7 +134,6 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     return Ok(updatedOrder);
   };
 
-  // Initialize Garden
   useEffect(() => {
     if (!config.walletClient) return;
     if (!config.walletClient.account?.address)
@@ -146,18 +145,18 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     setGarden(
       new Garden({
         environment: config.environment,
+        auth: config.auth,
         evmWallet: config.walletClient,
+        secretManager,
         siweOpts: config.siweOpts ?? {
           domain: window.location.hostname,
           store: config.store,
         },
-        apiKey: config.apiKey,
-        secretManager,
-        quote: config.quoteUrl ?? API[config.environment].quote,
         orderbookURl: config.orderBookUrl ?? API[config.environment].orderbook,
+        quote: config.quoteUrl ?? API[config.environment].quote,
       }),
     );
-  }, [config.walletClient, digestKey]);
+  }, [config.walletClient, digestKey, config.auth]);
 
   return (
     <GardenContext.Provider
