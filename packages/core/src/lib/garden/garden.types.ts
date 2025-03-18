@@ -7,7 +7,8 @@ import { ISecretManager } from '../secretManager/secretManager.types';
 import { IQuote } from '../quote/quote.types';
 import { IBlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
 import { IEVMRelay } from '../evm/relay/evmRelay.types';
-import { IBitcoinWallet } from '@catalogfi/wallets';
+import { BitcoinWallet, IBitcoinWallet } from '@catalogfi/wallets';
+import { AnchorProvider } from '@coral-xyz/anchor';
 
 export type SwapParams = {
   /**
@@ -53,6 +54,12 @@ export type SwapParams = {
   };
 };
 
+export enum TimeLocks {
+  evm = 14400,
+  btc = 288,
+  sol = 432000,
+}
+
 export type OrderWithStatus = MatchedOrder & {
   status: OrderStatus;
 };
@@ -95,6 +102,7 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
    * @readonly
    */
   get evmRelay(): IEVMRelay;
+
 
   /**
    * The current quote.
@@ -153,6 +161,10 @@ export type GardenProps = {
   orderbookURl?: string;
   quote?: string;
   blockNumberFetcher?: IBlockNumberFetcher;
+  solanaRelayUrl?: URL;
+  solanaRelayerAddress?: string;
+  solWallet?: AnchorProvider;
+  btcWallet?: BitcoinWallet;
 };
 
 /**
