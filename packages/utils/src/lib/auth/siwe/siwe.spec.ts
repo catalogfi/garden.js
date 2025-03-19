@@ -59,4 +59,11 @@ describe.each([
     console.log('parsedToken :', parsedToken);
     expect(parsedToken).toBeTruthy();
   });
+
+  it('should generate a valid token from a digest key', async () => {
+    const siwe = Siwe.fromDigestKey(url, pk);
+    const token = await siwe.getToken();
+    console.log('token :', token.val);
+    expect(token.ok).toBeTruthy();
+  });
 });

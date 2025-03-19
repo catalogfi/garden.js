@@ -4,12 +4,14 @@ import { Url } from '../../url';
 import { MemoryStorage } from '../../store/memoryStorage';
 import { IStore, StoreKeys } from '../../store/store.interface';
 import { APIResponse } from '../../apiResponse.types';
-import { WalletClient } from 'viem';
+import { createWalletClient, http, WalletClient } from 'viem';
 import { createSiweMessage } from 'viem/siwe';
 import { Authorization, parseJwt } from '../../utils';
+import { privateKeyToAccount } from 'viem/accounts';
+import { mainnet } from 'viem/chains';
 
 export class Siwe implements IAuth {
-  private readonly API = 'https://api.garden.finance';
+  private readonly API = new Url('https://api.garden.finance');
   private readonly url: Url;
   private store: IStore;
   private walletClient: WalletClient;
@@ -17,7 +19,7 @@ export class Siwe implements IAuth {
   private readonly domain: string;
 
   constructor(url: Url, walletClient: WalletClient, opts?: SiweOpts) {
-    this.url = new Url('/', url ?? this.API);
+    this.url = url ?? this.API;
     this.walletClient = walletClient;
 
     this.domain = opts?.domain || 'app.garden.finance';
@@ -27,6 +29,16 @@ export class Siwe implements IAuth {
     this.signingStatement = opts?.signingStatement ?? 'Garden.fi';
 
     this.store = opts?.store ?? new MemoryStorage();
+  }
+
+  static fromDigestKey(url: Url, digestKey: string) {
+    const walletClient = createWalletClient({
+      account: privateKeyToAccount(digestKey as `0x${string}`),
+      transport: http(),
+      chain: mainnet,
+    });
+
+    return new Siwe(url, walletClient);
   }
 
   verifyToken(token: string, account: string): Result<boolean, string> {
@@ -41,7 +53,7 @@ export class Siwe implements IAuth {
         parsedToken.exp > utcTimestampNow &&
           parsedToken.user_id.toLowerCase() === account.toLowerCase(),
       );
-    } catch (error) {
+    } catch {
       return Ok(false);
     }
   }
@@ -143,29 +155,3 @@ export class Siwe implements IAuth {
     return Ok({ Authorization: Authorization(token.val) });
   }
 }
-
-// // Create a new Auth class that implements IAuth
-// export class Auth implements IAuth {
-//   siwe?: ISiwe;
-//   apiKey?: string;
-
-//   constructor(opts: { siwe?: ISiwe; apiKey?: string }) {
-//     if (!opts.siwe && !opts.apiKey) {
-//       throw new Error('Either siwe or apiKey must be provided');
-//     }
-//     this.siwe = opts.siwe;
-//     this.apiKey = opts.apiKey;
-//   }
-
-//   async getAuthHeaders(): AsyncResult<AuthHeader, string> {
-//     if (this.siwe) {
-//       const token = await this.siwe.getToken();
-//       if (token.error) return Err(token.error);
-//       return Ok({ Authorization: Authorization(token.val) });
-//     }
-//     if (this.apiKey) {
-//       return Ok({ 'api-key': this.apiKey });
-//     }
-//     return Err('No authentication method available');
-//   }
-// }

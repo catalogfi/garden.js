@@ -50,8 +50,8 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   }, [pendingOrders]);
 
   const quote = useMemo(() => {
-    return new Quote(config.quoteUrl || API[config.environment].quote);
-  }, [config.quoteUrl, config.environment]);
+    return config.quote || new Quote(API[config.environment].quote);
+  }, [config.quote, config.environment]);
 
   const getQuote = useMemo(
     () =>
@@ -146,15 +146,13 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     setGarden(
       new Garden({
         environment: config.environment,
-        evmWallet: config.walletClient,
-        siweOpts: config.siweOpts ?? {
-          domain: window.location.hostname,
-          store: config.store,
+        wallets: {
+          evmWallet: config.walletClient,
         },
-        apiKey: config.apiKey,
         secretManager,
-        quote: config.quoteUrl ?? API[config.environment].quote,
-        orderbookURl: config.orderBookUrl ?? API[config.environment].orderbook,
+        quote: config.quote ?? new Quote(API[config.environment].quote),
+        orderbook: config.orderBook,
+        digestKey: config.digestKey,
       }),
     );
   }, [config.walletClient, digestKey]);

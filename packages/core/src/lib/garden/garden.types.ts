@@ -1,7 +1,7 @@
 import { AsyncResult } from '@catalogfi/utils';
 import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
 import { OrderStatus } from '../status';
-import { Environment, EventBroker, SiweOpts } from '@gardenfi/utils';
+import { Environment, EventBroker } from '@gardenfi/utils';
 import { WalletClient } from 'viem';
 import { ISecretManager } from '../secretManager/secretManager.types';
 import { IQuote } from '../quote/quote.types';
@@ -146,13 +146,16 @@ export interface IOrderExecutorCache {
 
 export type GardenProps = {
   environment: Environment;
-  apiKey?: string;
-  evmWallet: WalletClient;
+  digestKey: string;
+  api?: string;
   secretManager?: ISecretManager;
-  siweOpts?: SiweOpts;
-  orderbookURl?: string;
-  quote?: string;
+  orderbook?: IOrderbook;
+  quote?: IQuote;
   blockNumberFetcher?: IBlockNumberFetcher;
+  wallets: {
+    evmWallet: WalletClient;
+    btcWallet?: IBitcoinWallet;
+  };
 };
 
 /**
