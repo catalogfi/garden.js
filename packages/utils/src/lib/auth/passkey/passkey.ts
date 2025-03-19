@@ -1,7 +1,7 @@
 import { Err, Ok, Result } from '@catalogfi/utils';
 import { AsyncResult } from '@catalogfi/utils';
-import { AuthHeaderEnum, AuthHeader, IAuth } from '../auth.types';
-import { parseJwt } from '../../utils';
+import { AuthHeader, IAuth } from '../auth.types';
+import { Authorization, parseJwt } from '../../utils';
 
 export class Passkey implements IAuth {
   private token: string | undefined;
@@ -35,7 +35,7 @@ export class Passkey implements IAuth {
 
   async getAuthHeaders(): AsyncResult<AuthHeader, string> {
     const token = await this.getToken();
-    if (token.ok) return Ok({ [AuthHeaderEnum.Authorization]: token.val });
+    if (token.ok) return Ok({ Authorization: Authorization(token.val) });
 
     return Err(token.error ?? 'Failed to get auth token');
   }

@@ -28,8 +28,8 @@ export const SwapInput = ({ swapParams, setSwapParams }: SwapComponentProps) => 
                 <option>Select input token</option>
                 {Object.entries(chainToAsset).map(([network, asset]) => {
                     return (
-                        <option key={asset.name} value={network}>
-                            {asset.name}
+                        <option key={asset.name+asset.chain} value={network}>
+                            {asset.chain}
                         </option>
                     );
                 })}

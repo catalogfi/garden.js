@@ -28,8 +28,8 @@ function SwapOutput({ swapParams, setSwapParams }: SwapComponentProps) {
                 <option>Select output token</option>
                 {Object.entries(chainToAsset).map(([network, asset]) => {
                     return (
-                        <option key={asset.name} value={network}>
-                            {asset.name}
+                        <option key={asset.name+asset.chain} value={network}>
+                            {asset.chain}
                         </option>
                     );
                 })}

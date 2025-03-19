@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { createConfig, http, WagmiProvider } from 'wagmi';
-import { arbitrum, mainnet } from 'wagmi/chains';
+import { arbitrum, mainnet, sepolia } from 'wagmi/chains';
 import { injected, metaMask, safe } from 'wagmi/connectors';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ArbitrumLocalnet, EthereumLocalnet } from '@gardenfi/orderbook';
@@ -13,6 +13,7 @@ import { Network } from '@gardenfi/utils';
 export const SupportedChains = [
   mainnet,
   arbitrum,
+  sepolia,
   ArbitrumLocalnet,
   EthereumLocalnet,
 ] as const;
@@ -25,6 +26,7 @@ export const config = createConfig({
   transports: {
     [mainnet.id]: http(),
     [arbitrum.id]: http(),
+    [sepolia.id]: http(),
     [ArbitrumLocalnet.id]: http(),
     [EthereumLocalnet.id]: http(),
   },
@@ -36,7 +38,7 @@ createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <BTCWalletProvider network={Network.MAINNET} store={localStorage}>
+        <BTCWalletProvider network={Network.TESTNET} store={localStorage}>
           <App />
         </BTCWalletProvider>
       </QueryClientProvider>

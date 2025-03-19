@@ -9,17 +9,15 @@ import SwapOutput from './SwapOutput';
 export const SwapComponent = () => {
   const [loading, setLoading] = useState(false);
   const [swapParams, setSwapParams] = useState({
-    inputToken: chainToAsset.ethereum_localnet,
-    outputToken: chainToAsset.arbitrum_localnet,
+    inputToken: chainToAsset.ethereum_testnet,
+    outputToken: chainToAsset.arbitrum_testnet,
     inputAmount: 0.001,
     outputAmount: 0.0009,
     btcAddress: '',
   });
 
-  const { garden } = useGarden();
-
   const { address: EvmAddress } = useAccount();
-  const { swapAndInitiate } = useGarden();
+  const { garden, swapAndInitiate } = useGarden();
 
   const handleSwap = async () => {
     const sendAmount =
@@ -44,6 +42,7 @@ export const SwapComponent = () => {
     });
 
     setLoading(true);
+
     const res = await swapAndInitiate({
       fromAsset: swapParams.inputToken,
       toAsset: swapParams.outputToken,
@@ -52,13 +51,13 @@ export const SwapComponent = () => {
       minDestinationConfirmations: 3,
       additionalData: {
         btcAddress: swapParams.btcAddress,
-        strategyId: '1',
+        strategyId: 'ea56aa1d',
       },
     });
+
+    console.log("Swap and inititate Res: ", res)
+
     setLoading(false);
-    console.log('res.error :', res.error);
-    console.log('res.ok :', res.ok);
-    console.log('res.val :', res.val);
   };
 
   const handleBtcInput = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,7 +65,11 @@ export const SwapComponent = () => {
   };
 
   const handleInitialize = async () => {
+    console.log(garden)
+    console.log("hello")
     if (!garden) return;
+    // await garden.secretManager.initialize();
+    console.log(garden)
     await garden.secretManager.initialize();
   };
 
