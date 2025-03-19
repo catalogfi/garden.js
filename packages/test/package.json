@@ -13,6 +13,7 @@
     "@catalogfi/wallets": "^0.2.54",
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@gardenfi/core": "workspace:^",
+    "@gardenfi/garden-book": "^0.1.74",
     "@gardenfi/orderbook": "workspace:^",
     "@gardenfi/react-hooks": "workspace:^",
     "@gardenfi/utils": "workspace:^",
