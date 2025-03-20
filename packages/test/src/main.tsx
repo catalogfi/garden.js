@@ -5,8 +5,6 @@ import './index.css';
 import { createConfig, http, WagmiProvider } from 'wagmi';
 import { injected, metaMask, safe } from 'wagmi/connectors';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BTCWalletProvider } from '@gardenfi/wallet-connectors';
-import { Network } from '@gardenfi/utils';
 import { InjectedConnector } from 'starknetkit/injected';
 import {
   mainnet as starknet_mainnet,
@@ -80,20 +78,15 @@ const queryClient = new QueryClient();
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <WagmiProvider config={config}>
-      <StarknetConfig
-        chains={chains}
-        provider={publicProvider()}
-        connectors={connectors}
-      >
+      <StarknetConfig chains={chains} provider={publicProvider()} connectors={connectors}>
         <QueryClientProvider client={queryClient}>
-          <BTCWalletProvider network={Network.TESTNET} store={localStorage}>
-            <App />
-          </BTCWalletProvider>
+          <App />
         </QueryClientProvider>
       </StarknetConfig>
     </WagmiProvider>
-  </React.StrictMode>,
+  </React.StrictMode>
 );
+
 
 // pending orders number
 // create order function

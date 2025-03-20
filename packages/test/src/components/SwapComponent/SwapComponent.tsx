@@ -10,6 +10,7 @@ import { isBitcoin } from '@gardenfi/orderbook';
 import { useBitcoinWallet } from '@gardenfi/wallet-connectors';
 import Transaction from '../transactions/Transactions';
 import { BitcoinProvider, BitcoinWallet } from '@catalogfi/wallets';
+import { useEnvironmentStore } from '../../store/useEnvironmentStore';
 
 export const SwapComponent = () => {
   const { swapParams, setAdditionalId, btcWallet, setBtcWallet } =
@@ -20,6 +21,7 @@ export const SwapComponent = () => {
   const { swapAndInitiate } = useGarden();
   const [loading, setLoading] = useState(false);
   const [funding, setFunding] = useState(false);
+  const environment = useEnvironmentStore((state) => state.environment);
 
   async function fund(addr: string): Promise<void> {
     console.log('Funding address:', addr);
@@ -57,7 +59,8 @@ export const SwapComponent = () => {
     if (!newBtcWallet) return;
 
     const newBtcAddress = await newBtcWallet.getAddress();
-    if (isBitcoin(swapParams.fromAsset.chain || swapParams.toAsset.chain)) setAdditionalId(swapParams.additionalData.strategyId, newBtcAddress);
+    if (isBitcoin(swapParams.fromAsset.chain || swapParams.toAsset.chain))
+      setAdditionalId(swapParams.additionalData.strategyId, newBtcAddress);
 
     await fund(account ?? newBtcAddress);
     setFunding(false);
@@ -122,9 +125,11 @@ export const SwapComponent = () => {
       <div className="w-[500px] max-w-full flex flex-col gap-3">
         <div className="p-8 rounded-xl bg-white/50 gap-3 flex flex-col w-full">
           <h2 className="text-lg font-semibold">Create order</h2>
-          <Button onClick={handleCreate} disabled={funding}>
-            {funding ? 'Funding...' : 'Create & Fund BTC'}
-          </Button>
+          {environment === 'localnet' && (
+            <Button onClick={handleCreate} disabled={funding}>
+              {funding ? 'Funding...' : 'Create & Fund BTC'}
+            </Button>
+          )}
           <div className="flex items-center justify-between gap-6">
             <SwapInput />
             <SwapOutput />

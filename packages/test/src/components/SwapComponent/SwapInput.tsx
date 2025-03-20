@@ -81,7 +81,7 @@ export const SwapInput = () => {
     return () => {
       if (debounceTimeout) clearTimeout(debounceTimeout);
     };
-  }, []);
+  }, [debounceTimeout]);
 
   return (
     <div className="w-full justify-start items-center flex flex-col gap-2">

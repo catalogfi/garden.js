@@ -2,9 +2,7 @@ import { create } from "zustand";
 import { Asset, Chain } from "@gardenfi/orderbook";
 import axios from "axios";
 import { API, IQuote, Strategies } from "@gardenfi/core";
-import { network } from "./blockNumberStore";
-
-const ASSETS_API_URL = `${API[network].info}/assets`;
+import { useEnvironmentStore } from './useEnvironmentStore';
 
 export const generateTokenKey = (chain: Chain, asset: string) => {
   return `${chain}_${asset.toLowerCase()}`;
@@ -86,6 +84,9 @@ export const assetInfoStore = create<AssetInfoState>((set, get) => ({
     try {
       set({ isLoading: true });
 
+      const environment = useEnvironmentStore.getState().environment;
+      const ASSETS_API_URL = `${API[environment].info}/assets`;
+
       const res = await axios.get<{
         data: { networks: Networks };
       }>(ASSETS_API_URL);
@@ -113,18 +114,28 @@ export const assetInfoStore = create<AssetInfoState>((set, get) => ({
           };
         }
       }
-      set({ assets, chains });
+      set({ assets, chains, error: null });
     } catch {
       set({ error: "Failed to fetch assets data" });
     } finally {
       set({ isLoading: false });
     }
   },
+  
   fetchAndSetStrategies: async (quote) => {
     try {
       set({ strategies: { ...get().strategies, isLoading: true } });
       const res = await quote.getStrategies();
-      if (res.error) return;
+      if (res.error) {
+        set({
+          strategies: {
+            ...get().strategies,
+            error: "Failed to fetch strategies",
+            isLoading: false,
+          },
+        });
+        return;
+      }
       set({ strategies: { val: res.val, isLoading: false, error: null } });
     } catch {
       set({
