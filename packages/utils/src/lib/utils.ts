@@ -33,3 +33,8 @@ export enum Environment {
   TESTNET = 'testnet',
   LOCALNET = 'localnet',
 }
+
+export const add0x = (str: string): `0x${string}` => {
+  if (str.startsWith('0x')) return str as `0x${string}`;
+  return `0x${str}`;
+};

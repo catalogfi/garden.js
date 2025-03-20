@@ -31,6 +31,7 @@
     "@gardenfi/utils": "workspace:^",
     "bignumber.js": "^9.1.2",
     "bitcoinjs-lib": "^6.1.6",
+    "crypto-browserify": "^3.12.1",
     "tiny-secp256k1": "^2.2.3",
     "varuint-bitcoin": "^1.1.2",
     "viem": "^2.21.23"

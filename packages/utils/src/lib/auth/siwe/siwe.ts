@@ -6,7 +6,7 @@ import { IStore, StoreKeys } from '../../store/store.interface';
 import { APIResponse } from '../../apiResponse.types';
 import { createWalletClient, http, WalletClient } from 'viem';
 import { createSiweMessage } from 'viem/siwe';
-import { Authorization, parseJwt } from '../../utils';
+import { add0x, Authorization, parseJwt } from '../../utils';
 import { privateKeyToAccount } from 'viem/accounts';
 import { mainnet } from 'viem/chains';
 
@@ -33,7 +33,7 @@ export class Siwe implements IAuth {
 
   static fromDigestKey(url: Url, digestKey: string) {
     const walletClient = createWalletClient({
-      account: privateKeyToAccount(digestKey as `0x${string}`),
+      account: privateKeyToAccount(add0x(digestKey) as `0x${string}`),
       transport: http(),
       chain: mainnet,
     });

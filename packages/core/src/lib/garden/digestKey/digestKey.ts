@@ -1,5 +1,5 @@
 import { Err, Ok, trim0x } from '@catalogfi/utils';
-import { randomBytes } from 'crypto';
+import { randomBytes } from 'crypto-browserify';
 import { privateKeyToAccount } from 'viem/accounts';
 
 export class DigestKey {

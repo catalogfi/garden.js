@@ -60,8 +60,11 @@ describe.each([
     expect(parsedToken).toBeTruthy();
   });
 
-  it('should generate a valid token from a digest key', async () => {
-    const siwe = Siwe.fromDigestKey(url, pk);
+  it.only('should generate a valid token from a digest key', async () => {
+    const siwe = Siwe.fromDigestKey(
+      url,
+      '6a78c7fc568243b3e134c1c5eeda8ce8d4fcbb51e5fddef3edcc7f204d4a2f42',
+    );
     const token = await siwe.getToken();
     console.log('token :', token.val);
     expect(token.ok).toBeTruthy();

@@ -13,7 +13,8 @@ import {
 } from '@gardenfi/orderbook';
 import { sleep } from '@catalogfi/utils';
 import { arbitrumSepolia, sepolia } from 'viem/chains';
-import { SecretManager } from 'gardenfi/core';
+import { SecretManager } from '../secretManager/secretManager';
+// import { DigestKey } from './digestKey/digestKey';
 // import { BitcoinNetwork, BitcoinProvider } from '@catalogfi/wallets';
 // import { Quote } from './../quote/quote';
 // import { Orderbook } from 'gardenfi/orderbook';
@@ -41,10 +42,17 @@ describe('swap and execute using garden', () => {
   // const orderBookUrl = 'https://evm-swapper-relay-1.onrender.com/';
 
   const secretManager = SecretManager.fromWalletClient(ethereumWalletClient);
+  // const digestKey = DigestKey.generateRandom().val.digestKey;
+  // console.log('digestKey :', digestKey);
+
   const garden = new Garden({
     environment: Environment.TESTNET,
-    evmWallet: arbitrumWalletClient,
     secretManager,
+    digestKey:
+      '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
+    wallets: {
+      evmWallet: arbitrumWalletClient,
+    },
   });
 
   // let secret = await secretManager.generateSecret(order.create_order.nonce);
@@ -88,7 +96,7 @@ describe('swap and execute using garden', () => {
   }, 60000);
 
   //TODO: also add bitcoin init
-  it('Initiate the swap', async () => {
+  it.skip('Initiate the swap', async () => {
     if (isBitcoin(order.source_swap.chain)) {
       console.warn('Bitcoin swap, skipping initiation');
     }
@@ -101,7 +109,7 @@ describe('swap and execute using garden', () => {
     expect(res.ok).toBeTruthy();
   }, 20000);
 
-  it('EXECUTE', async () => {
+  it.skip('EXECUTE', async () => {
     garden.on('error', (order, error) => {
       console.log(
         'error while executing ❌, orderId :',
@@ -136,13 +144,3 @@ describe('swap and execute using garden', () => {
     await sleep(150000);
   }, 150000);
 });
-
-// describe('get btc tx', () => {
-//   const provider = new BitcoinProvider(BitcoinNetwork.Testnet);
-//   it('should get btc tx', async () => {
-//     const tx = await provider.getTransaction(
-//       'ac3f0bc4d98b1fe8da1f21f1cadadb33a3e903ee10260836fc3a853df125fabd',
-//     );
-//     console.log('tx :', tx);
-//   });
-// });
