@@ -15,4 +15,13 @@ describe('DigestKey', () => {
     const digestKey = DigestKey.from('0xgardenfi');
     expect(digestKey.error).toBeDefined();
   });
+
+  it('should be able to generate a random digest key', () => {
+    const digestKey = DigestKey.generateRandom();
+    console.log('digestKey.val :', digestKey.val);
+    expect(digestKey.val).toBeDefined();
+    expect(digestKey.error).toBeUndefined();
+    expect(digestKey.val.digestKey).toBeTypeOf('string');
+    expect(digestKey.val.userId).toBeTypeOf('string');
+  });
 });

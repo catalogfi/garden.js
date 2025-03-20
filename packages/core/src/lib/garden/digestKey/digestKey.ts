@@ -1,4 +1,5 @@
 import { Err, Ok, trim0x } from '@catalogfi/utils';
+import { randomBytes } from 'crypto';
 import { privateKeyToAccount } from 'viem/accounts';
 
 export class DigestKey {
@@ -25,6 +26,11 @@ export class DigestKey {
     return Ok(new DigestKey(digestKey));
   }
 
+  static generateRandom() {
+    const privateKey = DigestKey.generateRandomDigestKey();
+    return DigestKey.from(privateKey);
+  }
+
   private static isValidPrivateKey(privateKey: string): boolean {
     const bn = BigInt('0x' + privateKey);
     const min = 1n;
@@ -32,6 +38,25 @@ export class DigestKey {
       '0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141',
     );
     return bn >= min && bn < max;
+  }
+
+  private static generateRandomDigestKey(): string {
+    let privateKey;
+
+    if (typeof window !== 'undefined' && window.crypto) {
+      // Browser environment
+      const randomBytes = new Uint8Array(32);
+      window.crypto.getRandomValues(randomBytes);
+      privateKey = trim0x(Buffer.from(randomBytes).toString('hex'));
+    } else {
+      // Node.js environment
+      const _randomBytes = randomBytes(32);
+      privateKey = trim0x(Buffer.from(_randomBytes).toString('hex'));
+    }
+
+    return DigestKey.isValidPrivateKey(privateKey)
+      ? privateKey
+      : DigestKey.generateRandomDigestKey();
   }
 
   get digestKey() {
