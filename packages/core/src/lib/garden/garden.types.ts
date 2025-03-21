@@ -1,13 +1,13 @@
 import { AsyncResult } from '@catalogfi/utils';
 import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
 import { OrderStatus } from '../status';
-import { Environment, EventBroker, SiweOpts } from '@gardenfi/utils';
+import { Environment, EventBroker, IAuth, SiweOpts } from '@gardenfi/utils';
 import { WalletClient } from 'viem';
 import { ISecretManager } from '../secretManager/secretManager.types';
 import { IQuote } from '../quote/quote.types';
 import { IBlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
-import { IEVMRelay } from '../evm/relay/evmRelay.types';
 import { IBitcoinWallet } from '@catalogfi/wallets';
+import { IEVMHTLCWallet } from '../evm/htlc.types';
 
 export type SwapParams = {
   /**
@@ -19,11 +19,11 @@ export type SwapParams = {
    */
   toAsset: Asset;
   /**
-   * Amount in lowest denomination of the asset.
+   * Amount in lowest denomination of the sendAsset.
    */
   sendAmount: string;
   /**
-   * Amount in lowest denomination of the asset.
+   * Amount in lowest denomination of the toAsset.
    */
   receiveAmount: string;
   /**
@@ -94,7 +94,7 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
    * The EVM relay.
    * @readonly
    */
-  get evmRelay(): IEVMRelay;
+  get evmHTLC(): IEVMHTLCWallet;
 
   /**
    * The current quote.
@@ -125,6 +125,12 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
    * @readonly
    */
   get secretManager(): ISecretManager;
+
+  /**
+   * The auth.
+   * @readonly
+   */
+  get auth(): IAuth;
 }
 
 export type OrderCacheValue = {
@@ -153,6 +159,7 @@ export type GardenProps = {
   orderbookURl?: string;
   quote?: string;
   blockNumberFetcher?: IBlockNumberFetcher;
+  evmHTLC?: IEVMHTLCWallet;
 };
 
 /**

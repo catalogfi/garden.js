@@ -25,8 +25,6 @@ import {
   APIResponse,
   Environment,
   EventBroker,
-  fetchBitcoinBlockNumber,
-  fetchEVMBlockNumber,
   IAuth,
   Siwe,
   sleep,
@@ -57,8 +55,8 @@ import { OrderStatus } from '../status';
 import { API } from '../constants';
 import { Quote } from '../quote/quote';
 import { SecretManager } from '../secretManager/secretManager';
-import { IEVMRelay } from '../evm/relay/evmRelay.types';
 import { Auth } from '@gardenfi/utils';
+import { IEVMHTLCWallet } from '../evm/htlc.types';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment;
@@ -71,7 +69,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private orderExecutorCache: IOrderExecutorCache;
   private _blockNumberFetcher: IBlockNumberFetcher;
   private refundSacpCache = new Map<string, any>();
-  private _evmRelay: IEVMRelay;
+  private _evmHTLC: IEVMHTLCWallet;
   private _evmWallet: WalletClient;
   private _btcWallet: IBitcoinWallet | undefined;
   private bitcoinRedeemCache = new Cache<{
@@ -110,7 +108,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       walletClient: config.evmWallet,
       auth: this._auth,
     });
-    this._evmRelay = new EvmRelay(this._orderbookUrl, this._auth);
+    this._evmHTLC =
+      config.evmHTLC ??
+      new EvmRelay(this._orderbookUrl, config.evmWallet, this._auth);
     this._secretManager =
       config.secretManager ?? SecretManager.fromWalletClient(config.evmWallet);
     this.orderExecutorCache = new ExecutorCache();
@@ -126,8 +126,8 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     return this._orderbookUrl.toString();
   }
 
-  get evmRelay() {
-    return this._evmRelay;
+  get evmHTLC() {
+    return this._evmHTLC;
   }
 
   get quote() {
@@ -148,6 +148,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   get secretManager() {
     return this._secretManager;
+  }
+
+  get auth() {
+    return this._auth;
   }
 
   private async initializeSMandBTCWallet() {
@@ -351,12 +355,12 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
             isBitcoin(order.source_swap.chain) &&
             order.status === OrderStatus.InitiateDetected
           ) {
-            const walletRes = this.getWallet(order.source_swap.chain);
-            if (walletRes.error) {
-              this.emit('error', order, walletRes.error);
+            const wallet = this.btcWallet;
+            if (!wallet) {
+              this.emit('error', order, 'BTC wallet not found');
               continue;
             }
-            await this.postRefundSACP(order, walletRes.val as IBitcoinWallet);
+            await this.postRefundSACP(order, wallet);
           }
 
           switch (orderAction) {
@@ -375,19 +379,13 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                   break;
                 }
                 case BlockchainType.Bitcoin: {
-                  const destWallet = this.getWallet(
-                    order.destination_swap.chain,
-                  );
-                  if (destWallet.error) {
-                    this.emit('error', order, destWallet.error);
+                  const destWallet = this.btcWallet;
+                  if (!destWallet) {
+                    this.emit('error', order, 'BTC wallet not found');
                     return;
                   }
 
-                  await this.btcRedeem(
-                    destWallet.val as IBitcoinWallet,
-                    order,
-                    secrets.val.secret,
-                  );
+                  await this.btcRedeem(destWallet, order, secrets.val.secret);
                   break;
                 }
                 default:
@@ -410,16 +408,13 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                   break;
                 }
                 case BlockchainType.Bitcoin: {
-                  const sourceWallet = this.getWallet(order.source_swap.chain);
-                  if (sourceWallet.error) {
-                    this.emit('error', order, sourceWallet.error);
+                  const sourceWallet = this.btcWallet;
+                  if (!sourceWallet) {
+                    this.emit('error', order, 'BTC wallet not found');
                     return;
                   }
 
-                  await this.btcRefund(
-                    sourceWallet.val as IBitcoinWallet,
-                    order,
-                  );
+                  await this.btcRefund(sourceWallet, order);
                   break;
                 }
                 default:
@@ -449,10 +444,8 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       this.emit('log', order.create_order.create_id, 'already redeemed');
       return;
     }
-    const res = await this._evmRelay.redeem(
-      order.create_order.create_id,
-      secret,
-    );
+    const res = await this._evmHTLC.redeem(order, secret);
+
     if (res.error) {
       this.emit('error', order, res.error);
       if (res.error.includes('Order already redeemed')) {
@@ -537,7 +530,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
               await wallet.getProvider()
             ).getTransactionTimes([order.destination_swap.redeem_tx_hash]);
             if (_redeemedAt !== 0) redeemedAt = _redeemedAt;
-          } catch (error) {
+          } catch {
             // Ignore error - fallback to using current timestamp
             redeemedAt = Date.now();
           }
@@ -629,18 +622,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     }
   }
 
-  private getWallet(chain: Chain) {
-    const blockChainType = getBlockchainType(chain);
-    switch (blockChainType) {
-      case BlockchainType.EVM:
-        return Ok(this._evmWallet);
-      case BlockchainType.Bitcoin:
-        return Ok(this._btcWallet);
-      default:
-        return Err('Unsupported chain for wallet');
-    }
-  }
-
   private async postRefundSACP(order: MatchedOrder, wallet: IBitcoinWallet) {
     const cachedOrder = this.refundSacpCache.get(order.create_order.create_id);
     if (cachedOrder?.initTxHash === order.source_swap.initiate_tx_hash) return;
@@ -681,36 +662,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       this.emit('error', order, 'Failed to generate and post SACP: ' + error);
       return;
     }
-  }
-
-  private async fetchCurrentBlockNumbers(
-    order: MatchedOrder,
-    wallets: {
-      source: WalletClient | IBitcoinWallet;
-      destination: WalletClient | IBitcoinWallet;
-    },
-  ) {
-    if (!wallets || !wallets.source || !wallets.destination)
-      return Err('Provide wallets to fetch the current block number');
-
-    const sourceBlockNumber = isBitcoin(order.source_swap.chain)
-      ? await fetchBitcoinBlockNumber(
-          await (wallets.source as IBitcoinWallet).getProvider(),
-        )
-      : await fetchEVMBlockNumber(wallets.source as WalletClient);
-    if (sourceBlockNumber.error) return Err(sourceBlockNumber.error);
-
-    const destinationBlockNumber = isBitcoin(order.destination_swap.chain)
-      ? await fetchBitcoinBlockNumber(
-          await (wallets.destination as IBitcoinWallet).getProvider(),
-        )
-      : await fetchEVMBlockNumber(wallets.destination as WalletClient);
-    if (destinationBlockNumber.error) return Err(destinationBlockNumber.error);
-
-    return Ok({
-      source: sourceBlockNumber.val,
-      destination: destinationBlockNumber.val,
-    });
   }
 
   private async filterExpiredAndAssignStatus(orders: MatchedOrder[]) {

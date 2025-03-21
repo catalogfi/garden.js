@@ -1,18 +1,19 @@
 import { Garden } from './garden';
 import { Environment, with0x } from '@gardenfi/utils';
-import { createWalletClient, http, WalletClient } from 'viem';
+import { createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { describe, expect, it } from 'vitest';
 import {
-  Chain,
-  Chains,
+  // Chain,
+  // Chains,
   isBitcoin,
   MatchedOrder,
   SupportedAssets,
   // SupportedAssets,
 } from '@gardenfi/orderbook';
 import { sleep } from '@catalogfi/utils';
-import { arbitrumSepolia, sepolia } from 'viem/chains';
+import { arbitrumSepolia } from 'viem/chains';
+
 // import { BitcoinNetwork, BitcoinProvider } from '@catalogfi/wallets';
 // import { Quote } from './../quote/quote';
 // import { Orderbook } from 'gardenfi/orderbook';
@@ -30,14 +31,22 @@ describe('swap and execute using garden', () => {
     chain: arbitrumSepolia,
     transport: http(),
   });
-  const ethereumWalletClient = createWalletClient({
-    account,
-    chain: sepolia,
-    transport: http(),
-  });
+  // const ethereumWalletClient = createWalletClient({
+  //   account,
+  //   chain: sepolia,
+  //   transport: http(),
+  // });
 
   // const quote = new Quote('https://quote-choas.onrender.com/');
   // const orderBookUrl = 'https://evm-swapper-relay-1.onrender.com/';
+  // const evmHTLC = new EvmRelay(
+  //   'https://evm-swapper-relay-1.onrender.com/',
+  //   arbitrumWalletClient,
+  //   new Siwe({
+  //     domain: 'evm-swapper-relay-1.onrender.com',
+  //     nonce: '1',
+  //   }),
+  // );
 
   const garden = new Garden({
     // orderbookURl: orderBookUrl,
@@ -45,13 +54,13 @@ describe('swap and execute using garden', () => {
     environment: Environment.TESTNET,
     evmWallet: arbitrumWalletClient,
   });
-  let wallets: Partial<{ [key in Chain]: WalletClient }> = {};
+  // let wallets: Partial<{ [key in Chain]: WalletClient }> = {};
 
-  wallets = {
-    [Chains.arbitrum_sepolia]: arbitrumWalletClient,
-    [Chains.ethereum_sepolia]: ethereumWalletClient,
-    // [Chains.bitcoin_regtest]: btcWallet,
-  };
+  // wallets = {
+  //   [Chains.arbitrum_sepolia]: arbitrumWalletClient,
+  //   [Chains.ethereum_sepolia]: ethereumWalletClient,
+  //   // [Chains.bitcoin_regtest]: btcWallet,
+  // };
 
   let order: MatchedOrder;
 
@@ -89,10 +98,7 @@ describe('swap and execute using garden', () => {
     if (isBitcoin(order.source_swap.chain)) {
       console.warn('Bitcoin swap, skipping initiation');
     }
-    const res = await garden.evmRelay.init(
-      wallets[order.source_swap.chain] as WalletClient,
-      order,
-    );
+    const res = await garden.evmHTLC.initiate(order);
     console.log('initiated ✅ :', res.val);
     if (res.error) console.log('init error ❌ :', res.error);
     expect(res.ok).toBeTruthy();

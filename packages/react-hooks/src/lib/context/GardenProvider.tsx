@@ -2,6 +2,7 @@ import React, { createContext, FC, useEffect, useMemo, useState } from 'react';
 import { useOrderbook } from '../hooks/useOrderbook';
 import {
   API,
+  EvmRelay,
   Garden,
   IGardenJS,
   OrderStatus,
@@ -89,8 +90,14 @@ export const GardenProvider: FC<GardenProviderProps> = ({
       return Err('Failed to switch network: ' + switchRes.error);
     const newWalletClient = switchRes.val.walletClient;
 
+    const evmRelay = new EvmRelay(
+      config.orderBookUrl ?? API[config.environment].orderbook,
+      newWalletClient,
+      garden.auth,
+    );
+
     //only initiate if EVM
-    const initRes = await garden.evmRelay.init(newWalletClient, order.val);
+    const initRes = await evmRelay.initiate(order.val);
     if (initRes.error) return Err(initRes.error);
 
     const updatedOrder: MatchedOrder = {

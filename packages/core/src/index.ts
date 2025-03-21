@@ -48,3 +48,5 @@ export {
 } from './lib/switchOrAddNetwork';
 
 export { API } from './lib/constants';
+
+export type { IEVMHTLCWallet } from './lib/evm/htlc.types';
