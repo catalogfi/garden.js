@@ -49,4 +49,4 @@ export {
 
 export { API } from './lib/constants';
 
-export type { IEVMHTLCWallet } from './lib/evm/htlc.types';
+export type { IEVMHTLC } from './lib/evm/htlc.types';

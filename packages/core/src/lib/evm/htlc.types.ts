@@ -1,7 +1,7 @@
 import { MatchedOrder } from '@gardenfi/orderbook';
 import { AsyncResult } from '@gardenfi/utils';
 
-export interface IEVMHTLCWallet {
+export interface IEVMHTLC {
   /**
    * Returns the HTLC actor address.
    * This is the user's wallet address in the case of EVM.

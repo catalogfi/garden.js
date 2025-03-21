@@ -9,9 +9,9 @@ import { MatchedOrder } from '@gardenfi/orderbook';
 import { Fetcher, trim0x } from '@catalogfi/utils';
 import { APIResponse, IAuth, Url, with0x } from '@gardenfi/utils';
 import { AtomicSwapABI } from '../abi/atomicSwap';
-import { IEVMHTLCWallet } from '../htlc.types';
+import { IEVMHTLC } from '../htlc.types';
 
-export class EvmRelay implements IEVMHTLCWallet {
+export class EvmRelay implements IEVMHTLC {
   private url: Url;
   private auth: IAuth;
   private wallet: WalletClient;
@@ -22,7 +22,7 @@ export class EvmRelay implements IEVMHTLCWallet {
     this.wallet = wallet;
   }
 
-  get getHTLCActorAddress(): string {
+  get htlcActorAddress(): string {
     if (!this.wallet.account) throw new Error('No account found');
     return this.wallet.account.address;
   }

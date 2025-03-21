@@ -7,7 +7,7 @@ import { ISecretManager } from '../secretManager/secretManager.types';
 import { IQuote } from '../quote/quote.types';
 import { IBlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
 import { IBitcoinWallet } from '@catalogfi/wallets';
-import { IEVMHTLCWallet } from '../evm/htlc.types';
+import { IEVMHTLC } from '../evm/htlc.types';
 
 export type SwapParams = {
   /**
@@ -94,7 +94,7 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
    * The EVM relay.
    * @readonly
    */
-  get evmHTLC(): IEVMHTLCWallet;
+  get evmHTLC(): IEVMHTLC;
 
   /**
    * The current quote.
@@ -159,7 +159,7 @@ export type GardenProps = {
   orderbookURl?: string;
   quote?: string;
   blockNumberFetcher?: IBlockNumberFetcher;
-  evmHTLC?: IEVMHTLCWallet;
+  evmHTLC?: IEVMHTLC;
 };
 
 /**

@@ -56,7 +56,7 @@ import { API } from '../constants';
 import { Quote } from '../quote/quote';
 import { SecretManager } from '../secretManager/secretManager';
 import { Auth } from '@gardenfi/utils';
-import { IEVMHTLCWallet } from '../evm/htlc.types';
+import { IEVMHTLC } from '../evm/htlc.types';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment;
@@ -69,7 +69,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private orderExecutorCache: IOrderExecutorCache;
   private _blockNumberFetcher: IBlockNumberFetcher;
   private refundSacpCache = new Map<string, any>();
-  private _evmHTLC: IEVMHTLCWallet;
+  private _evmHTLC: IEVMHTLC;
   private _evmWallet: WalletClient;
   private _btcWallet: IBitcoinWallet | undefined;
   private bitcoinRedeemCache = new Cache<{
