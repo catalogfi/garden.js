@@ -31,7 +31,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20.9.0
-          cache: "yarn"
 
       - name: Set Yarn Version
         run: yarn set version 4.3.1
@@ -66,7 +65,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20.9.0
-          cache: "yarn"
 
       - name: Set Yarn Version
         run: yarn set version 4.3.1
