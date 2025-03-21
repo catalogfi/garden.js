@@ -120,7 +120,7 @@ yarn workspaces foreach --all --topological --no-private exec bash -c '
     yarn build
     npm publish --tag beta --access public
     git tag "$PACKAGE_NAME@$NEW_VERSION"
-    https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git "$PACKAGE_NAME@$NEW_VERSION"
+    git push https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git "$PACKAGE_NAME@$NEW_VERSION"
   else
     if [[ "$IS_PR" != "true" ]]; then
       git add package.json
@@ -131,7 +131,7 @@ yarn workspaces foreach --all --topological --no-private exec bash -c '
       yarn build
       npm publish --access public
       git tag "$PACKAGE_NAME@$NEW_VERSION"
-      https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git HEAD:main --tags
+      git push https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git HEAD:main --tags
     else
       echo "Skipping commit since this is a pull request."
     fi
