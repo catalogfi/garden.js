@@ -1,0 +1,81 @@
+name: Build and Release Monorepo
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+jobs:
+  beta-release:
+    if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'beta')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.9.0
+
+      - name: Set Yarn Version
+        run: corepack enable && yarn set version 4.3.1
+
+      - name: Install Dependencies
+        run: yarn install
+
+      - name: Make handle-release.sh Executable
+        run: chmod +x scripts/handle-release.sh
+
+      - name: Run Beta Release Script
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: ./scripts/handle-release.sh beta
+
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      issues: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.9.0
+
+      - name: Set Yarn Version
+        run: corepack enable && yarn set version 4.3.1
+
+      - name: Install Dependencies
+        run: yarn install
+
+      - name: Make handle-release.sh Executable
+        run: chmod +x scripts/handle-release.sh
+
+      - name: Run Custom Release Script
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: ./scripts/handle-release.sh
