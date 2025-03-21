@@ -1,6 +1,22 @@
 import { Chain } from 'viem';
 import { Asset, Chains } from './asset';
 
+export const StarknetLocalnet: Chain = {
+  id: 1001,
+  name: 'Starknet Localnet',
+  nativeCurrency: {
+    name: 'Stark Token',
+    symbol: 'STRK',
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ['http://127.0.0.1:8547/'],
+    },
+  },
+  testnet: true,
+};
+
 export const ArbitrumLocalnet: Chain = {
   id: 31338,
   name: 'Arbitrum Localnet',
@@ -26,7 +42,7 @@ export const EthereumLocalnet: Chain = {
   },
   rpcUrls: {
     default: {
-      http: ['https://eth.merry.dev/'],
+      http: ['http://localhost:8545'],
     },
   },
   testnet: true,
@@ -56,12 +72,35 @@ export const WBTCEthereumLocalnetAsset: Asset = {
   atomicSwapAddress: '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0',
   tokenAddress: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
 };
+export const STRKStarknetLocalnetAsset: Asset = {
+  name: 'STRK Starknet Localnet',
+  decimals: 18,
+  symbol: 'STRK',
+  chain: Chains.starknet_devnet,
+  atomicSwapAddress:
+    '0x15cf8b127aa850c97ed10de6f8b300cabc4f09232a57e63667af02fdef8a55a',
+  tokenAddress:
+    '0x51aa025f1c9948790113e4ebea826dee24542bc50902076c05892774210e8d2',
+};
+
+export const ETHStarknetLocalnetAsset: Asset = {
+  name: 'ETH Starknet Localnet',
+  decimals: 18,
+  symbol: 'ETH',
+  chain: Chains.starknet_devnet,
+  atomicSwapAddress:
+    '0x1890470168440bbb9df50988748924a74ea22de10d22a081e458737b9574e75',
+  tokenAddress:
+    '0x51aa025f1c9948790113e4ebea826dee24542bc50902076c05892774210e8d2',
+};
 
 export const SupportedAssets = {
   localnet: {
     arbitrum_localnet_WBTC: WBTCArbitrumLocalnetAsset,
     ethereum_localnet_WBTC: WBTCEthereumLocalnetAsset,
     bitcoinRegtest: bitcoinRegtestAsset,
+    starknet_localnet_STRK: STRKStarknetLocalnetAsset,
+    starknet_localnet_ETH: ETHStarknetLocalnetAsset,
   },
   testnet: {
     bitcoin_testnet_BTC: {

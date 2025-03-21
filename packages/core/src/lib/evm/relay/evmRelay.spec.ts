@@ -2,7 +2,11 @@ import { EvmRelay } from './evmRelay';
 import { privateKeyToAccount } from 'viem/accounts';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createWalletClient, http, createPublicClient, sha256 } from 'viem';
-import { CreateOrderReqWithStrategyId, MatchedOrder, Orderbook } from '@gardenfi/orderbook';
+import {
+  CreateOrderReqWithStrategyId,
+  MatchedOrder,
+  Orderbook,
+} from '@gardenfi/orderbook';
 import { randomBytes } from 'crypto';
 import { sleep } from '@catalogfi/utils';
 import {
@@ -12,7 +16,11 @@ import {
 } from '../../testUtils';
 import { Auth, Environment, Siwe, Url } from '@gardenfi/utils';
 import { Garden } from '@gardenfi/core';
-import { BitcoinNetwork, BitcoinProvider, BitcoinWallet } from '@catalogfi/wallets';
+import {
+  BitcoinNetwork,
+  BitcoinProvider,
+  BitcoinWallet,
+} from '@catalogfi/wallets';
 // import { ParseOrderStatus } from '../order/parseOrderStatus';
 // import { OrderStatus } from '../order/order.types';
 
@@ -42,7 +50,9 @@ describe('evmRelay', () => {
   //   chain: ethereumClient.chain,
   //   transport: http(),
   // });
-  const auth = new Auth({ siwe: new Siwe(new Url(relayUrl), arbitrumWalletClient) });
+  const auth = new Auth({
+    siwe: new Siwe(new Url(relayUrl), arbitrumWalletClient),
+  });
   const relayer = new EvmRelay(relayUrl, auth);
   const orderBook = new Orderbook({
     url: relayUrl,
@@ -93,16 +103,16 @@ describe('evmRelay', () => {
       destination_asset: WBTCEthereumLocalnetAsset.atomicSwapAddress,
       initiator_source_address: account.address,
       initiator_destination_address: account.address,
-      source_amount: "10000",
-      destination_amount: "9990",
-      fee: "1",
-      nonce: "1741254355776",
+      source_amount: '10000',
+      destination_amount: '9990',
+      fee: '1',
+      nonce: '1741254355776',
       timelock: Number(currentBlockNumber) + 100,
       secret_hash: secretHash.replace(/^0x/, ''),
       min_destination_confirmations: 0,
       additional_data: {
-        strategy_id: "alel12",
-      }
+        strategy_id: 'alel12',
+      },
     };
 
     console.log('creating order');
@@ -150,10 +160,7 @@ describe('evmRelay', () => {
 
       // const blockNumber = await arbitrumPublicClient.getBlockNumber();
 
-      const res = await relayer.init(
-        arbitrumWalletClient,
-        order
-      );
+      const res = await relayer.init(arbitrumWalletClient, order);
       console.log('res :', res.val);
       if (res.error) console.log('res.error :', res.error);
       expect(res.ok).toBeTruthy();

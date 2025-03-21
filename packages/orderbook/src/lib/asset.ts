@@ -16,6 +16,7 @@ export type Asset = AssetToken;
 export enum BlockchainType {
   Bitcoin = 'Bitcoin',
   EVM = 'EVM',
+  Starknet = 'Starknet',
 }
 
 export enum NetworkType {
@@ -51,6 +52,8 @@ export const Chains = {
   citrea_testnet: 'citrea_testnet',
   bera: 'bera',
   monad_testnet: 'monad_testnet',
+  starknet: 'starknet',
+  starknet_devnet: 'starknet_devnet',
 } as const;
 
 export type Chain = keyof typeof Chains;
@@ -71,7 +74,8 @@ export const isMainnet = (chain: Chain) => {
     chain === Chains.base_sepolia ||
     chain === Chains.bera_testnet ||
     chain === Chains.citrea_testnet ||
-    chain === Chains.monad_testnet
+    chain === Chains.monad_testnet ||
+    chain === Chains.starknet_devnet
   );
 };
 
@@ -100,6 +104,10 @@ export const isEVM = (chain: Chain) => {
   );
 };
 
+export const isStarknet = (chain: Chain) => {
+  return chain === Chains.starknet || chain === Chains.starknet_devnet;
+};
+
 export const TimeLocks: Record<Chain, number> = {
   [Chains.bitcoin]: 144,
   [Chains.bitcoin_testnet]: 144,
@@ -116,11 +124,14 @@ export const TimeLocks: Record<Chain, number> = {
   [Chains.citrea_testnet]: 28800,
   [Chains.bera]: 43200,
   [Chains.monad_testnet]: 172800,
+  [Chains.starknet]: 2880,
+  [Chains.starknet_devnet]: 2880,
 };
 
 export const getBlockchainType = (chain: Chain) => {
   if (isBitcoin(chain)) return BlockchainType.Bitcoin;
   if (isEVM(chain)) return BlockchainType.EVM;
+  if (isStarknet(chain)) return BlockchainType.Starknet;
   throw new Error('Invalid or unsupported chain');
 };
 

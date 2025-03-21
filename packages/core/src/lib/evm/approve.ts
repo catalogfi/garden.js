@@ -1,7 +1,12 @@
 import { AsyncResult, Err, Ok } from '@catalogfi/utils';
 import { erc20Abi, getContract, maxUint256, WalletClient } from 'viem';
-import { with0x } from './utils';
+// import { with0x } from '@gardenfi/utils';
 import { waitForTransactionReceipt } from 'viem/actions';
+
+const with0x = (str: string): `0x${string}` => {
+  if (str.startsWith('0x')) return str as `0x${string}`;
+  return `0x${str}`;
+};
 
 export const checkAllowanceAndApprove = async (
   amount: number | bigint,
@@ -31,6 +36,7 @@ export const checkAllowanceAndApprove = async (
 
     if (allowanceBigInt < amountBigInt) {
       console.log('Insufficient allowance, approving...');
+      console.log(contractAddress, walletClient.account.address);
       const res = await erc20Contract.write.approve(
         [with0x(contractAddress), maxUint256],
         {
@@ -41,6 +47,7 @@ export const checkAllowanceAndApprove = async (
           maxPriorityFeePerGas: 1500000000n, // 1.5 gwei
         },
       );
+      console.log('hey daddy');
       const receipt = await waitForTransactionReceipt(walletClient, {
         hash: res,
       });

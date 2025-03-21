@@ -1,14 +1,9 @@
-import { checkAllowanceAndApprove } from '@gardenfi/utils';
+import { checkAllowanceAndApprove } from '../approve';
 import { WalletClient, getContract } from 'viem';
 import { MatchedOrder } from '@gardenfi/orderbook';
 import { IEVMRelay } from './evmRelay.types';
 import { AsyncResult, Err, Fetcher, Ok, trim0x } from '@catalogfi/utils';
-import {
-  APIResponse,
-  IAuth,
-  Url,
-  with0x,
-} from '@gardenfi/utils';
+import { APIResponse, IAuth, Url, with0x } from '@gardenfi/utils';
 import { AtomicSwapABI } from '../abi/atomicSwap';
 
 export class EvmRelay implements IEVMRelay {
@@ -63,6 +58,7 @@ export class EvmRelay implements IEVMRelay {
         order.source_swap.asset,
         walletClient,
       );
+      console.log('approve error check from evmRelay');
       if (approval.error) return Err(approval.error);
 
       const domain = await atomicSwap.read.eip712Domain();

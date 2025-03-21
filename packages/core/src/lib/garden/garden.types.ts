@@ -8,6 +8,7 @@ import { IQuote } from '../quote/quote.types';
 import { IBlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
 import { IEVMRelay } from '../evm/relay/evmRelay.types';
 import { IBitcoinWallet } from '@catalogfi/wallets';
+import { Account } from 'starknet';
 
 export type SwapParams = {
   /**
@@ -154,6 +155,8 @@ export type GardenProps = {
   quote?: string;
   blockNumberFetcher?: IBlockNumberFetcher;
   btcWallet?: IBitcoinWallet;
+  starknetWallet?: Account;
+  starknetRelayUrl?: string;
 };
 
 /**

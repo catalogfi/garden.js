@@ -59,7 +59,10 @@ import { API } from '../constants';
 import { Quote } from '../quote/quote';
 import { SecretManager } from '../secretManager/secretManager';
 import { IEVMRelay } from '../evm/relay/evmRelay.types';
+import { IStarknetRelay } from '../starknet/snRelay.types';
 import { Auth } from '@gardenfi/utils';
+import { Account } from 'starknet';
+import { SnRelay } from '../starknet/snRelay';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment;
@@ -75,11 +78,15 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private _evmRelay: IEVMRelay;
   private _evmWallet: WalletClient;
   private _btcWallet: IBitcoinWallet | undefined;
+  private _starknetWallet: Account | undefined;
+  private _starknetRelay: IStarknetRelay | undefined;
+  private _starknetRelayUrl: string;
   private bitcoinRedeemCache = new Cache<{
     redeemedFromUTXO: string;
     redeemedAt: number;
     redeemTxHash: string;
   }>();
+  // starkner here
 
   constructor(config: GardenProps) {
     super();
@@ -120,11 +127,15 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this.orderExecutorCache = new ExecutorCache();
     this._evmWallet = config.evmWallet;
     this._btcWallet = config.btcWallet;
+    this._starknetWallet = config.starknetWallet;
+    this._starknetRelayUrl = config.starknetRelayUrl ?? '';
+    this._starknetRelay = new SnRelay(this._starknetRelayUrl);
     if (!config.evmWallet.account)
       throw new Error('Account not found in evmWallet');
     this._blockNumberFetcher =
       config.blockNumberFetcher ??
-      new BlockNumberFetcher(api.info, config.environment);
+      new BlockNumberFetcher('http://localhost:3008', config.environment);
+    // starknet here
   }
 
   get orderbookUrl() {
@@ -161,8 +172,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     const digestKey = await this._secretManager.getDigestKey();
     if (digestKey.error) return Err(digestKey.error);
 
-    if(!this._btcWallet) {
-      const provider: IBitcoinProvider = new BitcoinProvider(getBitcoinNetwork(this.environment));
+    if (!this._btcWallet) {
+      const provider: IBitcoinProvider = new BitcoinProvider(
+        getBitcoinNetwork(this.environment),
+      );
       this._btcWallet = BitcoinWallet.fromPrivateKey(digestKey.val, provider);
     }
     return Ok(this._btcWallet);
@@ -211,6 +224,39 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
     const orderRes = await this.pollOrder(createOrderRes.val);
     if (orderRes.error) return Err(orderRes.error);
+
+    if (
+      orderRes.val &&
+      getBlockchainType(orderRes.val.source_swap.chain) === BlockchainType.EVM
+    ) {
+      const secrets = await this._secretManager.generateSecret(
+        orderRes.val.create_order.nonce,
+      );
+      if (secrets.error) return Err(secrets.error);
+      if (!this._evmWallet) return Err('Ethereum wallet not initialized');
+      const evmResponse = await this._evmRelay?.init(
+        this._evmWallet,
+        orderRes.val,
+      );
+      console.log(evmResponse);
+    }
+
+    if (
+      orderRes.val &&
+      getBlockchainType(orderRes.val.source_swap.chain) ===
+        BlockchainType.Starknet
+    ) {
+      const secrets = await this._secretManager.generateSecret(
+        orderRes.val.create_order.nonce,
+      );
+      if (secrets.error) return Err(secrets.error);
+      if (!this._starknetWallet) return Err('Starknet wallet not initialized');
+      const starknetResponse = await this._starknetRelay?.init(
+        this._starknetWallet,
+        orderRes.val,
+      );
+      console.log(starknetResponse);
+    }
 
     return Ok(orderRes.val);
   }
@@ -287,6 +333,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           return Err('Invalid btc public key');
         return Ok(toXOnly(pubKey));
       }
+      case BlockchainType.Starknet: {
+        if (!this._starknetWallet) return Err('Starknet Wallet not found');
+        return Ok(this._starknetWallet.address);
+      }
       default:
         return Err('Unsupported chain');
     }
@@ -345,7 +395,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           pendingOrders.data,
         );
         if (ordersWithStatus.error) return;
-
+        // console.log('orders with status: ', ordersWithStatus.val);
         this.emit('onPendingOrdersChanged', ordersWithStatus.val);
 
         //initialize swappers and execute orders
@@ -358,6 +408,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
             isBitcoin(order.source_swap.chain) &&
             order.status === OrderStatus.InitiateDetected
           ) {
+            console.log('posting refund sacp');
             const walletRes = this.getWallet(order.source_swap.chain);
             if (walletRes.error) {
               this.emit('error', order, walletRes.error);
@@ -382,6 +433,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                   break;
                 }
                 case BlockchainType.Bitcoin: {
+                  console.log('redeeming bitcoin order');
                   const destWallet = this.getWallet(
                     order.destination_swap.chain,
                   );
@@ -395,6 +447,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                     order,
                     secrets.val.secret,
                   );
+                  break;
+                }
+
+                case BlockchainType.Starknet: {
+                  await this.starknetRedeem(order, secrets.val.secret);
                   break;
                 }
                 default:
@@ -429,6 +486,14 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                   );
                   break;
                 }
+                case BlockchainType.Starknet: {
+                  this.emit(
+                    'error',
+                    order,
+                    'Starknet refund is automatically done by relay service',
+                  );
+                  break;
+                }
                 default:
                   this.emit(
                     'error',
@@ -447,6 +512,152 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       },
       true,
     );
+  }
+
+  async starknetExecute(interval: number = 5000): Promise<() => void> {
+    await this.initializeSMandBTCWallet();
+    console.log('---------->executing starknet orders.........');
+
+    const fetchAndProcessOrders = async () => {
+      try {
+        const link = `${this._orderbookUrl}orders/user/matched/${this._starknetWallet?.address}`;
+        console.log(link);
+        const response = await fetch(link);
+
+        if (!response.ok) {
+          console.error('Response error:', response.status);
+          return;
+        }
+
+        const result = await response.json();
+
+        if (!result?.result?.data || !Array.isArray(result.result.data)) {
+          console.log('Invalid response format or no orders');
+          return;
+        }
+
+        const ordersWithStatus = await this.filterExpiredAndAssignStatus(
+          result.result.data,
+        );
+        if (ordersWithStatus.error) {
+          console.log('Error filtering orders:', ordersWithStatus.error);
+          return;
+        }
+
+        console.log('Processing orders:', ordersWithStatus.val.length);
+
+        for (const order of ordersWithStatus.val) {
+          const isStarknetOrder =
+            order.source_swap.chain.includes('starknet') ||
+            order.destination_swap.chain.includes('starknet');
+
+          const isBitcoinOrder =
+            order.source_swap.chain.includes('bitcoin') ||
+            order.destination_swap.chain.includes('bitcoin');
+          if (!isStarknetOrder && !isBitcoinOrder) {
+            continue;
+          }
+
+          const orderAction = parseActionFromStatus(order.status);
+          console.log('Processing order:', {
+            id: order.create_order.create_id,
+            action: orderAction,
+            sourceChain: order.source_swap.chain,
+            destChain: order.destination_swap.chain,
+          });
+
+          // Rest of the processing remains the same
+          switch (orderAction) {
+            case OrderActions.Redeem: {
+              const secrets = await this._secretManager.generateSecret(
+                order.create_order.nonce,
+              );
+              if (secrets.error) {
+                this.emit('error', order, secrets.error);
+                continue;
+              }
+
+              if (
+                getBlockchainType(order.destination_swap.chain) ===
+                BlockchainType.Bitcoin
+              ) {
+                console.log('Redeeming Bitcoin order');
+                const destWallet = this.getWallet(order.destination_swap.chain);
+                if (destWallet.error) {
+                  this.emit('error', order, destWallet.error);
+                  continue;
+                }
+                await this.btcRedeem(
+                  destWallet.val as IBitcoinWallet,
+                  order,
+                  secrets.val.secret,
+                );
+              } else if (
+                getBlockchainType(order.destination_swap.chain) ===
+                BlockchainType.Starknet
+              ) {
+                console.log('Redeeming Starknet order');
+                await this.starknetRedeem(order, secrets.val.secret);
+              }
+              break;
+            }
+            case OrderActions.Refund: {
+              if (
+                getBlockchainType(order.source_swap.chain) ===
+                BlockchainType.Bitcoin
+              ) {
+                const sourceWallet = this.getWallet(order.source_swap.chain);
+                if (sourceWallet.error) {
+                  this.emit('error', order, sourceWallet.error);
+                  continue;
+                }
+                await this.btcRefund(sourceWallet.val as IBitcoinWallet, order);
+              }
+              break;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error in starknetExecute:', error);
+      }
+    };
+
+    await fetchAndProcessOrders();
+    const intervalId = setInterval(fetchAndProcessOrders, interval);
+
+    return () => clearInterval(intervalId);
+  }
+
+  private async starknetRedeem(order: MatchedOrder, secret: string) {
+    this.emit('log', order.create_order.create_id, 'executing starknet redeem');
+    const cache = this.orderExecutorCache.get(order, OrderActions.Redeem);
+    if (cache) {
+      this.emit('log', order.create_order.create_id, 'already redeemed');
+      return;
+    }
+    console.log('redeem starting now');
+    const res = await this._starknetRelay?.redeem(
+      order.create_order.create_id,
+      secret,
+    );
+    console.log('done redeem');
+    if (res?.error) {
+      console.log('Error redeeming order from starknet Redeem:', res.error);
+      this.emit('error', order, res.error);
+      if (res.error.includes('Order already redeemed')) {
+        this.orderExecutorCache.set(
+          order,
+          OrderActions.Redeem,
+          order.destination_swap.redeem_tx_hash,
+        );
+      }
+      return;
+    }
+
+    if (res?.val) {
+      this.orderExecutorCache.set(order, OrderActions.Redeem, res.val);
+      this.emit('success', order, OrderActions.Redeem, res.val);
+    }
   }
 
   private async evmRedeem(order: MatchedOrder, secret: string) {
@@ -737,6 +948,23 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
       const sourceChain = order.source_swap.chain;
       const destinationChain = order.destination_swap.chain;
+
+      if (blockNumbers.val.starknet) {
+        blockNumbers.val.starknet_devnet = blockNumbers.val.starknet;
+      }
+
+      if (blockNumbers.val.arbitrum) {
+        blockNumbers.val.arbitrum_localnet = blockNumbers.val.arbitrum;
+      }
+
+      if (blockNumbers.val.ethereum) {
+        blockNumbers.val.ethereum_localnet = blockNumbers.val.ethereum;
+      }
+
+      if (blockNumbers.val.bitcoin) {
+        blockNumbers.val.bitcoin_regtest = blockNumbers.val.bitcoin;
+        blockNumbers.val.bitcoin_testnet = blockNumbers.val.bitcoin;
+      }
 
       const sourceChainBlockNumber = blockNumbers?.val[sourceChain];
       const destinationChainBlockNumber = blockNumbers?.val[destinationChain];

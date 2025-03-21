@@ -1,17 +1,82 @@
-import { checkAllowanceAndApprove } from '@gardenfi/utils';
-import { Account, WalletAccount, Contract, RpcProvider } from 'starknet';
+import { checkAllowanceAndApprove } from './checkAllowanceAndApprove';
+import {
+  Account,
+  Contract,
+  RpcProvider,
+  TypedData,
+  TypedDataRevision,
+  WeierstrassSignatureType,
+  cairo,
+  num,
+  shortString,
+} from 'starknet';
 import { MatchedOrder } from '@gardenfi/orderbook';
-import { IStarknetRelay } from './snRelay.types';
-import { AsyncResult, Err, Fetcher, Ok, trim0x } from '@catalogfi/utils';
-import { APIResponse, IAuth, Url, with0x } from '@gardenfi/utils';
+import { AsyncResult, Err, Ok, Fetcher } from '@catalogfi/utils';
+import { APIResponse, Url } from '@gardenfi/utils';
 
-export class snRelay implements IStarknetRelay {
+const DOMAIN = {
+  name: 'HTLC',
+  version: shortString.encodeShortString('1'),
+  chainId: '0x534e5f5345504f4c4941',
+  revision: TypedDataRevision.ACTIVE,
+};
+
+const INTIATE_TYPE = {
+  StarknetDomain: [
+    { name: 'name', type: 'shortstring' },
+    { name: 'version', type: 'shortstring' },
+    { name: 'chainId', type: 'shortstring' },
+    { name: 'revision', type: 'shortstring' },
+  ],
+  Initiate: [
+    { name: 'redeemer', type: 'ContractAddress' },
+    { name: 'amount', type: 'u256' },
+    { name: 'timelock', type: 'u128' },
+    { name: 'secretHash', type: 'u128*' },
+  ],
+};
+
+function hexToU32Array(
+  hexString: string,
+  endian: 'big' | 'little' = 'big',
+): number[] {
+  // Remove 0x prefix if present
+  hexString = hexString.replace('0x', '');
+
+  // Ensure we have 64 characters (32 bytes, will make 8 u32s)
+  if (hexString.length !== 64) {
+    throw new Error('Invalid hash length');
+  }
+
+  const result: number[] = [];
+
+  // Process 8 bytes (32 bits) at a time to create each u32
+  for (let i = 0; i < 8; i++) {
+    // Take 8 hex characters (4 bytes/32 bits)
+    const chunk = hexString.slice(i * 8, (i + 1) * 8);
+
+    // Split into bytes
+    const bytes = chunk.match(/.{2}/g)!;
+
+    // Handle endianness
+    if (endian === 'little') {
+      bytes.reverse();
+    }
+
+    const finalHex = bytes.join('');
+    result.push(parseInt(finalHex, 16));
+  }
+
+  return result; // Will be array of 8 u32 values
+}
+
+export class SnRelay {
+  private provider: RpcProvider;
   private url: Url;
-  private auth: IAuth;
 
-  constructor(url: string | Url, auth: IAuth) {
-    this.url = new Url('/relayer', url);
-    this.auth = auth;
+  constructor(relayerUrl: string | Url) {
+    this.provider = new RpcProvider({ nodeUrl: 'http://127.0.0.1:8547/rpc' });
+    this.url = new Url('/relayer', relayerUrl);
   }
 
   async init(
@@ -19,46 +84,87 @@ export class snRelay implements IStarknetRelay {
     order: MatchedOrder,
   ): AsyncResult<string, string> {
     if (!account.address) return Err('No account address');
-    if (
-      account.address.toLowerCase() !==
-      order.source_swap.initiator.toLowerCase()
-    )
-      return Err('Account address does not match initiator address');
 
     const { create_order, source_swap } = order;
+    const { redeemer, amount } = source_swap;
 
     if (
-      !source_swap.amount ||
-      !source_swap.redeemer ||
-      !create_order.timelock ||
-      !create_order.secret_hash
-    )
+      !amount ||
+      !redeemer ||
+      !create_order.secret_hash ||
+      !create_order.timelock
+    ) {
       return Err('Invalid order');
+    }
 
-    const secretHash = with0x(create_order.secret_hash);
-    const timelock = BigInt(create_order.timelock);
-    const redeemer = with0x(source_swap.redeemer);
-    const amount = BigInt(source_swap.amount);
-    // const asasd = new Account()
     try {
-      const auth = await this.auth.getAuthHeaders();
-      if (auth.error) return Err(auth.error);
-      const STARK =
-        '0x4718F5A0FC34CC1AF16A1CDEE98FFB20C31F5CD61D6AB07201858F4287C938D';
-      const starknetProvider = new RpcProvider({
-        nodeUrl: 'http://127.0.0.1:8547/rpc',
-      });
-      const contractData = await starknetProvider.getClassAt(STARK);
+      // const auth = await this.auth.getAuthHeaders();
+      // if (auth.error) return Err(auth.error);
 
-      const contract = new Contract(contractData.abi, STARK, starknetProvider);
+      const contract = new Contract(
+        (await this.provider.getClassAt(order.source_swap.asset)).abi,
+        order.source_swap.asset,
+        account,
+      );
 
-      const token = contract.address;
-      //   account,
-      // );
-      // const contract =
-      // new Contract(abi, contractaddress, walletClient);
+      console.log('contract init done');
+      const token = await contract?.['token']();
+      const tokenHex = num.toHex(token);
+      console.log('token hex', tokenHex);
+      const approvalResult = await checkAllowanceAndApprove(
+        account,
+        tokenHex,
+        source_swap.asset,
+        BigInt(amount),
+      );
+      console.log('approval result', approvalResult);
+      if (approvalResult.error) return Err(approvalResult.error);
 
-      return Ok('');
+      const TypedData: TypedData = {
+        domain: DOMAIN,
+        primaryType: 'Initiate',
+        types: INTIATE_TYPE,
+        message: {
+          redeemer: redeemer,
+          amount: cairo.uint256(amount),
+          timelock: create_order.timelock,
+          secretHash: hexToU32Array(create_order.secret_hash),
+        },
+      };
+      const signature = (await account.signMessage(
+        TypedData,
+      )) as WeierstrassSignatureType;
+      const { r, s } = signature;
+
+      console.log(
+        'successfully signed now sending request to initiate on htlc',
+      );
+      console.log(
+        JSON.stringify({
+          order_id: create_order.create_id,
+          signature: `0x${r.toString(16)},0x${s.toString(16)}`,
+          perform_on: 'Source',
+        }),
+      );
+      const res = await Fetcher.post<APIResponse<string>>(
+        this.url.endpoint('initiate'),
+        {
+          body: JSON.stringify({
+            order_id: create_order.create_id,
+            signature: `0x${r.toString(16)},0x${s.toString(16)}`,
+            perform_on: 'Source',
+          }),
+          headers: {
+            'api-key':
+              'AAAAAGf0dUU6OrzQU7BpPstIUl24NGKtyr_-fMJJ2LvTpPN8cK9X624gNTAZ4fFL2U8MwMWDwR5lSZzHBkUzR31OVmWBxEVDZzAc',
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+      console.log('response after initiate on htlc', res);
+
+      if (res.error) return Err(res.error);
+      return res.result ? Ok(res.result) : Err('Init: No result found');
     } catch (error) {
       console.error('init error:', error);
       return Err(String(error));
@@ -67,7 +173,24 @@ export class snRelay implements IStarknetRelay {
 
   async redeem(orderId: string, secret: string): AsyncResult<string, string> {
     try {
-      return Ok('');
+      const res = await Fetcher.post<APIResponse<string>>(
+        this.url.endpoint('redeem'),
+        {
+          body: JSON.stringify({
+            order_id: orderId,
+            secret: secret,
+            perform_on: 'Destination',
+          }),
+          headers: {
+            'api-key':
+              'AAAAAGf0dUU6OrzQU7BpPstIUl24NGKtyr_-fMJJ2LvTpPN8cK9X624gNTAZ4fFL2U8MwMWDwR5lSZzHBkUzR31OVmWBxEVDZzAc',
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (res.error) return Err(res.error);
+      return res.result ? Ok(res.result) : Err('Redeem: No result found');
     } catch (error) {
       return Err(String(error));
     }

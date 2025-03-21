@@ -37,7 +37,7 @@ export class Siwe implements ISiwe {
       const utcTimestampNow = Math.floor(Date.now() / 1000) + 120;
       return Ok(
         parsedToken.exp > utcTimestampNow &&
-        parsedToken.user_id.toLowerCase() === account.toLowerCase(),
+          parsedToken.user_id.toLowerCase() === account.toLowerCase(),
       );
     } catch (error) {
       return Ok(false);
