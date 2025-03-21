@@ -87,33 +87,32 @@ yarn workspaces foreach --all --topological --no-private exec bash -c '
     exit 1
   fi
 
-  LATEST_STABLE_TAG=$(git tag --sort=-v:refname | grep -F "$PACKAGE_NAME@" | grep -E "^[0-9]+\.[0-9]+\.[0-9]+$" | head -n 1 | sed "s|^$PACKAGE_NAME@||")
+  LATEST_STABLE_VERSION=$(npm view $PACKAGE_NAME version)
 
-  if [[ -z "$LATEST_STABLE_TAG" ]]; then
+  if [[ -z "$LATEST_STABLE_VERSION" ]]; then
     echo "No previous stable tags found for $PACKAGE_NAME, using package.json version"
-    LATEST_STABLE_TAG=$(jq -r .version package.json)
+    LATEST_STABLE_VERSION=$(jq -r .version package.json)
   fi
 
-  echo "Latest stable version for $PACKAGE_NAME: $LATEST_STABLE_TAG"
+  echo "Latest stable version for $PACKAGE_NAME: $LATEST_STABLE_VERSION"
 
   if [[ "$VERSION_BUMP" == "prerelease" ]]; then
-    git tag --sort=-v:refname | grep -F "$PACKAGE_NAME@" || echo "No tags found"
 
-    LATEST_BETA_TAG=$(git tag --sort=-v:refname | grep -F "$PACKAGE_NAME@" | grep -E "^$PACKAGE_NAME@$LATEST_STABLE_TAG-beta\.[0-9]+$" | tail -n 1)
+    LATEST_BETA_VERSION=$(npm view $PACKAGE_NAME versions --json | jq -r '"'"'[.[] | select(contains("-beta"))] | max // empty'"'"')
 
-    if [[ -n "$LATEST_BETA_TAG" ]]; then
-      BETA_NUMBER=$(echo "$LATEST_BETA_TAG" | sed -E "s/.*-beta\.([0-9]+)/\1/")
-      NEW_VERSION="${LATEST_STABLE_TAG}-beta.$((BETA_NUMBER + 1))"
+    if [[ -n "$LATEST_BETA_VERSION" ]]; then
+      BETA_NUMBER=$(echo "$LATEST_BETA_VERSION" | sed -E "s/.*-beta\.([0-9]+)/\1/")
+      NEW_VERSION="${LATEST_STABLE_VERSION}-beta.$((BETA_NUMBER + 1))"
     else
-      NEW_VERSION="${LATEST_STABLE_TAG}-beta.0"
+      NEW_VERSION="${LATEST_STABLE_VERSION}-beta.0"
     fi
 
     echo "New beta version for $PACKAGE_NAME: $NEW_VERSION"
   else
-    NEW_VERSION=$(increment_version "$LATEST_STABLE_TAG" "$VERSION_BUMP")
+    NEW_VERSION=$(increment_version "$LATEST_STABLE_VERSION" "$VERSION_BUMP")
   fi
 
-  echo "Bumping $PACKAGE_NAME from $LATEST_STABLE_TAG to $NEW_VERSION"
+  echo "Bumping $PACKAGE_NAME from $LATEST_STABLE_VERSION to $NEW_VERSION"
 
   jq --arg new_version "$NEW_VERSION" ".version = \$new_version" package.json > package.tmp.json && mv package.tmp.json package.json
 
@@ -121,7 +120,7 @@ yarn workspaces foreach --all --topological --no-private exec bash -c '
     yarn build
     npm publish --tag beta --access public
     git tag "$PACKAGE_NAME@$NEW_VERSION"
-    git push https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git "$PACKAGE_NAME@$NEW_VERSION"
+    https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git "$PACKAGE_NAME@$NEW_VERSION"
   else
     if [[ "$IS_PR" != "true" ]]; then
       git add package.json
@@ -132,7 +131,7 @@ yarn workspaces foreach --all --topological --no-private exec bash -c '
       yarn build
       npm publish --access public
       git tag "$PACKAGE_NAME@$NEW_VERSION"
-      git push https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git HEAD:main --tags
+      https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git HEAD:main --tags
     else
       echo "Skipping commit since this is a pull request."
     fi
@@ -147,7 +146,7 @@ if [[ "$IS_PR" != "true" && -n $(git status --porcelain) ]]; then
   git -c user.email="$COMMIT_EMAIL" \
       -c user.name="$COMMIT_NAME" \
       commit -m "chore: commit release script and config changes"
-  git push https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git HEAD:main
+  https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git HEAD:main
 fi
 
 rm -f ~/.npmrc
