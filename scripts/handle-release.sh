@@ -146,7 +146,7 @@ if [[ "$IS_PR" != "true" && -n $(git status --porcelain) ]]; then
   git -c user.email="$COMMIT_EMAIL" \
       -c user.name="$COMMIT_NAME" \
       commit -m "chore: commit release script and config changes"
-  https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git HEAD:main
+  git push https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git HEAD:main
 fi
 
 rm -f ~/.npmrc
