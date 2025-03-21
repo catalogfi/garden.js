@@ -36,6 +36,7 @@ describe.each([
       domain: OrderbookApi,
     });
     const token = await siwe.getToken();
+    console.log('token :', token.val);
     expect(token.ok).toBeTruthy();
   });
 
@@ -48,6 +49,18 @@ describe.each([
 
     expect(firstToken).toEqual(secondToken);
   });
+
+  it('validation', async () => {
+    const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiMHg1MkZFOGFmYmJCODAwYTMzZWRjYkRCMWVhODdiZTI1NDdFQjMwMDAwIiwiZXhwIjoxNzQxMzQ2NjY2fQ._3jlr2879Eztv9leVQgNS-0aNGpQ3aCfXgJd8TwivMY';
+    const parsedToken = parseJwt(token);
+    expect(parsedToken).toBeDefined();
+    if (parsedToken) {
+      const utcTimestampNow = Math.floor(Date.now() / 1000) + 120;
+      expect(parsedToken.exp > utcTimestampNow &&
+        parsedToken.user_id.toLowerCase() === account.address.toLowerCase()).toBeTruthy();
+    }
+    expect(true).toBeTruthy();
+  })
 
   it('test parseJWT', async () => {
     const parsedToken = parseJwt(

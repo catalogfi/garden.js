@@ -9,11 +9,10 @@ import {
   isBitcoin,
   MatchedOrder,
   SupportedAssets,
-  // SupportedAssets,
 } from '@gardenfi/orderbook';
 import { sleep } from '@catalogfi/utils';
-import { arbitrumSepolia, sepolia } from 'viem/chains';
-// import { BitcoinNetwork, BitcoinProvider } from '@catalogfi/wallets';
+import { BitcoinNetwork, BitcoinProvider, BitcoinWallet } from '@catalogfi/wallets';
+import { ArbitrumLocalnet, EthereumLocalnet } from '../testUtils';
 // import { Quote } from './../quote/quote';
 // import { Orderbook } from 'gardenfi/orderbook';
 
@@ -27,43 +26,71 @@ describe('swap and execute using garden', () => {
 
   const arbitrumWalletClient = createWalletClient({
     account,
-    chain: arbitrumSepolia,
+    chain: ArbitrumLocalnet,
     transport: http(),
   });
   const ethereumWalletClient = createWalletClient({
     account,
-    chain: sepolia,
+    chain: EthereumLocalnet,
     transport: http(),
   });
 
   // const quote = new Quote('https://quote-choas.onrender.com/');
   // const orderBookUrl = 'https://evm-swapper-relay-1.onrender.com/';
 
+  const bitcoinProvider = new BitcoinProvider(
+    BitcoinNetwork.Regtest,
+    'https://indexer.merry.dev'
+  );
+
+  const btcWallet = BitcoinWallet.createRandom(bitcoinProvider);
+
   const garden = new Garden({
     // orderbookURl: orderBookUrl,
     // quote,
-    environment: Environment.TESTNET,
+    environment: Environment.LOCALNET,
     evmWallet: arbitrumWalletClient,
+    btcWallet,
   });
   let wallets: Partial<{ [key in Chain]: WalletClient }> = {};
 
   wallets = {
-    [Chains.arbitrum_sepolia]: arbitrumWalletClient,
-    [Chains.ethereum_sepolia]: ethereumWalletClient,
+    [Chains.arbitrum_localnet]: arbitrumWalletClient,
+    [Chains.ethereum_localnet]: ethereumWalletClient,
     // [Chains.bitcoin_regtest]: btcWallet,
   };
 
   let order: MatchedOrder;
 
+  const setupEventListeners = () => {
+    garden.on('error', (order, error) => {
+      console.log('Error while executing ❌, orderId:', order.create_order.create_id, 'error:', error);
+    });
+    garden.on('success', (order, action, result) => {
+      console.log('Executed ✅, orderId:', order.create_order.create_id, 'action:', action, 'result:', result);
+    });
+    garden.on('log', (id, message) => {
+      console.log('Log:', id, message);
+    });
+    garden.on('onPendingOrdersChanged', (orders) => {
+      console.log('Pending orders:', orders.length);
+      orders.forEach((order) => {
+        console.log('Pending order:', order.create_order.create_id);
+      });
+    });
+    garden.on('rbf', (order, result) => {
+      console.log('RBF:', order.create_order.create_id, result);
+    });
+  };
+
   it.skip('should create an order', async () => {
     const orderObj = {
-      fromAsset: SupportedAssets.testnet.arbitrum_sepolia_SEED,
-      toAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
-      sendAmount: '100000000000000000000'.toString(),
-      receiveAmount: '104213'.toString(),
+      fromAsset: SupportedAssets.localnet.arbitrum_localnet_WBTC,
+      toAsset: SupportedAssets.localnet.ethereum_localnet_WBTC,
+      sendAmount: '10000',
+      receiveAmount: '9990',
       additionalData: {
-        strategyId: 'aae4btyr',
-        btcAddress: 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru',
+        strategyId: 'alel12',
       },
       minDestinationConfirmations: 0,
     };
@@ -84,6 +111,7 @@ describe('swap and execute using garden', () => {
     expect(result.val).toBeTruthy();
   }, 60000);
 
+  
   //TODO: also add bitcoin init
   it.skip('Initiate the swap', async () => {
     if (isBitcoin(order.source_swap.chain)) {
@@ -97,49 +125,10 @@ describe('swap and execute using garden', () => {
     if (res.error) console.log('init error ❌ :', res.error);
     expect(res.ok).toBeTruthy();
   }, 20000);
-
-  it('EXECUTE', async () => {
-    garden.on('error', (order, error) => {
-      console.log(
-        'error while executing ❌, orderId :',
-        order.create_order.create_id,
-        'error :',
-        error,
-      );
-    });
-    garden.on('success', (order, action, result) => {
-      console.log(
-        'executed ✅, orderId :',
-        order.create_order.create_id,
-        'action :',
-        action,
-        'result :',
-        result,
-      );
-    });
-    garden.on('log', (id, message) => {
-      console.log('log :', id, message);
-    });
-    garden.on('onPendingOrdersChanged', (orders) => {
-      console.log('pendingorders :', orders.length);
-      orders.forEach((order) => {
-        console.log('pending order :', order.create_order.create_id);
-      });
-    });
-    garden.on('rbf', (order, result) => {
-      console.log('rbf :', order.create_order.create_id, result);
-    });
+  
+  it('Execute orders', async () => {
+    setupEventListeners();
     await garden.execute();
     await sleep(150000);
   }, 150000);
 });
-
-// describe('get btc tx', () => {
-//   const provider = new BitcoinProvider(BitcoinNetwork.Testnet);
-//   it('should get btc tx', async () => {
-//     const tx = await provider.getTransaction(
-//       'ac3f0bc4d98b1fe8da1f21f1cadadb33a3e903ee10260836fc3a853df125fabd',
-//     );
-//     console.log('tx :', tx);
-//   });
-// });

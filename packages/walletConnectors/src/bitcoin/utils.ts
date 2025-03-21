@@ -10,6 +10,9 @@ const BitcoinExplorers = {
     Mempool: 'https://mempool.space',
     Blockstream: 'https://blockstream.info',
   },
+  localnet: {
+    Mempool: 'https://indexer.merry.dev',
+  }
 };
 
 type BalanceResponse = {

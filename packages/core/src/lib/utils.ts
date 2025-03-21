@@ -146,6 +146,8 @@ export const getBitcoinNetwork = (network: Environment): BitcoinNetwork => {
       return BitcoinNetwork.Mainnet;
     case Environment.TESTNET:
       return BitcoinNetwork.Testnet;
+    case Environment.LOCALNET:
+      return BitcoinNetwork.Regtest;
     default:
       throw new Error(`Invalid bitcoin network ${network}`);
   }

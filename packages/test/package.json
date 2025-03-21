@@ -10,25 +10,30 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@catalogfi/wallets": "^0.2.54",
+    "@catalogfi/wallets": "^0.2.59",
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@gardenfi/core": "workspace:^",
+    "@gardenfi/garden-book": "0.1.68",
     "@gardenfi/orderbook": "workspace:^",
     "@gardenfi/react-hooks": "workspace:^",
     "@gardenfi/utils": "workspace:^",
     "@gardenfi/wallet-connectors": "workspace:^",
+    "@starknet-react/chains": "^3.1.2",
+    "@starknet-react/core": "^3.7.2",
     "@tanstack/react-query": "^5.59.0",
     "@vitejs/plugin-react-swc": "^3.7.1",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "starknet": "^6.23.1",
+    "starknetkit": "2.6.1",
     "tailwindcss": "^3.4.17",
     "vite-plugin-node-polyfills": "^0.22.0",
     "vite-plugin-top-level-await": "^1.4.4",
     "vite-plugin-wasm": "^3.3.0",
     "wagmi": "^2.12.17",
-    "zustand": "^5.0.2"
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.11.1",

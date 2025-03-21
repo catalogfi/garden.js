@@ -2,6 +2,7 @@ import React, { createContext, FC, useEffect, useMemo, useState } from 'react';
 import { useOrderbook } from '../hooks/useOrderbook';
 import {
   API,
+  BlockNumberFetcher,
   Garden,
   IGardenJS,
   OrderStatus,
@@ -155,9 +156,11 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         secretManager,
         quote: config.quoteUrl ?? API[config.environment].quote,
         orderbookURl: config.orderBookUrl ?? API[config.environment].orderbook,
+        blockNumberFetcher: new BlockNumberFetcher(config.blockNumberFetcherUrl ?? API[config.environment].info, config.environment),
+        btcWallet: config.btcWallet,
       }),
     );
-  }, [config.walletClient, digestKey]);
+  }, [config.walletClient, config.btcWallet, digestKey]);
 
   return (
     <GardenContext.Provider

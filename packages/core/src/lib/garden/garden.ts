@@ -38,6 +38,7 @@ import { WalletClient } from 'viem';
 import {
   BitcoinProvider,
   BitcoinWallet,
+  IBitcoinProvider,
   IBitcoinWallet,
 } from '@catalogfi/wallets';
 import {
@@ -88,7 +89,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         ? API.mainnet
         : config.environment === Environment.TESTNET
         ? API.testnet
+        : config.environment === Environment.LOCALNET
+        ? API.localnet
         : undefined;
+
     if (!api)
       throw new Error(
         'API not found, invalid environment ' + config.environment,
@@ -115,6 +119,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       config.secretManager ?? SecretManager.fromWalletClient(config.evmWallet);
     this.orderExecutorCache = new ExecutorCache();
     this._evmWallet = config.evmWallet;
+    this._btcWallet = config.btcWallet;
     if (!config.evmWallet.account)
       throw new Error('Account not found in evmWallet');
     this._blockNumberFetcher =
@@ -156,8 +161,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     const digestKey = await this._secretManager.getDigestKey();
     if (digestKey.error) return Err(digestKey.error);
 
-    const provider = new BitcoinProvider(getBitcoinNetwork(this.environment));
-    this._btcWallet = BitcoinWallet.fromPrivateKey(digestKey.val, provider);
+    if(!this._btcWallet) {
+      const provider: IBitcoinProvider = new BitcoinProvider(getBitcoinNetwork(this.environment));
+      this._btcWallet = BitcoinWallet.fromPrivateKey(digestKey.val, provider);
+    }
     return Ok(this._btcWallet);
   }
 

@@ -16,6 +16,7 @@ export const sleep = (ms: number) =>
 export enum Network {
   MAINNET = 'mainnet',
   TESTNET = 'testnet',
+  LOCALNET = 'localnet',
 }
 
 export enum Environment {

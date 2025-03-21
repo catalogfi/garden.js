@@ -6,5 +6,23 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), wasm(), nodePolyfills(), topLevelAwait()],
+  plugins: [
+    react(),
+    wasm(),
+    nodePolyfills(),
+    topLevelAwait(),
+  ],
+  server: {
+    proxy: {
+      '/fund': {
+        target: 'http://20.127.146.112:9090',
+        changeOrigin: true,
+        secure: false
+      }
+    },
+    hmr: true,
+    watch: {
+      usePolling: true,
+    },
+  },
 });

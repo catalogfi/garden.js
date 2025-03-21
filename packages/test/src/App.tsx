@@ -1,18 +1,21 @@
 import { GardenProvider } from '@gardenfi/react-hooks';
-import { Environment } from '@gardenfi/utils';
 import { useWalletClient } from 'wagmi';
 import { Swap } from './components/Swap';
+import { useEnvironmentStore } from './store/useEnvironmentStore';
+import { useSwapStore } from './store/swapStore';
 
 function App() {
   const { data: walletClient } = useWalletClient();
-  console.log('walletClient :', walletClient);
+  const environment = useEnvironmentStore((state) => state.environment);
+  const { btcWallet } = useSwapStore();
 
   return (
     <GardenProvider
       config={{
         store: localStorage,
-        environment: Environment.TESTNET,
+        environment,
         walletClient: walletClient,
+        btcWallet: btcWallet,
       }}
     >
       <Swap />
