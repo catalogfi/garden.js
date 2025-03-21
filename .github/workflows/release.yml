@@ -33,7 +33,7 @@ jobs:
           node-version: 20.9.0
 
       - name: Set Yarn Version
-        run: yarn set version 4.3.1
+        run: corepack enable && yarn set version 4.3.1
 
       - name: Install Dependencies
         run: yarn install
@@ -67,7 +67,7 @@ jobs:
           node-version: 20.9.0
 
       - name: Set Yarn Version
-        run: yarn set version 4.3.1
+        run: corepack enable && yarn set version 4.3.1
 
       - name: Install Dependencies
         run: yarn install
