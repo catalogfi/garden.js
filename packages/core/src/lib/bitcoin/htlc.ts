@@ -464,6 +464,73 @@ export class GardenHTLC implements IHTLCWallet {
     return await provider.broadcast(tx.toHex());
   }
 
+  async getRedeemHex(secret: string, receiver?: string): Promise<string> {
+    assert(
+      bitcoin.crypto.sha256(Buffer.from(secret, 'hex')).toString('hex') ===
+        this.secretHash,
+      htlcErrors.secretMismatch,
+    );
+
+    const receiverAddress = receiver ?? (await this.signer.getAddress());
+
+    // First build and sign tx to calculate vSize
+    const { tx: tempTx, usedUtxos: utxos } = await this._tempBuildRawTx(
+      receiverAddress,
+    );
+    console.log('utxos :', utxos);
+
+    const redeemLeafHash = this.leafHash(Leaf.REDEEM);
+    const values = utxos.map((utxo) => utxo.value);
+    const outputs = generateOutputs(this.getOutputScript(), utxos.length);
+    const hashType = bitcoin.Transaction.SIGHASH_DEFAULT;
+
+    // Sign temp transaction to get accurate vSize
+    for (let i = 0; i < tempTx.ins.length; i++) {
+      const hash = tempTx.hashForWitnessV1(
+        i,
+        outputs,
+        values,
+        hashType,
+        redeemLeafHash,
+      );
+      const signature = await this.signer.signSchnorr(hash);
+
+      tempTx.setWitness(i, [
+        signature,
+        Buffer.from(secret, 'hex'),
+        this.redeemLeaf(),
+        this.generateControlBlockFor(Leaf.REDEEM),
+      ]);
+    }
+
+    // Build final tx with correct fees
+    const { tx } = await this._tempBuildRawTx(
+      receiverAddress,
+      tempTx.virtualSize(),
+    );
+
+    // Sign final transaction
+    for (let i = 0; i < tx.ins.length; i++) {
+      const hash = tx.hashForWitnessV1(
+        i,
+        outputs,
+        values,
+        hashType,
+        redeemLeafHash,
+      );
+      const signature = await this.signer.signSchnorr(hash);
+
+      tx.setWitness(i, [
+        signature,
+        Buffer.from(secret, 'hex'),
+        this.redeemLeaf(),
+        this.generateControlBlockFor(Leaf.REDEEM),
+      ]);
+    }
+
+    return tx.toHex();
+  }
+
   /**
    * Refunds the funds back to the initiator if the expiry block height + 1 is reached
    */

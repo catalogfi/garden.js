@@ -279,9 +279,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@catalogfi/wallets@npm:^0.2.58":
-  version: 0.2.58
-  resolution: "@catalogfi/wallets@npm:0.2.58"
+"@catalogfi/wallets@npm:^0.2.59":
+  version: 0.2.59
+  resolution: "@catalogfi/wallets@npm:0.2.59"
   dependencies:
     "@catalogfi/extension": "npm:^0.1.1"
     "@catalogfi/utils": "npm:^0.1.12"
@@ -298,7 +298,7 @@ __metadata:
     uuid: "npm:^9.0.1"
     viem: "npm:^2.20.1"
     yup: "npm:^1.4.0"
-  checksum: 10c0/78d2feaed27d19f4705990ff8448f18b1e8dab375ebc9d218a6afc9542df7ea6dae8e71ca2ca8fca69346cf595a22fd2cf51d0f7103bc04297a7d36fdad03244
+  checksum: 10c0/f916c6c940e9e54bedbe81eebcb5e44c1bdf241911e05d56a9434d559b22d8ab992e9a73e922f836003bc0cdc1c2d58ebab4b97c317211a3ed367d8897320d75
   languageName: node
   linkType: hard
 
@@ -624,7 +624,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@gardenfi/core@workspace:packages/core"
   dependencies:
-    "@catalogfi/wallets": "npm:^0.2.58"
+    "@catalogfi/wallets": "npm:^0.2.59"
     "@gardenfi/orderbook": "workspace:^"
     "@gardenfi/utils": "workspace:^"
     bignumber.js: "npm:^9.1.2"
@@ -663,7 +663,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@gardenfi/react-hooks@workspace:packages/react-hooks"
   dependencies:
-    "@catalogfi/wallets": "npm:^0.2.58"
+    "@catalogfi/wallets": "npm:^0.2.59"
     "@gardenfi/core": "workspace:^"
     "@gardenfi/orderbook": "workspace:^"
     "@gardenfi/utils": "workspace:^"
@@ -9052,11 +9052,11 @@ __metadata:
 
 "typescript@patch:typescript@npm%3A^5.2.2#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.4.2#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.5.3#optional!builtin<compat/typescript>":
   version: 5.6.3
-  resolution: "typescript@patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=8c6c40"
+  resolution: "typescript@patch:typescript@npm%3A5.6.3#optional!builtin<compat/typescript>::version=5.6.3&hash=379a07"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10c0/7c9d2e07c81226d60435939618c91ec2ff0b75fbfa106eec3430f0fcf93a584bc6c73176676f532d78c3594fe28a54b36eb40b3d75593071a7ec91301533ace7
+  checksum: 10c0/ac8307bb06bbfd08ae7137da740769b7d8c3ee5943188743bb622c621f8ad61d244767480f90fbd840277fbf152d8932aa20c33f867dea1bb5e79b187ca1a92f
   languageName: node
   linkType: hard
 
