@@ -92,7 +92,7 @@ export const switchOrAddNetwork = async (
             message: 'Added network',
             walletClient: newWalletClient as WalletClient,
           });
-        } catch (addError) {
+        } catch {
           return Err('Failed to add network');
         }
       } else {

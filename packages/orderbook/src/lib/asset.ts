@@ -16,6 +16,7 @@ export type Asset = AssetToken;
 export enum BlockchainType {
   Bitcoin = 'Bitcoin',
   EVM = 'EVM',
+  Solana = 'Solana'
 }
 
 export enum NetworkType {
@@ -47,6 +48,9 @@ export const Chains = {
   arbitrum_sepolia: 'arbitrum_sepolia',
   ethereum_localnet: 'ethereum_localnet',
   base_sepolia: 'base_sepolia',
+  solana: 'solana',
+  solana_devnet: 'solana_devnet',
+  solana_localnet: 'solana_localnet',
   bera_testnet: 'bera_testnet',
   citrea_testnet: 'citrea_testnet',
   bera: 'bera',
@@ -57,7 +61,7 @@ export type Chain = keyof typeof Chains;
 
 export type EvmChain = keyof Omit<
   typeof Chains,
-  'bitcoin' | 'bitcoin_testnet' | 'bitcoin_regtest'
+  'bitcoin' | 'bitcoin_testnet' | 'bitcoin_regtest' | 'solana' | 'solana_devnet' | 'solana_localnet'
 >;
 
 export const isMainnet = (chain: Chain) => {
@@ -69,6 +73,8 @@ export const isMainnet = (chain: Chain) => {
     chain === Chains.ethereum_localnet ||
     chain === Chains.arbitrum_sepolia ||
     chain === Chains.base_sepolia ||
+    chain === Chains.solana_devnet ||
+    chain === Chains.solana_localnet ||
     chain === Chains.bera_testnet ||
     chain === Chains.citrea_testnet ||
     chain === Chains.monad_testnet
@@ -100,10 +106,16 @@ export const isEVM = (chain: Chain) => {
   );
 };
 
+export const isSolana = (chain: Chain) => {
+  return (
+    chain === Chains.solana || chain === Chains.solana_devnet || chain === Chains.solana_localnet
+  )
+}
+
 export const TimeLocks: Record<Chain, number> = {
   [Chains.bitcoin]: 144,
   [Chains.bitcoin_testnet]: 144,
-  [Chains.bitcoin_regtest]: 144,
+  [Chains.bitcoin_regtest]: 200,
   [Chains.ethereum]: 7200,
   [Chains.arbitrum]: 7200,
   [Chains.ethereum_sepolia]: 7200,
@@ -116,11 +128,15 @@ export const TimeLocks: Record<Chain, number> = {
   [Chains.citrea_testnet]: 28800,
   [Chains.bera]: 43200,
   [Chains.monad_testnet]: 172800,
+  [Chains.solana]: 432000, //In solana timeslots exist in chunks of 0.4s so, 48 hrs in terms of that would be 48hrs => sec / 0.4
+  [Chains.solana_localnet]: 432000,
+  [Chains.solana_devnet]: 432000
 };
 
 export const getBlockchainType = (chain: Chain) => {
   if (isBitcoin(chain)) return BlockchainType.Bitcoin;
   if (isEVM(chain)) return BlockchainType.EVM;
+  if (isSolana(chain)) return BlockchainType.Solana;
   throw new Error('Invalid or unsupported chain');
 };
 

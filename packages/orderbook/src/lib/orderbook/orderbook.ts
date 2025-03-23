@@ -13,6 +13,8 @@ import {
 import { MAINNET_ORDERBOOK_API } from '../api';
 import { IAuth, Url } from '@gardenfi/utils';
 import { OrdersProvider } from '../orders/ordersProvider';
+import { AnchorProvider } from '@coral-xyz/anchor';
+
 
 /**
  * A class that allows you to create and manage orders with the orderbook url.
@@ -24,6 +26,7 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
   private Url: Url;
   private auth: IAuth;
   private walletClient: WalletClient;
+  private solanaClient?: AnchorProvider;
 
   /**
    * Creates an instance of Orderbook. Does not login to the orderbook.
@@ -44,6 +47,7 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
     this.Url = url;
     this.walletClient = orderbookConfig.walletClient;
     this.auth = orderbookConfig.auth;
+    this.solanaClient = orderbookConfig.solanaClient ?? undefined;
   }
 
   /**
@@ -130,8 +134,16 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
     paginationConfig?: PaginationConfig,
     pending?: boolean,
   ): Promise<() => void> {
-    const address = this.walletClient.account?.address;
-    if (!address) return () => {};
+    // If it's SOL -> BTC or Vice Versa we'd need to search by solana address
+    let address;
+    if (this.solanaClient) {
+      address = this.solanaClient?.wallet.publicKey.toString();
+    } else {
+      address = this.walletClient.account?.address;
+
+    }
+
+    if (!address) return () => { };
 
     return await super.subscribeOrders(
       address,

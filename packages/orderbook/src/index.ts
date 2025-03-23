@@ -21,5 +21,6 @@ export {
   ArbitrumLocalnet,
   EthereumLocalnet,
   bitcoinRegtestAsset,
+  SOLSolanaLocalnetAsset,
   SupportedAssets,
 } from './lib/constants';
