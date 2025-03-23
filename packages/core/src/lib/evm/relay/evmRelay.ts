@@ -1,4 +1,4 @@
-import { checkAllowanceAndApprove } from '../approve';
+import { checkAllowanceAndApprove } from '@gardenfi/utils';
 import { WalletClient, getContract } from 'viem';
 import { MatchedOrder } from '@gardenfi/orderbook';
 import { IEVMRelay } from './evmRelay.types';
