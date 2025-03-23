@@ -23,22 +23,15 @@ export const checkAllowanceAndApprove = async (
       with0x(contractAddress),
     ]);
 
-    console.log('Current Allowance:', allowance.toString());
-    console.log('Required Amount:', amount.toString());
-
     const allowanceBigInt = BigInt(allowance);
     const amountBigInt = BigInt(amount);
 
     if (allowanceBigInt < amountBigInt) {
-      console.log('Insufficient allowance, approving...');
       const res = await erc20Contract.write.approve(
         [with0x(contractAddress), maxUint256],
         {
           account: walletClient.account,
           chain: walletClient.chain,
-          gas: 100000n, // Add explicit gas limit
-          maxFeePerGas: 2000000000n, // 2 gwei
-          maxPriorityFeePerGas: 1500000000n, // 1.5 gwei
         },
       );
       const receipt = await waitForTransactionReceipt(walletClient, {
@@ -48,10 +41,8 @@ export const checkAllowanceAndApprove = async (
 
       return Ok(res);
     }
-    console.log('Allowance already sufficient, no need to approve.');
     return Ok('Already approved');
   } catch (error) {
-    console.error('Approval error:', error);
     return Err('Failed to approve: ' + error);
   }
 };

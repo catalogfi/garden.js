@@ -58,7 +58,6 @@ export class EvmRelay implements IEVMRelay {
         order.source_swap.asset,
         walletClient,
       );
-      console.log('approve error check from evmRelay');
       if (approval.error) return Err(approval.error);
 
       const domain = await atomicSwap.read.eip712Domain();
@@ -107,7 +106,6 @@ export class EvmRelay implements IEVMRelay {
       if (res.error) return Err(res.error);
       return res.result ? Ok(res.result) : Err('Init: No result found');
     } catch (error) {
-      console.log('init error :', error);
       return Err(String(error));
     }
   }

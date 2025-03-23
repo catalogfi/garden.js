@@ -748,8 +748,6 @@ __metadata:
     bitcoinjs-lib: "npm:^7.0.0-rc.0"
     dotenv: "npm:^16.3.1"
     react: "npm:^18.3.1"
-    starknet: "npm:^6.23.1"
-    starknetkit: "npm:2.6.1"
     tiny-secp256k1: "npm:^2.2.3"
     typescript: "npm:^5.2.2"
     vite: "npm:^5.1.6"

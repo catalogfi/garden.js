@@ -86,7 +86,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     redeemedAt: number;
     redeemTxHash: string;
   }>();
-  // starkner here
 
   constructor(config: GardenProps) {
     super();
@@ -129,13 +128,15 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this._btcWallet = config.btcWallet;
     this._starknetWallet = config.starknetWallet;
     this._starknetRelayUrl = config.starknetRelayUrl ?? '';
-    this._starknetRelay = new SnRelay(this._starknetRelayUrl);
+    this._starknetRelay = new SnRelay(
+      this._starknetRelayUrl,
+      'http://localhost:8547/rpc',
+    );
     if (!config.evmWallet.account)
       throw new Error('Account not found in evmWallet');
     this._blockNumberFetcher =
       config.blockNumberFetcher ??
       new BlockNumberFetcher('http://localhost:3008', config.environment);
-    // starknet here
   }
 
   get orderbookUrl() {
@@ -224,22 +225,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
     const orderRes = await this.pollOrder(createOrderRes.val);
     if (orderRes.error) return Err(orderRes.error);
-
-    if (
-      orderRes.val &&
-      getBlockchainType(orderRes.val.source_swap.chain) === BlockchainType.EVM
-    ) {
-      const secrets = await this._secretManager.generateSecret(
-        orderRes.val.create_order.nonce,
-      );
-      if (secrets.error) return Err(secrets.error);
-      if (!this._evmWallet) return Err('Ethereum wallet not initialized');
-      const evmResponse = await this._evmRelay?.init(
-        this._evmWallet,
-        orderRes.val,
-      );
-      console.log(evmResponse);
-    }
 
     if (
       orderRes.val &&
@@ -516,7 +501,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   async starknetExecute(interval: number = 5000): Promise<() => void> {
     await this.initializeSMandBTCWallet();
-    console.log('---------->executing starknet orders.........');
+    console.log('----------executing starknet orders----------');
 
     const fetchAndProcessOrders = async () => {
       try {
@@ -566,7 +551,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
             destChain: order.destination_swap.chain,
           });
 
-          // Rest of the processing remains the same
           switch (orderAction) {
             case OrderActions.Redeem: {
               const secrets = await this._secretManager.generateSecret(
@@ -635,14 +619,14 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       this.emit('log', order.create_order.create_id, 'already redeemed');
       return;
     }
-    console.log('redeem starting now');
+    // console.log('redeem starting now');
     const res = await this._starknetRelay?.redeem(
       order.create_order.create_id,
       secret,
     );
-    console.log('done redeem');
+    // console.log('done redeem');
     if (res?.error) {
-      console.log('Error redeeming order from starknet Redeem:', res.error);
+      // console.log('Error redeeming order from starknet Redeem:', res.error);
       this.emit('error', order, res.error);
       if (res.error.includes('Order already redeemed')) {
         this.orderExecutorCache.set(

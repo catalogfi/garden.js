@@ -221,17 +221,35 @@ describe('Bitcoin to StarkNet Integration Tests', () => {
     try {
       console.log('Bitcoin Address:', await btcWallet.getAddress());
 
-      // First, mine enough blocks to mature the coins
-      console.log('Mining blocks to mature coins...');
+      // First, mine enough blocks to mature the coins and wait for them
+      console.log('Mining initial blocks to mature coins...');
       await mineBlock(await btcWallet.getAddress(), 101);
+      await sleep(2000); // Wait for blocks to be processed
+      
+      // Fund the wallet and wait for confirmation
+      console.log('\n------ ADDING FUNDS TO BTC WALLET------');
+      await fund(await btcWallet.getAddress());
+      await sleep(2000); // Wait for funding to complete
+      
+      // Mine additional blocks to ensure funding is mature
+      console.log('Mining additional blocks to mature funded coins...');
+      await mineBlock(await btcWallet.getAddress(), 101);
+      await sleep(2000); // Wait for blocks to be processed
+      
       console.log('Coins matured successfully');
 
       // Now proceed with the send
+      console.log('Sending BTC to HTLC...');
       await btcWallet.send(
         result.val.source_swap.swap_id,
         +result.val.source_swap.amount,
       );
-      await mineBlock(await btcWallet.getAddress(), 3);
+      
+      // Mine confirmation blocks
+      console.log('Mining confirmation blocks...');
+      await mineBlock(await btcWallet.getAddress(), 6); // Increased from 3 to 6 for better confirmation
+      await sleep(2000); // Wait for confirmations
+      
       console.log('HTLC Funding Success');
       console.log('Swap ID:', result.val.source_swap.swap_id);
       console.log('--------------------------------');
@@ -241,14 +259,38 @@ describe('Bitcoin to StarkNet Integration Tests', () => {
       console.log('--------------------------------');
       throw error;
     }
-  }, 60000);
+  }, 120000); // Increased timeout to 120 seconds
 
   it('Execute orders', async () => {
     console.log('\n------ EXECUTING ORDERS ------');
+    
+    // Create a promise that resolves when redemption is successful
+    const redemptionPromise = new Promise((resolve) => {
+      garden.on('success', (order, action, result) => {
+        if (action === 'Redeem') {
+          console.log('\n------ REDEMPTION SUCCESSFUL ------');
+          console.log('Order ID:', order.create_order.create_id);
+          console.log('Transaction Hash:', result);
+          console.log('----------------------------------\n');
+          resolve(true);
+        }
+      });
+    });
+
+    // Setup other event listeners
     setupEventListeners();
+    
+    // Start execution
     await garden.starknetExecute();
-    console.log('Waiting for confirmations (150 seconds)...');
-    await sleep(150000);
+    
+    // Wait for redemption to complete or timeout after 150 seconds
+    await Promise.race([
+      redemptionPromise,
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Redemption timeout')), 150000)
+      )
+    ]);
+    
     console.log('------ EXECUTION COMPLETE ------\n');
   }, 150000);
 });

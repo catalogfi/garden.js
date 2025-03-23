@@ -21,6 +21,14 @@ describe('StarkNet Integration Tests', () => {
   const API_KEY =
     'AAAAAGghjwU6Os1DVFgmUXj0GcNt5jTJPbBmXKw7xRARW-qivNy4nfpKVgMNebmmxig2o3v-6M4l_ZmCgLp3vKywfVXDYBcL3M4c';
 
+  // const RELAYER_URL = 'https://orderbook-stage.hashira.io';
+  // const STARKNET_NODE_URL =
+  //   'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/Ry6QmtzfnqANtpqP3kLqe08y80ZorPoY';
+  // const QUOTE_SERVER_URL = 'https://quote-staging.hashira.io';
+  // const STARKNET_RELAY_URL = 'https://starknet-relayer.hashira.io';
+  // const API_KEY =
+  //   'AAAAAGghjwU6Os1DVFgmUXj0GcNt5jTJPbBmXKw7xRARW-qivNy4nfpKVgMNebmmxig2o3v-6M4l_ZmCgLp3vKywfVXDYBcL3M4c';
+
   // Wallet configurations
   const EVM_PRIVATE_KEY =
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
@@ -53,9 +61,14 @@ describe('StarkNet Integration Tests', () => {
     );
     console.log('StarkNet account address:', starknetWallet.address);
 
+    // const bitcoinProvider = new BitcoinProvider(
+    //   BitcoinNetwork.Testnet,
+    //   'https://48.217.250.147:18443',
+    // );
+
     const bitcoinProvider = new BitcoinProvider(
       BitcoinNetwork.Regtest,
-      'http://localhost:30000',
+      'https://localhost:30000',
     );
 
     const btcWallet = BitcoinWallet.fromPrivateKey(
@@ -135,7 +148,8 @@ describe('StarkNet Integration Tests', () => {
     console.log(result.val.source_swap.asset);
 
     // Initiate the swap
-    // const res = await garden.evmRelay.init(evmWallet, result.val);
+    const evmResponse = await garden.evmRelay?.init(evmWallet, result.val);
+    console.log('EVM response:', evmResponse);
     console.log('Swap initiated ✅:');
     // expect(res.ok).toBeTruthy();
 

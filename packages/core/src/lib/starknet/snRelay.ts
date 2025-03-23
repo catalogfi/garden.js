@@ -12,7 +12,7 @@ import {
 } from 'starknet';
 import { MatchedOrder } from '@gardenfi/orderbook';
 import { AsyncResult, Err, Ok, Fetcher } from '@catalogfi/utils';
-import { APIResponse, Url } from '@gardenfi/utils';
+import { APIResponse, Url, hexToU32Array } from '@gardenfi/utils';
 
 const DOMAIN = {
   name: 'HTLC',
@@ -36,46 +36,16 @@ const INTIATE_TYPE = {
   ],
 };
 
-function hexToU32Array(
-  hexString: string,
-  endian: 'big' | 'little' = 'big',
-): number[] {
-  // Remove 0x prefix if present
-  hexString = hexString.replace('0x', '');
-
-  // Ensure we have 64 characters (32 bytes, will make 8 u32s)
-  if (hexString.length !== 64) {
-    throw new Error('Invalid hash length');
-  }
-
-  const result: number[] = [];
-
-  // Process 8 bytes (32 bits) at a time to create each u32
-  for (let i = 0; i < 8; i++) {
-    // Take 8 hex characters (4 bytes/32 bits)
-    const chunk = hexString.slice(i * 8, (i + 1) * 8);
-
-    // Split into bytes
-    const bytes = chunk.match(/.{2}/g)!;
-
-    // Handle endianness
-    if (endian === 'little') {
-      bytes.reverse();
-    }
-
-    const finalHex = bytes.join('');
-    result.push(parseInt(finalHex, 16));
-  }
-
-  return result; // Will be array of 8 u32 values
-}
-
 export class SnRelay {
   private provider: RpcProvider;
   private url: Url;
+  private nodeUrl: string;
 
-  constructor(relayerUrl: string | Url) {
-    this.provider = new RpcProvider({ nodeUrl: 'http://127.0.0.1:8547/rpc' });
+  constructor(relayerUrl: string | Url, nodeUrl: string) {
+    this.provider = new RpcProvider({
+      nodeUrl: nodeUrl,
+    });
+    this.nodeUrl = nodeUrl;
     this.url = new Url('/relayer', relayerUrl);
   }
 
@@ -98,26 +68,21 @@ export class SnRelay {
     }
 
     try {
-      // const auth = await this.auth.getAuthHeaders();
-      // if (auth.error) return Err(auth.error);
-
       const contract = new Contract(
         (await this.provider.getClassAt(order.source_swap.asset)).abi,
         order.source_swap.asset,
         account,
       );
 
-      console.log('contract init done');
       const token = await contract?.['token']();
       const tokenHex = num.toHex(token);
-      console.log('token hex', tokenHex);
       const approvalResult = await checkAllowanceAndApprove(
         account,
         tokenHex,
         source_swap.asset,
         BigInt(amount),
+        this.nodeUrl,
       );
-      console.log('approval result', approvalResult);
       if (approvalResult.error) return Err(approvalResult.error);
 
       const TypedData: TypedData = {
@@ -136,16 +101,6 @@ export class SnRelay {
       )) as WeierstrassSignatureType;
       const { r, s } = signature;
 
-      console.log(
-        'successfully signed now sending request to initiate on htlc',
-      );
-      console.log(
-        JSON.stringify({
-          order_id: create_order.create_id,
-          signature: `0x${r.toString(16)},0x${s.toString(16)}`,
-          perform_on: 'Source',
-        }),
-      );
       const res = await Fetcher.post<APIResponse<string>>(
         this.url.endpoint('initiate'),
         {

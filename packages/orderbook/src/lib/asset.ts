@@ -53,6 +53,7 @@ export const Chains = {
   bera: 'bera',
   monad_testnet: 'monad_testnet',
   starknet: 'starknet',
+  starknet_sepolia: 'starknet_sepolia',
   starknet_devnet: 'starknet_devnet',
 } as const;
 
@@ -60,7 +61,12 @@ export type Chain = keyof typeof Chains;
 
 export type EvmChain = keyof Omit<
   typeof Chains,
-  'bitcoin' | 'bitcoin_testnet' | 'bitcoin_regtest'
+  | 'bitcoin'
+  | 'bitcoin_testnet'
+  | 'bitcoin_regtest'
+  | 'starknet'
+  | 'starknet_devnet'
+  | 'starknet_sepolia'
 >;
 
 export const isMainnet = (chain: Chain) => {
@@ -75,7 +81,8 @@ export const isMainnet = (chain: Chain) => {
     chain === Chains.bera_testnet ||
     chain === Chains.citrea_testnet ||
     chain === Chains.monad_testnet ||
-    chain === Chains.starknet_devnet
+    chain === Chains.starknet_devnet ||
+    chain === Chains.starknet_sepolia
   );
 };
 
@@ -105,7 +112,11 @@ export const isEVM = (chain: Chain) => {
 };
 
 export const isStarknet = (chain: Chain) => {
-  return chain === Chains.starknet || chain === Chains.starknet_devnet;
+  return (
+    chain === Chains.starknet ||
+    chain === Chains.starknet_devnet ||
+    chain === Chains.starknet_sepolia
+  );
 };
 
 export const TimeLocks: Record<Chain, number> = {
@@ -126,6 +137,7 @@ export const TimeLocks: Record<Chain, number> = {
   [Chains.monad_testnet]: 172800,
   [Chains.starknet]: 2880,
   [Chains.starknet_devnet]: 2880,
+  [Chains.starknet_sepolia]: 2880,
 };
 
 export const getBlockchainType = (chain: Chain) => {

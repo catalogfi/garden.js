@@ -44,9 +44,21 @@ describe('StarkNet Integration Tests', () => {
   const API_KEY =
     'AAAAAGghjwU6Os1DVFgmUXj0GcNt5jTJPbBmXKw7xRARW-qivNy4nfpKVgMNebmmxig2o3v-6M4l_ZmCgLp3vKywfVXDYBcL3M4c';
 
+  // const RELAYER_URL = 'https://orderbook-stage.hashira.io';
+  // const STARKNET_NODE_URL =
+  //   'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/Ry6QmtzfnqANtpqP3kLqe08y80ZorPoY';
+  // const QUOTE_SERVER_URL = 'https://quote-staging.hashira.io';
+  // const STARKNET_RELAY_URL = 'https://starknet-relayer.hashira.io';
+  // const API_KEY =
+  //   'AAAAAGm-kkU6Og9gRTmB1DP9oxyNi88Ttt1bARxzj-wTxG00LLYHUkhvMi1nwQzrxU1-kU2EQkCBw803q64Yw-j40vYxK7GBtDcb';
+
   // Wallet configurations
   const EVM_PRIVATE_KEY =
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
+  // const STARKNET_PRIVATE_KEY =
+  //   '0x0440c893bd4cbc2c151d579c9d721eec4d316306f871368baa89033e3f6820b9';
+  // const STARKNET_ADDRESS =
+  //   '0x0390cf09b3537e450170bdcce49a789facb727f21eabd8e1d25b8cf1869e8e93';
   const STARKNET_PRIVATE_KEY =
     '0x00000000000000000000000000000000c10662b7b247c7cecf7e8a30726cff12';
   const STARKNET_ADDRESS =
@@ -167,3 +179,4 @@ describe('StarkNet Integration Tests', () => {
     await sleep(150000);
   }, 150000);
 });
+1000000000000000000;

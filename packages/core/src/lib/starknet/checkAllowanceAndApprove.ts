@@ -6,13 +6,14 @@ export const checkAllowanceAndApprove = async (
   tokenAddress: string,
   htlcAddress: string,
   amount: bigint,
+  nodeUrl: string,
 ): AsyncResult<string, string> => {
   try {
     const starknetProvider = new RpcProvider({
-      nodeUrl: 'http://localhost:8547',
+      nodeUrl: nodeUrl,
     });
 
-    console.log(' Fetching contract class for:', tokenAddress);
+    // console.log(' Fetching contract class for:', tokenAddress);
     const contractData = await starknetProvider.getClassAt(
       with0x(tokenAddress),
     );
@@ -21,7 +22,7 @@ export const checkAllowanceAndApprove = async (
       throw new Error(`Invalid contract data for token: ${tokenAddress}`);
     }
 
-    console.log('Contract class fetched successfully');
+    // console.log('Contract class fetched successfully');
 
     const tokenContract = new Contract(
       contractData.abi,
@@ -29,7 +30,7 @@ export const checkAllowanceAndApprove = async (
       starknetProvider,
     );
 
-    console.log('Token contract initialized successfully');
+    // console.log('Token contract initialized successfully');
 
     const allowanceResponse = await tokenContract.call('allowance', [
       with0x(account.address),
@@ -39,10 +40,12 @@ export const checkAllowanceAndApprove = async (
     const allowance = BigInt(allowanceResponse?.toString() || '0');
     const maxUint256 = 2n ** 256n - 1n;
 
-    console.log(`Current Allowance: ${allowance}, Required: ${amount}, Max: ${maxUint256}`);
+    // console.log(
+    //   `Current Allowance: ${allowance}, Required: ${amount}, Max: ${maxUint256}`,
+    // );
 
     if (allowance < amount) {
-      console.log('Approving maximum allowance (uint256 max)...');
+      // console.log('Approving maximum allowance (uint256 max)...');
 
       const amountUint256 = {
         low: maxUint256 & ((1n << 128n) - 1n),
@@ -61,14 +64,14 @@ export const checkAllowanceAndApprove = async (
         },
       ]);
 
-      console.log('Maximum approval successful:', approveResponse);
+      // console.log('Maximum approval successful:', approveResponse);
       return Ok(approveResponse.transaction_hash);
     }
 
-    console.log('Allowance already sufficient, no need to approve.');
+    // console.log('Allowance already sufficient, no need to approve.');
     return Ok('Allowance already approved');
   } catch (error) {
-    console.error(' checkAllowanceAndApprove error:', error);
+    // console.error(' checkAllowanceAndApprove error:', error);
     return Err(
       `Failed to check or approve allowance: ${
         error instanceof Error ? error.message : String(error)
