@@ -10,7 +10,9 @@ describe('url', async () => {
   });
 
   it.only('test', () => {
-    const url = new Url('https://api.hashira.io/orderbook');
+    const url = new Url('https://api.hashira.io/orderbook').endpoint(
+      '/relayer',
+    );
     const newURL = url.endpoint('/id/matched');
     console.log('newURL :', newURL.toString());
     // expect(url.pathname).toEqual('/orders');

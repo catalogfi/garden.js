@@ -32,7 +32,6 @@ import {
 } from '@gardenfi/utils';
 import { IQuote } from '../quote/quote.types';
 import { getBitcoinNetwork, isValidBitcoinPubKey, toXOnly } from '../utils';
-import { WalletClient } from 'viem';
 import {
   BitcoinProvider,
   BitcoinWallet,
@@ -43,7 +42,6 @@ import {
   parseActionFromStatus,
   ParseOrderStatus,
 } from '../orderStatusParser';
-import { EvmRelay } from '../evm/relay/evmRelay';
 import { GardenHTLC } from '../bitcoin/htlc';
 import { Cache, ExecutorCache } from './cache/executorCache';
 import BigNumber from 'bignumber.js';
@@ -57,6 +55,8 @@ import { Quote } from '../quote/quote';
 import { SecretManager } from '../secretManager/secretManager';
 import { IEVMHTLC } from '../evm/htlc.types';
 import { DigestKey } from './digestKey/digestKey';
+import { WalletClient } from 'viem';
+import { EvmRelay } from '../evm/relay/evmRelay';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment;
@@ -70,20 +70,19 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private _blockNumberFetcher: IBlockNumberFetcher;
   private refundSacpCache = new Map<string, any>();
   private _evmHTLC: IEVMHTLC;
-  private _evmWallet: WalletClient;
   private _btcWallet: IBitcoinWallet | undefined;
   private bitcoinRedeemCache = new Cache<{
     redeemedFromUTXO: string;
     redeemedAt: number;
     redeemTxHash: string;
   }>();
-  private digestKey: DigestKey;
+  private _digestKey: DigestKey;
 
   constructor(config: GardenProps) {
     super();
     const _digestKey = DigestKey.from(config.digestKey);
     if (_digestKey.error) throw new Error(_digestKey.error);
-    this.digestKey = _digestKey.val;
+    this._digestKey = _digestKey.val;
 
     this.environment = config.environment;
     const api =
@@ -102,26 +101,50 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this._quote = config.quote ?? new Quote(api.quote);
     this._auth = Siwe.fromDigestKey(
       new Url(config.api ?? api.orderbook),
-      this.digestKey.digestKey,
+      this._digestKey.digestKey,
     );
-    this._orderbook = new Orderbook({
-      url: config.api ?? api.orderbook,
-      walletClient: config.wallets.evmWallet,
-      auth: this._auth,
-    });
-    this._evmHTLC =
-      config.evmHTLC ??
-      new EvmRelay(this._orderbookUrl, config.wallets.evmWallet, this._auth);
+    this._orderbook = new Orderbook(new Url(config.api ?? api.orderbook));
+    this._evmHTLC = config.htlc.evm;
     this._secretManager =
       config.secretManager ??
-      SecretManager.fromDigestKey(this.digestKey.digestKey);
+      SecretManager.fromDigestKey(this._digestKey.digestKey);
     this.orderExecutorCache = new ExecutorCache();
-    this._evmWallet = config.wallets.evmWallet;
-    if (!config.wallets.evmWallet.account)
-      throw new Error('Account not found in evmWallet');
     this._blockNumberFetcher =
       config.blockNumberFetcher ??
       new BlockNumberFetcher(api.info, config.environment);
+  }
+
+  static from(config: {
+    environment: Environment;
+    digestKey: string;
+    wallets: {
+      evm: WalletClient;
+    };
+  }) {
+    const api =
+      config.environment === Environment.MAINNET
+        ? API.mainnet
+        : config.environment === Environment.TESTNET
+        ? API.testnet
+        : undefined;
+    if (!api)
+      throw new Error(
+        'API not found, invalid environment ' + config.environment,
+      );
+
+    const htlc = {
+      evm: new EvmRelay(
+        api.orderbook,
+        config.wallets.evm,
+        Siwe.fromDigestKey(new Url(api.orderbook), config.digestKey),
+      ),
+    };
+
+    return new Garden({
+      environment: config.environment,
+      digestKey: config.digestKey,
+      htlc,
+    });
   }
 
   get orderbookUrl() {
@@ -154,6 +177,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   get auth() {
     return this._auth;
+  }
+
+  get digestKey() {
+    return this._digestKey;
   }
 
   private async initializeSMandBTCWallet() {
@@ -205,7 +232,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     const quoteRes = await this._quote.getAttestedQuote(order);
     if (quoteRes.error) return Err(quoteRes.error);
 
-    const createOrderRes = await this._orderbook.createOrder(quoteRes.val);
+    const createOrderRes = await this._orderbook.createOrder(
+      quoteRes.val,
+      this.auth,
+    );
     if (createOrderRes.error) return Err(createOrderRes.error);
 
     const orderRes = await this.pollOrder(createOrderRes.val);
@@ -278,8 +308,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     const blockChianType = getBlockchainType(chain);
     switch (blockChianType) {
       case BlockchainType.EVM:
-        if (!this._evmWallet.account) return Err('EVM Wallet not found');
-        return Ok(this._evmWallet.account.address);
+        return Ok(this.evmHTLC.htlcActorAddress);
       case BlockchainType.Bitcoin: {
         const pubKey = await this._btcWallet?.getPublicKey();
         if (!pubKey || !isValidBitcoinPubKey(pubKey))
@@ -335,7 +364,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     //initiate SM and bitcoinWallet if not initialized
     await this.initializeSMandBTCWallet();
 
-    return await this._orderbook.subscribeToOrders(
+    return await this._orderbook.subscribeOrders(
+      this._digestKey.userId,
+      true,
       interval,
       async (pendingOrders) => {
         if (pendingOrders.data.length === 0) return;
@@ -432,10 +463,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         }
         return;
       },
+      true,
       {
         per_page: 500,
       },
-      true,
     );
   }
 

@@ -2,12 +2,12 @@ import { AsyncResult } from '@catalogfi/utils';
 import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
 import { OrderStatus } from '../status';
 import { Environment, EventBroker, IAuth } from '@gardenfi/utils';
-import { WalletClient } from 'viem';
 import { ISecretManager } from '../secretManager/secretManager.types';
 import { IQuote } from '../quote/quote.types';
 import { IBlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
 import { IBitcoinWallet } from '@catalogfi/wallets';
 import { IEVMHTLC } from '../evm/htlc.types';
+import { DigestKey } from './digestKey/digestKey';
 
 export type SwapParams = {
   /**
@@ -131,6 +131,12 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
    * @readonly
    */
   get auth(): IAuth;
+
+  /**
+   * The digest key.
+   * @readonly
+   */
+  get digestKey(): DigestKey;
 }
 
 export type OrderCacheValue = {
@@ -158,10 +164,8 @@ export type GardenProps = {
   orderbook?: IOrderbook;
   quote?: IQuote;
   blockNumberFetcher?: IBlockNumberFetcher;
-  evmHTLC?: IEVMHTLC;
-  wallets: {
-    evmWallet: WalletClient;
-    btcWallet?: IBitcoinWallet;
+  htlc: {
+    evm: IEVMHTLC;
   };
 };
 

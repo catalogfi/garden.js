@@ -1,77 +1,44 @@
-import { WalletClient } from 'viem';
-import { AsyncResult, Fetcher, Ok, Err, Result } from '@catalogfi/utils';
+import { AsyncResult, Fetcher, Ok, Err } from '@catalogfi/utils';
 import {
   CreateOrder,
   CreateOrderRequestWithAdditionalData,
   CreateOrderResponse,
   IOrderbook,
   MatchedOrder,
-  OrderbookConfig,
   PaginatedData,
   PaginationConfig,
 } from './orderbook.types';
-import { MAINNET_ORDERBOOK_API } from '../api';
-import { IAuth, Url } from '@gardenfi/utils';
-import { OrdersProvider } from '../orders/ordersProvider';
+import { APIResponse, ApiStatus, IAuth, Url } from '@gardenfi/utils';
+import { ConstructUrl } from '../utils';
 
 /**
  * A class that allows you to create and manage orders with the orderbook url.
  * @class
- * @extends {OrdersProvider}
  * @implements {IOrderbook}
  */
-export class Orderbook extends OrdersProvider implements IOrderbook {
+export class Orderbook implements IOrderbook {
   private Url: Url;
-  private auth: IAuth;
-  private walletClient: WalletClient;
 
-  /**
-   * Creates an instance of Orderbook. Does not login to the orderbook.
-   * @constructor
-   * @param {OrderbookConfig} orderbookConfig - The configuration object for the orderbook.
-   */
-  constructor(orderbookConfig: OrderbookConfig) {
-    const url = new Url(orderbookConfig.url ?? MAINNET_ORDERBOOK_API).endpoint(
-      '/relayer',
-    );
-    super(url);
-
-    if (!orderbookConfig.auth) {
-      throw new Error('Auth is required');
-    }
-
+  constructor(url: Url) {
     this.Url = url;
-    this.walletClient = orderbookConfig.walletClient;
-    this.auth = orderbookConfig.auth;
-  }
-
-  get orderbookUrl() {
-    return this.Url;
-  }
-
-  /**
-   * Initializes the orderbook as well as logs in the orderbook (fetches the auth token).
-   * @param {OrderbookConfig} orderbookConfig - The configuration object for the orderbook.
-   */
-  static async init(orderbookConfig: OrderbookConfig) {
-    await orderbookConfig.auth.getToken();
-    return new Orderbook(orderbookConfig);
   }
 
   /**
    * Creates an order
-   * @param {CreateOrderConfig} createOrderConfig - The configuration for the creating the order.
+   * @param {CreateOrderRequestWithAdditionalData} order - The configuration for the creating the order.
+   * @param {IAuth} auth - The auth object.
    * @returns {string} The create order ID.
    */
   async createOrder(
     order: CreateOrderRequestWithAdditionalData,
+    auth: IAuth,
   ): AsyncResult<string, string> {
-    const headers = await this.auth.getAuthHeaders();
+    const headers = await auth.getAuthHeaders();
     if (headers.error) return Err(headers.error);
 
     try {
       const res = await Fetcher.post<CreateOrderResponse>(
-        this.Url.endpoint('create-order'),
+        this.Url.endpoint('/relayer').endpoint('create-order'),
         {
           body: JSON.stringify(order),
           headers: {
@@ -89,67 +56,163 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
     }
   }
 
-  async fetchOrders<T extends boolean>(
+  async getOrder<T extends boolean>(
+    id: string,
     matched: T,
-    pending: boolean = false,
+  ): AsyncResult<T extends true ? MatchedOrder : CreateOrder, string> {
+    const endpoint = matched ? `/id/matched/${id}` : `/id/unmatched/${id}`;
+    const url = this.Url.endpoint('orders').endpoint(endpoint);
+
+    try {
+      const res = await Fetcher.get<
+        APIResponse<T extends true ? MatchedOrder : CreateOrder>
+      >(url);
+
+      if (res.error) return Err(res.error);
+      return res.result
+        ? Ok(res.result)
+        : Err('GetOrder: Unexpected error, result is undefined');
+    } catch (error) {
+      return Err('GetOrder:', String(error));
+    }
+  }
+
+  async getMatchedOrders(
+    address: string,
+    pending: boolean,
+    paginationConfig?: PaginationConfig,
+  ): AsyncResult<PaginatedData<MatchedOrder>, string> {
+    const url = ConstructUrl(
+      this.Url.endpoint('orders'),
+      `/user/matched/${address}`,
+      {
+        ...paginationConfig,
+        pending,
+      },
+    );
+
+    try {
+      const res = await Fetcher.get<APIResponse<PaginatedData<MatchedOrder>>>(
+        url,
+      );
+
+      if (res.error) return Err(res.error);
+      return res.result
+        ? Ok(res.result)
+        : Err('GetMatchedOrders: Unexpected error, result is undefined');
+    } catch (error) {
+      return Err('GetMatchedOrders:', String(error));
+    }
+  }
+
+  async getUnMatchedOrders(
+    address: string,
+    paginationConfig?: PaginationConfig,
+  ): AsyncResult<PaginatedData<CreateOrder>, string> {
+    const url = ConstructUrl(
+      this.Url.endpoint('orders'),
+      `/user/unmatched/${address}`,
+      paginationConfig,
+    );
+
+    try {
+      const res = await Fetcher.get<APIResponse<PaginatedData<CreateOrder>>>(
+        url,
+      );
+
+      if (res.error) return Err(res.error);
+      return res.result
+        ? Ok(res.result)
+        : Err('GetUnMatchedOrders: Unexpected error, result is undefined');
+    } catch (error) {
+      return Err('GetUnMatchedOrders:', String(error));
+    }
+  }
+
+  async getOrders<T extends boolean>(
+    matched: T,
     paginationConfig?: PaginationConfig,
   ): AsyncResult<
     PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
     string
   > {
-    const address = this.walletClient.account?.address;
-    if (!address) return Err('Wallet client does not have an account');
-
-    if (matched)
-      return (await super.getMatchedOrders(
-        address,
-        pending,
-        paginationConfig,
-      )) as Result<
-        PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
-        string
-      >;
-
-    return (await super.getUnMatchedOrders(
-      address,
-      paginationConfig,
-    )) as Result<
-      PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
-      string
-    >;
-  }
-
-  /**
-   * Wrapper for the subscribeOrders method in the OrdersProvider class to abstract the address parameter.
-   * @param matched - Whether to get matched or unmatched orders
-   * @param interval - The interval to poll for updates
-   * @param cb - The callback to be called when the orders are updated
-   * @param paginationConfig - The configuration for the pagination
-   * @returns {() => void} A function to unsubscribe from the order updates
-   */
-  async subscribeToOrders(
-    interval: number,
-    cb: (orders: PaginatedData<MatchedOrder>) => Promise<void>,
-    paginationConfig?: PaginationConfig,
-    pending?: boolean,
-  ): Promise<() => void> {
-    const address = this.walletClient.account?.address;
-    if (!address) return () => {};
-
-    return await super.subscribeOrders(
-      address,
-      true,
-      interval,
-      cb,
-      pending,
+    const endPoint = matched ? '/matched' : '/unmatched';
+    const url = ConstructUrl(
+      this.Url.endpoint('orders'),
+      endPoint,
       paginationConfig,
     );
+
+    try {
+      const res = await Fetcher.get<
+        APIResponse<PaginatedData<T extends true ? MatchedOrder : CreateOrder>>
+      >(url);
+
+      if (res.error) return Err(res.error);
+      return res.result
+        ? Ok(res.result)
+        : Err('GetAllOrders: Unexpected error, result is undefined');
+    } catch (error) {
+      return Err('GetAllOrders:', String(error));
+    }
   }
 
-  async getUserOrdersCount(): AsyncResult<number, string> {
-    const address = this.walletClient.account?.address;
-    if (!address) return Err('Wallet client does not have an account');
+  async subscribeOrders<T extends boolean>(
+    account: string,
+    matched: T,
+    interval: number,
+    cb: (
+      orders: PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
+    ) => Promise<void>,
+    pending: boolean = false,
+    paginationConfig?: PaginationConfig,
+  ): Promise<() => void> {
+    let isProcessing = false;
 
-    return super.getOrdersCount(address);
+    const fetchOrders = async () => {
+      if (isProcessing) return;
+      isProcessing = true;
+
+      try {
+        const result = matched
+          ? await this.getMatchedOrders(account, pending, paginationConfig)
+          : await this.getUnMatchedOrders(account, paginationConfig);
+        if (result.ok) {
+          await cb(
+            result.val as PaginatedData<
+              T extends true ? MatchedOrder : CreateOrder
+            >,
+          );
+        } else {
+          console.error('Error fetching orders:', result.error);
+        }
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+      } finally {
+        isProcessing = false;
+      }
+    };
+
+    await fetchOrders();
+    const intervalId = setInterval(fetchOrders, interval);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }
+
+  async getOrdersCount(address: string): AsyncResult<number, string> {
+    const url = this.Url.endpoint('orders').endpoint(`/user/count/${address}`);
+
+    try {
+      const res = await Fetcher.get<APIResponse<number>>(url);
+
+      if (res.error) return Err(res.error);
+      return res.status === ApiStatus.Ok && res.result !== undefined
+        ? Ok(res.result)
+        : Err('GetOrdersCount: Unexpected error, result is undefined');
+    } catch (error) {
+      return Err('GetOrdersCount:', String(error));
+    }
   }
 }

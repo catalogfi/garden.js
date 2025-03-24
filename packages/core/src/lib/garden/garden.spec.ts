@@ -1,5 +1,5 @@
 import { Garden } from './garden';
-import { Environment, with0x } from '@gardenfi/utils';
+import { Environment, Siwe, Url, with0x } from '@gardenfi/utils';
 import {
   createWalletClient,
   http,
@@ -17,8 +17,14 @@ import {
   // SupportedAssets,
 } from '@gardenfi/orderbook';
 import { sleep } from '@catalogfi/utils';
-import { arbitrumSepolia, sepolia } from 'viem/chains';
-import { SecretManager } from '../secretManager/secretManager';
+import {
+  arbitrumSepolia,
+  // sepolia
+} from 'viem/chains';
+import { EvmRelay } from './../evm/relay/evmRelay';
+import { Quote } from '../quote/quote';
+import { DigestKey } from './digestKey/digestKey';
+// import { SecretManager } from '../secretManager/secretManager';
 // import { DigestKey } from './digestKey/digestKey';
 // import { BitcoinNetwork, BitcoinProvider } from '@catalogfi/wallets';
 // import { Quote } from './../quote/quote';
@@ -30,6 +36,7 @@ describe('swap and execute using garden', () => {
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
   // const address = '0x52FE8afbbB800a33edcbDB1ea87be2547EB30000';
   const account = privateKeyToAccount(with0x(pk));
+  const api = 'https://orderbook-stage.hashira.io';
   console.log('account :', account.address);
 
   const arbitrumWalletClient = createWalletClient({
@@ -37,11 +44,11 @@ describe('swap and execute using garden', () => {
     chain: arbitrumSepolia,
     transport: http(),
   });
-  const ethereumWalletClient = createWalletClient({
-    account,
-    chain: sepolia,
-    transport: http(),
-  });
+  // const ethereumWalletClient = createWalletClient({
+  //   account,
+  //   chain: sepolia,
+  //   transport: http(),
+  // });
 
   // const quote = new Quote('https://quote-choas.onrender.com/');
   // const orderBookUrl = 'https://evm-swapper-relay-1.onrender.com/';
@@ -54,17 +61,26 @@ describe('swap and execute using garden', () => {
   //   }),
   // );
 
-  const secretManager = SecretManager.fromWalletClient(ethereumWalletClient);
-  // const digestKey = DigestKey.generateRandom().val.digestKey;
-  // console.log('digestKey :', digestKey);
+  const digestKey = new DigestKey(
+    '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
+  );
+  console.log('digestKey :', digestKey.userId);
 
   const garden = new Garden({
+    api,
     environment: Environment.TESTNET,
-    secretManager,
     digestKey:
       '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
-    wallets: {
-      evmWallet: arbitrumWalletClient,
+    quote: new Quote('https://quote-staging.hashira.io'),
+    htlc: {
+      evm: new EvmRelay(
+        api,
+        arbitrumWalletClient,
+        Siwe.fromDigestKey(
+          new Url(api),
+          '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
+        ),
+      ),
     },
   });
 
@@ -81,12 +97,20 @@ describe('swap and execute using garden', () => {
 
   it('should create an order', async () => {
     const orderObj = {
-      fromAsset: SupportedAssets.testnet.arbitrum_sepolia_SEED,
+      fromAsset: {
+        name: 'Wrapped Bitcoin',
+        decimals: 8,
+        symbol: 'WBTC',
+        chain: 'arbitrum_sepolia',
+        logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
+        tokenAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
+        atomicSwapAddress: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
+      } as const,
       toAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
-      sendAmount: '100000000000000000000'.toString(),
-      receiveAmount: '104213'.toString(),
+      sendAmount: '100000'.toString(),
+      receiveAmount: '99700'.toString(),
       additionalData: {
-        strategyId: 'aae4btyr',
+        strategyId: 'asacbtyr',
         btcAddress: 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru',
       },
       minDestinationConfirmations: 0,
@@ -109,7 +133,7 @@ describe('swap and execute using garden', () => {
   }, 60000);
 
   //TODO: also add bitcoin init
-  it.skip('Initiate the swap', async () => {
+  it('Initiate the swap', async () => {
     if (isBitcoin(order.source_swap.chain)) {
       console.warn('Bitcoin swap, skipping initiation');
     }
@@ -119,7 +143,7 @@ describe('swap and execute using garden', () => {
     expect(res.ok).toBeTruthy();
   }, 20000);
 
-  it.skip('EXECUTE', async () => {
+  it('EXECUTE', async () => {
     garden.on('error', (order, error) => {
       console.log(
         'error while executing ❌, orderId :',
