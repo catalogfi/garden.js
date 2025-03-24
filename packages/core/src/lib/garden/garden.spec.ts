@@ -1,6 +1,10 @@
 import { Garden } from './garden';
 import { Environment, with0x } from '@gardenfi/utils';
-import { createWalletClient, http } from 'viem';
+import {
+  createWalletClient,
+  http,
+  // WalletClient
+} from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { describe, expect, it } from 'vitest';
 import {
@@ -9,11 +13,13 @@ import {
   isBitcoin,
   MatchedOrder,
   SupportedAssets,
+
   // SupportedAssets,
 } from '@gardenfi/orderbook';
 import { sleep } from '@catalogfi/utils';
-import { arbitrumSepolia } from 'viem/chains';
-
+import { arbitrumSepolia, sepolia } from 'viem/chains';
+import { SecretManager } from '../secretManager/secretManager';
+// import { DigestKey } from './digestKey/digestKey';
 // import { BitcoinNetwork, BitcoinProvider } from '@catalogfi/wallets';
 // import { Quote } from './../quote/quote';
 // import { Orderbook } from 'gardenfi/orderbook';
@@ -31,11 +37,11 @@ describe('swap and execute using garden', () => {
     chain: arbitrumSepolia,
     transport: http(),
   });
-  // const ethereumWalletClient = createWalletClient({
-  //   account,
-  //   chain: sepolia,
-  //   transport: http(),
-  // });
+  const ethereumWalletClient = createWalletClient({
+    account,
+    chain: sepolia,
+    transport: http(),
+  });
 
   // const quote = new Quote('https://quote-choas.onrender.com/');
   // const orderBookUrl = 'https://evm-swapper-relay-1.onrender.com/';
@@ -48,12 +54,22 @@ describe('swap and execute using garden', () => {
   //   }),
   // );
 
+  const secretManager = SecretManager.fromWalletClient(ethereumWalletClient);
+  // const digestKey = DigestKey.generateRandom().val.digestKey;
+  // console.log('digestKey :', digestKey);
+
   const garden = new Garden({
-    // orderbookURl: orderBookUrl,
-    // quote,
     environment: Environment.TESTNET,
-    evmWallet: arbitrumWalletClient,
+    secretManager,
+    digestKey:
+      '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
+    wallets: {
+      evmWallet: arbitrumWalletClient,
+    },
   });
+
+  // let secret = await secretManager.generateSecret(order.create_order.nonce);
+
   // let wallets: Partial<{ [key in Chain]: WalletClient }> = {};
 
   // wallets = {
@@ -61,10 +77,9 @@ describe('swap and execute using garden', () => {
   //   [Chains.ethereum_sepolia]: ethereumWalletClient,
   //   // [Chains.bitcoin_regtest]: btcWallet,
   // };
-
   let order: MatchedOrder;
 
-  it.skip('should create an order', async () => {
+  it('should create an order', async () => {
     const orderObj = {
       fromAsset: SupportedAssets.testnet.arbitrum_sepolia_SEED,
       toAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
@@ -104,7 +119,7 @@ describe('swap and execute using garden', () => {
     expect(res.ok).toBeTruthy();
   }, 20000);
 
-  it('EXECUTE', async () => {
+  it.skip('EXECUTE', async () => {
     garden.on('error', (order, error) => {
       console.log(
         'error while executing ❌, orderId :',
@@ -127,7 +142,7 @@ describe('swap and execute using garden', () => {
       console.log('log :', id, message);
     });
     garden.on('onPendingOrdersChanged', (orders) => {
-      console.log('pendingorders :', orders.length);
+      console.log('pending orders :', orders.length);
       orders.forEach((order) => {
         console.log('pending order :', order.create_order.create_id);
       });
@@ -139,13 +154,3 @@ describe('swap and execute using garden', () => {
     await sleep(150000);
   }, 150000);
 });
-
-// describe('get btc tx', () => {
-//   const provider = new BitcoinProvider(BitcoinNetwork.Testnet);
-//   it('should get btc tx', async () => {
-//     const tx = await provider.getTransaction(
-//       'ac3f0bc4d98b1fe8da1f21f1cadadb33a3e903ee10260836fc3a853df125fabd',
-//     );
-//     console.log('tx :', tx);
-//   });
-// });

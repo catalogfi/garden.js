@@ -31,9 +31,8 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
    * @param {OrderbookConfig} orderbookConfig - The configuration object for the orderbook.
    */
   constructor(orderbookConfig: OrderbookConfig) {
-    const url = new Url(
+    const url = new Url(orderbookConfig.url ?? MAINNET_ORDERBOOK_API).endpoint(
       '/relayer',
-      orderbookConfig.url ?? MAINNET_ORDERBOOK_API,
     );
     super(url);
 
@@ -46,12 +45,16 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
     this.auth = orderbookConfig.auth;
   }
 
+  get orderbookUrl() {
+    return this.Url;
+  }
+
   /**
    * Initializes the orderbook as well as logs in the orderbook (fetches the auth token).
    * @param {OrderbookConfig} orderbookConfig - The configuration object for the orderbook.
    */
   static async init(orderbookConfig: OrderbookConfig) {
-    await orderbookConfig.auth.siwe?.getToken();
+    await orderbookConfig.auth.getToken();
     return new Orderbook(orderbookConfig);
   }
 

@@ -55,13 +55,13 @@ import { OrderStatus } from '../status';
 import { API } from '../constants';
 import { Quote } from '../quote/quote';
 import { SecretManager } from '../secretManager/secretManager';
-import { Auth } from '@gardenfi/utils';
 import { IEVMHTLC } from '../evm/htlc.types';
+import { DigestKey } from './digestKey/digestKey';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment;
   private _secretManager: ISecretManager;
-  private _orderBook: IOrderbook;
+  private _orderbook: IOrderbook;
   private _quote: IQuote;
   private getOrderThreshold = 20;
   private _orderbookUrl: Url;
@@ -77,9 +77,14 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     redeemedAt: number;
     redeemTxHash: string;
   }>();
+  private digestKey: DigestKey;
 
   constructor(config: GardenProps) {
     super();
+    const _digestKey = DigestKey.from(config.digestKey);
+    if (_digestKey.error) throw new Error(_digestKey.error);
+    this.digestKey = _digestKey.val;
+
     this.environment = config.environment;
     const api =
       config.environment === Environment.MAINNET
@@ -91,31 +96,28 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       throw new Error(
         'API not found, invalid environment ' + config.environment,
       );
-    this._quote = new Quote(config.quote ?? api.quote);
-    this._orderbookUrl = new Url(config.orderbookURl ?? api.orderbook);
-    this._auth = new Auth({
-      siwe: config.apiKey
-        ? undefined
-        : new Siwe(
-            new Url(config.orderbookURl ?? api.orderbook),
-            config.evmWallet,
-            config.siweOpts,
-          ),
-      apiKey: config.apiKey,
-    });
-    this._orderBook = new Orderbook({
-      url: config.orderbookURl ?? api.orderbook,
-      walletClient: config.evmWallet,
+
+    this._orderbookUrl = new Url(config.api ?? api.orderbook);
+
+    this._quote = config.quote ?? new Quote(api.quote);
+    this._auth = Siwe.fromDigestKey(
+      new Url(config.api ?? api.orderbook),
+      this.digestKey.digestKey,
+    );
+    this._orderbook = new Orderbook({
+      url: config.api ?? api.orderbook,
+      walletClient: config.wallets.evmWallet,
       auth: this._auth,
     });
     this._evmHTLC =
       config.evmHTLC ??
-      new EvmRelay(this._orderbookUrl, config.evmWallet, this._auth);
+      new EvmRelay(this._orderbookUrl, config.wallets.evmWallet, this._auth);
     this._secretManager =
-      config.secretManager ?? SecretManager.fromWalletClient(config.evmWallet);
+      config.secretManager ??
+      SecretManager.fromDigestKey(this.digestKey.digestKey);
     this.orderExecutorCache = new ExecutorCache();
-    this._evmWallet = config.evmWallet;
-    if (!config.evmWallet.account)
+    this._evmWallet = config.wallets.evmWallet;
+    if (!config.wallets.evmWallet.account)
       throw new Error('Account not found in evmWallet');
     this._blockNumberFetcher =
       config.blockNumberFetcher ??
@@ -139,7 +141,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   }
 
   get orderbook() {
-    return this._orderBook;
+    return this._orderbook;
   }
 
   get blockNumberFetcher() {
@@ -203,7 +205,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     const quoteRes = await this._quote.getAttestedQuote(order);
     if (quoteRes.error) return Err(quoteRes.error);
 
-    const createOrderRes = await this._orderBook.createOrder(quoteRes.val);
+    const createOrderRes = await this._orderbook.createOrder(quoteRes.val);
     if (createOrderRes.error) return Err(createOrderRes.error);
 
     const orderRes = await this.pollOrder(createOrderRes.val);
@@ -304,7 +306,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   }
 
   private async pollOrder(createOrderID: string) {
-    let orderRes = await this._orderBook.getOrder(createOrderID, true);
+    let orderRes = await this._orderbook.getOrder(createOrderID, true);
     let attempts = 0;
 
     while (attempts < this.getOrderThreshold) {
@@ -323,7 +325,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         return Ok(orderRes.val);
       }
 
-      orderRes = await this._orderBook.getOrder(createOrderID, true);
+      orderRes = await this._orderbook.getOrder(createOrderID, true);
     }
 
     return Err(`Order not found, createOrder id: ${createOrderID}`);
@@ -333,7 +335,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     //initiate SM and bitcoinWallet if not initialized
     await this.initializeSMandBTCWallet();
 
-    return await this._orderBook.subscribeToOrders(
+    return await this._orderbook.subscribeToOrders(
       interval,
       async (pendingOrders) => {
         if (pendingOrders.data.length === 0) return;
