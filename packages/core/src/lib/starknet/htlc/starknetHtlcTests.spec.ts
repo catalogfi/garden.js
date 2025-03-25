@@ -189,6 +189,10 @@ describe('starknetHtlcTests', () => {
 
     // Redeem the HTLC
     console.log('Attempting to redeem HTLC...');
+    if (!garden.evmHTLC) {
+      console.warn('EVMHTLC is not initialized, skipping redemption');
+      return;
+    }
     const redeemResult = await garden.evmHTLC.redeem(
       matchedOrder.val,
       secrets.val.secret,

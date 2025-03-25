@@ -37,8 +37,7 @@ const INTIATE_TYPE = {
   ],
 };
 
-const DEFAULT_NODE_URL =
-  'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/Ry6QmtzfnqANtpqP3kLqe08y80ZorPoY';
+const DEFAULT_NODE_URL = 'https://starknet-mainnet.public.blastapi.io';
 
 export class StarknetRelay implements IStarknetHTLC {
   private provider: RpcProvider;
@@ -86,13 +85,12 @@ export class StarknetRelay implements IStarknetHTLC {
       const auth = await this.auth.getAuthHeaders();
       if (auth.error) return Err(auth.error);
       const contract = new Contract(
-        (await this.provider.getClassAt(order.source_swap.asset)).abi,
+        (await this.provider.getClassAt(order.source_swap.asset)).abi, //use the static abi
         order.source_swap.asset,
         this.account,
       );
 
-      const token = await contract?.['token']();
-
+      const token = await contract?.['token'](); //error handling
       const tokenHex = num.toHex(token);
 
       try {
@@ -118,10 +116,12 @@ export class StarknetRelay implements IStarknetHTLC {
           secretHash: hexToU32Array(create_order.secret_hash),
         },
       };
+
       const signature = (await this.account.signMessage(
         TypedData,
       )) as WeierstrassSignatureType;
       const { r, s } = signature;
+
       const res = await Fetcher.post<APIResponse<string>>(
         this.url.endpoint('initiate'),
         {
@@ -136,7 +136,7 @@ export class StarknetRelay implements IStarknetHTLC {
           },
         },
       );
-      console.log('response after initiate on htlc', res);
+      console.log('response after initiate on htlc', res); //remove this
 
       if (res.error) return Err(res.error);
       return res.result ? Ok(res.result) : Err('Init: No result found');
@@ -177,6 +177,6 @@ export class StarknetRelay implements IStarknetHTLC {
   }
 
   async refund(): AsyncResult<string, string> {
-    return Err('Refund not supported');
+    return Err('Refund is taken care of by the relayer');
   }
 }

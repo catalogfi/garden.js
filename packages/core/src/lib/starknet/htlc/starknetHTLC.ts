@@ -5,8 +5,7 @@ import { hexToU32Array, with0x } from '@gardenfi/utils';
 import { TokenABI } from '../abi/starknetTokenABI';
 import { IStarknetHTLC } from './starknetHTLC.types';
 
-const DEFAULT_NODE_URL =
-  'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/Ry6QmtzfnqANtpqP3kLqe08y80ZorPoY';
+const DEFAULT_NODE_URL = 'https://starknet-mainnet.public.blastapi.io';
 
 export class StarknetHTLC implements IStarknetHTLC {
   private provider: RpcProvider;
@@ -17,7 +16,7 @@ export class StarknetHTLC implements IStarknetHTLC {
     this.nodeUrl = nodeUrl || DEFAULT_NODE_URL;
     this.account = account;
     this.provider = new RpcProvider({
-      nodeUrl: this.nodeUrl,
+      nodeUrl: this.nodeUrl, //check for default node url
     });
   }
 
@@ -33,7 +32,7 @@ export class StarknetHTLC implements IStarknetHTLC {
       ? order.destination_swap.asset
       : order.source_swap.asset;
     const contract = new Contract(
-      (await this.provider.getClassAt(assetAddress)).abi,
+      (await this.provider.getClassAt(assetAddress)).abi, //check for abi
       assetAddress,
       this.account,
     );
@@ -42,9 +41,7 @@ export class StarknetHTLC implements IStarknetHTLC {
 
   /**
    * Initiates the HTLC
-   *
    * @param order Order to initiate HTLC for
-   *
    * @returns Transaction ID
    */
   async initiate(order: MatchedOrder): AsyncResult<string, string> {
@@ -60,6 +57,7 @@ export class StarknetHTLC implements IStarknetHTLC {
       const tokenContract = new Contract(TokenABI, tokenHex, this.account);
 
       // Check allowance
+      //TODO: use checkAllowanceAndApprove function
       const allowance = await tokenContract['allowance'](
         this.account.address,
         order.source_swap.asset,

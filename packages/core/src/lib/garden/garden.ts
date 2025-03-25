@@ -110,7 +110,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this._orderbook = new Orderbook(new Url(config.api ?? api.orderbook));
     this._evmHTLC = config.htlc.evm;
     this._starknetHTLC = config.htlc.starknet;
-    this;
     this._secretManager =
       config.secretManager ??
       SecretManager.fromDigestKey(this._digestKey.digestKey);
@@ -163,10 +162,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     return this._orderbookUrl.toString();
   }
 
-  get evmHTLC(): IEVMHTLC {
-    if (!this._evmHTLC) {
-      throw new Error('EVMHTLC is not initialized');
-    }
+  get evmHTLC() {
     return this._evmHTLC;
   }
 
@@ -327,7 +323,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     const blockChianType = getBlockchainType(chain);
     switch (blockChianType) {
       case BlockchainType.EVM:
-        return Ok(this.evmHTLC.htlcActorAddress);
+        if (!this._evmHTLC)
+          return Err('Please provide evmHTLC when initializing garden');
+        return Ok(this._evmHTLC.htlcActorAddress);
       case BlockchainType.Bitcoin: {
         const pubKey = await this._btcWallet?.getPublicKey();
         if (!pubKey || !isValidBitcoinPubKey(pubKey))
@@ -335,8 +333,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         return Ok(toXOnly(pubKey));
       }
       case BlockchainType.Starknet: {
-        if (!this.starknetHTLC) return Err('StarknetHTLC is required');
-        return Ok(this.starknetHTLC.htlcActorAddress);
+        if (!this._starknetHTLC)
+          return Err('Please provide starknetHTLC when initializing garden');
+        return Ok(this._starknetHTLC.htlcActorAddress);
       }
       default:
         return Err('Unsupported chain');
@@ -541,8 +540,13 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       this.emit('log', order.create_order.create_id, 'already redeemed');
       return;
     }
-    const res = await this._starknetHTLC?.redeem(order, secret);
-    if (res?.error) {
+    if (!this._starknetHTLC) {
+      this.emit('error', order, 'StarknetHTLC is required');
+      return;
+    }
+
+    const res = await this._starknetHTLC.redeem(order, secret);
+    if (res.error) {
       this.emit('error', order, res.error);
       if (res.error.includes('Order already redeemed')) {
         this.orderExecutorCache.set(
@@ -553,11 +557,12 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       }
       return;
     }
-    if (res?.val) {
+    if (res.val) {
       this.orderExecutorCache.set(order, OrderActions.Redeem, res.val);
       this.emit('success', order, OrderActions.Redeem, res.val);
     }
   }
+
   private async btcRedeem(
     wallet: IBitcoinWallet,
     order: MatchedOrder,

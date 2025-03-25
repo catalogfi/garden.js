@@ -2,6 +2,9 @@ import { MatchedOrder } from '@gardenfi/orderbook';
 import { AsyncResult } from '@catalogfi/utils';
 
 export interface IStarknetHTLC {
+  /**
+   * The address of the HTLC actor.
+   */
   get htlcActorAddress(): string;
   /**
    * Initiates the HTLC by sending funds to the HTLC contract.

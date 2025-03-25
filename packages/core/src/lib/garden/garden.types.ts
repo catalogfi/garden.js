@@ -95,7 +95,13 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
    * The EVM relay.
    * @readonly
    */
-  get evmHTLC(): IEVMHTLC;
+  get evmHTLC(): IEVMHTLC | undefined;
+
+  /**
+   * The Starknet relay.
+   * @readonly
+   */
+  get starknetHTLC(): IStarknetHTLC | undefined;
 
   /**
    * The current quote.
