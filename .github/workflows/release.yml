@@ -4,9 +4,10 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
+  issue_comment:
+    types:
+      - created
+      - edited
 
 env:
   GITHUB_TOKEN: ${{ secrets.GH_PAT }}
@@ -14,11 +15,12 @@ env:
 
 jobs:
   beta-release:
-    if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'beta')
+    if: github.event_name == 'issue_comment' && github.event.comment.body == '/release-beta'
     runs-on: ubuntu-latest
     permissions:
       contents: write
       packages: write
+      issues: read
 
     steps:
       - name: Checkout Repository
@@ -27,13 +29,37 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GH_PAT }}
 
+      - name: Get Commenter's Username
+        id: get-commenter
+        run: echo "COMMENTER=${{ github.event.comment.user.login }}" >> $GITHUB_ENV
+
+      - name: Fetch Collaborators and Permissions
+        id: get-collaborators
+        run: |
+          collaborators=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
+            "https://api.github.com/repos/${{ github.repository }}/collaborators")
+          
+          COMMENTER_PERMISSIONS=$(echo "$collaborators" | jq -r --arg commenter "${{ env.COMMENTER }}" \
+            'map(select(.login == $commenter)) | .[0].permissions')
+
+          echo "Commenter's permissions: $COMMENTER_PERMISSIONS"
+          
+          if [[ "$COMMENTER_PERMISSIONS" == *"admin\": true"* || "$COMMENTER_PERMISSIONS" == *"maintain\": true"* ]]; then
+            echo "is_admin_or_maintain=true" >> $GITHUB_ENV
+          else
+            echo "is_admin_or_maintain=false" >> $GITHUB_ENV
+            exit 1  # Prevent release if not admin or maintainer
+          fi
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 20.9.0
 
-      - name: Set Yarn Version
-        run: corepack enable && yarn set version 4.3.1
+      - name: Enable Corepack and Set Yarn Version
+        run: |
+          corepack enable
+          corepack prepare yarn@4.3.1 --activate
 
       - name: Install Dependencies
         run: yarn install
@@ -45,9 +71,10 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: ./scripts/handle-release.sh beta
+        if: env.is_admin_or_maintain == 'true'
 
   release:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && (contains(github.event.head_commit.message, 'patch') || contains(github.event.head_commit.message, 'chore') || contains(github.event.head_commit.message, 'fix') || contains(github.event.head_commit.message, 'feat'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -66,8 +93,10 @@ jobs:
         with:
           node-version: 20.9.0
 
-      - name: Set Yarn Version
-        run: corepack enable && yarn set version 4.3.1
+      - name: Enable Corepack and Set Yarn Version
+        run: |
+          corepack enable
+          corepack prepare yarn@4.3.1 --activate
 
       - name: Install Dependencies
         run: yarn install

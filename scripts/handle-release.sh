@@ -7,15 +7,12 @@ COMMIT_NAME=$(git log -1 --pretty=format:'%an')
 
 echo "Using committer details - Name: $COMMIT_NAME, Email: $COMMIT_EMAIL"
 
-corepack enable
-corepack install
-
 echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
 
 git fetch --tags
 
 IS_PR=false
-if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+if [[ "$GITHUB_EVENT_NAME" == "issue_comment" ]]; then
   IS_PR=true
 fi
 
@@ -119,14 +116,12 @@ yarn workspaces foreach --all --topological --no-private exec bash -c '
   if [[ $VERSION_BUMP == "prerelease" ]]; then
     yarn build
     npm publish --tag beta --access public
-    git tag "$PACKAGE_NAME@$NEW_VERSION"
-    git push https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git "$PACKAGE_NAME@$NEW_VERSION"
   else
     if [[ "$IS_PR" != "true" ]]; then
       git add package.json
       git -c user.email="'"$COMMIT_EMAIL"'" \
           -c user.name="'"$COMMIT_NAME"'" \
-          commit -m "chore: bump $PACKAGE_NAME to version $NEW_VERSION"
+          commit -m "V$NEW_VERSION"
       
       yarn build
       npm publish --access public
@@ -145,7 +140,7 @@ if [[ "$IS_PR" != "true" && -n $(git status --porcelain) ]]; then
   git add .
   git -c user.email="$COMMIT_EMAIL" \
       -c user.name="$COMMIT_NAME" \
-      commit -m "chore: commit release script and config changes"
+      commit -m "commit release script and config changes"
   git push https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git HEAD:main
 fi
 
