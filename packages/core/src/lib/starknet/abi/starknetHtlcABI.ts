@@ -1,4 +1,4 @@
-const starknetHtlcABI = [
+export const starknetHtlcABI = [
   {
     name: 'HTLC',
     type: 'impl',
@@ -251,4 +251,4 @@ const starknetHtlcABI = [
       },
     ],
   },
-] as const;
+];

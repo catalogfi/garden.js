@@ -14,6 +14,7 @@ import { MatchedOrder } from '@gardenfi/orderbook';
 import { AsyncResult, Err, Ok, Fetcher } from '@catalogfi/utils';
 import { APIResponse, IAuth, Url, hexToU32Array } from '@gardenfi/utils';
 import { IStarknetHTLC } from '../starknetHTLC.types';
+import { starknetHtlcABI } from '../abi/starknetHtlcABI';
 
 const DOMAIN = {
   name: 'HTLC',
