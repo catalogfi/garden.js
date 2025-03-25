@@ -3,7 +3,7 @@ import { OrderWithStatus } from '@gardenfi/core';
 import { AsyncResult, Request, Result } from '@catalogfi/utils';
 import { IGardenJS, IQuote, QuoteResponse, SwapParams } from '@gardenfi/core';
 import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
-import { Environment, IStore, SiweOpts } from '@gardenfi/utils';
+import { Environment, IAuth, IStore, SiweOpts } from '@gardenfi/utils';
 
 export type GardenContextType = {
   /**
@@ -64,13 +64,13 @@ export type GardenProviderProps = {
   config: {
     store: IStore;
     environment: Environment;
+    auth: IAuth;
     walletClient?: WalletClient;
     orderBookUrl?: string;
     quoteUrl?: string;
     bitcoinRPCUrl?: string;
     blockNumberFetcherUrl?: string;
     siweOpts?: SiweOpts;
-    apiKey?: string;
   };
 };
 

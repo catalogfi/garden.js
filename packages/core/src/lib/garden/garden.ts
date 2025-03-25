@@ -28,7 +28,6 @@ import {
   fetchBitcoinBlockNumber,
   fetchEVMBlockNumber,
   IAuth,
-  Siwe,
   sleep,
   Url,
 } from '@gardenfi/utils';
@@ -58,7 +57,6 @@ import { API } from '../constants';
 import { Quote } from '../quote/quote';
 import { SecretManager } from '../secretManager/secretManager';
 import { IEVMRelay } from '../evm/relay/evmRelay.types';
-import { Auth } from '@gardenfi/utils';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment;
@@ -95,16 +93,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       );
     this._quote = new Quote(config.quote ?? api.quote);
     this._orderbookUrl = new Url(config.orderbookURl ?? api.orderbook);
-    this._auth = new Auth({
-      siwe: config.apiKey
-        ? undefined
-        : new Siwe(
-            new Url(config.orderbookURl ?? api.orderbook),
-            config.evmWallet,
-            config.siweOpts,
-          ),
-      apiKey: config.apiKey,
-    });
+    this._auth = config.auth;
     this._orderBook = new Orderbook({
       url: config.orderbookURl ?? api.orderbook,
       walletClient: config.evmWallet,
@@ -199,8 +188,12 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     const quoteRes = await this._quote.getAttestedQuote(order);
     if (quoteRes.error) return Err(quoteRes.error);
 
+    console.log("QuoteRes in async swap:", quoteRes.val)
+    
     const createOrderRes = await this._orderBook.createOrder(quoteRes.val);
     if (createOrderRes.error) return Err(createOrderRes.error);
+    
+    console.log("CreateOrderRes in async swap:", createOrderRes.val)
 
     const orderRes = await this.pollOrder(createOrderRes.val);
     if (orderRes.error) return Err(orderRes.error);

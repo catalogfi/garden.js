@@ -1,6 +1,4 @@
-import { WBTCArbitrumLocalnetAsset } from "@gardenfi/orderbook";
-
-import { WBTCEthereumLocalnetAsset } from "@gardenfi/orderbook";
+import { SupportedAssets } from "@gardenfi/orderbook";
 
 import { bitcoinRegtestAsset } from "@gardenfi/orderbook";
 
@@ -11,7 +9,7 @@ export enum IOType {
 
 
 export const chainToAsset = {
-    ethereum_localnet: WBTCEthereumLocalnetAsset,
-    arbitrum_localnet: WBTCArbitrumLocalnetAsset,
+    ethereum_testnet: SupportedAssets.testnet.ethereum_sepolia_WBTC,
+    arbitrum_testnet: SupportedAssets.testnet.arbitrum_sepolia_WBTC,
     bitcoin_regtest: bitcoinRegtestAsset,
 };
