@@ -8,7 +8,7 @@ import { IBlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
 import { IBitcoinWallet } from '@catalogfi/wallets';
 import { IEVMHTLC } from '../evm/htlc.types';
 import { DigestKey } from './digestKey/digestKey';
-import { IStarknetHTLC } from '../starknet/htlc/starknetHTLC.types';
+import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 
 export type SwapParams = {
   /**

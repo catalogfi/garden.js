@@ -1,11 +1,14 @@
 import { MatchedOrder } from '@gardenfi/orderbook';
 import { AsyncResult, Err, Ok } from '@catalogfi/utils';
 import { Account, cairo, Contract, num, RpcProvider, CallData } from 'starknet';
-import { hexToU32Array, with0x } from '@gardenfi/utils';
+import { hexToU32Array } from '@gardenfi/utils';
 import { TokenABI } from '../abi/starknetTokenABI';
-import { IStarknetHTLC } from './starknetHTLC.types';
+import { IStarknetHTLC } from '../starknetHTLC.types';
+import { checkAllowanceAndApprove } from '../checkAllowanceAndApprove';
 
-const DEFAULT_NODE_URL = 'https://starknet-mainnet.public.blastapi.io';
+// const DEFAULT_NODE_URL = 'https://starknet-mainnet.public.blastapi.io';
+const DEFAULT_NODE_URL =
+  'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/Ry6QmtzfnqANtpqP3kLqe08y80ZorPoY';
 
 export class StarknetHTLC implements IStarknetHTLC {
   private provider: RpcProvider;
@@ -31,11 +34,7 @@ export class StarknetHTLC implements IStarknetHTLC {
     const assetAddress = isRedeeming
       ? order.destination_swap.asset
       : order.source_swap.asset;
-    const contract = new Contract(
-      (await this.provider.getClassAt(assetAddress)).abi, //check for abi
-      assetAddress,
-      this.account,
-    );
+    const contract = new Contract(starknetHtlcABI, assetAddress, this.account);
     return contract;
   }
 
@@ -54,29 +53,19 @@ export class StarknetHTLC implements IStarknetHTLC {
       }
 
       const tokenHex = num.toHex(token);
-      const tokenContract = new Contract(TokenABI, tokenHex, this.account);
-
-      // Check allowance
-      //TODO: use checkAllowanceAndApprove function
-      const allowance = await tokenContract['allowance'](
-        this.account.address,
-        order.source_swap.asset,
-      );
-
       const amountUint256 = cairo.uint256(BigInt(order.source_swap.amount));
-      if (BigInt(allowance) < BigInt(order.source_swap.amount)) {
-        // Approve allowance
-        await this.account.execute([
-          {
-            contractAddress: with0x(tokenHex),
-            entrypoint: 'approve',
-            calldata: [
-              order.source_swap.asset,
-              amountUint256.low,
-              amountUint256.high,
-            ],
-          },
-        ]);
+      // Check allowance
+      try {
+        const approvalResult = await checkAllowanceAndApprove(
+          this.account,
+          tokenHex,
+          order.source_swap.asset,
+          BigInt(order.source_swap.amount),
+          this.nodeUrl,
+        );
+        if (approvalResult.error) return Err(approvalResult.error);
+      } catch (error) {
+        return Err(`Allowance check failed: ${error}`);
       }
 
       const initiateResponse = await this.account.execute({

@@ -1,5 +1,6 @@
-import { Account, Contract, RpcProvider } from 'starknet';
+import { Account, cairo, Contract, RpcProvider } from 'starknet';
 import { AsyncResult, Err, Ok, with0x } from '@catalogfi/utils';
+import { TokenABI } from './abi/starknetTokenABI';
 
 export const checkAllowanceAndApprove = async (
   account: Account,
@@ -13,19 +14,8 @@ export const checkAllowanceAndApprove = async (
       nodeUrl: nodeUrl,
     });
 
-    // console.log(' Fetching contract class for:', tokenAddress);
-    const contractData = await starknetProvider.getClassAt(
-      with0x(tokenAddress),
-    );
-
-    if (!contractData || !contractData.abi) {
-      throw new Error(`Invalid contract data for token: ${tokenAddress}`);
-    }
-
-    // console.log('Contract class fetched successfully');
-
     const tokenContract = new Contract(
-      contractData.abi,
+      TokenABI,
       with0x(tokenAddress),
       starknetProvider,
     );
@@ -38,7 +28,7 @@ export const checkAllowanceAndApprove = async (
     ]);
 
     const allowance = BigInt(allowanceResponse?.toString() || '0');
-    const maxUint256 = 2n ** 256n - 1n;
+    const maxUint256 = cairo.uint256(BigInt(amount));
 
     // console.log(
     //   `Current Allowance: ${allowance}, Required: ${amount}, Max: ${maxUint256}`,
@@ -47,20 +37,11 @@ export const checkAllowanceAndApprove = async (
     if (allowance < amount) {
       // console.log('Approving maximum allowance (uint256 max)...');
 
-      const amountUint256 = {
-        low: maxUint256 & ((1n << 128n) - 1n),
-        high: maxUint256 >> 128n,
-      };
-
       const approveResponse = await account.execute([
         {
           contractAddress: with0x(tokenAddress),
           entrypoint: 'approve',
-          calldata: [
-            htlcAddress,
-            amountUint256.low.toString(),
-            amountUint256.high.toString(),
-          ],
+          calldata: [htlcAddress, maxUint256.low, maxUint256.high],
         },
       ]);
 

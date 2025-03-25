@@ -57,7 +57,7 @@ import { IEVMHTLC } from '../evm/htlc.types';
 import { DigestKey } from './digestKey/digestKey';
 import { WalletClient } from 'viem';
 import { EvmRelay } from '../evm/relay/evmRelay';
-import { IStarknetHTLC } from '../starknet/htlc/starknetHTLC.types';
+import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { Account } from 'starknet';
 import { StarknetRelay } from '../starknet/relay/starknetRelay';
 

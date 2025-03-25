@@ -13,7 +13,7 @@ import {
 import { MatchedOrder } from '@gardenfi/orderbook';
 import { AsyncResult, Err, Ok, Fetcher } from '@catalogfi/utils';
 import { APIResponse, IAuth, Url, hexToU32Array } from '@gardenfi/utils';
-import { IStarknetHTLC } from '../htlc/starknetHTLC.types';
+import { IStarknetHTLC } from '../starknetHTLC.types';
 
 const DOMAIN = {
   name: 'HTLC',
@@ -85,12 +85,12 @@ export class StarknetRelay implements IStarknetHTLC {
       const auth = await this.auth.getAuthHeaders();
       if (auth.error) return Err(auth.error);
       const contract = new Contract(
-        (await this.provider.getClassAt(order.source_swap.asset)).abi, //use the static abi
+        starknetHtlcABI,
         order.source_swap.asset,
         this.account,
       );
 
-      const token = await contract?.['token'](); //error handling
+      const token = await contract?.['token']();
       const tokenHex = num.toHex(token);
 
       try {
@@ -127,7 +127,10 @@ export class StarknetRelay implements IStarknetHTLC {
         {
           body: JSON.stringify({
             order_id: create_order.create_id,
-            signature: `0x${r.toString(16)},0x${s.toString(16)}`,
+            signature: {
+              r: r.toString(),
+              s: s.toString(),
+            },
             perform_on: 'Source',
           }),
           headers: {
@@ -136,7 +139,6 @@ export class StarknetRelay implements IStarknetHTLC {
           },
         },
       );
-      console.log('response after initiate on htlc', res); //remove this
 
       if (res.error) return Err(res.error);
       return res.result ? Ok(res.result) : Err('Init: No result found');

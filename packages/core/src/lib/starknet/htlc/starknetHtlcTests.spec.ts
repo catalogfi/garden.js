@@ -17,7 +17,7 @@ import {
   BitcoinProvider,
   BitcoinWallet,
 } from '@catalogfi/wallets';
-import { Quote } from 'gardenfi/core/dist';
+import { BlockNumberFetcher, Quote } from '@gardenfi/core';
 import { StarknetRelay } from '../relay/starknetRelay';
 
 describe('starknetHtlcTests', () => {
@@ -101,6 +101,10 @@ describe('starknetHtlcTests', () => {
       digestKey:
         '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
       quote: new Quote(QUOTE_SERVER_URL),
+      blockNumberFetcher: new BlockNumberFetcher(
+        'http://localhost:3008',
+        Environment.LOCALNET,
+      ),
       htlc: {
         starknet: new StarknetRelay(
           STARKNET_RELAY_URL,
