@@ -1,6 +1,6 @@
 import { MatchedOrder } from '@gardenfi/orderbook';
 import { AsyncResult, Err, Ok } from '@catalogfi/utils';
-import { Account, cairo, Contract, num, RpcProvider, CallData } from 'starknet';
+import { Account, cairo, Contract, num, CallData } from 'starknet';
 import { hexToU32Array } from '@gardenfi/utils';
 import { TokenABI } from '../abi/starknetTokenABI';
 import { IStarknetHTLC } from '../starknetHTLC.types';
@@ -10,16 +10,12 @@ import { starknetHtlcABI } from '../abi/starknetHtlcABI';
 const DEFAULT_NODE_URL = 'https://starknet-mainnet.public.blastapi.io';
 
 export class StarknetHTLC implements IStarknetHTLC {
-  private provider: RpcProvider;
   private nodeUrl: string;
   private account: Account;
 
   constructor(account: Account, nodeUrl?: string) {
     this.nodeUrl = nodeUrl || DEFAULT_NODE_URL;
     this.account = account;
-    this.provider = new RpcProvider({
-      nodeUrl: this.nodeUrl, //check for default node url
-    });
   }
 
   get htlcActorAddress(): string {

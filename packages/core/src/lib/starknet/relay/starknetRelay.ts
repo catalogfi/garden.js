@@ -2,7 +2,6 @@ import { checkAllowanceAndApprove } from '../checkAllowanceAndApprove';
 import {
   Account,
   Contract,
-  RpcProvider,
   TypedData,
   TypedDataRevision,
   WeierstrassSignatureType,
@@ -41,7 +40,6 @@ const INTIATE_TYPE = {
 const DEFAULT_NODE_URL = 'https://starknet-mainnet.public.blastapi.io';
 
 export class StarknetRelay implements IStarknetHTLC {
-  private provider: RpcProvider;
   private url: Url;
   private nodeUrl: string;
   private account: Account;
@@ -53,9 +51,6 @@ export class StarknetRelay implements IStarknetHTLC {
     auth: IAuth,
     nodeUrl?: string,
   ) {
-    this.provider = new RpcProvider({
-      nodeUrl: nodeUrl,
-    });
     this.nodeUrl = nodeUrl || DEFAULT_NODE_URL;
     this.url = new Url('/relayer', relayerUrl);
     this.account = account;
@@ -144,7 +139,6 @@ export class StarknetRelay implements IStarknetHTLC {
       if (res.error) return Err(res.error);
       return res.result ? Ok(res.result) : Err('Init: No result found');
     } catch (error) {
-      console.error('init error:', error);
       return Err(String(error));
     }
   }
