@@ -15,8 +15,8 @@ export class EvmRelay implements IEVMRelay {
   private url: Url;
   private auth: IAuth;
 
-  constructor(url: string | Url, auth: IAuth) {
-    this.url = new Url('/relayer', url);
+  constructor(url: string, auth: IAuth) {
+    this.url = new Url(url).endpoint('relayer');
     this.auth = auth;
   }
 
