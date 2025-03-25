@@ -16,7 +16,7 @@ export type { IBlockNumberFetcher } from './lib/blockNumberFetcher/blockNumber';
 export { EvmRelay } from './lib/evm/relay/evmRelay';
 export type { IEVMRelay } from './lib/evm/relay/evmRelay.types';
 
-export { OrderStatus, SwapStatus } from './lib/status';
+export { OrderStatus, SwapStatus } from './lib/orderStatus/status';
 
 export {
   parseAction,
@@ -25,7 +25,7 @@ export {
   isExpired,
   filterDeadlineExpiredOrders,
   parseActionFromStatus,
-} from './lib/orderStatusParser';
+} from './lib/orderStatus/orderStatusParser';
 
 export { SecretManager } from './lib/secretManager/secretManager';
 export type {

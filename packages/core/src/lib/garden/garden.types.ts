@@ -1,6 +1,6 @@
 import { AsyncResult } from '@catalogfi/utils';
 import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
-import { OrderStatus } from '../status';
+import { OrderStatus } from '../orderStatus/status';
 import { Environment, EventBroker, IAuth } from '@gardenfi/utils';
 import { ISecretManager } from '../secretManager/secretManager.types';
 import { IQuote } from '../quote/quote.types';

@@ -41,7 +41,7 @@ import {
   isOrderExpired,
   parseActionFromStatus,
   ParseOrderStatus,
-} from '../orderStatusParser';
+} from '../orderStatus/orderStatusParser';
 import { GardenHTLC } from '../bitcoin/htlc';
 import { Cache, ExecutorCache } from './cache/executorCache';
 import BigNumber from 'bignumber.js';
@@ -49,7 +49,7 @@ import {
   BlockNumberFetcher,
   IBlockNumberFetcher,
 } from '../blockNumberFetcher/blockNumber';
-import { OrderStatus } from '../status';
+import { OrderStatus } from '../orderStatus/status';
 import { API } from '../constants';
 import { Quote } from '../quote/quote';
 import { SecretManager } from '../secretManager/secretManager';

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { isExpired, ParseOrderStatus } from './orderStatusParser';
 import { OrdersProvider } from '@gardenfi/orderbook';
-import { BlockNumberFetcher } from './blockNumberFetcher/blockNumber';
+import { BlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
 import { Environment } from 'gardenfi/utils';
 
 describe('orderStatus', () => {
