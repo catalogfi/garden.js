@@ -1,6 +1,22 @@
 import { Chain } from 'viem';
 import { Asset, Chains } from './asset';
 
+export const StarknetLocalnet: Chain = {
+  id: 1001,
+  name: 'Starknet Localnet',
+  nativeCurrency: {
+    name: 'Stark Token',
+    symbol: 'STRK',
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ['http://127.0.0.1:8547/'],
+    },
+  },
+  testnet: true,
+};
+
 export const ArbitrumLocalnet: Chain = {
   id: 31338,
   name: 'Arbitrum Localnet',
@@ -56,11 +72,33 @@ export const WBTCEthereumLocalnetAsset: Asset = {
   atomicSwapAddress: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
   tokenAddress: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
 };
+export const STRKStarknetLocalnetAsset: Asset = {
+  name: 'STRK Starknet Localnet',
+  decimals: 18,
+  symbol: 'STRK',
+  chain: Chains.starknet_devnet,
+  atomicSwapAddress:
+    '0x15cf8b127aa850c97ed10de6f8b300cabc4f09232a57e63667af02fdef8a55a',
+  tokenAddress:
+    '0x51aa025f1c9948790113e4ebea826dee24542bc50902076c05892774210e8d2',
+};
+export const ETHStarknetLocalnetAsset: Asset = {
+  name: 'ETH Starknet Localnet',
+  decimals: 18,
+  symbol: 'ETH',
+  chain: Chains.starknet_devnet,
+  atomicSwapAddress:
+    '0x1890470168440bbb9df50988748924a74ea22de10d22a081e458737b9574e75',
+  tokenAddress:
+    '0x51aa025f1c9948790113e4ebea826dee24542bc50902076c05892774210e8d2',
+};
 
 export const SupportedAssets = {
   localnet: {
     arbitrum_localnet_WBTC: WBTCArbitrumLocalnetAsset,
     ethereum_localnet_WBTC: WBTCEthereumLocalnetAsset,
+    starknet_localnet_STRK: STRKStarknetLocalnetAsset,
+    starknet_localnet_ETH: ETHStarknetLocalnetAsset,
   },
   testnet: {
     bitcoin_testnet_BTC: {
@@ -86,8 +124,8 @@ export const SupportedAssets = {
       symbol: 'WBTC',
       logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
       chain: Chains.arbitrum_sepolia,
-      tokenAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
-      atomicSwapAddress: '0x1cd0bBd55fD66B4C5F7dfE434eFD009C09e628d1',
+      tokenAddress: '0xD8a6E3FCA403d79b6AD6216b60527F51cc967D39',
+      atomicSwapAddress: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
     },
     arbitrum_sepolia_SEED: {
       name: 'Seed',
@@ -151,6 +189,17 @@ export const SupportedAssets = {
       logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
       tokenAddress: '0x8d0c9d1c17aE5e40ffF9bE350f57840E9E66Cd93',
       atomicSwapAddress: '0xaD9d14CA82d9BF97fFf745fFC7d48172A1c0969E',
+    },
+    starknet_testnet_ETH: {
+      name: 'Starknet ETH',
+      decimals: 18,
+      symbol: 'ETH',
+      chain: Chains.starknet_sepolia,
+      logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
+      tokenAddress:
+        '0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7',
+      atomicSwapAddress:
+        '0x75cf614ce4ebce29ac622a50cd5151ddfff853159707589a85dd67b9fb1eba',
     },
   },
   mainnet: {

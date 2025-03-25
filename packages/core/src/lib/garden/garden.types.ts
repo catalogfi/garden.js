@@ -8,6 +8,7 @@ import { IBlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
 import { IBitcoinWallet } from '@catalogfi/wallets';
 import { IEVMHTLC } from '../evm/htlc.types';
 import { DigestKey } from './digestKey/digestKey';
+import { IStarknetHTLC } from '../starknet/htlc/starknetHTLC.types';
 
 export type SwapParams = {
   /**
@@ -165,7 +166,8 @@ export type GardenProps = {
   quote?: IQuote;
   blockNumberFetcher?: IBlockNumberFetcher;
   htlc: {
-    evm: IEVMHTLC;
+    evm?: IEVMHTLC;
+    starknet?: IStarknetHTLC;
   };
 };
 
