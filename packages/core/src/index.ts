@@ -16,6 +16,9 @@ export type { IBlockNumberFetcher } from './lib/blockNumberFetcher/blockNumber';
 export { EvmRelay } from './lib/evm/relay/evmRelay';
 export type { IEVMRelay } from './lib/evm/relay/evmRelay.types';
 
+export { SnRelay } from './lib/starknet/relay/snRelay';
+export type { IStarknetRelay } from './lib/starknet/relay/snRelay.types';
+
 export { OrderStatus, SwapStatus } from './lib/status';
 
 export {

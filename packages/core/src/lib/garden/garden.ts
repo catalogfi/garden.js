@@ -59,10 +59,10 @@ import { API } from '../constants';
 import { Quote } from '../quote/quote';
 import { SecretManager } from '../secretManager/secretManager';
 import { IEVMRelay } from '../evm/relay/evmRelay.types';
-import { IStarknetRelay } from '../starknet/snRelay.types';
+import { IStarknetRelay } from '../starknet/relay/snRelay.types';
 import { Auth } from '@gardenfi/utils';
 import { Account } from 'starknet';
-import { SnRelay } from '../starknet/snRelay';
+import { SnRelay } from '../starknet/relay/snRelay';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment;
@@ -130,7 +130,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this._starknetRelayUrl = config.starknetRelayUrl ?? '';
     this._starknetRelay = new SnRelay(
       this._starknetRelayUrl,
-      'http://localhost:8547/rpc',
+      'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/Ry6QmtzfnqANtpqP3kLqe08y80ZorPoY',
+      this._starknetWallet ?? (undefined as unknown as Account),
+      this._auth,
     );
     if (!config.evmWallet.account)
       throw new Error('Account not found in evmWallet');
@@ -236,10 +238,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       );
       if (secrets.error) return Err(secrets.error);
       if (!this._starknetWallet) return Err('Starknet wallet not initialized');
-      const starknetResponse = await this._starknetRelay?.init(
-        this._starknetWallet,
-        orderRes.val,
-      );
+      const starknetResponse = await this._starknetRelay?.init(orderRes.val);
       console.log(starknetResponse);
     }
 

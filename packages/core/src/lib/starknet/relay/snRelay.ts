@@ -1,4 +1,4 @@
-import { checkAllowanceAndApprove } from './checkAllowanceAndApprove';
+import { checkAllowanceAndApprove } from '../checkAllowanceAndApprove';
 import {
   Account,
   Contract,
@@ -12,7 +12,7 @@ import {
 } from 'starknet';
 import { MatchedOrder } from '@gardenfi/orderbook';
 import { AsyncResult, Err, Ok, Fetcher } from '@catalogfi/utils';
-import { APIResponse, Url, hexToU32Array } from '@gardenfi/utils';
+import { APIResponse, IAuth, Url, hexToU32Array } from '@gardenfi/utils';
 
 const DOMAIN = {
   name: 'HTLC',
@@ -40,20 +40,26 @@ export class SnRelay {
   private provider: RpcProvider;
   private url: Url;
   private nodeUrl: string;
+  private account: Account;
+  private auth: IAuth;
 
-  constructor(relayerUrl: string | Url, nodeUrl: string) {
+  constructor(
+    relayerUrl: string | Url,
+    nodeUrl: string,
+    account: Account,
+    auth: IAuth,
+  ) {
     this.provider = new RpcProvider({
       nodeUrl: nodeUrl,
     });
     this.nodeUrl = nodeUrl;
     this.url = new Url('/relayer', relayerUrl);
+    this.account = account;
+    this.auth = auth;
   }
 
-  async init(
-    account: Account,
-    order: MatchedOrder,
-  ): AsyncResult<string, string> {
-    if (!account.address) return Err('No account address');
+  async init(order: MatchedOrder): AsyncResult<string, string> {
+    if (!this.account.address) return Err('No account address');
 
     const { create_order, source_swap } = order;
     const { redeemer, amount } = source_swap;
@@ -68,16 +74,19 @@ export class SnRelay {
     }
 
     try {
+      const auth = await this.auth.getAuthHeaders();
+      if (auth.error) return Err(auth.error);
+
       const contract = new Contract(
         (await this.provider.getClassAt(order.source_swap.asset)).abi,
         order.source_swap.asset,
-        account,
+        this.account,
       );
 
       const token = await contract?.['token']();
       const tokenHex = num.toHex(token);
       const approvalResult = await checkAllowanceAndApprove(
-        account,
+        this.account,
         tokenHex,
         source_swap.asset,
         BigInt(amount),
@@ -96,7 +105,7 @@ export class SnRelay {
           secretHash: hexToU32Array(create_order.secret_hash),
         },
       };
-      const signature = (await account.signMessage(
+      const signature = (await this.account.signMessage(
         TypedData,
       )) as WeierstrassSignatureType;
       const { r, s } = signature;
@@ -110,8 +119,7 @@ export class SnRelay {
             perform_on: 'Source',
           }),
           headers: {
-            'api-key':
-              'AAAAAGf0dUU6OrzQU7BpPstIUl24NGKtyr_-fMJJ2LvTpPN8cK9X624gNTAZ4fFL2U8MwMWDwR5lSZzHBkUzR31OVmWBxEVDZzAc',
+            ...auth.val,
             'Content-Type': 'application/json',
           },
         },
@@ -128,6 +136,9 @@ export class SnRelay {
 
   async redeem(orderId: string, secret: string): AsyncResult<string, string> {
     try {
+      const auth = await this.auth.getAuthHeaders();
+      if (auth.error) return Err(auth.error);
+
       const res = await Fetcher.post<APIResponse<string>>(
         this.url.endpoint('redeem'),
         {
@@ -137,8 +148,7 @@ export class SnRelay {
             perform_on: 'Destination',
           }),
           headers: {
-            'api-key':
-              'AAAAAGf0dUU6OrzQU7BpPstIUl24NGKtyr_-fMJJ2LvTpPN8cK9X624gNTAZ4fFL2U8MwMWDwR5lSZzHBkUzR31OVmWBxEVDZzAc',
+            ...auth.val,
             'Content-Type': 'application/json',
           },
         },

@@ -179,4 +179,3 @@ describe('StarkNet Integration Tests', () => {
     await sleep(150000);
   }, 150000);
 });
-1000000000000000000;

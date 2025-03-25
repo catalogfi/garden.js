@@ -11,62 +11,74 @@ import {
   BitcoinProvider,
   BitcoinWallet,
 } from '@catalogfi/wallets';
-import axios from 'axios';
-import { promisify } from 'util';
-import { exec } from 'child_process';
+// import axios from 'axios';
+// import { promisify } from 'util';
+// import { exec } from 'child_process';
 
-const execAsync = promisify(exec);
+// const execAsync = promisify(exec);
 
-const RPC_USER = 'admin1';
-const RPC_PASSWORD = '123';
+// const RPC_USER = 'admin1';
+// const RPC_PASSWORD = '123';
 
-async function mineBlock(addr: string, count: number): Promise<void> {
-  try {
-    const { data: mineData } = await axios.post(
-      'http://localhost:18443',
-      {
-        jsonrpc: '1.0',
-        id: 'generatetoaddress',
-        method: 'generatetoaddress',
-        params: [count, addr],
-      },
-      {
-        auth: {
-          username: RPC_USER,
-          password: RPC_PASSWORD,
-        },
-      },
-    );
-    return mineData;
-  } catch (error) {
-    console.log('Mining failed : ', error);
-  }
-}
+// async function mineBlock(addr: string, count: number): Promise<void> {
+//   try {
+//     const { data: mineData } = await axios.post(
+//       'http://localhost:18443',
+//       {
+//         jsonrpc: '1.0',
+//         id: 'generatetoaddress',
+//         method: 'generatetoaddress',
+//         params: [count, addr],
+//       },
+//       {
+//         auth: {
+//           username: RPC_USER,
+//           password: RPC_PASSWORD,
+//         },
+//       },
+//     );
+//     return mineData;
+//   } catch (error) {
+//     console.log('Mining failed : ', error);
+//   }
+// }
 
-async function fund(addr: string): Promise<void> {
-  try {
-    await execAsync(`merry faucet --to ${addr}`);
-  } catch (error) {
-    console.log('Funding failed : ', error);
-  }
-}
+// async function fund(addr: string): Promise<void> {
+//   try {
+//     await execAsync(`merry faucet --to ${addr}`);
+//   } catch (error) {
+//     console.log('Funding failed : ', error);
+//   }
+// }
 
 describe('Bitcoin to StarkNet Integration Tests', () => {
   // Constants
-  const RELAYER_URL = 'http://localhost:4426';
-  const STARKNET_NODE_URL = 'http://localhost:8547/rpc';
-  const QUOTE_SERVER_URL = 'http://localhost:6969';
-  const STARKNET_RELAY_URL = 'http://localhost:4436';
+  // const RELAYER_URL = 'http://localhost:4426';
+  // const STARKNET_NODE_URL = 'http://localhost:8547/rpc';
+  // const QUOTE_SERVER_URL = 'http://localhost:6969';
+  // const STARKNET_RELAY_URL = 'http://localhost:4436';
+  // const API_KEY =
+  //   'AAAAAGghjwU6Os1DVFgmUXj0GcNt5jTJPbBmXKw7xRARW-qivNy4nfpKVgMNebmmxig2o3v-6M4l_ZmCgLp3vKywfVXDYBcL3M4c';
+
+  const RELAYER_URL = 'https://orderbook-stage.hashira.io';
+  const STARKNET_NODE_URL =
+    'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/Ry6QmtzfnqANtpqP3kLqe08y80ZorPoY';
+  const QUOTE_SERVER_URL = 'https://quote-staging.hashira.io';
+  const STARKNET_RELAY_URL = 'https://starknet-relayer.hashira.io';
   const API_KEY =
-    'AAAAAGghjwU6Os1DVFgmUXj0GcNt5jTJPbBmXKw7xRARW-qivNy4nfpKVgMNebmmxig2o3v-6M4l_ZmCgLp3vKywfVXDYBcL3M4c';
+    'AAAAAGnCHgI6OtNjaHxlzdsgXaIseznp7jFo1eU7QKEYhopsgu1EAVZOPgAHGNJJSYdVclaWkOhORmKpS14PqjyFu1-5sdtTmMob';
 
   // Wallet configurations
   const EVM_PRIVATE_KEY =
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
+  // const STARKNET_PRIVATE_KEY =
+  //   '0x00000000000000000000000000000000c10662b7b247c7cecf7e8a30726cff12';
+  // const STARKNET_ADDRESS =
+  //   '0x0260a8311b4f1092db620b923e8d7d20e76dedcc615fb4b6fdf28315b81de201';
   const STARKNET_PRIVATE_KEY =
-    '0x00000000000000000000000000000000c10662b7b247c7cecf7e8a30726cff12';
+    '0x0440c893bd4cbc2c151d579c9d721eec4d316306f871368baa89033e3f6820b9';
   const STARKNET_ADDRESS =
-    '0x0260a8311b4f1092db620b923e8d7d20e76dedcc615fb4b6fdf28315b81de201';
+    '0x0390cf09b3537e450170bdcce49a789facb727f21eabd8e1d25b8cf1869e8e93';
 
   // Global variables
   let garden: Garden;
@@ -97,20 +109,25 @@ describe('Bitcoin to StarkNet Integration Tests', () => {
     console.log('StarkNet Account:', starknetWallet.address);
 
     // Initialize Bitcoin wallet
+    // const bitcoinProvider = new BitcoinProvider(
+    //   BitcoinNetwork.Regtest,
+    //   'http://localhost:30000',
+    // );
     const bitcoinProvider = new BitcoinProvider(
-      BitcoinNetwork.Regtest,
-      'http://localhost:30000',
+      BitcoinNetwork.Testnet,
+      'https://48.217.250.147:18443',
     );
     btcWallet = BitcoinWallet.fromPrivateKey(
-      '3cd7c7cd08c2eb6aeac37e5654a05ebc2e92afe0adf109ea0c615c7cb8d9831f',
+      'af530c3d2212740a8428193fce82bfddcf7e83bee29a2b9b2f25b5331bae1bf5',
       bitcoinProvider,
+      { pkType: 'p2wpkh', pkPath: "m/84'/0'/0'/0/0" },
     );
     btcAddress = await btcWallet.getAddress();
     console.log('Bitcoin Address:', btcAddress);
 
     // Initialize Garden
     garden = new Garden({
-      environment: Environment.LOCALNET,
+      environment: Environment.TESTNET,
       evmWallet,
       starknetWallet,
       orderbookURl: RELAYER_URL,
@@ -182,12 +199,12 @@ describe('Bitcoin to StarkNet Integration Tests', () => {
   it('should create and execute a BTC-Starknet swap', async () => {
     console.log('\n------ CREATING SWAP ORDER ------');
     const order = {
-      fromAsset: SupportedAssets.localnet.bitcoinRegtest,
-      toAsset: SupportedAssets.localnet.starknet_localnet_STRK,
+      fromAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
+      toAsset: SupportedAssets.testnet.starknet_testnet_ETH,
       sendAmount: '10000',
-      receiveAmount: '10000',
+      receiveAmount: '23380000000000',
       additionalData: {
-        strategyId: 'brsd13',
+        strategyId: 'btyrssab',
         btcAddress: btcAddress,
       },
       minDestinationConfirmations: 1,
@@ -212,7 +229,7 @@ describe('Bitcoin to StarkNet Integration Tests', () => {
     console.log('--------------------------------');
 
     console.log('\n------ ADDING FUNDS TO BTC WALLET------');
-    await fund(await btcWallet.getAddress());
+    // await fund(await btcWallet.getAddress());
 
     expect(result.error).toBeFalsy();
     expect(result.val).toBeTruthy();
@@ -223,19 +240,19 @@ describe('Bitcoin to StarkNet Integration Tests', () => {
 
       // First, mine enough blocks to mature the coins and wait for them
       console.log('Mining initial blocks to mature coins...');
-      await mineBlock(await btcWallet.getAddress(), 101);
+      // await mineBlock(await btcWallet.getAddress(), 101);
       await sleep(2000); // Wait for blocks to be processed
-      
+
       // Fund the wallet and wait for confirmation
       console.log('\n------ ADDING FUNDS TO BTC WALLET------');
-      await fund(await btcWallet.getAddress());
+      // await fund(await btcWallet.getAddress());
       await sleep(2000); // Wait for funding to complete
-      
+
       // Mine additional blocks to ensure funding is mature
       console.log('Mining additional blocks to mature funded coins...');
-      await mineBlock(await btcWallet.getAddress(), 101);
+      // await mineBlock(await btcWallet.getAddress(), 101);
       await sleep(2000); // Wait for blocks to be processed
-      
+
       console.log('Coins matured successfully');
 
       // Now proceed with the send
@@ -244,12 +261,12 @@ describe('Bitcoin to StarkNet Integration Tests', () => {
         result.val.source_swap.swap_id,
         +result.val.source_swap.amount,
       );
-      
+
       // Mine confirmation blocks
       console.log('Mining confirmation blocks...');
-      await mineBlock(await btcWallet.getAddress(), 6); // Increased from 3 to 6 for better confirmation
+      // await mineBlock(await btcWallet.getAddress(), 6);
       await sleep(2000); // Wait for confirmations
-      
+
       console.log('HTLC Funding Success');
       console.log('Swap ID:', result.val.source_swap.swap_id);
       console.log('--------------------------------');
@@ -263,7 +280,7 @@ describe('Bitcoin to StarkNet Integration Tests', () => {
 
   it('Execute orders', async () => {
     console.log('\n------ EXECUTING ORDERS ------');
-    
+
     // Create a promise that resolves when redemption is successful
     const redemptionPromise = new Promise((resolve) => {
       garden.on('success', (order, action, result) => {
@@ -279,18 +296,18 @@ describe('Bitcoin to StarkNet Integration Tests', () => {
 
     // Setup other event listeners
     setupEventListeners();
-    
+
     // Start execution
     await garden.starknetExecute();
-    
+
     // Wait for redemption to complete or timeout after 150 seconds
     await Promise.race([
       redemptionPromise,
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Redemption timeout')), 150000)
-      )
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Redemption timeout')), 150000),
+      ),
     ]);
-    
+
     console.log('------ EXECUTION COMPLETE ------\n');
   }, 150000);
 });
