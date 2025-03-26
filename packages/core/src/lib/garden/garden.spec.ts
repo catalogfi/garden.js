@@ -137,6 +137,11 @@ describe('swap and execute using garden', () => {
     if (isBitcoin(order.source_swap.chain)) {
       console.warn('Bitcoin swap, skipping initiation');
     }
+    if (!garden.evmHTLC) {
+      console.warn('EVMHTLC is not initialized, skipping initiation');
+      return;
+    }
+
     const res = await garden.evmHTLC.initiate(order);
     console.log('initiated ✅ :', res.val);
     if (res.error) console.log('init error ❌ :', res.error);

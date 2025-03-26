@@ -8,6 +8,7 @@ import { IBlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
 import { IBitcoinWallet } from '@catalogfi/wallets';
 import { IEVMHTLC } from '../evm/htlc.types';
 import { DigestKey } from './digestKey/digestKey';
+import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 
 export type SwapParams = {
   /**
@@ -94,7 +95,13 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
    * The EVM relay.
    * @readonly
    */
-  get evmHTLC(): IEVMHTLC;
+  get evmHTLC(): IEVMHTLC | undefined;
+
+  /**
+   * The Starknet relay.
+   * @readonly
+   */
+  get starknetHTLC(): IStarknetHTLC | undefined;
 
   /**
    * The current quote.
@@ -165,7 +172,8 @@ export type GardenProps = {
   quote?: IQuote;
   blockNumberFetcher?: IBlockNumberFetcher;
   htlc: {
-    evm: IEVMHTLC;
+    evm?: IEVMHTLC;
+    starknet?: IStarknetHTLC;
   };
 };
 

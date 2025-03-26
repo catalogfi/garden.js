@@ -57,6 +57,9 @@ import { IEVMHTLC } from '../evm/htlc.types';
 import { DigestKey } from './digestKey/digestKey';
 import { WalletClient } from 'viem';
 import { EvmRelay } from '../evm/relay/evmRelay';
+import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
+import { Account } from 'starknet';
+import { StarknetRelay } from '../starknet/relay/starknetRelay';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment;
@@ -69,7 +72,8 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private orderExecutorCache: IOrderExecutorCache;
   private _blockNumberFetcher: IBlockNumberFetcher;
   private refundSacpCache = new Map<string, any>();
-  private _evmHTLC: IEVMHTLC;
+  private _evmHTLC: IEVMHTLC | undefined;
+  private _starknetHTLC: IStarknetHTLC | undefined;
   private _btcWallet: IBitcoinWallet | undefined;
   private bitcoinRedeemCache = new Cache<{
     redeemedFromUTXO: string;
@@ -90,7 +94,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         ? API.mainnet
         : config.environment === Environment.TESTNET
         ? API.testnet
-        : undefined;
+        : API.localnet;
     if (!api)
       throw new Error(
         'API not found, invalid environment ' + config.environment,
@@ -105,6 +109,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     );
     this._orderbook = new Orderbook(new Url(config.api ?? api.orderbook));
     this._evmHTLC = config.htlc.evm;
+    this._starknetHTLC = config.htlc.starknet;
     this._secretManager =
       config.secretManager ??
       SecretManager.fromDigestKey(this._digestKey.digestKey);
@@ -119,6 +124,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     digestKey: string;
     wallets: {
       evm: WalletClient;
+      starknet: Account;
     };
   }) {
     const api =
@@ -138,6 +144,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         config.wallets.evm,
         Siwe.fromDigestKey(new Url(api.orderbook), config.digestKey),
       ),
+      starknet: new StarknetRelay(
+        api.orderbook,
+        config.wallets.starknet,
+        Siwe.fromDigestKey(new Url(api.orderbook), config.digestKey),
+      ),
     };
 
     return new Garden({
@@ -153,6 +164,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   get evmHTLC() {
     return this._evmHTLC;
+  }
+
+  get starknetHTLC() {
+    return this._starknetHTLC;
   }
 
   get quote() {
@@ -308,12 +323,19 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     const blockChianType = getBlockchainType(chain);
     switch (blockChianType) {
       case BlockchainType.EVM:
-        return Ok(this.evmHTLC.htlcActorAddress);
+        if (!this._evmHTLC)
+          return Err('Please provide evmHTLC when initializing garden');
+        return Ok(this._evmHTLC.htlcActorAddress);
       case BlockchainType.Bitcoin: {
         const pubKey = await this._btcWallet?.getPublicKey();
         if (!pubKey || !isValidBitcoinPubKey(pubKey))
           return Err('Invalid btc public key');
         return Ok(toXOnly(pubKey));
+      }
+      case BlockchainType.Starknet: {
+        if (!this._starknetHTLC)
+          return Err('Please provide starknetHTLC when initializing garden');
+        return Ok(this._starknetHTLC.htlcActorAddress);
       }
       default:
         return Err('Unsupported chain');
@@ -421,6 +443,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                   await this.btcRedeem(destWallet, order, secrets.val.secret);
                   break;
                 }
+                case BlockchainType.Starknet: {
+                  await this.starknetRedeem(order, secrets.val.secret);
+                  break;
+                }
                 default:
                   this.emit(
                     'error',
@@ -450,6 +476,14 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                   await this.btcRefund(sourceWallet, order);
                   break;
                 }
+                case BlockchainType.Starknet: {
+                  this.emit(
+                    'error',
+                    order,
+                    'Starknet refund is automatically done by relay service',
+                  );
+                  break;
+                }
                 default:
                   this.emit(
                     'error',
@@ -470,13 +504,19 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     );
   }
 
-  private async evmRedeem(order: MatchedOrder, secret: string) {
+  private async evmRedeem(order: MatchedOrder, secret: string): Promise<void> {
     this.emit('log', order.create_order.create_id, 'executing evm redeem');
     const cache = this.orderExecutorCache.get(order, OrderActions.Redeem);
     if (cache) {
       this.emit('log', order.create_order.create_id, 'already redeemed');
       return;
     }
+
+    if (!this._evmHTLC) {
+      this.emit('error', order, 'EVMHTLC is required');
+      return;
+    }
+
     const res = await this._evmHTLC.redeem(order, secret);
 
     if (res.error) {
@@ -493,6 +533,36 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
     this.orderExecutorCache.set(order, OrderActions.Redeem, res.val);
     this.emit('success', order, OrderActions.Redeem, res.val);
+  }
+
+  private async starknetRedeem(order: MatchedOrder, secret: string) {
+    this.emit('log', order.create_order.create_id, 'executing starknet redeem');
+    const cache = this.orderExecutorCache.get(order, OrderActions.Redeem);
+    if (cache) {
+      this.emit('log', order.create_order.create_id, 'already redeemed');
+      return;
+    }
+    if (!this._starknetHTLC) {
+      this.emit('error', order, 'StarknetHTLC is required');
+      return;
+    }
+
+    const res = await this._starknetHTLC.redeem(order, secret);
+    if (res.error) {
+      this.emit('error', order, res.error);
+      if (res.error.includes('Order already redeemed')) {
+        this.orderExecutorCache.set(
+          order,
+          OrderActions.Redeem,
+          order.destination_swap.redeem_tx_hash,
+        );
+      }
+      return;
+    }
+    if (res.val) {
+      this.orderExecutorCache.set(order, OrderActions.Redeem, res.val);
+      this.emit('success', order, OrderActions.Redeem, res.val);
+    }
   }
 
   private async btcRedeem(
