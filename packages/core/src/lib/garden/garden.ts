@@ -140,11 +140,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
     const htlc = {
       evm: new EvmRelay(
-        api.orderbook,
+        api.evmRelay,
         config.wallets.evm,
         Siwe.fromDigestKey(new Url(api.orderbook), config.digestKey),
       ),
-      starknet: new StarknetRelay(api.orderbook, config.wallets.starknet),
+      starknet: new StarknetRelay(api.starknetRelay, config.wallets.starknet),
     };
 
     return new Garden({
