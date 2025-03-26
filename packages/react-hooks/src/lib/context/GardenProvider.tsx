@@ -51,8 +51,8 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   }, [pendingOrders]);
 
   const quote = useMemo(() => {
-    return config.quote || new Quote(API[config.environment].quote);
-  }, [config.quote, config.environment]);
+    return new Quote(config.quoteUrl || API[config.environment].quote);
+  }, [config.quoteUrl, config.environment]);
 
   const getQuote = useMemo(
     () =>
@@ -90,14 +90,8 @@ export const GardenProvider: FC<GardenProviderProps> = ({
       return Err('Failed to switch network: ' + switchRes.error);
     const newWalletClient = switchRes.val.walletClient;
 
-    const evmRelay = new EvmRelay(
-      config.orderBookUrl ?? API[config.environment].orderbook,
-      newWalletClient,
-      garden.auth,
-    );
-
     //only initiate if EVM
-    const initRes = await evmRelay.initiate(order.val);
+    const initRes = await garden.evmRelay.init(newWalletClient, order.val);
     if (initRes.error) return Err(initRes.error);
 
     const updatedOrder: MatchedOrder = {
@@ -153,13 +147,15 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     setGarden(
       new Garden({
         environment: config.environment,
-        wallets: {
-          evmWallet: config.walletClient,
+        evmWallet: config.walletClient,
+        siweOpts: config.siweOpts ?? {
+          domain: window.location.hostname,
+          store: config.store,
         },
+        apiKey: config.apiKey,
         secretManager,
-        quote: config.quote ?? new Quote(API[config.environment].quote),
-        orderbook: config.orderBook,
-        digestKey: config.digestKey,
+        quote: config.quoteUrl ?? API[config.environment].quote,
+        orderbookURl: config.orderBookUrl ?? API[config.environment].orderbook,
       }),
     );
   }, [config.walletClient, digestKey]);
