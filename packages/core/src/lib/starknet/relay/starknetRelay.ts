@@ -11,7 +11,7 @@ import {
 } from 'starknet';
 import { MatchedOrder } from '@gardenfi/orderbook';
 import { AsyncResult, Err, Ok, Fetcher } from '@catalogfi/utils';
-import { APIResponse, IAuth, Url, hexToU32Array } from '@gardenfi/utils';
+import { APIResponse, Url, hexToU32Array } from '@gardenfi/utils';
 import { IStarknetHTLC } from '../starknetHTLC.types';
 import { starknetHtlcABI } from '../abi/starknetHtlcABI';
 
@@ -43,18 +43,11 @@ export class StarknetRelay implements IStarknetHTLC {
   private url: Url;
   private nodeUrl: string;
   private account: Account;
-  private auth: IAuth;
 
-  constructor(
-    relayerUrl: string | Url,
-    account: Account,
-    auth: IAuth,
-    nodeUrl?: string,
-  ) {
+  constructor(relayerUrl: string | Url, account: Account, nodeUrl?: string) {
     this.nodeUrl = nodeUrl || DEFAULT_NODE_URL;
-    this.url = new Url('/relayer', relayerUrl);
+    this.url = new Url('/', relayerUrl);
     this.account = account;
-    this.auth = auth;
   }
 
   get htlcActorAddress(): string {
@@ -78,9 +71,6 @@ export class StarknetRelay implements IStarknetHTLC {
     }
 
     try {
-      const auth = await this.auth.getAuthHeaders();
-      if (auth.error) return Err(auth.error);
-
       const contract = new Contract(
         starknetHtlcABI,
         order.source_swap.asset,
@@ -127,10 +117,6 @@ export class StarknetRelay implements IStarknetHTLC {
             },
             perform_on: 'Source',
           }),
-          headers: {
-            ...auth.val,
-            'Content-Type': 'application/json',
-          },
         },
       );
 
@@ -146,9 +132,6 @@ export class StarknetRelay implements IStarknetHTLC {
     secret: string,
   ): AsyncResult<string, string> {
     try {
-      const auth = await this.auth.getAuthHeaders();
-      if (auth.error) return Err(auth.error);
-
       const res = await Fetcher.post<APIResponse<string>>(
         this.url.endpoint('redeem'),
         {
@@ -157,10 +140,6 @@ export class StarknetRelay implements IStarknetHTLC {
             secret: secret,
             perform_on: 'Destination',
           }),
-          headers: {
-            ...auth.val,
-            'Content-Type': 'application/json',
-          },
         },
       );
 

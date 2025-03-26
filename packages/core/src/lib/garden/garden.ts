@@ -144,11 +144,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         config.wallets.evm,
         Siwe.fromDigestKey(new Url(api.orderbook), config.digestKey),
       ),
-      starknet: new StarknetRelay(
-        api.orderbook,
-        config.wallets.starknet,
-        Siwe.fromDigestKey(new Url(api.orderbook), config.digestKey),
-      ),
+      starknet: new StarknetRelay(api.orderbook, config.wallets.starknet),
     };
 
     return new Garden({

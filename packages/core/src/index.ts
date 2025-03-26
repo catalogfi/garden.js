@@ -10,11 +10,16 @@ export type {
 } from './lib/garden/garden.types';
 export { OrderActions } from './lib/garden/garden.types';
 
-export { BlockNumberFetcher } from './lib/blockNumberFetcher/blockNumber';
-export type { IBlockNumberFetcher } from './lib/blockNumberFetcher/blockNumber';
-
 export { EvmRelay } from './lib/evm/relay/evmRelay';
 export type { IEVMRelay } from './lib/evm/relay/evmRelay.types';
+export type { IEVMHTLC } from './lib/evm/htlc.types';
+
+export { StarknetRelay } from './lib/starknet/relay/starknetRelay';
+export type { IStarknetHTLC } from './lib/starknet/starknetHTLC.types';
+export { StarknetHTLC } from './lib/starknet/htlc/starknetHTLC';
+
+export { BlockNumberFetcher } from './lib/blockNumberFetcher/blockNumber';
+export type { IBlockNumberFetcher } from './lib/blockNumberFetcher/blockNumber';
 
 export { OrderStatus, SwapStatus } from './lib/orderStatus/status';
 
@@ -48,5 +53,3 @@ export {
 } from './lib/switchOrAddNetwork';
 
 export { API } from './lib/constants';
-
-export type { IEVMHTLC } from './lib/evm/htlc.types';

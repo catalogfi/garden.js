@@ -2,7 +2,7 @@ import { Account, RpcProvider } from 'starknet';
 import { describe, it, expect, beforeAll } from 'vitest';
 import { StarknetHTLC } from './starknetHTLC';
 import { Garden } from '../../garden/garden';
-import { Environment, Siwe, sleep, Url, with0x } from '@gardenfi/utils';
+import { Environment, sleep, with0x } from '@gardenfi/utils';
 import { privateKeyToAccount } from 'viem/accounts';
 import { WalletClient, createWalletClient, http } from 'viem';
 import {
@@ -106,14 +106,7 @@ describe('starknetHtlcTests', () => {
         Environment.LOCALNET,
       ),
       htlc: {
-        starknet: new StarknetRelay(
-          STARKNET_RELAY_URL,
-          alice,
-          Siwe.fromDigestKey(
-            new Url(RELAYER_URL),
-            '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
-          ),
-        ),
+        starknet: new StarknetRelay(STARKNET_RELAY_URL, alice),
       },
     });
   });

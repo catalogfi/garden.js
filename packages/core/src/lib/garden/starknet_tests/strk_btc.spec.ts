@@ -1,6 +1,6 @@
 import { Garden } from '../garden';
 import { MatchedOrder, SupportedAssets } from '@gardenfi/orderbook';
-import { Environment, Siwe, Url, with0x } from '@gardenfi/utils';
+import { Environment, with0x } from '@gardenfi/utils';
 import { RpcProvider, Account } from 'starknet';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -142,14 +142,7 @@ describe('StarkNet Integration Tests - STRK -> BTC', () => {
         '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
       quote: new Quote(QUOTE_SERVER_URL),
       htlc: {
-        starknet: new StarknetRelay(
-          STARKNET_RELAY_URL,
-          starknetWallet,
-          Siwe.fromDigestKey(
-            new Url(RELAYER_URL),
-            '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
-          ),
-        ),
+        starknet: new StarknetRelay(STARKNET_RELAY_URL, starknetWallet),
       },
     });
   }, 5000000);

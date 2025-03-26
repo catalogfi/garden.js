@@ -99,14 +99,7 @@ describe('StarkNet Integration Tests - EVM -> STRK', () => {
             '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
           ),
         ),
-        starknet: new StarknetRelay(
-          STARKNET_RELAY_URL,
-          starknetWallet,
-          Siwe.fromDigestKey(
-            new Url(RELAYER_URL),
-            '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
-          ),
-        ),
+        starknet: new StarknetRelay(STARKNET_RELAY_URL, starknetWallet),
       },
     });
   }, 5000000);
@@ -143,7 +136,7 @@ describe('StarkNet Integration Tests - EVM -> STRK', () => {
       console.log('rbf :', order.create_order.create_id, result);
     });
   };
-  let matchedorder: MatchedOrder;
+  let matchedOrder: MatchedOrder;
   it('should create order and match', async () => {
     const order = {
       fromAsset: SupportedAssets.testnet.arbitrum_sepolia_WBTC,
@@ -167,14 +160,18 @@ describe('StarkNet Integration Tests - EVM -> STRK', () => {
       result.val.create_order.create_id,
     );
     // console.log(result.val.source_swap.asset);
-    matchedorder = result.val;
+    matchedOrder = result.val;
 
     expect(result.error).toBeFalsy();
     expect(result.val).toBeTruthy();
   }, 150000);
 
   it('Initiate the swap', async () => {
-    const res = await garden.evmHTLC.initiate(matchedorder);
+    if (!garden.evmHTLC) {
+      throw new Error('EVM HTLC is not initialized');
+    }
+
+    const res = await garden.evmHTLC.initiate(matchedOrder);
     console.log('initiated ✅ :', res.val);
     if (res.error) console.log('init error ❌ :', res.error);
     // expect(res.ok).toBeTruthy();

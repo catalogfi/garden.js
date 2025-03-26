@@ -129,14 +129,7 @@ describe('StarkNet Integration Tests', () => {
             '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
           ),
         ),
-        starknet: new StarknetRelay(
-          STARKNET_RELAY_URL,
-          starknetWallet,
-          Siwe.fromDigestKey(
-            new Url(RELAYER_URL),
-            '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
-          ),
-        ),
+        starknet: new StarknetRelay(STARKNET_RELAY_URL, starknetWallet),
       },
     });
   }, 5000000);
