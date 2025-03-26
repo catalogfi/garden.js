@@ -117,6 +117,9 @@ export class StarknetRelay implements IStarknetHTLC {
             },
             perform_on: 'Source',
           }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
         },
       );
 
@@ -140,6 +143,9 @@ export class StarknetRelay implements IStarknetHTLC {
             secret: secret,
             perform_on: 'Destination',
           }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
         },
       );
 

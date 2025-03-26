@@ -63,8 +63,7 @@ describe('Bitcoin to StarkNet Integration Tests', () => {
   //   'AAAAAGghjwU6Os1DVFgmUXj0GcNt5jTJPbBmXKw7xRARW-qivNy4nfpKVgMNebmmxig2o3v-6M4l_ZmCgLp3vKywfVXDYBcL3M4c';
 
   const RELAYER_URL = 'https://orderbook-stage.hashira.io';
-  const STARKNET_NODE_URL =
-    'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/Ry6QmtzfnqANtpqP3kLqe08y80ZorPoY';
+  const STARKNET_NODE_URL = 'https://starknet-mainnet.public.blastapi.io';
   const QUOTE_SERVER_URL = 'https://quote-staging.hashira.io';
   const STARKNET_RELAY_URL = 'https://starknet-relayer.hashira.io';
   //   const API_KEY =
