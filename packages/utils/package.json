@@ -1,6 +1,6 @@
 {
   "name": "@gardenfi/utils",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "type": "module",
   "scripts": {
     "build": "vite build",
@@ -35,6 +35,7 @@
   },
   "sideEffects": false,
   "dependencies": {
+    "@simplewebauthn/browser": "^13.1.0",
     "jwt-decode": "^4.0.0",
     "viem": "^2.21.23"
   }
