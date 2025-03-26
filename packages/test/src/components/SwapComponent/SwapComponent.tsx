@@ -11,6 +11,7 @@ import { useBitcoinWallet } from '@gardenfi/wallet-connectors';
 import Transaction from '../transactions/Transactions';
 import { BitcoinProvider, BitcoinWallet } from '@catalogfi/wallets';
 import { useEnvironmentStore } from '../../store/useEnvironmentStore';
+import { API } from '@gardenfi/utils';
 
 export const SwapComponent = () => {
   const { swapParams, setAdditionalId, btcWallet, setBtcWallet } =
@@ -50,7 +51,7 @@ export const SwapComponent = () => {
     setFunding(true);
     const bitcoinProvider = new BitcoinProvider(
       BitcoinNetwork.Regtest,
-      'https://indexer.merry.dev',
+      API.localnet.bitcoin,
     );
 
     const newBtcWallet = BitcoinWallet.createRandom(bitcoinProvider);

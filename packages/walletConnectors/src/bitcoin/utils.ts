@@ -1,6 +1,7 @@
 import { AsyncResult, Err, Fetcher, Ok } from '@catalogfi/utils';
 import { Balance } from './bitcoin.types';
 import { Network } from '@gardenfi/utils';
+import { API } from '@gardenfi/utils';
 
 const BitcoinExplorers = {
   testnet: {
@@ -11,7 +12,7 @@ const BitcoinExplorers = {
     Blockstream: 'https://blockstream.info',
   },
   localnet: {
-    Mempool: 'https://indexer.merry.dev',
+    Mempool: API.localnet.bitcoin,
   }
 };
 

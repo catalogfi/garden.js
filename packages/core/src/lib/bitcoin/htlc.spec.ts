@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { GardenHTLC } from './htlc';
 import { generateInternalkey } from './internalKey';
 import { BitcoinNetwork, BitcoinProvider, BitcoinWallet } from '@catalogfi/wallets';
+import { API } from '@gardenfi/utils';
 
 describe('GardenHTLC', () => {
   it('should log internal public key', () => {
@@ -13,7 +14,7 @@ describe('GardenHTLC', () => {
   it('should create GardenHTLC instance correctly', async () => {
     const btcWallet = BitcoinWallet.fromPrivateKey(
         'ca15db40a48aba44d613949a52b09721e901f02adf397d7e436e2a7f24024b58',
-        new BitcoinProvider(BitcoinNetwork.Regtest, 'https://indexer.merry.dev'),
+        new BitcoinProvider(BitcoinNetwork.Regtest, API.localnet.bitcoin),
       );
 
     const htlc = await GardenHTLC.from(

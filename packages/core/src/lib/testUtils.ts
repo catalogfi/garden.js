@@ -1,6 +1,6 @@
 import { exec } from 'child_process';
 import { Asset, Chains, Chain as Network } from '@gardenfi/orderbook';
-
+import { API } from '@gardenfi/utils';
 import { Fetcher } from '@catalogfi/utils';
 import { Chain } from 'viem';
 import { SwapParams } from './garden/garden.types';
@@ -27,7 +27,7 @@ export const mineBtcBlocks = async (blocks: number, address: string, url?: strin
     Authorization: `Basic ${btoa('admin1:123')}`,
   });
 
-  const response = await Fetcher.post(url ?? 'https://btcnode.merry.dev/', {
+  const response = await Fetcher.post(url ?? API.localnet.btcnode, {
     headers,
     body: JSON.stringify(body),
   });
@@ -54,7 +54,7 @@ export const ArbitrumLocalnet: Chain = {
   },
   rpcUrls: {
     default: {
-      http: ['https://arb.merry.dev/'],
+      http: [API.localnet.arbitrum],
     },
   },
   testnet: true,
@@ -69,7 +69,7 @@ export const EthereumLocalnet: Chain = {
   },
   rpcUrls: {
     default: {
-      http: ['https://eth.merry.dev/'],
+      http: [API.localnet.ethereum],
     },
   },
   testnet: true,

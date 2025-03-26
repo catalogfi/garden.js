@@ -9,6 +9,7 @@ import { CreateOrderReqWithStrategyId, MatchedOrder } from './orderbook.types';
 import { Asset, Chains } from '../asset';
 import { BitcoinNetwork, BitcoinProvider, BitcoinWallet } from '@catalogfi/wallets';
 import { Garden } from '@gardenfi/core';
+import { API } from '@gardenfi/utils';
 
 describe('orderbook', async () => {
   const OrderbookApi = 'orderbook.merry.dev';
@@ -23,7 +24,7 @@ describe('orderbook', async () => {
 
   const btcWallet = BitcoinWallet.fromPrivateKey(
     'ca15db40a48aba44d613949a52b09721e901f02adf397d7e436e2a7f24024b58',
-    new BitcoinProvider(BitcoinNetwork.Regtest, 'https://indexer.merry.dev'),
+    new BitcoinProvider(BitcoinNetwork.Regtest, API.localnet.bitcoin),
   );
 
   const bitcoinTestnetAddress = await btcWallet.getAddress();

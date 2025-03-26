@@ -1,5 +1,6 @@
 import { Chain } from 'viem';
 import { Asset, Chains } from './asset';
+import { API } from '@gardenfi/utils';
 
 export const ArbitrumLocalnet: Chain = {
   id: 31338,
@@ -11,7 +12,7 @@ export const ArbitrumLocalnet: Chain = {
   },
   rpcUrls: {
     default: {
-      http: ['https://arb.merry.dev/'],
+      http: [API.localnet.arbitrum],
     },
   },
   testnet: true,
@@ -26,7 +27,7 @@ export const EthereumLocalnet: Chain = {
   },
   rpcUrls: {
     default: {
-      http: ['https://eth.merry.dev/'],
+      http: [API.localnet.ethereum],
     },
   },
   testnet: true,

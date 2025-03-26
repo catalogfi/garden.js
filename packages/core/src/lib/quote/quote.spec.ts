@@ -5,9 +5,10 @@ import {
 } from '@gardenfi/orderbook';
 import { Quote } from './quote';
 import { describe, expect, it } from 'vitest';
+import { API } from '@gardenfi/utils';
 
 describe('quote', () => {
-  const quoteUrl = 'https://quote.merry.dev';
+  const quoteUrl = API.localnet.quote;
   const quote = new Quote(quoteUrl);
 
   it('should get quote', async () => {

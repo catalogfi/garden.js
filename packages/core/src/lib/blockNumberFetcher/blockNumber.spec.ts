@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { BlockNumberFetcher } from './blockNumber';
 import { Environment } from '@gardenfi/utils';
-
+import { API } from '@gardenfi/utils';
 describe('blockNumber', () => {
   it('should fetch all block number', async () => {
     const fetcher = new BlockNumberFetcher(
-      'https://info.merry.dev/',
+      API.localnet.bitcoin,
       Environment.LOCALNET,
     );
     const res = await fetcher.fetchBlockNumbers();

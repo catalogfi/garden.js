@@ -1,3 +1,4 @@
+import { API } from '@gardenfi/utils';
 export type GardenConfigType = {
   orderBookUrl: string;
   quoteUrl: string;
@@ -26,10 +27,10 @@ export const GARDEN_CONFIG: Partial<Record<environment, GardenConfigType>> = {
     blockNumberFetcherUrl: 'https://info-8ocl.onrender.com',
   },
   [environment.localnet]: {
-    orderBookUrl: 'https://orderbook.merry.dev',
-    quoteUrl: 'https://quote.merry.dev',
-    bitcoinRPCUrl: 'https://indexer.merry.dev',
-    blockNumberFetcherUrl: 'https://info.merry.dev',
+    orderBookUrl: API.localnet.orderbook,
+    quoteUrl: API.localnet.quote,
+    bitcoinRPCUrl: API.localnet.bitcoin,
+    blockNumberFetcherUrl: API.localnet.info,
   }
 } as const;
 

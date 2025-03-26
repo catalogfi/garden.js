@@ -1,9 +1,10 @@
 import { MatchedOrder } from './../orderbook/orderbook.types';
 import { describe, expect, expectTypeOf, test } from 'vitest';
 import { OrdersProvider } from './ordersProvider';
+import { API } from '@gardenfi/utils';
 
 describe('orders provider', async () => {
-  const orderbookApi = 'https://orderbook.merry.dev';
+  const orderbookApi = API.localnet.orderbook;
   const address = '0x52FE8afbbB800a33edcbDB1ea87be2547EB30000';
   const id = '25fed136323d6c428ff5b0281a7da117cff222325853ae3cd77161718e266103';
 

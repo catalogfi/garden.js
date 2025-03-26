@@ -5,6 +5,8 @@ import { createWalletClient, http, createPublicClient, sha256 } from 'viem';
 import { CreateOrderReqWithStrategyId, MatchedOrder, Orderbook } from '@gardenfi/orderbook';
 import { randomBytes } from 'crypto';
 import { sleep } from '@catalogfi/utils';
+import { API } from "@gardenfi/utils";
+
 import {
   ArbitrumLocalnet,
   WBTCArbitrumLocalnetAsset,
@@ -17,7 +19,7 @@ import { BitcoinNetwork, BitcoinProvider, BitcoinWallet } from '@catalogfi/walle
 // import { OrderStatus } from '../order/order.types';
 
 describe('evmRelay', () => {
-  const relayUrl = 'https://orderbook.merry.dev/';
+  const relayUrl = API.localnet.orderbook;
   // const bitcoinIndexer = 'http://localhost:30000';
   const privKey =
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
@@ -51,7 +53,7 @@ describe('evmRelay', () => {
   });
   const btcWallet = BitcoinWallet.fromPrivateKey(
     'ca15db40a48aba44d613949a52b09721e901f02adf397d7e436e2a7f24024b58',
-    new BitcoinProvider(BitcoinNetwork.Regtest, 'https://indexer.merry.dev'),
+    new BitcoinProvider(BitcoinNetwork.Regtest, API.localnet.bitcoin),
   );
 
   const garden = new Garden({

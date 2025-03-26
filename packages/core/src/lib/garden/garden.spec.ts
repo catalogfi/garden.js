@@ -3,6 +3,7 @@ import { Environment, with0x } from '@gardenfi/utils';
 import { createWalletClient, http, WalletClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { describe, expect, it } from 'vitest';
+import { API } from '@gardenfi/utils';
 import {
   Chain,
   Chains,
@@ -40,7 +41,7 @@ describe('swap and execute using garden', () => {
 
   const bitcoinProvider = new BitcoinProvider(
     BitcoinNetwork.Regtest,
-    'https://indexer.merry.dev'
+    API.localnet.bitcoin
   );
 
   const btcWallet = BitcoinWallet.createRandom(bitcoinProvider);

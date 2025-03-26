@@ -1,3 +1,5 @@
+import { API as localnetAPI } from '@gardenfi/utils';
+
 export const API = {
   mainnet: {
     orderbook: 'https://orderbookv2.garden.finance',
@@ -10,8 +12,8 @@ export const API = {
     info: 'https://info.garden.finance',
   },
   localnet: {
-    orderbook: 'https://orderbook.merry.dev',
-    quote: 'https://quote.merry.dev',
-    info: 'https://info.merry.dev',
+    orderbook: localnetAPI.localnet.orderbook,
+    quote: localnetAPI.localnet.quote,
+    info: localnetAPI.localnet.info,
   },
 } as const;
