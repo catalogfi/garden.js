@@ -1,23 +1,35 @@
 import { GardenProvider } from '@gardenfi/react-hooks';
-import { Environment } from '@gardenfi/utils';
 import { useWalletClient } from 'wagmi';
 import { Swap } from './components/Swap';
+import { useEnvironmentStore } from './store/useEnvironmentStore';
+import { useSwapStore } from './store/swapStore';
+import { BTCWalletProvider } from '@gardenfi/wallet-connectors';
+import { Network } from '@gardenfi/utils';
 
 function App() {
   const { data: walletClient } = useWalletClient();
-  console.log('walletClient :', walletClient);
+  const environment = useEnvironmentStore((state) => state.environment);
+  const btcWallet = useSwapStore((state) => state.btcWallet);
 
   return (
-    <GardenProvider
-      config={{
-        store: localStorage,
-        environment: Environment.TESTNET,
-        walletClient: walletClient,
-      }}
+    <BTCWalletProvider
+      network={environment === 'testnet' ? Network.TESTNET : Network.MAINNET}
+      store={localStorage}
+      key={environment}
     >
-      <Swap />
-    </GardenProvider>
+      <GardenProvider
+        key={environment}
+        config={{
+          store: localStorage,
+          environment,
+          walletClient,
+          btcWallet,
+        }}
+      >
+        <Swap />
+      </GardenProvider>
+    </BTCWalletProvider>
   );
-}
+};
 
 export default App;

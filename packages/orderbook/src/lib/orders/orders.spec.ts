@@ -3,9 +3,9 @@ import { describe, expect, expectTypeOf, test } from 'vitest';
 import { OrdersProvider } from './ordersProvider';
 
 describe('orders provider', async () => {
-  const orderbookApi = 'http://localhost:4426';
+  const orderbookApi = 'https://orderbook.merry.dev';
   const address = '0x52FE8afbbB800a33edcbDB1ea87be2547EB30000';
-  const id = 'f99ac29c205b4d603966ae73e845d8658e006b8a7e7a887a21781ddecf2d4c75';
+  const id = '25fed136323d6c428ff5b0281a7da117cff222325853ae3cd77161718e266103';
 
   const ordersProvider = new OrdersProvider(orderbookApi);
 
@@ -48,6 +48,6 @@ describe('orders provider', async () => {
   test('order count', async () => {
     const count = await ordersProvider.getOrdersCount(address);
     expect(count.error).toBeUndefined();
-    expect(count.val).toBe(0);
+    expect(count.val).toBeGreaterThanOrEqual(15);
   });
 });

@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { BlockNumberFetcher } from './blockNumber';
-import { Environment } from 'gardenfi/utils';
+import { Environment } from '@gardenfi/utils';
 
 describe('blockNumber', () => {
   it('should fetch all block number', async () => {
     const fetcher = new BlockNumberFetcher(
-      'https://price.garden.finance/',
-      Environment.TESTNET,
+      'https://info.merry.dev/',
+      Environment.LOCALNET,
     );
     const res = await fetcher.fetchBlockNumbers();
 
@@ -17,5 +17,5 @@ describe('blockNumber', () => {
     }
     expect(res.ok).toBe(true);
     expect(res.error).toBeUndefined();
-  });
+  }, 50000);
 });

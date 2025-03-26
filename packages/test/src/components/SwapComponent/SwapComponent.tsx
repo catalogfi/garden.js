@@ -1,114 +1,145 @@
-import { useGarden } from '@gardenfi/react-hooks';
-import { useState } from 'react';
+import { BitcoinNetwork, useGarden } from '@gardenfi/react-hooks';
 import { useAccount } from 'wagmi';
 import { Button } from '../common/Button';
-import { chainToAsset } from '../../constants/constants';
 import SwapInput from './SwapInput';
 import SwapOutput from './SwapOutput';
+import { useSwapStore } from '../../store/swapStore';
+import { useState } from 'react';
+import BigNumber from 'bignumber.js';
+import { isBitcoin } from '@gardenfi/orderbook';
+import { useBitcoinWallet } from '@gardenfi/wallet-connectors';
+import Transaction from '../transactions/Transactions';
+import { BitcoinProvider, BitcoinWallet } from '@catalogfi/wallets';
+import { useEnvironmentStore } from '../../store/useEnvironmentStore';
 
 export const SwapComponent = () => {
-  const [loading, setLoading] = useState(false);
-  const [swapParams, setSwapParams] = useState({
-    inputToken: chainToAsset.ethereum_localnet,
-    outputToken: chainToAsset.arbitrum_localnet,
-    inputAmount: 0.001,
-    outputAmount: 0.0009,
-    btcAddress: '',
-  });
-
-  const { garden } = useGarden();
-
+  const { swapParams, setAdditionalId, btcWallet, setBtcWallet } =
+    useSwapStore();
   const { address: EvmAddress } = useAccount();
+  const { account } = useBitcoinWallet();
+  const { provider } = useBitcoinWallet();
   const { swapAndInitiate } = useGarden();
+  const [loading, setLoading] = useState(false);
+  const [funding, setFunding] = useState(false);
+  const environment = useEnvironmentStore((state) => state.environment);
 
+  async function fund(addr: string): Promise<void> {
+    console.log('Funding address:', addr);
+
+    try {
+      const response = await fetch('/fund', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ address: addr }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      console.log('Funding request sent successfully!');
+    } catch (error) {
+      console.error('Funding failed: ', error);
+    }
+  }
+
+  const handleCreate = async () => {
+    if (!swapParams.fromAsset || !swapParams.toAsset) return;
+    setFunding(true);
+    const bitcoinProvider = new BitcoinProvider(
+      BitcoinNetwork.Regtest,
+      'https://indexer.merry.dev',
+    );
+
+    const newBtcWallet = BitcoinWallet.createRandom(bitcoinProvider);
+    setBtcWallet(newBtcWallet);
+
+    if (!newBtcWallet) return;
+
+    const newBtcAddress = await newBtcWallet.getAddress();
+    if (isBitcoin(swapParams.fromAsset.chain || swapParams.toAsset.chain))
+      setAdditionalId(swapParams.additionalData.strategyId, newBtcAddress);
+
+    await fund(account ?? newBtcAddress);
+    setFunding(false);
+  };
   const handleSwap = async () => {
-    const sendAmount =
-      swapParams.inputAmount * 10 ** swapParams.inputToken.decimals;
-    const receiveAmount =
-      swapParams.outputAmount * 10 ** swapParams.outputToken.decimals;
     if (
       !swapAndInitiate ||
       !EvmAddress ||
-      !swapParams.inputAmount ||
-      !swapParams.outputAmount
+      !swapParams.sendAmount ||
+      !swapParams.receiveAmount ||
+      !swapParams.fromAsset ||
+      !swapParams.toAsset
     )
       return;
-    console.log({
-      sendAddress: EvmAddress,
-      receiveAddress: EvmAddress,
-      fromAsset: swapParams.inputToken,
-      toAsset: swapParams.outputToken,
-      sendAmount: sendAmount.toFixed(),
-      receiveAmount: receiveAmount.toFixed(),
-      minDestinationConfirmations: 3,
-    });
 
     setLoading(true);
+
+    const inputAmountInDecimals = new BigNumber(swapParams.sendAmount)
+      .multipliedBy(10 ** swapParams.fromAsset.decimals)
+      .toFixed();
+    const outputAmountInDecimals = new BigNumber(swapParams.receiveAmount)
+      .multipliedBy(10 ** swapParams.toAsset.decimals)
+      .toFixed();
+
     const res = await swapAndInitiate({
-      fromAsset: swapParams.inputToken,
-      toAsset: swapParams.outputToken,
-      sendAmount: sendAmount.toString(),
-      receiveAmount: receiveAmount.toString(),
-      minDestinationConfirmations: 3,
-      additionalData: {
-        btcAddress: swapParams.btcAddress,
-        strategyId: '1',
-      },
+      fromAsset: swapParams.fromAsset,
+      toAsset: swapParams.toAsset,
+      sendAmount: inputAmountInDecimals,
+      receiveAmount: outputAmountInDecimals,
+      additionalData: swapParams.additionalData,
     });
+
+    if (isBitcoin(res.val.source_swap.chain)) {
+      if (provider) {
+        const order = res.val;
+        const bitcoinRes = await provider.sendBitcoin(
+          order.source_swap.swap_id,
+          Number(order.source_swap.amount),
+        );
+        if (bitcoinRes.error) {
+          console.error('Failed to send Bitcoin ❌', bitcoinRes.error);
+          setLoading(false);
+        }
+        return;
+      } else {
+        if (!btcWallet) return;
+        const order = res.val;
+        const tx = await btcWallet.send(
+          order.source_swap.swap_id,
+          Number(order.source_swap.amount),
+        );
+        console.log('The TX ID of user BTC init is: ', tx);
+      }
+      return;
+    }
+
     setLoading(false);
-    console.log('res.error :', res.error);
-    console.log('res.ok :', res.ok);
-    console.log('res.val :', res.val);
-  };
-
-  const handleBtcInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSwapParams({ ...swapParams, btcAddress: event.target.value });
-  };
-
-  const handleInitialize = async () => {
-    if (!garden) return;
-    await garden.secretManager.initialize();
   };
 
   return (
     <div className="flex flex-col gap-3 items-center w-full justify-center text-center bg-[#7BDCBA] ">
-      {/* Swap Component here */}
-      <div className="p-8 rounded-xl bg-white/50 gap-3 flex flex-col">
-        <h2 className="text-lg font-semibold">Create order</h2>
-        <div className="flex items-center justify-between gap-6">
-          <SwapInput setSwapParams={setSwapParams} swapParams={swapParams} />
-          <SwapOutput setSwapParams={setSwapParams} swapParams={swapParams} />
-        </div>
-        <div className="px-2 py-1 rounded-lg w-full bg-white">
-          <input
-            type="text"
-            placeholder="BTC address"
-            className="w-full focus:outline-none active:outline-none"
-            value={swapParams.btcAddress}
-            onChange={(event) => handleBtcInput(event)}
-          />
-        </div>
-        <div
-          className={`flex flex-col gap-2 rounded-md ${
-            loading
-              ? 'pointer-events-none text-[#E36492]'
-              : 'pointer-events-auto'
-          }`}
-        >
-          <Button
-            className="text-center items-center justify-center font-medium text-lg bg-opacity-80 hover:bg-opacity-100 bg-[#E36492]"
-            secondary={loading}
-            onClick={handleSwap}
-          >
+      <div className="w-[500px] max-w-full flex flex-col gap-3">
+        <div className="p-8 rounded-xl bg-white/50 gap-3 flex flex-col w-full">
+          <h2 className="text-lg font-semibold">Create order</h2>
+          {environment === 'localnet' && (
+            <Button onClick={handleCreate} disabled={funding}>
+              {funding ? 'Funding...' : 'Create & Fund BTC'}
+            </Button>
+          )}
+          <div className="flex items-center justify-between gap-6">
+            <SwapInput />
+            <SwapOutput />
+          </div>
+          <Button onClick={handleSwap} disabled={loading}>
             {loading ? 'Swapping...' : 'Swap'}
           </Button>
-          <Button
-            className="text-center items-center justify-center font-medium text-lg bg-opacity-80 hover:bg-opacity-100 bg-[#E36492]"
-            secondary={loading}
-            onClick={handleInitialize}
-          >
-            Initialize
-          </Button>
+        </div>
+        <div className="w-full">
+          <Transaction />
         </div>
       </div>
     </div>
