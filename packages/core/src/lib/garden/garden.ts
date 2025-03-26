@@ -511,10 +511,12 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       this.emit('log', order.create_order.create_id, 'already redeemed');
       return;
     }
+
     if (!this._evmHTLC) {
       this.emit('error', order, 'EVMHTLC is required');
       return;
     }
+
     const res = await this._evmHTLC.redeem(order, secret);
 
     if (res.error) {

@@ -22,7 +22,7 @@ const DOMAIN = {
   revision: TypedDataRevision.ACTIVE,
 };
 
-const INTIATE_TYPE = {
+const INITIATE_TYPE = {
   StarknetDomain: [
     { name: 'name', type: 'shortstring' },
     { name: 'version', type: 'shortstring' },
@@ -80,6 +80,7 @@ export class StarknetRelay implements IStarknetHTLC {
     try {
       const auth = await this.auth.getAuthHeaders();
       if (auth.error) return Err(auth.error);
+
       const contract = new Contract(
         starknetHtlcABI,
         order.source_swap.asset,
@@ -89,22 +90,19 @@ export class StarknetRelay implements IStarknetHTLC {
       const token = await contract?.['token']();
       const tokenHex = num.toHex(token);
 
-      try {
-        const approvalResult = await checkAllowanceAndApprove(
-          this.account,
-          tokenHex,
-          source_swap.asset,
-          BigInt(amount),
-          this.nodeUrl,
-        );
-        if (approvalResult.error) return Err(approvalResult.error);
-      } catch (error) {
-        return Err(`Allowance check failed: ${error}`);
-      }
+      const approvalResult = await checkAllowanceAndApprove(
+        this.account,
+        tokenHex,
+        source_swap.asset,
+        BigInt(amount),
+        this.nodeUrl,
+      );
+      if (approvalResult.error) return Err(approvalResult.error);
+
       const TypedData: TypedData = {
         domain: DOMAIN,
         primaryType: 'Initiate',
-        types: INTIATE_TYPE,
+        types: INITIATE_TYPE,
         message: {
           redeemer: redeemer,
           amount: cairo.uint256(amount),
