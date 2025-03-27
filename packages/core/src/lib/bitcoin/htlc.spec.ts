@@ -12,10 +12,11 @@ describe('GardenHTLC', () => {
   });
 
   it('should create GardenHTLC instance correctly', async () => {
+    const rawPk = API.pk.startsWith('0x') ? API.pk.slice(2) : API.pk;
     const btcWallet = BitcoinWallet.fromPrivateKey(
-        'ca15db40a48aba44d613949a52b09721e901f02adf397d7e436e2a7f24024b58',
-        new BitcoinProvider(BitcoinNetwork.Regtest, API.localnet.bitcoin),
-      );
+      rawPk,
+      new BitcoinProvider(BitcoinNetwork.Regtest, API.localnet.bitcoin),
+    );
 
     const htlc = await GardenHTLC.from(
       btcWallet,

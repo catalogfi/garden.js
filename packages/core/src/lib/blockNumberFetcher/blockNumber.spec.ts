@@ -5,7 +5,7 @@ import { API } from '@gardenfi/utils';
 describe('blockNumber', () => {
   it('should fetch all block number', async () => {
     const fetcher = new BlockNumberFetcher(
-      API.localnet.bitcoin,
+      API.localnet.info,
       Environment.LOCALNET,
     );
     const res = await fetcher.fetchBlockNumbers();

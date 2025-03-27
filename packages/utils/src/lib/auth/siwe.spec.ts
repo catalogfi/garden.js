@@ -5,6 +5,7 @@ import { Url } from '../url';
 import { createWalletClient, http } from 'viem';
 import { sepolia } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
+import { API } from '@gardenfi/utils';
 
 describe.each([
   'https://orderbook-stage.hashira.io',
@@ -12,7 +13,7 @@ describe.each([
 ])('Siwe - Orderbook API: %s', (OrderbookApi) => {
   // Provide a valid private key before running the test
   const pk =
-    '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
+    API.pk;
 
   const account = privateKeyToAccount(with0x(pk));
   const walletClient = createWalletClient({

@@ -21,8 +21,7 @@ import { BitcoinNetwork, BitcoinProvider, BitcoinWallet } from '@catalogfi/walle
 describe('evmRelay', () => {
   const relayUrl = API.localnet.orderbook;
   // const bitcoinIndexer = 'http://localhost:30000';
-  const privKey =
-    '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
+  const privKey = API.pk as `0x${string}`;
 
   const account = privateKeyToAccount(privKey);
   console.log('Account address:', account.address);
@@ -51,8 +50,10 @@ describe('evmRelay', () => {
     walletClient: arbitrumWalletClient,
     auth: auth,
   });
+  const rawPk = API.pk.startsWith('0x') ? API.pk.slice(2) : API.pk;
+
   const btcWallet = BitcoinWallet.fromPrivateKey(
-    'ca15db40a48aba44d613949a52b09721e901f02adf397d7e436e2a7f24024b58',
+    rawPk,
     new BitcoinProvider(BitcoinNetwork.Regtest, API.localnet.bitcoin),
   );
 

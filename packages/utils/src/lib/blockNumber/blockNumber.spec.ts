@@ -3,10 +3,10 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { arbitrum, mainnet } from 'viem/chains';
 import { describe, expect, it } from 'vitest';
 import { fetchEVMBlockNumber } from './blockNumber';
+import { API } from '@gardenfi/utils';
 
 describe('blockNumber', () => {
-  const pk =
-    '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
+  const pk = API.pk;
   const account = privateKeyToAccount(pk);
 
   const arbitrumWalletClient = createWalletClient({

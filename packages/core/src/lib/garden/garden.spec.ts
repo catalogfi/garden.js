@@ -19,8 +19,7 @@ import { ArbitrumLocalnet, EthereumLocalnet } from '../testUtils';
 
 describe('swap and execute using garden', () => {
   // const bitcoinAddress = 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru';
-  const pk =
-    '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
+  const pk = API.pk;
   // const address = '0x52FE8afbbB800a33edcbDB1ea87be2547EB30000';
   const account = privateKeyToAccount(with0x(pk));
   console.log('account :', account.address);
