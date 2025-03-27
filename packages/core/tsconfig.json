@@ -6,7 +6,7 @@
     "forceConsistentCasingInFileNames": true,
     "composite": true,
     "strict": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
