@@ -62,10 +62,15 @@ describe('Bitcoin to StarkNet Integration Tests', () => {
   // const API_KEY =
   //   'AAAAAGghjwU6Os1DVFgmUXj0GcNt5jTJPbBmXKw7xRARW-qivNy4nfpKVgMNebmmxig2o3v-6M4l_ZmCgLp3vKywfVXDYBcL3M4c';
 
-  const RELAYER_URL = 'https://orderbook-stage.hashira.io';
-  const STARKNET_NODE_URL = 'https://starknet-mainnet.public.blastapi.io';
-  const QUOTE_SERVER_URL = 'https://quote-staging.hashira.io';
-  const STARKNET_RELAY_URL = 'https://starknet-relayer.hashira.io';
+  // const RELAYER_URL = 'https://orderbook-stage.hashira.io';
+  // const STARKNET_NODE_URL = 'https://starknet-mainnet.public.blastapi.io';
+  // const QUOTE_SERVER_URL = 'https://quote-staging.hashira.io';
+  // const STARKNET_RELAY_URL = 'https://starknet-relayer.hashira.io';
+  const RELAYER_URL = 'https://orderbook.garden.finance';
+  const STARKNET_NODE_URL =
+    'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/Ry6QmtzfnqANtpqP3kLqe08y80ZorPoY';
+  const QUOTE_SERVER_URL = 'https://price.garden.finance';
+  const STARKNET_RELAY_URL = 'https://starknet-relay.garden.finance';
   //   const API_KEY =
   //     'AAAAAGnCHgI6OtNjaHxlzdsgXaIseznp7jFo1eU7QKEYhopsgu1EAVZOPgAHGNJJSYdVclaWkOhORmKpS14PqjyFu1-5sdtTmMob';
 
@@ -119,7 +124,8 @@ describe('Bitcoin to StarkNet Integration Tests', () => {
     // );
     const bitcoinProvider = new BitcoinProvider(
       BitcoinNetwork.Testnet,
-      'https://48.217.250.147:18443',
+      // 'https://48.217.250.147:18443',
+      'https://mempool.space/testnet4/api',
     );
     btcWallet = BitcoinWallet.fromPrivateKey(
       'af530c3d2212740a8428193fce82bfddcf7e83bee29a2b9b2f25b5331bae1bf5',
@@ -197,7 +203,7 @@ describe('Bitcoin to StarkNet Integration Tests', () => {
       sendAmount: '10000',
       receiveAmount: '23380000000000',
       additionalData: {
-        strategyId: 'btyrssab',
+        strategyId: 'btyrss59',
         btcAddress: btcAddress,
       },
       minDestinationConfirmations: 1,

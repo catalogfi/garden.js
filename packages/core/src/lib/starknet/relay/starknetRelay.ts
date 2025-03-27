@@ -87,6 +87,7 @@ export class StarknetRelay implements IStarknetHTLC {
         BigInt(amount),
         this.nodeUrl,
       );
+      console.log('Approval result: ', approvalResult.val);
       if (approvalResult.error) return Err(approvalResult.error);
 
       const TypedData: TypedData = {
@@ -104,6 +105,7 @@ export class StarknetRelay implements IStarknetHTLC {
       const signature = (await this.account.signMessage(
         TypedData,
       )) as WeierstrassSignatureType;
+      console.log('Signature: ', signature);
       const { r, s } = signature;
 
       const res = await Fetcher.post<APIResponse<string>>(
@@ -122,7 +124,7 @@ export class StarknetRelay implements IStarknetHTLC {
           },
         },
       );
-
+      console.log('Initiate response: ', res.result);
       if (res.error) return Err(res.error);
       return res.result ? Ok(res.result) : Err('Init: No result found');
     } catch (error) {

@@ -43,11 +43,11 @@ describe('StarkNet Integration Tests', () => {
   //   const API_KEY =
   //     'AAAAAGghjwU6Os1DVFgmUXj0GcNt5jTJPbBmXKw7xRARW-qivNy4nfpKVgMNebmmxig2o3v-6M4l_ZmCgLp3vKywfVXDYBcL3M4c';
 
-  const RELAYER_URL = 'https://orderbook-stage.hashira.io';
+  const RELAYER_URL = 'https://orderbook.garden.finance';
   const STARKNET_NODE_URL =
     'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/Ry6QmtzfnqANtpqP3kLqe08y80ZorPoY';
-  const QUOTE_SERVER_URL = 'https://quote-staging.hashira.io';
-  const STARKNET_RELAY_URL = 'https://starknet-relayer.hashira.io';
+  const QUOTE_SERVER_URL = 'https://price.garden.finance';
+  const STARKNET_RELAY_URL = 'https://starknet-relay.garden.finance';
   // const API_KEY =
   //   'AAAAAGm-kkU6Og9gRTmB1DP9oxyNi88Ttt1bARxzj-wTxG00LLYHUkhvMi1nwQzrxU1-kU2EQkCBw803q64Yw-j40vYxK7GBtDcb';
 
@@ -93,7 +93,11 @@ describe('StarkNet Integration Tests', () => {
         evmWallet,
         Siwe.fromDigestKey(new Url(RELAYER_URL), DIGEST_KEY),
       ),
-      starknet: new StarknetRelay(STARKNET_RELAY_URL, starknetWallet),
+      starknet: new StarknetRelay(
+        STARKNET_RELAY_URL,
+        starknetWallet,
+        STARKNET_NODE_URL,
+      ),
     },
   });
 
@@ -134,7 +138,7 @@ describe('StarkNet Integration Tests', () => {
 
   //-----------------STRK-EVM SWAP-----------------
 
-  describe.skip('strk-evm swap', async () => {
+  describe('strk-evm swap', async () => {
     it('should create and execute a StarkNet-ETH swap', async () => {
       const order = {
         fromAsset: SupportedAssets.testnet.starknet_testnet_ETH,
@@ -142,7 +146,7 @@ describe('StarkNet Integration Tests', () => {
         sendAmount: '100000000000000000',
         receiveAmount: '1000',
         additionalData: {
-          strategyId: 'ssabasac',
+          strategyId: 'ss59as1d',
         },
         minDestinationConfirmations: 1,
       };
@@ -190,10 +194,10 @@ describe('StarkNet Integration Tests', () => {
       const order = {
         fromAsset: SupportedAssets.testnet.arbitrum_sepolia_WBTC,
         toAsset: SupportedAssets.testnet.starknet_testnet_ETH,
-        sendAmount: '10000',
-        receiveAmount: '2375000000000000',
+        sendAmount: '1000000',
+        receiveAmount: '237500000000000000',
         additionalData: {
-          strategyId: 'asacssab',
+          strategyId: 'as1dss59',
         },
         minDestinationConfirmations: 3,
       };

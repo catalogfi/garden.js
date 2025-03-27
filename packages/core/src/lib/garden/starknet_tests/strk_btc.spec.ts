@@ -79,11 +79,16 @@ describe('StarkNet Integration Tests - STRK -> BTC', () => {
   //   const STARKNET_RELAY_URL = 'http://localhost:4436';
   //   const API_KEY =
   //     'AAAAAGghjwU6Os1DVFgmUXj0GcNt5jTJPbBmXKw7xRARW-qivNy4nfpKVgMNebmmxig2o3v-6M4l_ZmCgLp3vKywfVXDYBcL3M4c';
-  const RELAYER_URL = 'https://orderbook-stage.hashira.io';
+  // const RELAYER_URL = 'https://orderbook-stage.hashira.io';
+  // const STARKNET_NODE_URL =
+  //   'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/Ry6QmtzfnqANtpqP3kLqe08y80ZorPoY';
+  // const QUOTE_SERVER_URL = 'https://quote-staging.hashira.io';
+  // const STARKNET_RELAY_URL = 'https://starknet-relayer.hashira.io';
+  const RELAYER_URL = 'https://orderbook.garden.finance';
   const STARKNET_NODE_URL =
     'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/Ry6QmtzfnqANtpqP3kLqe08y80ZorPoY';
-  const QUOTE_SERVER_URL = 'https://quote-staging.hashira.io';
-  const STARKNET_RELAY_URL = 'https://starknet-relayer.hashira.io';
+  const QUOTE_SERVER_URL = 'https://price.garden.finance';
+  const STARKNET_RELAY_URL = 'https://starknet-relay.garden.finance';
   // Wallet configurations
   const EVM_PRIVATE_KEY =
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
@@ -113,6 +118,8 @@ describe('StarkNet Integration Tests - STRK -> BTC', () => {
       snProvider,
       STARKNET_ADDRESS,
       STARKNET_PRIVATE_KEY,
+      '1',
+      '0x3',
     );
     console.log('StarkNet account address:', starknetWallet.address);
 
@@ -122,7 +129,8 @@ describe('StarkNet Integration Tests - STRK -> BTC', () => {
     // );
     const bitcoinProvider = new BitcoinProvider(
       BitcoinNetwork.Testnet,
-      'https://48.217.250.147:18443',
+      // 'https://48.217.250.147:18443',
+      'https://mempool.space/testnet4/api',
     );
 
     btcWallet = BitcoinWallet.fromPrivateKey(
@@ -184,10 +192,10 @@ describe('StarkNet Integration Tests - STRK -> BTC', () => {
     const order = {
       fromAsset: SupportedAssets.testnet.starknet_testnet_ETH,
       toAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
-      sendAmount: '100000000000000000',
-      receiveAmount: '100000',
+      sendAmount: '10000000000000000',
+      receiveAmount: '10000',
       additionalData: {
-        strategyId: 'ssabbtyr',
+        strategyId: 'ss59btyr',
         btcAddress: btcAddress,
       },
       minDestinationConfirmations: 1,

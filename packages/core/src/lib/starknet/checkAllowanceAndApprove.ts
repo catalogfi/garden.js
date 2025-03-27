@@ -1,4 +1,4 @@
-import { Account, cairo, Contract, RpcProvider } from 'starknet';
+import { Account, cairo, Contract, RpcProvider, uint256 } from 'starknet';
 import { AsyncResult, Err, Ok, with0x } from '@catalogfi/utils';
 import { TokenABI } from './abi/starknetTokenABI';
 
@@ -28,14 +28,14 @@ export const checkAllowanceAndApprove = async (
     ]);
 
     const allowance = BigInt(allowanceResponse?.toString() || '0');
-    const maxUint256 = cairo.uint256(BigInt(amount));
+    const maxUint256 = cairo.uint256(BigInt(uint256.UINT_256_MAX));
 
-    // console.log(
-    //   `Current Allowance: ${allowance}, Required: ${amount}, Max: ${maxUint256}`,
-    // );
+    console.log(
+      `Current Allowance: ${allowance}, Required: ${amount}, Max: ${maxUint256.high}`,
+    );
 
     if (allowance < amount) {
-      // console.log('Approving maximum allowance (uint256 max)...');
+      console.log('Approving maximum allowance (uint256 max)...');
 
       const approveResponse = await account.execute([
         {
@@ -45,14 +45,21 @@ export const checkAllowanceAndApprove = async (
         },
       ]);
 
-      // console.log('Maximum approval successful:', approveResponse);
+      console.log('Maximum approval successful:', approveResponse);
+      // await starknetProvider.waitForTransaction(
+      //   approveResponse.transaction_hash,
+      //   {
+      //     retryInterval: 3000,
+      //     successStates: [TransactionExecutionStatus.],
+      //   },
+      // );
       return Ok(approveResponse.transaction_hash);
     }
 
-    // console.log('Allowance already sufficient, no need to approve.');
+    console.log('Allowance already sufficient, no need to approve.');
     return Ok('Allowance already approved');
   } catch (error) {
-    // console.error(' checkAllowanceAndApprove error:', error);
+    console.error(' checkAllowanceAndApprove error:', error);
     return Err(
       `Failed to check or approve allowance: ${
         error instanceof Error ? error.message : String(error)
