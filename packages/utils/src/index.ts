@@ -6,4 +6,4 @@ export * from './lib/utils';
 export * from './lib/approve';
 export * from './lib/blockNumber';
 export * from './lib/eventBroker';
-// test publishing automation
+export * from './lib/result';

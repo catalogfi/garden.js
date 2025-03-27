@@ -1,6 +1,6 @@
 import { MatchedOrder } from '@gardenfi/orderbook';
 import { Swap } from '@gardenfi/orderbook';
-import { OrderActions } from './garden/garden.types';
+import { OrderActions } from '../garden/garden.types';
 import { OrderStatus, SwapStatus } from './status';
 
 /**
