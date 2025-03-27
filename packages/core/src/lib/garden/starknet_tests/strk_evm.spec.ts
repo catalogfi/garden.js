@@ -1,13 +1,17 @@
 import { Garden } from '../garden';
 import { MatchedOrder, SupportedAssets } from '@gardenfi/orderbook';
-import { Environment, Siwe, Url, with0x } from '@gardenfi/utils';
+import {
+  Environment,
+  //  Siwe, Url,
+  with0x,
+} from '@gardenfi/utils';
 import { RpcProvider, Account } from 'starknet';
 import { describe, expect, it } from 'vitest';
 import { privateKeyToAccount } from 'viem/accounts';
 import { sleep } from '@catalogfi/utils';
 import { createWalletClient, http } from 'viem';
-import { EvmRelay, Quote } from '@gardenfi/core';
-import { StarknetRelay } from '../../starknet/relay/starknetRelay';
+// import { EvmRelay, Quote } from '@gardenfi/core';
+// import { StarknetRelay } from '../../starknet/relay/starknetRelay';
 import { arbitrumSepolia } from 'viem/chains';
 import { IGardenJS } from '../garden.types';
 
@@ -43,11 +47,11 @@ describe('StarkNet Integration Tests', () => {
   //   const API_KEY =
   //     'AAAAAGghjwU6Os1DVFgmUXj0GcNt5jTJPbBmXKw7xRARW-qivNy4nfpKVgMNebmmxig2o3v-6M4l_ZmCgLp3vKywfVXDYBcL3M4c';
 
-  const RELAYER_URL = 'https://orderbook-stage.hashira.io';
+  // const RELAYER_URL = 'https://orderbook-stage.hashira.io';
   const STARKNET_NODE_URL =
     'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/Ry6QmtzfnqANtpqP3kLqe08y80ZorPoY';
-  const QUOTE_SERVER_URL = 'https://quote-staging.hashira.io';
-  const STARKNET_RELAY_URL = 'https://starknet-relayer.hashira.io';
+  // const QUOTE_SERVER_URL = 'https://quote-staging.hashira.io';
+  // const STARKNET_RELAY_URL = 'https://starknet-relayer.hashira.io';
   // const API_KEY =
   //   'AAAAAGm-kkU6Og9gRTmB1DP9oxyNi88Ttt1bARxzj-wTxG00LLYHUkhvMi1nwQzrxU1-kU2EQkCBw803q64Yw-j40vYxK7GBtDcb';
 
@@ -55,9 +59,13 @@ describe('StarkNet Integration Tests', () => {
   const EVM_PRIVATE_KEY =
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
   const STARKNET_PRIVATE_KEY =
-    '0x0440c893bd4cbc2c151d579c9d721eec4d316306f871368baa89033e3f6820b9';
+    // '0x0440c893bd4cbc2c151d579c9d721eec4d316306f871368baa89033e3f6820b9';
+    // '0x075e69744ff5a9b4bd942b918293118dfcffc768033caacb9a8b8b269be7b312';
+    '0x03eb1a8fc77eac663580829c3cfc3c3f8d495f16366af1cf42a7f4460cfbcd97';
   const STARKNET_ADDRESS =
-    '0x0390cf09b3537e450170bdcce49a789facb727f21eabd8e1d25b8cf1869e8e93';
+    // '0x0390cf09b3537e450170bdcce49a789facb727f21eabd8e1d25b8cf1869e8e93';
+    // '0x03ff66cbb9d97c9042dead5ef61d4b1d6d452f99e28f24b079e3d08ef4b4c4f3';
+    '0x035c50625822eab248eb63f9198a0e4bdd02627526a4edc47d89ce678fe47b16';
   const DIGEST_KEY =
     '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857';
 
@@ -82,18 +90,26 @@ describe('StarkNet Integration Tests', () => {
     '0x3',
   );
 
-  const garden = new Garden({
-    api: RELAYER_URL,
+  // const garden = new Garden({
+  //   api: RELAYER_URL,
+  //   environment: Environment.TESTNET,
+  //   digestKey: DIGEST_KEY,
+  //   // quote: new Quote(QUOTE_SERVER_URL),
+  //   htlc: {
+  //     evm: new EvmRelay(
+  //       RELAYER_URL,
+  //       evmWallet,
+  //       Siwe.fromDigestKey(new Url(RELAYER_URL), DIGEST_KEY),
+  //     ),
+  //     starknet: new StarknetRelay(STARKNET_RELAY_URL, starknetWallet),
+  //   },
+  // });
+  const garden = Garden.from({
     environment: Environment.TESTNET,
     digestKey: DIGEST_KEY,
-    quote: new Quote(QUOTE_SERVER_URL),
-    htlc: {
-      evm: new EvmRelay(
-        RELAYER_URL,
-        evmWallet,
-        Siwe.fromDigestKey(new Url(RELAYER_URL), DIGEST_KEY),
-      ),
-      starknet: new StarknetRelay(STARKNET_RELAY_URL, starknetWallet),
+    wallets: {
+      evm: evmWallet,
+      starknet: starknetWallet,
     },
   });
 
@@ -124,6 +140,14 @@ describe('StarkNet Integration Tests', () => {
 
     garden.on('onPendingOrdersChanged', (orders) => {
       console.log('⏳Pending orders:', orders.length);
+      orders.forEach((order) => {
+        console.log(
+          'Order id :',
+          order.create_order.create_id,
+          'status :',
+          order.status,
+        );
+      });
     });
 
     garden.on('rbf', (order, result) => {
@@ -134,17 +158,16 @@ describe('StarkNet Integration Tests', () => {
 
   //-----------------STRK-EVM SWAP-----------------
 
-  describe.skip('strk-evm swap', async () => {
+  describe.only('strk-evm swap', async () => {
     it('should create and execute a StarkNet-ETH swap', async () => {
       const order = {
         fromAsset: SupportedAssets.testnet.starknet_testnet_ETH,
         toAsset: SupportedAssets.testnet.arbitrum_sepolia_WBTC,
-        sendAmount: '100000000000000000',
-        receiveAmount: '1000',
+        sendAmount: '10000000000000000',
+        receiveAmount: '23073',
         additionalData: {
-          strategyId: 'ssabasac',
+          strategyId: 'ss59as1d',
         },
-        minDestinationConfirmations: 1,
       };
 
       const result = await garden.swap(order);
@@ -174,9 +197,9 @@ describe('StarkNet Integration Tests', () => {
       if (res?.error) console.log('init error ❌ :', res.error);
       // expect(res.ok).toBeTruthy();
       expect(res?.ok).toBeTruthy();
-    }, 20000);
+    }, 150000);
 
-    it('Execute', async () => {
+    it.only('Execute', async () => {
       setupEventListeners(garden);
       await garden.execute();
       await sleep(150000);
@@ -190,10 +213,10 @@ describe('StarkNet Integration Tests', () => {
       const order = {
         fromAsset: SupportedAssets.testnet.arbitrum_sepolia_WBTC,
         toAsset: SupportedAssets.testnet.starknet_testnet_ETH,
-        sendAmount: '10000',
-        receiveAmount: '2375000000000000',
+        sendAmount: '500000',
+        receiveAmount: '214821925172042749',
         additionalData: {
-          strategyId: 'asacssab',
+          strategyId: 'as1dss59',
         },
         minDestinationConfirmations: 3,
       };
@@ -225,6 +248,49 @@ describe('StarkNet Integration Tests', () => {
       if (res.error) console.log('init error ❌ :', res.error);
       // expect(res.ok).toBeTruthy();
       expect(res.ok).toBeTruthy();
+    }, 20000);
+
+    it('Execute', async () => {
+      setupEventListeners(garden);
+      await garden.execute();
+      await sleep(150000);
+    }, 150000);
+  });
+
+  describe('btc-strk swap', async () => {
+    it('should create order and match', async () => {
+      console.log('\n------ CREATING SWAP ORDER ------');
+      const order = {
+        fromAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
+        toAsset: SupportedAssets.testnet.starknet_testnet_ETH,
+        sendAmount: '10000',
+        receiveAmount: '4292202826399481',
+        additionalData: {
+          strategyId: 'btyrss59',
+          btcAddress: 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru',
+        },
+      };
+
+      const result = await garden.swap(order);
+      if (result.error) {
+        console.log('Error while creating order ❌:', result.error);
+        throw new Error(result.error);
+      }
+
+      console.log(
+        'Order created and matched✅',
+        result.val.create_order.create_id,
+      );
+      // console.log(result.val.source_swap.asset);
+      matchedOrder = result.val;
+
+      expect(result.error).toBeFalsy();
+      expect(result.val).toBeTruthy();
+    }, 150000);
+
+    it('Initiate the swap', async () => {
+      console.log('Initiate the swap: ', matchedOrder.source_swap.swap_id);
+      expect(matchedOrder.source_swap.swap_id).toBeTruthy();
     }, 20000);
 
     it('Execute', async () => {
