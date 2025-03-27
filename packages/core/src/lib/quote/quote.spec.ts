@@ -2,6 +2,7 @@ import {
   bitcoinRegtestAsset,
   Chains,
   WBTCArbitrumLocalnetAsset,
+  WBTCEthereumLocalnetAsset,
 } from '@gardenfi/orderbook';
 import { Quote } from './quote';
 import { describe, expect, it } from 'vitest';
@@ -33,7 +34,7 @@ describe('quote', () => {
     expect(Number(Object.values(res.val.quotes)[0])).toBeGreaterThan(100000);
   });
 
-  it('should get attested quote', async () => {
+  it('should get attested quote for Arbitrum WBTC to BTC', async () => {
     const res = await quote.getAttestedQuote({
       source_chain: Chains.arbitrum_localnet,
       destination_chain: Chains.bitcoin_regtest,
@@ -60,12 +61,12 @@ describe('quote', () => {
     expect(res.val).toBeTruthy();
   });
 
-  it('test', async () => {
+  it('should get attested quote for Arbitrum WBTC to ethereum WBTC', async () => {
     const res = await quote.getAttestedQuote({
-      source_chain: 'arbitrum_localnet',
-      destination_chain: 'ethereum_localnet',
-      source_asset: '0x0165878A594ca255338adfa4d48449f69242Eb8F',
-      destination_asset: '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0',
+      source_chain: Chains.arbitrum_localnet,
+      destination_chain: Chains.ethereum_localnet,
+      source_asset: WBTCArbitrumLocalnetAsset.atomicSwapAddress,
+      destination_asset: WBTCEthereumLocalnetAsset.atomicSwapAddress,
       initiator_source_address: '0x52FE8afbbB800a33edcbDB1ea87be2547EB30000',
       initiator_destination_address: '0x52FE8afbbB800a33edcbDB1ea87be2547EB30000',
       source_amount: '100000',

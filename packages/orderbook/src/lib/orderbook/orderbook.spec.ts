@@ -134,6 +134,7 @@ describe('orderbook', async () => {
       const attestedQuote = await getAttestedQuote(createOrder);
 
       if (attestedQuote) {
+        console.log(attestedQuote);
         const response = await orderbook.createOrder(attestedQuote);
         console.log('response :', response.val);
         if (response.error) {
