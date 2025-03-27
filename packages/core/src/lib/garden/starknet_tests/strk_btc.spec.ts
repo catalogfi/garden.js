@@ -79,16 +79,16 @@ describe('StarkNet Integration Tests - STRK -> BTC', () => {
   //   const STARKNET_RELAY_URL = 'http://localhost:4436';
   //   const API_KEY =
   //     'AAAAAGghjwU6Os1DVFgmUXj0GcNt5jTJPbBmXKw7xRARW-qivNy4nfpKVgMNebmmxig2o3v-6M4l_ZmCgLp3vKywfVXDYBcL3M4c';
-  // const RELAYER_URL = 'https://orderbook-stage.hashira.io';
-  // const STARKNET_NODE_URL =
-  //   'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/Ry6QmtzfnqANtpqP3kLqe08y80ZorPoY';
-  // const QUOTE_SERVER_URL = 'https://quote-staging.hashira.io';
-  // const STARKNET_RELAY_URL = 'https://starknet-relayer.hashira.io';
-  const RELAYER_URL = 'https://orderbook.garden.finance';
+  const RELAYER_URL = 'https://orderbook-stage.hashira.io';
   const STARKNET_NODE_URL =
     'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/Ry6QmtzfnqANtpqP3kLqe08y80ZorPoY';
-  const QUOTE_SERVER_URL = 'https://price.garden.finance';
-  const STARKNET_RELAY_URL = 'https://starknet-relay.garden.finance';
+  const QUOTE_SERVER_URL = 'https://quote-staging.hashira.io';
+  const STARKNET_RELAY_URL = 'https://starknet-relayer.hashira.io';
+  // const RELAYER_URL = 'https://orderbook.garden.finance';
+  // const STARKNET_NODE_URL =
+  //   'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/Ry6QmtzfnqANtpqP3kLqe08y80ZorPoY';
+  // const QUOTE_SERVER_URL = 'https://price.garden.finance';
+  // const STARKNET_RELAY_URL = 'https://starknet-relay.garden.finance';
   // Wallet configurations
   const EVM_PRIVATE_KEY =
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
@@ -195,7 +195,7 @@ describe('StarkNet Integration Tests - STRK -> BTC', () => {
       sendAmount: '10000000000000000',
       receiveAmount: '10000',
       additionalData: {
-        strategyId: 'ss59btyr',
+        strategyId: 'ssabbtyr',
         btcAddress: btcAddress,
       },
       minDestinationConfirmations: 1,
