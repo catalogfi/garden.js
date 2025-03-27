@@ -7,3 +7,5 @@ packages/*/dist/**/*
 **/*/tsconfig.tsbuildinfo
 
 packages/react-hooks/test/node_modules
+
+debugger.txt
