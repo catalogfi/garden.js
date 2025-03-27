@@ -33,22 +33,21 @@ jobs:
         id: get-commenter
         run: echo "COMMENTER=${{ github.event.comment.user.login }}" >> $GITHUB_ENV
 
-      - name: Fetch Collaborators and Permissions
-        id: get-collaborators
+      - name: Fetch Commenter's Permissions
+        id: get-permission
         run: |
-          collaborators=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
-            "https://api.github.com/repos/${{ github.repository }}/collaborators")
+          COMMENTER=${{ github.event.comment.user.login }}
+          RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
+            "https://api.github.com/repos/${{ github.repository }}/collaborators/${COMMENTER}/permission")
           
-          COMMENTER_PERMISSIONS=$(echo "$collaborators" | jq -r --arg commenter "${{ env.COMMENTER }}" \
-            'map(select(.login == $commenter)) | .[0].permissions')
+          PERMISSION=$(echo "$RESPONSE" | jq -r '.permission')
+          echo "Commenter's permission level: $PERMISSION"
 
-          echo "Commenter's permissions: $COMMENTER_PERMISSIONS"
-          
-          if [[ "$COMMENTER_PERMISSIONS" == *"admin\": true"* || "$COMMENTER_PERMISSIONS" == *"maintain\": true"* ]]; then
+          if [[ "$PERMISSION" == "admin" || "$PERMISSION" == "maintain" ]]; then
             echo "is_admin_or_maintain=true" >> $GITHUB_ENV
           else
             echo "is_admin_or_maintain=false" >> $GITHUB_ENV
-            exit 1  # Prevent release if not admin or maintainer
+            exit 1
           fi
 
       - name: Setup Node.js
