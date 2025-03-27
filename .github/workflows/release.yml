@@ -29,10 +29,6 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GH_PAT }}
 
-      - name: Get Commenter's Username
-        id: get-commenter
-        run: echo "COMMENTER=${{ github.event.comment.user.login }}" >> $GITHUB_ENV
-
       - name: Fetch Commenter's Permissions
         id: get-permission
         run: |
@@ -44,9 +40,9 @@ jobs:
           echo "Commenter's permission level: $PERMISSION"
 
           if [[ "$PERMISSION" == "admin" || "$PERMISSION" == "maintain" ]]; then
-            echo "is_admin_or_maintain=true" >> $GITHUB_ENV
+            echo "is_admin_or_maintain=true"
           else
-            echo "is_admin_or_maintain=false" >> $GITHUB_ENV
+            echo "is_admin_or_maintain=false"
             exit 1
           fi
 
@@ -70,10 +66,9 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: ./scripts/handle-release.sh beta
-        if: env.is_admin_or_maintain == 'true'
 
   release:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && (contains(github.event.head_commit.message, 'patch') || contains(github.event.head_commit.message, 'chore') || contains(github.event.head_commit.message, 'fix') || contains(github.event.head_commit.message, 'feat'))
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && (contains(github.event.head_commit.message, 'patch:') || contains(github.event.head_commit.message, 'chore:') || contains(github.event.head_commit.message, 'fix:') || contains(github.event.head_commit.message, 'feat:'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
