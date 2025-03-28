@@ -5,6 +5,11 @@ import { Button } from '../common/Button';
 import { chainToAsset } from '../../constants/constants';
 import SwapInput from './SwapInput';
 import SwapOutput from './SwapOutput';
+import { useAppKitAccount, useAppKitProvider } from '@reown/appkit/react';
+import {
+  Provider,
+  useAppKitConnection,
+} from '@reown/appkit-adapter-solana/react';
 
 export const SwapComponent = () => {
   const [loading, setLoading] = useState(false);
