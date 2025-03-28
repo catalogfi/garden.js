@@ -7,6 +7,7 @@ export {
   isMainnet,
   isBitcoin,
   isEVM,
+  isStarknet,
   getBlockchainType,
   NetworkType,
   TimeLocks,

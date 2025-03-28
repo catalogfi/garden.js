@@ -158,7 +158,7 @@ describe('StarkNet Integration Tests', () => {
 
   //-----------------STRK-EVM SWAP-----------------
 
-  describe.only('strk-evm swap', async () => {
+  describe('strk-evm swap', async () => {
     it('should create and execute a StarkNet-ETH swap', async () => {
       const order = {
         fromAsset: SupportedAssets.testnet.starknet_testnet_ETH,
@@ -199,7 +199,7 @@ describe('StarkNet Integration Tests', () => {
       expect(res?.ok).toBeTruthy();
     }, 150000);
 
-    it.only('Execute', async () => {
+    it('Execute', async () => {
       setupEventListeners(garden);
       await garden.execute();
       await sleep(150000);
@@ -294,6 +294,52 @@ describe('StarkNet Integration Tests', () => {
     }, 20000);
 
     it('Execute', async () => {
+      setupEventListeners(garden);
+      await garden.execute();
+      await sleep(150000);
+    }, 150000);
+  });
+
+  describe.only('strk-btc swap', async () => {
+    it.skip('should create order and match', async () => {
+      console.log('\n------ CREATING SWAP ORDER ------');
+      const order = {
+        fromAsset: SupportedAssets.testnet.starknet_testnet_ETH,
+        toAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
+        sendAmount: '10000000000000000',
+        receiveAmount: '23159',
+        additionalData: {
+          strategyId: 'ss59btyr',
+          btcAddress: 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru',
+        },
+      };
+
+      const result = await garden.swap(order);
+      if (result.error) {
+        console.log('Error while creating order ❌:', result.error);
+        throw new Error(result.error);
+      }
+
+      console.log(
+        'Order created and matched✅',
+        result.val.create_order.create_id,
+      );
+      // console.log(result.val.source_swap.asset);
+      matchedOrder = result.val;
+
+      expect(result.error).toBeFalsy();
+      expect(result.val).toBeTruthy();
+    }, 150000);
+
+    it.skip('Initiate the swap', async () => {
+      const res = await garden.starknetHTLC?.initiate(matchedOrder);
+      console.log('initiated ✅ :', res?.val);
+      if (res?.error) console.log('init error ❌ :', res.error);
+      // expect(res.ok).toBeTruthy();
+      expect(res?.ok).toBeTruthy();
+    }, 20000);
+
+    it.only('Execute', async () => {
       setupEventListeners(garden);
       await garden.execute();
       await sleep(150000);

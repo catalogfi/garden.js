@@ -10,7 +10,7 @@ describe('quote', () => {
   const quoteUrl = 'https://price.garden.finance';
   const quote = new Quote(quoteUrl);
 
-  it('should get quote', async () => {
+  it('should get quote for evm-strk', async () => {
     const res = await quote.getQuote(
       'arbitrum_sepolia:0x1cd0bBd55fD66B4C5F7dfE434eFD009C09e628d1::starknet_sepolia:0x13e7510b665d01c03f250e648c5be6f4a57b6cf56b3079293362ed2e4713c95',
       500000,
@@ -21,10 +21,10 @@ describe('quote', () => {
     expect(res.val).toBeTruthy();
   });
 
-  it('should get quote', async () => {
+  it.only('should get quote for strk-btc', async () => {
     const res = await quote.getQuote(
-      'bitcoin_testnet:primary::starknet_sepolia:0x13e7510b665d01c03f250e648c5be6f4a57b6cf56b3079293362ed2e4713c95',
-      10000,
+      'starknet_sepolia:0x13e7510b665d01c03f250e648c5be6f4a57b6cf56b3079293362ed2e4713c95::bitcoin_testnet:primary',
+      10000000000000000,
     );
     console.log('quote :', res.val);
     console.log('quote error :', res.error);
@@ -32,7 +32,7 @@ describe('quote', () => {
     expect(res.val).toBeTruthy();
   });
 
-  it.only('should get quote', async () => {
+  it('should get quote for strk-evm', async () => {
     const res = await quote.getQuote(
       'starknet_sepolia:0x13e7510b665d01c03f250e648c5be6f4a57b6cf56b3079293362ed2e4713c95::arbitrum_sepolia:0x1cd0bBd55fD66B4C5F7dfE434eFD009C09e628d1',
       10000000000000000,
