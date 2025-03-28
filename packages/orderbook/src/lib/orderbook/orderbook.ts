@@ -69,6 +69,7 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
   ): AsyncResult<string, string> {
     const headers = await this.auth.getAuthHeaders();
     if (headers.error) return Err(headers.error);
+    console.log("Create order endpoint:: ", this.Url.endpoint('create-order'))
 
     try {
       const res = await Fetcher.post<CreateOrderResponse>(
@@ -81,6 +82,7 @@ export class Orderbook extends OrdersProvider implements IOrderbook {
           },
         },
       );
+      // console.log("response from post request:: ", res.status);
       if (res.error) return Err(res.error);
       return res.result
         ? Ok(res.result)

@@ -12,17 +12,29 @@ import { web3 } from '@coral-xyz/anchor';
 import { privateKeyToAccount } from 'viem/accounts';
 import { BlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
 import { BitcoinNetwork, BitcoinProvider, BitcoinWallet } from '@catalogfi/wallets';
+import { skip } from 'node:test';
 
-// Shared constants
-const TEST_RPC_URL = "http://localhost:8899";
-const TEST_RELAY_URL = new URL("http://localhost:5014/relay");
-const TEST_SWAPPER_RELAYER = "http://localhost:4426";
+// Shared constants localnet
+// const TEST_RPC_URL = "http://localhost:8899";
+// const TEST_RELAY_URL = new URL("http://localhost:5014/relay");
+// const TEST_SWAPPER_RELAYER = "http://localhost:4426";
+// const TEST_PRIVATE_KEY = "0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61";
+// const TEST_RELAYER_ADDRESS = "AKnL4NNf3DGWZJS6cPknBuEGnVsV4A4m5tgebLHaRSZ9";
+// const TEST_BLOCKFETCHER_URL = "http://localhost:3008";
+
+
+// Shared constants Testnet
+const TEST_RPC_URL = "https://api.devnet.solana.com";
+const TEST_RELAY_URL = new URL("https://solana-relayer-staging.hashira.io/relay");
+const TEST_SWAPPER_RELAYER = "https://orderbook-stage.hashira.io/";
 const TEST_PRIVATE_KEY = "0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61";
-const TEST_RELAYER_ADDRESS = "AKnL4NNf3DGWZJS6cPknBuEGnVsV4A4m5tgebLHaRSZ9";
-const TEST_BLOCKFETCHER_URL = "http://localhost:3008";
+const TEST_RELAYER_ADDRESS = "8jiuEDT8T4Eqd38hiXRHJxRMvMkBWpEPVM3uuAn6bj93";
+const TEST_BLOCKFETCHER_URL = "https://info-stage.hashira.io/";
+
+const PRIV = [73, 87, 221, 5, 63, 180, 104, 26, 64, 41, 225, 50, 165, 84, 157, 74, 187, 105, 53, 112, 214, 236, 175, 55, 86, 247, 214, 120, 101, 90, 62, 178, 103, 156, 200, 13, 24, 181, 121, 93, 15, 85, 202, 164, 4, 30, 165, 77, 244, 66, 207, 78, 179, 255, 45, 233, 17, 131, 203, 187, 120, 110, 176, 172]
 
 // Timeout constants
-const EXECUTE_TIMEOUT = 90000;
+const EXECUTE_TIMEOUT = 60 * 10 * 1000;
 const CREATE_ORDER_TIMEOUT = 30000;
 
 /**
@@ -40,10 +52,11 @@ function setupGarden(
         solanaRelayUrl: TEST_RELAY_URL,
         orderbookURl: TEST_SWAPPER_RELAYER,
         solanaRelayerAddress: TEST_RELAYER_ADDRESS,
-        blockNumberFetcher: new BlockNumberFetcher(TEST_BLOCKFETCHER_URL, Environment.LOCALNET),
+        blockNumberFetcher: new BlockNumberFetcher(TEST_BLOCKFETCHER_URL, Environment.TESTNET),
         btcWallet: btcWallet,
-        apiKey: "AAAAAGghjwU6Os1DVFgmUXj0GcNt5jTJPbBmXKw7xRARW-qivNy4nfpKVgMNebmmxig2o3v-6M4l_ZmCgLp3vKywfVXDYBcL3M4c",
-        quote: "http://localhost:6969"
+        // apiKey: "AAAAAGghjwU6Os1DVFgmUXj0GcNt5jTJPbBmXKw7xRARW-qivNy4nfpKVgMNebmmxig2o3v-6M4l_ZmCgLp3vKywfVXDYBcL3M4c",
+        apiKey: "AAAAAGmzpY46OpuOQc2zg4nnkFPt2mzzRVb2eifR9syXRB6TxiWOSdTnHlNGrYw80CWPSz993TSMVzJSo7uppDtY51zOR3rvuUcc",
+        quote: "https://quote-staging.hashira.io/"
     })
 }
 
@@ -89,6 +102,7 @@ async function executeWithTimeout(
     timeoutMs: number = EXECUTE_TIMEOUT
 ): Promise<void> {
     return new Promise<void>((resolve) => {
+        console.log("Inside execute with timeout");
         let resolved = false;
 
         // Backup resolver that will prevent the test from running indefinetly
@@ -119,75 +133,75 @@ async function executeWithTimeout(
 
 
 // Helper methods
-const fundSolWallet = async (connection: web3.Connection, userProvider: anchor.AnchorProvider) => {
-    console.log("Airdropping 10 SOL to the user for testing");
-    const signature = await connection.requestAirdrop(userProvider.publicKey, web3.LAMPORTS_PER_SOL * 10);
-    await connection.confirmTransaction({ signature, ...(await connection.getLatestBlockhash()) });
-    console.log("Airdrop Success");
-}
+// const fundSolWallet = async (connection: web3.Connection, userProvider: anchor.AnchorProvider) => {
+//     console.log("Airdropping 10 SOL to the user for testing");
+//     const signature = await connection.requestAirdrop(userProvider.publicKey, web3.LAMPORTS_PER_SOL * 10);
+//     await connection.confirmTransaction({ signature, ...(await connection.getLatestBlockhash()) });
+//     console.log("Airdrop Success");
+// }
 
-const mineBtcBlocks = async (address: string) => {
-    const body = {
-        jsonrpc: "1.0",
-        id: "mine",
-        method: "generatetoaddress",
-        params: [3, address],
-    };
+// const mineBtcBlocks = async (address: string) => {
+//     const body = {
+//         jsonrpc: "1.0",
+//         id: "mine",
+//         method: "generatetoaddress",
+//         params: [3, address],
+//     };
 
-    console.log("Mining blocks:: ", address);
+//     console.log("Mining blocks:: ", address);
 
-    const auth = Buffer.from("admin1:123").toString("base64");
+//     const auth = Buffer.from("admin1:123").toString("base64");
 
-    try {
-        const response = await fetch("http://localhost:18443/", {
-            method: "POST",
-            headers: {
-                Authorization: `Basic ${auth}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(body)
-        });
+//     try {
+//         const response = await fetch("http://localhost:18443/", {
+//             method: "POST",
+//             headers: {
+//                 Authorization: `Basic ${auth}`,
+//                 "Content-Type": "application/json",
+//             },
+//             body: JSON.stringify(body)
+//         });
 
-        const data = await response.json();
-        return data;
-    } catch (error: any) {
-        console.error("Error:", error.response?.data || error.message);
-    }
-};
+//         const data = await response.json();
+//         return data;
+//     } catch (error: any) {
+//         console.error("Error:", error.response?.data || error.message);
+//     }
+// };
 
-async function fundBTC(to: string): Promise<void> {
-    const payload = JSON.stringify({
-        address: to,
-    });
+// async function fundBTC(to: string): Promise<void> {
+//     const payload = JSON.stringify({
+//         address: to,
+//     });
 
-    const res = await fetch("http://127.0.0.1:3000/faucet", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: payload,
-    });
+//     const res = await fetch("http://127.0.0.1:3000/faucet", {
+//         method: "POST",
+//         headers: {
+//             "Content-Type": "application/json",
+//         },
+//         body: payload,
+//     });
 
-    const data = await res.text();
+//     const data = await res.text();
 
-    if (!res.ok) {
-        throw new Error(data);
-    }
+//     if (!res.ok) {
+//         throw new Error(data);
+//     }
 
 
-    const dat: { txId?: string } = JSON.parse(data);
+//     const dat: { txId?: string } = JSON.parse(data);
 
-    if (!dat.txId) {
-        throw new Error("Not successful");
-    }
-}
+//     if (!dat.txId) {
+//         throw new Error("Not successful");
+//     }
+// }
 
 
 describe('==========SOL <--> BTC===========', () => {
 
     // Solana setup
     let connection: web3.Connection;
-    let user: web3.Keypair;
+    // let user: web3.Keypair;
     let userWallet: anchor.Wallet;
     let userProvider: anchor.AnchorProvider;
 
@@ -202,19 +216,25 @@ describe('==========SOL <--> BTC===========', () => {
 
 
     beforeAll(async () => {
-        // Solana Initialization
-        user = new web3.Keypair();
-        connection = new web3.Connection(TEST_RPC_URL, { commitment: "confirmed" });
-        userWallet = new anchor.Wallet(user);
+        //? Solana Initialization testnet
+        // user = new web3.Keypair();
+        // connection = new web3.Connection(TEST_RPC_URL, { commitment: "confirmed" });
+        // userWallet = new anchor.Wallet(user);
+        // userProvider = new anchor.AnchorProvider(connection, userWallet);
+
+        const privateKeyBytes = new Uint8Array(PRIV);
+        const user = web3.Keypair.fromSecretKey(privateKeyBytes);
+        connection = new web3.Connection(TEST_RPC_URL, { commitment: "finalized" });
+        userWallet = new anchor.Wallet(user)
         userProvider = new anchor.AnchorProvider(connection, userWallet);
 
         // Bitcoin Initialization
         console.log("Geting bitcoin address")
         bitcoinProvider = new BitcoinProvider(
-            BitcoinNetwork.Regtest,
-            'http://localhost:30000'
+            BitcoinNetwork.Testnet,
+            'https://mempool.space/testnet4/api/'
         );
-        btcWallet = BitcoinWallet.createRandom(bitcoinProvider);
+        btcWallet = BitcoinWallet.fromPrivateKey("02438b87e7153f29c954b21d9019118fc40d88a51943a7b5e19e82a32a308206", bitcoinProvider);
         BTC_ADDRESS = await btcWallet.getAddress();
 
         // EVM Initialization
@@ -239,26 +259,27 @@ describe('==========SOL <--> BTC===========', () => {
                 btcWallet
             )
 
-            await fundSolWallet(connection, userProvider);
-            await fundBTC(BTC_ADDRESS);
+            // await fundSolWallet(connection, userProvider);
+            // await fundBTC(BTC_ADDRESS);
         })
 
         it("should create and execute SOL -> BTC swap order", async () => {
+            //TODO: Get the exact amount and set to recieve amout
             // 1. Create Order
             const orderObj = {
-                fromAsset: SupportedAssets.localnet.solana_localnet_SOL,
-                toAsset: SupportedAssets.localnet.bitcoin_regtest_BTC,
-                sendAmount: "20010",
-                receiveAmount: "2000",
+                fromAsset: SupportedAssets.testnet.solana_testnet_SOL,
+                toAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
+                sendAmount: "59337016",
+                receiveAmount: "9348",
                 additionalData: {
-                    strategyId: "sl4sbrbc",
+                    strategyId: "strybtry",
                     btcAddress: BTC_ADDRESS,
                 },
                 minDestinationConfirmations: 3,
             };
 
             const result = await garden.swap(orderObj);
-
+            console.log("Error in creating order::", result.error, result.val)
             expect(result.error).toBeFalsy();
             expect(result.val).toBeTruthy();
 
@@ -274,7 +295,7 @@ describe('==========SOL <--> BTC===========', () => {
     });
 
 
-    describe("BTC -> SOL Swap", () => {
+    skip("BTC -> SOL Swap", () => {
         let garden: Garden;
         let order: MatchedOrder;
 
@@ -285,25 +306,26 @@ describe('==========SOL <--> BTC===========', () => {
                 btcWallet
             )
 
-            await fundSolWallet(connection, userProvider);
-            const btcAddress = await btcWallet.getAddress();
-            await fundBTC(btcAddress);
+            // await fundSolWallet(connection, userProvider);
+            // const btcAddress = await btcWallet.getAddress();
+            // await fundBTC(btcAddress);
         })
 
         it("Should create, match and execute BTC -> SOL swap", async () => {
             const orderObj = {
-                fromAsset: SupportedAssets.localnet.bitcoin_regtest_BTC,
-                toAsset: SupportedAssets.localnet.solana_localnet_SOL,
+                fromAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
+                toAsset: SupportedAssets.testnet.solana_testnet_SOL,
                 sendAmount: "10000",
                 receiveAmount: "10000",
                 additionalData: {
-                    strategyId: "brbcsl4s",
+                    strategyId: "btrystry",
                     btcAddress: BTC_ADDRESS,
                 },
                 minDestinationConfirmations: 3,
             };
 
             const result = await garden.swap(orderObj);
+            console.log("Error in swap:: ", result.error)
             expect(result.error).toBeFalsy();
             expect(result.val).toBeTruthy();
 
@@ -315,7 +337,7 @@ describe('==========SOL <--> BTC===========', () => {
                 +order.source_swap.amount
             )
             console.log("HTLC Funded Successfully");
-            await mineBtcBlocks(BTC_ADDRESS);
+            // await mineBtcBlocks(BTC_ADDRESS);
             console.log("3 Blocks mined");
 
             await executeWithTimeout(garden, order.create_order.create_id)

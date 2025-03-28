@@ -1,8 +1,8 @@
 import { web3, AnchorProvider, Program } from "@coral-xyz/anchor";
 import { IHTLCWallet } from "@catalogfi/wallets";
-import idl from "./idl/solana_native_swaps.json";
-import { SolanaNativeSwaps } from "./idl/solana_native_swaps";
-import { SwapConfig, validateSecret } from "./solanaTypes";
+import idl from "../idl/solana_native_swaps.json";
+import { SolanaNativeSwaps } from "../idl/solana_native_swaps";
+import { SwapConfig, validateSecret } from "../solanaTypes";
 
 /**
  * SolanaHTLC is an implementation of IHTLCWallet that performs atomic swaps directly on-chain.

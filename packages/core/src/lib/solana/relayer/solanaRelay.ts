@@ -1,7 +1,7 @@
 import { web3, AnchorProvider, Program } from "@coral-xyz/anchor";
-import idl from "./idl/solana_native_swaps.json";
-import { SolanaNativeSwaps } from "./idl/solana_native_swaps";
-import { SwapConfig, validateSecret } from "./solanaTypes";
+import idl from "../idl/solana_native_swaps.json";
+import { SolanaNativeSwaps } from "../idl/solana_native_swaps";
+import { SwapConfig, validateSecret } from "../solanaTypes";
 import { Fetcher } from "@catalogfi/utils";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { APIResponse } from "@gardenfi/utils";

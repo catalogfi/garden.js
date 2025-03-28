@@ -75,6 +75,14 @@ export const SupportedAssets = {
     bitcoin_regtest_BTC: bitcoinRegtestAsset,
   },
   testnet: {
+    solana_testnet_SOL: {
+      name: 'SOL Solana Testnet',
+      decimals: 9,
+      symbol: 'SOL',
+      chain: Chains.solana_testnet,
+      atomicSwapAddress: 'primary',
+      tokenAddress: 'primary',
+    },
     bitcoin_testnet_BTC: {
       name: 'BTC',
       decimals: 8,

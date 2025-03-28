@@ -1,14 +1,7 @@
-/**
- * Program IDL in camelCase format in order to be used in JS/TS.
- *
- * Note that this is only a type helper and is not the actual IDL. The original
- * IDL can be found at `target/idl/solana_native_swaps.json`.
- */
-export type SolanaNativeSwaps = {
-  // "address": "GfCxk9H9EoHP7cvophozquwRTkkm3ierP6sVUWKBBwCe",
+{
   "address": "6eksgdCnSjUaGQWZ6iYvauv1qzvYPF33RTGTM1ZuyENx",
   "metadata": {
-    "name": "solanaNativeSwaps",
+    "name": "solana_native_swaps",
     "version": "0.1.0",
     "spec": "0.1.0",
     "description": "Created with Anchor"
@@ -16,42 +9,20 @@ export type SolanaNativeSwaps = {
   "instructions": [
     {
       "name": "initiate",
-      "discriminator": [
-        5,
-        63,
-        123,
-        113,
-        153,
-        75,
-        148,
-        14
-      ],
+      "discriminator": [5, 63, 123, 113, 153, 75, 148, 14],
       "accounts": [
         {
-          "name": "swapAccount",
+          "name": "swap_account",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  115,
-                  119,
-                  97,
-                  112,
-                  95,
-                  97,
-                  99,
-                  99,
-                  111,
-                  117,
-                  110,
-                  116
-                ]
+                "value": [115, 119, 97, 112, 95, 97, 99, 99, 111, 117, 110, 116]
               },
               {
                 "kind": "arg",
-                "path": "swapId"
+                "path": "swap_id"
               }
             ]
           }
@@ -62,18 +33,15 @@ export type SolanaNativeSwaps = {
           "signer": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
         {
-          "name": "swapId",
+          "name": "swap_id",
           "type": {
-            "array": [
-              "u8",
-              32
-            ]
+            "array": ["u8", 32]
           }
         },
         {
@@ -81,12 +49,9 @@ export type SolanaNativeSwaps = {
           "type": "pubkey"
         },
         {
-          "name": "secretHash",
+          "name": "secret_hash",
           "type": {
-            "array": [
-              "u8",
-              32
-            ]
+            "array": ["u8", 32]
           }
         },
         {
@@ -94,26 +59,17 @@ export type SolanaNativeSwaps = {
           "type": "u64"
         },
         {
-          "name": "expiresIn",
+          "name": "expires_in",
           "type": "u32"
         }
       ]
     },
     {
-      "name": "instantRefund",
-      "discriminator": [
-        211,
-        202,
-        103,
-        41,
-        183,
-        147,
-        59,
-        251
-      ],
+      "name": "instant_refund",
+      "discriminator": [211, 202, 103, 41, 183, 147, 59, 251],
       "accounts": [
         {
-          "name": "swapAccount",
+          "name": "swap_account",
           "writable": true
         },
         {
@@ -129,19 +85,10 @@ export type SolanaNativeSwaps = {
     },
     {
       "name": "redeem",
-      "discriminator": [
-        184,
-        12,
-        86,
-        149,
-        70,
-        196,
-        97,
-        225
-      ],
+      "discriminator": [184, 12, 86, 149, 70, 196, 97, 225],
       "accounts": [
         {
-          "name": "swapAccount",
+          "name": "swap_account",
           "writable": true
         },
         {
@@ -153,29 +100,17 @@ export type SolanaNativeSwaps = {
         {
           "name": "secret",
           "type": {
-            "array": [
-              "u8",
-              32
-            ]
+            "array": ["u8", 32]
           }
         }
       ]
     },
     {
       "name": "refund",
-      "discriminator": [
-        2,
-        96,
-        183,
-        251,
-        63,
-        208,
-        46,
-        46
-      ],
+      "discriminator": [2, 96, 183, 251, 63, 208, 46, 46],
       "accounts": [
         {
-          "name": "swapAccount",
+          "name": "swap_account",
           "writable": true
         },
         {
@@ -188,117 +123,66 @@ export type SolanaNativeSwaps = {
   ],
   "accounts": [
     {
-      "name": "swapAccount",
-      "discriminator": [
-        53,
-        126,
-        9,
-        14,
-        14,
-        197,
-        105,
-        182
-      ]
+      "name": "SwapAccount",
+      "discriminator": [53, 126, 9, 14, 14, 197, 105, 182]
     }
   ],
   "events": [
     {
-      "name": "initiated",
-      "discriminator": [
-        6,
-        108,
-        212,
-        91,
-        67,
-        60,
-        207,
-        221
-      ]
+      "name": "Initiated",
+      "discriminator": [6, 108, 212, 91, 67, 60, 207, 221]
     },
     {
-      "name": "instantRefunded",
-      "discriminator": [
-        220,
-        50,
-        18,
-        207,
-        183,
-        232,
-        218,
-        25
-      ]
+      "name": "InstantRefunded",
+      "discriminator": [220, 50, 18, 207, 183, 232, 218, 25]
     },
     {
-      "name": "redeemed",
-      "discriminator": [
-        14,
-        29,
-        183,
-        71,
-        31,
-        165,
-        107,
-        38
-      ]
+      "name": "Redeemed",
+      "discriminator": [14, 29, 183, 71, 31, 165, 107, 38]
     },
     {
-      "name": "refunded",
-      "discriminator": [
-        35,
-        103,
-        149,
-        246,
-        196,
-        123,
-        221,
-        99
-      ]
+      "name": "Refunded",
+      "discriminator": [35, 103, 149, 246, 196, 123, 221, 99]
     }
   ],
   "errors": [
     {
       "code": 6000,
-      "name": "invalidRedeemer",
+      "name": "InvalidRedeemer",
       "msg": "The provided redeemer is not the intended recipient of the swap amount"
     },
     {
       "code": 6001,
-      "name": "invalidRefundee",
+      "name": "InvalidRefundee",
       "msg": "The provided refundee is not the initiator of the given swap account"
     },
     {
       "code": 6002,
-      "name": "invalidSecret",
+      "name": "InvalidSecret",
       "msg": "The provided secret does not correspond to the secret hash in the PDA"
     },
     {
       "code": 6003,
-      "name": "refundBeforeExpiry",
+      "name": "RefundBeforeExpiry",
       "msg": "Attempt to perform a refund before expiry time"
     }
   ],
   "types": [
     {
-      "name": "initiated",
+      "name": "Initiated",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "swapId",
+            "name": "swap_id",
             "type": {
-              "array": [
-                "u8",
-                32
-              ]
+              "array": ["u8", 32]
             }
           },
           {
-            "name": "secretHash",
+            "name": "secret_hash",
             "type": {
-              "array": [
-                "u8",
-                32
-              ]
+              "array": ["u8", 32]
             }
           },
           {
@@ -309,77 +193,62 @@ export type SolanaNativeSwaps = {
       }
     },
     {
-      "name": "instantRefunded",
+      "name": "InstantRefunded",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "swapId",
+            "name": "swap_id",
             "type": {
-              "array": [
-                "u8",
-                32
-              ]
+              "array": ["u8", 32]
             }
           }
         ]
       }
     },
     {
-      "name": "redeemed",
+      "name": "Redeemed",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "swapId",
+            "name": "swap_id",
             "type": {
-              "array": [
-                "u8",
-                32
-              ]
+              "array": ["u8", 32]
             }
           },
           {
             "name": "secret",
             "type": {
-              "array": [
-                "u8",
-                32
-              ]
+              "array": ["u8", 32]
             }
           }
         ]
       }
     },
     {
-      "name": "refunded",
+      "name": "Refunded",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "swapId",
+            "name": "swap_id",
             "type": {
-              "array": [
-                "u8",
-                32
-              ]
+              "array": ["u8", 32]
             }
           }
         ]
       }
     },
     {
-      "name": "swapAccount",
+      "name": "SwapAccount",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "swapId",
+            "name": "swap_id",
             "type": {
-              "array": [
-                "u8",
-                32
-              ]
+              "array": ["u8", 32]
             }
           },
           {
@@ -391,16 +260,13 @@ export type SolanaNativeSwaps = {
             "type": "pubkey"
           },
           {
-            "name": "secretHash",
+            "name": "secret_hash",
             "type": {
-              "array": [
-                "u8",
-                32
-              ]
+              "array": ["u8", 32]
             }
           },
           {
-            "name": "expirySlot",
+            "name": "expiry_slot",
             "type": "u64"
           },
           {
@@ -411,4 +277,4 @@ export type SolanaNativeSwaps = {
       }
     }
   ]
-};
+}

@@ -39,6 +39,7 @@ import { WalletClient } from 'viem';
 import {
   BitcoinProvider,
   BitcoinWallet,
+  IBitcoinProvider,
   IBitcoinWallet,
 } from '@catalogfi/wallets';
 import {
@@ -62,9 +63,9 @@ import { IEVMRelay } from '../evm/relay/evmRelay.types';
 import { Auth } from '@gardenfi/utils';
 
 import { AnchorProvider } from '@coral-xyz/anchor';
-import { SolanaRelay } from '../solana/solanaRelay';
+import { SolanaRelay } from '../solana/relayer/solanaRelay';
 import { SwapConfig } from '../solana/solanaTypes';
-import { SolanaHTLC } from '../solana/solanaHTLC';
+import { SolanaHTLC } from '../solana/htlc/solanaHTLC';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment;
@@ -168,29 +169,42 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
 
 
+  // private async initializeSMandBTCWallet() {
+
+  //   // If we already have a wallet, return it regardless of secret manager state
+  //   if (this._btcWallet) {
+  //     return Ok(this._btcWallet);
+  //   }
+
+  //   // Only try to create a new wallet if we don't have one yet
+  //   if (!this._secretManager.isInitialized) {
+  //     return Err("Secret manager is not initialized");
+  //   }
+
+  //   const digestKey = await this._secretManager.getDigestKey();
+  //   if (digestKey.error) return Err(digestKey.error);
+
+  //   try {
+  //     const bitcoinNetwork = getBitcoinNetwork(this.environment);
+  //     const provider = new BitcoinProvider(bitcoinNetwork);
+  //     this._btcWallet = BitcoinWallet.fromPrivateKey(digestKey.val, provider);
+  //     return Ok(this._btcWallet);
+  //   } catch (error) {
+  //     return Err("Failed to initialize Bitcoin wallet: " + error);
+  //   }
+  // }
+
   private async initializeSMandBTCWallet() {
-
-    // If we already have a wallet, return it regardless of secret manager state
-    if (this._btcWallet) {
+    if (this._btcWallet)
       return Ok(this._btcWallet);
-    }
-
-    // Only try to create a new wallet if we don't have one yet
-    if (!this._secretManager.isInitialized) {
-      return Err("Secret manager is not initialized");
-    }
-
     const digestKey = await this._secretManager.getDigestKey();
     if (digestKey.error) return Err(digestKey.error);
 
-    try {
-      const bitcoinNetwork = getBitcoinNetwork(this.environment);
-      const provider = new BitcoinProvider(bitcoinNetwork);
+    if (!this._btcWallet) {
+      const provider: IBitcoinProvider = new BitcoinProvider(getBitcoinNetwork(this.environment));
       this._btcWallet = BitcoinWallet.fromPrivateKey(digestKey.val, provider);
-      return Ok(this._btcWallet);
-    } catch (error) {
-      return Err("Failed to initialize Bitcoin wallet: " + error);
     }
+    return Ok(this._btcWallet);
   }
 
   /**
@@ -234,20 +248,26 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       additional_data: additionalData,
     };
 
+    console.log("Order obj to be attested:: ", order);
     const quoteRes = await this._quote.getAttestedQuote(order);
+    console.log("Result of attested qutoe:: ", quoteRes.val)
     if (quoteRes.error) return Err(quoteRes.error);
 
     const createOrderRes = await this._orderBook.createOrder(quoteRes.val);
+    console.log("Result of createOrderRes::", createOrderRes.val);
     if (createOrderRes.error) return Err(createOrderRes.error);
 
     const orderRes = await this.pollOrder(createOrderRes.val);
+    // console.log("Response from polling order::", orderRes.val)
     if (orderRes.error) return Err(orderRes.error);
+
+    // console.log("All done till here...");
 
     // Check if the order result is okay and if source chain is Solana, call solInit
     if (orderRes.val && getBlockchainType(orderRes.val.source_swap.chain) === BlockchainType.Solana) {
       const secrets = await this._secretManager.generateSecret(orderRes.val.create_order.nonce);
       if (secrets.error) return Err(secrets.error);
-
+      console.log("Calling solana init::")
       const solInitResult = await this.solInit(orderRes.val);
       if (solInitResult.error) return Err(solInitResult.error);
     }
@@ -358,6 +378,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     let orderRes = await this._orderBook.getOrder(createOrderID, true);
     let attempts = 0;
 
+    // console.log("Polling order...")
     while (attempts < this.getOrderThreshold) {
       await sleep(1000);
       attempts++;
@@ -381,12 +402,15 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   }
 
   async execute(interval: number = 5000): Promise<() => void> {
+    console.log("Inside the execute method")
     //initiate SM and bitcoinWallet if not initialized
     await this.initializeSMandBTCWallet();
+    console.log("After initializatin of SMandBTC")
 
     return await this._orderBook.subscribeToOrders(
       interval,
       async (pendingOrders) => {
+        console.log("pending orders: ", pendingOrders.data.length);
         if (pendingOrders.data.length === 0) return;
 
         const ordersWithStatus = await this.filterExpiredAndAssignStatus(
@@ -520,7 +544,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       return;
     }
     const swapConfig = SwapConfig.from(order);
-    const solRelay = new SolanaRelay(swapConfig, this._solWallet!, this.solanaRelayUrl!, this.solanaRelayerAddress!);
+    const solRelay = new SolanaRelay(swapConfig, this._solWallet!, this.solanaRelayUrl!, this.solanaRelayerAddress ?? "");
     let sig;
     try {
       sig = await solRelay.redeem(secret);
@@ -574,7 +598,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     secret: string,
   ) {
 
-
+    console.log("Calling btc redeem");
     const _cache = this.bitcoinRedeemCache.get(order.create_order.create_id);
     const fillerInitTx = order.destination_swap.initiate_tx_hash
       .split(',')
@@ -827,8 +851,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   private async filterExpiredAndAssignStatus(orders: MatchedOrder[]) {
     if (orders.length === 0) return Ok([]);
-
+    console.log("Order is not empty")
     const blockNumbers = await this._blockNumberFetcher?.fetchBlockNumbers();
+    console.log("Block number::", blockNumbers.val, blockNumbers.error);
 
     if (blockNumbers.error) return Err(blockNumbers.error);
 
@@ -843,11 +868,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
       const sourceChain = order.source_swap.chain;
       const destinationChain = order.destination_swap.chain;
+      console.log('sourceChain ', sourceChain, ' destinationChain ', destinationChain)
 
-
-      //!FIX:  Better logic is required
+      //For localnet
       if (blockNumbers.val.solana) {
-        blockNumbers.val.solana_devnet = blockNumbers.val.solana;
+        blockNumbers.val.solana_testnet = blockNumbers.val.solana;
         blockNumbers.val.solana_localnet = blockNumbers.val.solana;
       }
 
@@ -867,10 +892,13 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       const sourceChainBlockNumber = blockNumbers?.val[sourceChain];
       const destinationChainBlockNumber = blockNumbers?.val[destinationChain];
 
+      console.log("sourceChainBlockNumber ", sourceChainBlockNumber, " destinationChainBlockNumber ", destinationChainBlockNumber)
+
       if (!sourceChainBlockNumber || !destinationChainBlockNumber) {
         this.emit('error', order, 'Error while fetching CurrentBlockNumbers');
         continue;
       }
+
 
 
       const status = ParseOrderStatus(
