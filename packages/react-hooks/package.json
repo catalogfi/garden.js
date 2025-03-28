@@ -1,6 +1,6 @@
 {
   "name": "@gardenfi/react-hooks",
-  "version": "2.0.26",
+  "version": "2.0.27",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -36,6 +36,8 @@
   "devDependencies": {
     "@types/react": "^18",
     "dotenv": "^16.3.1",
+    "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "typescript": "^5.2.2",
     "vite": "^5.1.6",
     "vite-plugin-dts": "^3.7.3",
