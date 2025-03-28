@@ -1,32 +1,36 @@
-import { checkAllowanceAndApprove } from '@gardenfi/utils';
+import {
+  AsyncResult,
+  checkAllowanceAndApprove,
+  Ok,
+  Err,
+} from '@gardenfi/utils';
 import { WalletClient, getContract } from 'viem';
 import { MatchedOrder } from '@gardenfi/orderbook';
-import { IEVMRelay } from './evmRelay.types';
-import { AsyncResult, Err, Fetcher, Ok, trim0x } from '@catalogfi/utils';
-import {
-  APIResponse,
-  IAuth,
-  Url,
-  with0x,
-} from '@gardenfi/utils';
+import { Fetcher, trim0x } from '@catalogfi/utils';
+import { APIResponse, IAuth, Url, with0x } from '@gardenfi/utils';
 import { AtomicSwapABI } from '../abi/atomicSwap';
+import { IEVMHTLC } from '../htlc.types';
 
-export class EvmRelay implements IEVMRelay {
+export class EvmRelay implements IEVMHTLC {
   private url: Url;
   private auth: IAuth;
+  private wallet: WalletClient;
 
-  constructor(url: string | Url, auth: IAuth) {
+  constructor(url: string | Url, wallet: WalletClient, auth: IAuth) {
     this.url = new Url('/relayer', url);
     this.auth = auth;
+    this.wallet = wallet;
   }
 
-  async init(
-    walletClient: WalletClient,
-    order: MatchedOrder,
-  ): AsyncResult<string, string> {
-    if (!walletClient.account) return Err('No account found');
+  get htlcActorAddress(): string {
+    if (!this.wallet.account) throw new Error('No account found');
+    return this.wallet.account.address;
+  }
+
+  async initiate(order: MatchedOrder): AsyncResult<string, string> {
+    if (!this.wallet.account) return Err('No account found');
     if (
-      walletClient.account.address.toLowerCase() !==
+      this.wallet.account.address.toLowerCase() !==
       order.source_swap.initiator.toLowerCase()
     )
       return Err('Account address and order initiator mismatch');
@@ -53,7 +57,7 @@ export class EvmRelay implements IEVMRelay {
       const atomicSwap = getContract({
         address: with0x(order.source_swap.asset),
         abi: AtomicSwapABI,
-        client: walletClient,
+        client: this.wallet,
       });
       const token = await atomicSwap.read.token();
 
@@ -61,14 +65,14 @@ export class EvmRelay implements IEVMRelay {
         Number(amount),
         token,
         order.source_swap.asset,
-        walletClient,
+        this.wallet,
       );
       if (approval.error) return Err(approval.error);
 
       const domain = await atomicSwap.read.eip712Domain();
 
-      const signature = await walletClient.signTypedData({
-        account: walletClient.account,
+      const signature = await this.wallet.signTypedData({
+        account: this.wallet.account,
         domain: {
           name: domain[1],
           version: domain[2],
@@ -116,7 +120,10 @@ export class EvmRelay implements IEVMRelay {
     }
   }
 
-  async redeem(orderId: string, secret: string): AsyncResult<string, string> {
+  async redeem(
+    order: MatchedOrder,
+    secret: string,
+  ): AsyncResult<string, string> {
     try {
       const headers = await this.auth.getAuthHeaders();
       if (headers.error) return Err(headers.error);
@@ -125,7 +132,7 @@ export class EvmRelay implements IEVMRelay {
         this.url.endpoint('redeem'),
         {
           body: JSON.stringify({
-            order_id: orderId,
+            order_id: order.create_order.create_id,
             secret: trim0x(secret),
             perform_on: 'Destination',
           }),
@@ -141,5 +148,9 @@ export class EvmRelay implements IEVMRelay {
     } catch (error) {
       return Err(String(error));
     }
+  }
+
+  async refund(): AsyncResult<string, string> {
+    return Err('Refund not supported');
   }
 }

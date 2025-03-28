@@ -1,13 +1,14 @@
 import { AsyncResult } from '@catalogfi/utils';
 import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
-import { OrderStatus } from '../status';
-import { Environment, EventBroker, SiweOpts } from '@gardenfi/utils';
-import { WalletClient } from 'viem';
+import { OrderStatus } from '../orderStatus/status';
+import { Environment, EventBroker, IAuth } from '@gardenfi/utils';
 import { ISecretManager } from '../secretManager/secretManager.types';
 import { IQuote } from '../quote/quote.types';
 import { IBlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
-import { IEVMRelay } from '../evm/relay/evmRelay.types';
 import { BitcoinWallet, IBitcoinWallet } from '@catalogfi/wallets';
+import { IEVMHTLC } from '../evm/htlc.types';
+import { DigestKey } from './digestKey/digestKey';
+import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { AnchorProvider } from '@coral-xyz/anchor';
 
 export type SwapParams = {
@@ -20,11 +21,11 @@ export type SwapParams = {
    */
   toAsset: Asset;
   /**
-   * Amount in lowest denomination of the asset.
+   * Amount in lowest denomination of the sendAsset.
    */
   sendAmount: string;
   /**
-   * Amount in lowest denomination of the asset.
+   * Amount in lowest denomination of the toAsset.
    */
   receiveAmount: string;
   /**
@@ -101,7 +102,13 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
    * The EVM relay.
    * @readonly
    */
-  get evmRelay(): IEVMRelay;
+  get evmHTLC(): IEVMHTLC | undefined;
+
+  /**
+   * The Starknet relay.
+   * @readonly
+   */
+  get starknetHTLC(): IStarknetHTLC | undefined;
 
 
   /**
@@ -133,6 +140,18 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
    * @readonly
    */
   get secretManager(): ISecretManager;
+
+  /**
+   * The auth.
+   * @readonly
+   */
+  get auth(): IAuth;
+
+  /**
+   * The digest key.
+   * @readonly
+   */
+  get digestKey(): DigestKey;
 }
 
 export type OrderCacheValue = {
@@ -154,17 +173,20 @@ export interface IOrderExecutorCache {
 
 export type GardenProps = {
   environment: Environment;
-  apiKey?: string;
-  evmWallet: WalletClient;
+  digestKey: string;
+  api?: string;
   secretManager?: ISecretManager;
-  siweOpts?: SiweOpts;
-  orderbookURl?: string;
-  quote?: string;
+  orderbook?: IOrderbook;
+  quote?: IQuote;
   blockNumberFetcher?: IBlockNumberFetcher;
   solanaRelayUrl?: URL;
   solanaRelayerAddress?: string;
   solWallet?: AnchorProvider;
   btcWallet?: BitcoinWallet;
+  htlc: {
+    evm?: IEVMHTLC;
+    starknet?: IStarknetHTLC;
+  };
 };
 
 /**

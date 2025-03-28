@@ -16,7 +16,8 @@ export type Asset = AssetToken;
 export enum BlockchainType {
   Bitcoin = 'Bitcoin',
   EVM = 'EVM',
-  Solana = 'Solana'
+  Solana = 'Solana',
+  Starknet = 'Starknet'
 }
 
 export enum NetworkType {
@@ -55,13 +56,18 @@ export const Chains = {
   citrea_testnet: 'citrea_testnet',
   bera: 'bera',
   monad_testnet: 'monad_testnet',
+  starknet: 'starknet',
+  starknet_sepolia: 'starknet_sepolia',
+  starknet_devnet: 'starknet_devnet',
 } as const;
 
 export type Chain = keyof typeof Chains;
 
 export type EvmChain = keyof Omit<
   typeof Chains,
-  'bitcoin' | 'bitcoin_testnet' | 'bitcoin_regtest' | 'solana' | 'solana_testnet' | 'solana_localnet'
+  'bitcoin' | 'bitcoin_testnet' | 'bitcoin_regtest' | 'solana' | 'solana_testnet' | 'solana_localnet' | 'starknet'
+  | 'starknet_devnet'
+  | 'starknet_sepolia'
 >;
 
 export const isMainnet = (chain: Chain) => {
@@ -77,7 +83,9 @@ export const isMainnet = (chain: Chain) => {
     chain === Chains.solana_localnet ||
     chain === Chains.bera_testnet ||
     chain === Chains.citrea_testnet ||
-    chain === Chains.monad_testnet
+    chain === Chains.monad_testnet ||
+    chain === Chains.starknet_devnet ||
+    chain === Chains.starknet_sepolia
   );
 };
 
@@ -112,6 +120,14 @@ export const isSolana = (chain: Chain) => {
   )
 }
 
+export const isStarknet = (chain: Chain) => {
+  return (
+    chain === Chains.starknet ||
+    chain === Chains.starknet_devnet ||
+    chain === Chains.starknet_sepolia
+  );
+};
+
 export const TimeLocks: Record<Chain, number> = {
   [Chains.bitcoin]: 144,
   [Chains.bitcoin_testnet]: 144,
@@ -130,13 +146,17 @@ export const TimeLocks: Record<Chain, number> = {
   [Chains.monad_testnet]: 172800,
   [Chains.solana]: 432000, //In solana timeslots exist in chunks of 0.4s so, 48 hrs in terms of that would be 48hrs => sec / 0.4
   [Chains.solana_localnet]: 432000,
-  [Chains.solana_testnet]: 432000
+  [Chains.solana_testnet]: 432000,
+  [Chains.starknet]: 2880,
+  [Chains.starknet_devnet]: 2880,
+  [Chains.starknet_sepolia]: 2880,
 };
 
 export const getBlockchainType = (chain: Chain) => {
   if (isBitcoin(chain)) return BlockchainType.Bitcoin;
   if (isEVM(chain)) return BlockchainType.EVM;
   if (isSolana(chain)) return BlockchainType.Solana;
+  if (isStarknet(chain)) return BlockchainType.Starknet;
   throw new Error('Invalid or unsupported chain');
 };
 

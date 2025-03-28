@@ -1,6 +1,22 @@
 import { Chain } from 'viem';
 import { Asset, Chains } from './asset';
 
+export const StarknetLocalnet: Chain = {
+  id: 1001,
+  name: 'Starknet Localnet',
+  nativeCurrency: {
+    name: 'Stark Token',
+    symbol: 'STRK',
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ['http://127.0.0.1:8547/'],
+    },
+  },
+  testnet: true,
+};
+
 export const ArbitrumLocalnet: Chain = {
   id: 31338,
   name: 'Arbitrum Localnet',
@@ -66,6 +82,26 @@ export const WBTCEthereumLocalnetAsset: Asset = {
   atomicSwapAddress: '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0', //present on localnet
   tokenAddress: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
 };
+export const STRKStarknetLocalnetAsset: Asset = {
+  name: 'STRK Starknet Localnet',
+  decimals: 18,
+  symbol: 'STRK',
+  chain: Chains.starknet_devnet,
+  atomicSwapAddress:
+    '0x15cf8b127aa850c97ed10de6f8b300cabc4f09232a57e63667af02fdef8a55a',
+  tokenAddress:
+    '0x51aa025f1c9948790113e4ebea826dee24542bc50902076c05892774210e8d2',
+};
+export const ETHStarknetLocalnetAsset: Asset = {
+  name: 'ETH Starknet Localnet',
+  decimals: 18,
+  symbol: 'ETH',
+  chain: Chains.starknet_devnet,
+  atomicSwapAddress:
+    '0x1890470168440bbb9df50988748924a74ea22de10d22a081e458737b9574e75',
+  tokenAddress:
+    '0x51aa025f1c9948790113e4ebea826dee24542bc50902076c05892774210e8d2',
+};
 
 export const SupportedAssets = {
   localnet: {
@@ -73,6 +109,8 @@ export const SupportedAssets = {
     arbitrum_localnet_WBTC: WBTCArbitrumLocalnetAsset,
     ethereum_localnet_WBTC: WBTCEthereumLocalnetAsset,
     bitcoin_regtest_BTC: bitcoinRegtestAsset,
+    starknet_localnet_STRK: STRKStarknetLocalnetAsset,
+    starknet_localnet_ETH: ETHStarknetLocalnetAsset,
   },
   testnet: {
     solana_testnet_SOL: {
@@ -171,6 +209,17 @@ export const SupportedAssets = {
       logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
       tokenAddress: '0x8d0c9d1c17aE5e40ffF9bE350f57840E9E66Cd93',
       atomicSwapAddress: '0xaD9d14CA82d9BF97fFf745fFC7d48172A1c0969E',
+    },
+    starknet_testnet_ETH: {
+      name: 'Starknet ETH',
+      decimals: 18,
+      symbol: 'ETH',
+      chain: Chains.starknet_sepolia,
+      logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
+      tokenAddress:
+        '0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7',
+      atomicSwapAddress:
+        '0x13e7510b665d01c03f250e648c5be6f4a57b6cf56b3079293362ed2e4713c95',
     },
   },
   mainnet: {
