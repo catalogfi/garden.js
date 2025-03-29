@@ -36,6 +36,7 @@
   "sideEffects": false,
   "dependencies": {
     "@simplewebauthn/browser": "^13.1.0",
+    "crypto-browserify": "^3.12.1",
     "jwt-decode": "^4.0.0",
     "viem": "^2.21.23"
   }

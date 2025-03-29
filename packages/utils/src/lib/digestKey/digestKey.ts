@@ -1,4 +1,5 @@
-import { Err, Ok, trim0x } from '@catalogfi/utils';
+import { trim0x } from '@catalogfi/utils';
+import { Err, Ok } from '../result';
 import { randomBytes } from 'crypto-browserify';
 import { privateKeyToAccount } from 'viem/accounts';
 
@@ -7,6 +8,10 @@ export class DigestKey {
   private _userId: string;
 
   constructor(digestKey: string) {
+    if (!DigestKey.isValidDigestKey(digestKey)) {
+      throw new Error('Invalid digest key format');
+    }
+
     this._digestKey = digestKey;
     const account = privateKeyToAccount(('0x' + digestKey) as `0x${string}`);
     this._userId = account.address;
@@ -15,12 +20,8 @@ export class DigestKey {
   static from(digestKey: string) {
     digestKey = trim0x(digestKey);
 
-    if (!/^[0-9a-fA-F]{64}$/.test(digestKey)) {
+    if (!this.isValidDigestKey(digestKey)) {
       return Err('Invalid digest key format');
-    }
-
-    if (!DigestKey.isValidPrivateKey(digestKey)) {
-      return Err('Invalid private key');
     }
 
     return Ok(new DigestKey(digestKey));
@@ -29,6 +30,12 @@ export class DigestKey {
   static generateRandom() {
     const privateKey = DigestKey.generateRandomDigestKey();
     return DigestKey.from(privateKey);
+  }
+
+  private static isValidDigestKey(digestKey: string): boolean {
+    return (
+      /^[0-9a-fA-F]{64}$/.test(digestKey) && this.isValidPrivateKey(digestKey)
+    );
   }
 
   private static isValidPrivateKey(privateKey: string): boolean {

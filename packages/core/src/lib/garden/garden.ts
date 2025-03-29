@@ -27,6 +27,7 @@ import {
   EventBroker,
   IAuth,
   Siwe,
+  SiweOpts,
   sleep,
   Url,
 } from '@gardenfi/utils';
@@ -54,12 +55,12 @@ import { API } from '../constants';
 import { Quote } from '../quote/quote';
 import { SecretManager } from '../secretManager/secretManager';
 import { IEVMHTLC } from '../evm/htlc.types';
-import { DigestKey } from './digestKey/digestKey';
 import { WalletClient } from 'viem';
 import { EvmRelay } from '../evm/relay/evmRelay';
 import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { Account } from 'starknet';
 import { StarknetRelay } from '../starknet/relay/starknetRelay';
+import { DigestKey } from '@gardenfi/utils';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment;
@@ -84,9 +85,13 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   constructor(config: GardenProps) {
     super();
-    const _digestKey = DigestKey.from(config.digestKey);
-    if (_digestKey.error) throw new Error(_digestKey.error);
-    this._digestKey = _digestKey.val;
+    if (typeof config.digestKey === 'string') {
+      const _digestKey = DigestKey.from(config.digestKey);
+      if (_digestKey.error) throw new Error(_digestKey.error);
+      this._digestKey = _digestKey.val;
+    } else {
+      this._digestKey = config.digestKey;
+    }
 
     this.environment = config.environment;
     const api =
@@ -105,7 +110,8 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this._quote = config.quote ?? new Quote(api.quote);
     this._auth = Siwe.fromDigestKey(
       new Url(config.api ?? api.orderbook),
-      this._digestKey.digestKey,
+      this._digestKey,
+      config.siweOpts,
     );
     this._orderbook = new Orderbook(new Url(config.api ?? api.orderbook));
     this._evmHTLC = config.htlc.evm;
@@ -121,12 +127,22 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   static from(config: {
     environment: Environment;
-    digestKey: string;
+    digestKey: DigestKey | string;
+    siweOpts?: SiweOpts;
     wallets: {
-      evm: WalletClient;
-      starknet: Account;
+      evm?: WalletClient;
+      starknet?: Account;
     };
   }) {
+    let digestKey: DigestKey;
+    if (typeof config.digestKey === 'string') {
+      const _digestKey = DigestKey.from(config.digestKey);
+      if (_digestKey.error) throw new Error(_digestKey.error);
+      digestKey = _digestKey.val;
+    } else {
+      digestKey = config.digestKey;
+    }
+
     const api =
       config.environment === Environment.MAINNET
         ? API.mainnet
@@ -139,18 +155,23 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       );
 
     const htlc = {
-      evm: new EvmRelay(
-        api.evmRelay,
-        config.wallets.evm,
-        Siwe.fromDigestKey(new Url(api.orderbook), config.digestKey),
-      ),
-      starknet: new StarknetRelay(api.starknetRelay, config.wallets.starknet),
+      evm: config.wallets.evm
+        ? new EvmRelay(
+            api.evmRelay,
+            config.wallets.evm,
+            Siwe.fromDigestKey(new Url(api.orderbook), digestKey),
+          )
+        : undefined,
+      starknet: config.wallets.starknet
+        ? new StarknetRelay(api.starknetRelay, config.wallets.starknet)
+        : undefined,
     };
 
     return new Garden({
       environment: config.environment,
       digestKey: config.digestKey,
       htlc,
+      siweOpts: config.siweOpts,
     });
   }
 

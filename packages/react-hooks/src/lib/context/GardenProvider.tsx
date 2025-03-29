@@ -1,14 +1,6 @@
 import React, { createContext, FC, useEffect, useMemo, useState } from 'react';
 import { useOrderbook } from '../hooks/useOrderbook';
-import {
-  API,
-  Garden,
-  IGardenJS,
-  OrderStatus,
-  Quote,
-  SecretManager,
-  switchOrAddNetwork,
-} from '@gardenfi/core';
+import { API, Garden, IGardenJS, Quote } from '@gardenfi/core';
 import { SwapParams } from '@gardenfi/core';
 import type {
   GardenContextType,
@@ -16,13 +8,16 @@ import type {
   QuoteParams,
 } from './gardenProvider.types';
 import { Err, Ok } from '@catalogfi/utils';
-import { isBitcoin, MatchedOrder } from '@gardenfi/orderbook';
+import {
+  BlockchainType,
+  getBlockchainType,
+  isBitcoin,
+  MatchedOrder,
+} from '@gardenfi/orderbook';
 import { constructOrderpair } from '../utils';
+import { useDigestKey } from '../hooks/useDigestKey';
 
-export const GardenContext = createContext<GardenContextType>({
-  isExecuting: false,
-  isExecutorRequired: false,
-});
+export const GardenContext = createContext<GardenContextType>({});
 
 export const GardenProvider: FC<GardenProviderProps> = ({
   children,
@@ -30,28 +25,12 @@ export const GardenProvider: FC<GardenProviderProps> = ({
 }) => {
   const [garden, setGarden] = useState<IGardenJS>();
 
-  const { pendingOrders, isExecuting, digestKey } = useOrderbook(
-    garden,
-    config.walletClient?.account?.address,
-  );
-
-  const isExecutorRequired = useMemo(() => {
-    return !!pendingOrders.find((order) => {
-      const status = order.status;
-      return (
-        status === OrderStatus.InitiateDetected ||
-        status === OrderStatus.Initiated ||
-        status === OrderStatus.CounterPartyInitiateDetected ||
-        status === OrderStatus.CounterPartyInitiated ||
-        status === OrderStatus.RedeemDetected ||
-        status === OrderStatus.Expired
-      );
-    });
-  }, [pendingOrders]);
+  const { digestKey } = useDigestKey();
+  const { pendingOrders } = useOrderbook(garden, digestKey);
 
   const quote = useMemo(() => {
-    return new Quote(config.quoteUrl || API[config.environment].quote);
-  }, [config.quoteUrl, config.environment]);
+    return config.quote ?? new Quote(API[config.environment].quote);
+  }, [config.quote, config.environment]);
 
   const getQuote = useMemo(
     () =>
@@ -73,61 +52,44 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   );
 
   const swapAndInitiate = async (params: SwapParams) => {
-    if (!garden || !config.walletClient) return Err('Garden not initialized');
+    if (!garden) return Err('Garden not initialized');
 
     const order = await garden.swap(params);
     if (order.error) return Err(order.error);
 
     if (isBitcoin(order.val.source_swap.chain)) return Ok(order.val);
 
-    // switch network if needed
-    const switchRes = await switchOrAddNetwork(
-      params.fromAsset.chain,
-      config.walletClient,
-    );
-    if (switchRes.error)
-      return Err('Failed to switch network: ' + switchRes.error);
-    const newWalletClient = switchRes.val.walletClient;
+    let init_tx_hash: string;
+    switch (getBlockchainType(order.val.source_swap.chain)) {
+      case BlockchainType.EVM: {
+        if (!garden.evmHTLC)
+          return Err('EVM HTLC not initialized: Please provide evmHTLC');
 
-    //only initiate if EVM
-    const initRes = await garden.evmRelay.init(newWalletClient, order.val);
-    if (initRes.error) return Err(initRes.error);
+        const initRes = await garden.evmHTLC.initiate(order.val);
+        if (initRes.error) return Err(initRes.error);
+        init_tx_hash = initRes.val;
+        break;
+      }
+      case BlockchainType.Starknet: {
+        if (!garden.starknetHTLC)
+          return Err(
+            'Starknet HTLC not initialized: Please provide starknetHTLC',
+          );
+
+        const starknetInitRes = await garden.starknetHTLC.initiate(order.val);
+        if (starknetInitRes.error) return Err(starknetInitRes.error);
+        init_tx_hash = starknetInitRes.val;
+        break;
+      }
+      default:
+        return Err('Unsupported chain');
+    }
 
     const updatedOrder: MatchedOrder = {
       ...order.val,
       source_swap: {
         ...order.val.source_swap,
-        initiate_tx_hash: initRes.val,
-      },
-    };
-
-    return Ok(updatedOrder);
-  };
-
-  const evmInitiate = async (order: MatchedOrder) => {
-    if (!garden || !config.walletClient) return Err('garden not initialized');
-
-    if (isBitcoin(order.source_swap.chain))
-      return Err('Not an EVM order: sourceSwap.chain is Bitcoin');
-
-    // switch network if needed
-    const switchRes = await switchOrAddNetwork(
-      order.source_swap.chain,
-      config.walletClient,
-    );
-    if (switchRes.error)
-      return Err('Failed to switch network: ' + switchRes.error);
-    const newWalletClient = switchRes.val.walletClient;
-
-    //only initiate if EVM
-    const initRes = await garden.evmRelay.init(newWalletClient, order);
-    if (initRes.error) return Err(initRes.error);
-
-    const updatedOrder: MatchedOrder = {
-      ...order,
-      source_swap: {
-        ...order.source_swap,
-        initiate_tx_hash: initRes.val,
+        initiate_tx_hash: init_tx_hash,
       },
     };
 
@@ -136,28 +98,34 @@ export const GardenProvider: FC<GardenProviderProps> = ({
 
   // Initialize Garden
   useEffect(() => {
-    if (!config.walletClient) return;
-    if (!config.walletClient.account?.address)
-      throw new Error("WalletClient doesn't have an account");
-    const secretManager = digestKey
-      ? SecretManager.fromDigestKey(digestKey)
-      : undefined;
+    if (!window || !config.wallets || !config.htlc || !digestKey) return;
 
-    setGarden(
-      new Garden({
+    let garden: Garden;
+    if (config.wallets) {
+      garden = Garden.from({
         environment: config.environment,
-        evmWallet: config.walletClient,
-        siweOpts: config.siweOpts ?? {
-          domain: window.location.hostname,
-          store: config.store,
+        digestKey: digestKey,
+        wallets: config.wallets,
+        siweOpts: {
+          store: localStorage,
         },
-        apiKey: config.apiKey,
-        secretManager,
-        quote: config.quoteUrl ?? API[config.environment].quote,
-        orderbookURl: config.orderBookUrl ?? API[config.environment].orderbook,
-      }),
-    );
-  }, [config.walletClient, digestKey]);
+      });
+    } else if (config.htlc) {
+      garden = new Garden({
+        environment: config.environment,
+        digestKey: digestKey,
+        htlc: config.htlc,
+        siweOpts: {
+          store: localStorage,
+        },
+      });
+    } else {
+      // Handle case where neither wallets nor htlc is provided
+      return;
+    }
+
+    setGarden(garden);
+  }, [config.wallets, config.htlc, config.environment, digestKey]);
 
   return (
     <GardenContext.Provider
@@ -168,9 +136,6 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         pendingOrders,
         getQuote,
         garden: garden,
-        isExecuting,
-        isExecutorRequired,
-        evmInitiate,
       }}
     >
       {children}
