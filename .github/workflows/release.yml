@@ -29,6 +29,10 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GH_PAT }}
 
+      - name: Get Commenter's Username
+        id: get-commenter
+        run: echo "COMMENTER=${{ github.event.comment.user.login }}"
+
       - name: Fetch Commenter's Permissions
         id: get-permission
         run: |
@@ -62,13 +66,25 @@ jobs:
       - name: Make handle-release.sh Executable
         run: chmod +x scripts/handle-release.sh
 
+      - name: Extract PR Info (for PR comments)
+        if: github.event.issue.pull_request != null
+        run: |
+          PR_URL="${{ github.event.issue.pull_request.url }}"
+          PR_DATA=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" "$PR_URL")
+
+          echo "$PR_DATA" > pr.json
+          echo "PR_BRANCH=$(jq -r '.head.ref' pr.json)" >> $GITHUB_ENV
+          echo "PR_REPO=$(jq -r '.head.repo.full_name' pr.json)" >> $GITHUB_ENV
+
       - name: Run Beta Release Script
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          PR_BRANCH: ${{ env.PR_BRANCH }}
+          PR_REPO: ${{ env.PR_REPO }}
         run: ./scripts/handle-release.sh beta
 
   release:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && (contains(github.event.head_commit.message, 'patch:') || contains(github.event.head_commit.message, 'chore:') || contains(github.event.head_commit.message, 'fix:') || contains(github.event.head_commit.message, 'feat:'))
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && (contains(github.event.head_commit.message, 'patch') || contains(github.event.head_commit.message, 'chore') || contains(github.event.head_commit.message, 'fix') || contains(github.event.head_commit.message, 'feat'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
