@@ -49,7 +49,7 @@ describe('StarkNet Integration Tests', () => {
 
   // const RELAYER_URL = 'https://orderbook-stage.hashira.io';
   const STARKNET_NODE_URL =
-    'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/Ry6QmtzfnqANtpqP3kLqe08y80ZorPoY';
+    'https://starknet-sepolia.public.blastapi.io/rpc/v0_7';
   // const QUOTE_SERVER_URL = 'https://quote-staging.hashira.io';
   // const STARKNET_RELAY_URL = 'https://starknet-relayer.hashira.io';
   // const API_KEY =
@@ -164,7 +164,7 @@ describe('StarkNet Integration Tests', () => {
         fromAsset: SupportedAssets.testnet.starknet_testnet_ETH,
         toAsset: SupportedAssets.testnet.arbitrum_sepolia_WBTC,
         sendAmount: '10000000000000000',
-        receiveAmount: '23073',
+        receiveAmount: '22361',
         additionalData: {
           strategyId: 'ss59as1d',
         },
@@ -208,7 +208,7 @@ describe('StarkNet Integration Tests', () => {
 
   //-----------------EVM-STRK SWAP-----------------
 
-  describe('evm-strk swap', async () => {
+  describe.only('evm-strk swap', async () => {
     it('should create order and match', async () => {
       const order = {
         fromAsset: SupportedAssets.testnet.arbitrum_sepolia_WBTC,
@@ -300,7 +300,7 @@ describe('StarkNet Integration Tests', () => {
     }, 150000);
   });
 
-  describe.only('strk-btc swap', async () => {
+  describe('strk-btc swap', async () => {
     it.skip('should create order and match', async () => {
       console.log('\n------ CREATING SWAP ORDER ------');
       const order = {

@@ -7,7 +7,7 @@ import { IStarknetHTLC } from '../starknetHTLC.types';
 import { checkAllowanceAndApprove } from '../checkAllowanceAndApprove';
 import { starknetHtlcABI } from '../abi/starknetHtlcABI';
 
-const DEFAULT_NODE_URL = 'https://starknet-mainnet.public.blastapi.io';
+const DEFAULT_NODE_URL = 'https://starknet-sepolia.public.blastapi.io/rpc/v0_7';
 
 export class StarknetHTLC implements IStarknetHTLC {
   private nodeUrl: string;
