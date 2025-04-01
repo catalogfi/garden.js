@@ -98,7 +98,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
 
   // Initialize Garden
   useEffect(() => {
-    if (!window || !config.wallets || !config.htlc || !digestKey) return;
+    if (!window || !digestKey || (!config.wallets && !config.htlc)) return;
 
     let garden: Garden;
     if (config.wallets) {
