@@ -10,9 +10,10 @@ function App() {
   return (
     <GardenProvider
       config={{
-        store: localStorage,
         environment: Environment.TESTNET,
-        walletClient: walletClient,
+        wallets: {
+          evm: walletClient,
+        },
       }}
     >
       <Swap />
