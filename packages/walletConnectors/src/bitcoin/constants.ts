@@ -2,7 +2,7 @@ export const SupportedWallets = {
   OKX: {
     name: 'OKX',
     icon: 'https://garden-finance.s3.ap-south-2.amazonaws.com/wallets/okx.svg',
-    description: 'OKX wallet',
+    description: 'OKX Wallet',
   },
   Unisat: {
     name: 'Unisat',
@@ -29,7 +29,7 @@ export const SupportedWallets = {
 export const WALLET_CONFIG = {
   OKX: {
     id: 'okx',
-    name: 'OKX wallet',
+    name: 'OKX Wallet',
     icon: 'https://garden-finance.imgix.net/wallets/okx.svg'
   },
   Unisat: {
