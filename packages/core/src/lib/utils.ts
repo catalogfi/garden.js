@@ -150,3 +150,7 @@ export const getBitcoinNetwork = (network: Environment): BitcoinNetwork => {
       throw new Error(`Invalid bitcoin network ${network}`);
   }
 };
+
+export const test = () => {
+  console.log('test');
+}
