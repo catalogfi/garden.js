@@ -38,7 +38,12 @@ echo "Version bump type detected: $VERSION_BUMP"
 
 if [[ "$IS_PR" == "true" && -n "$PR_BRANCH" ]]; then
   git fetch origin "$PR_BRANCH:$PR_BRANCH"
-  RAW_CHANGED=$(git diff --name-only origin/main..."$PR_BRANCH" | grep '^packages/' | awk -F/ '{print $2}' | sort -u)
+
+  if ! git rev-parse --verify "$PR_BRANCH@{1}" >/dev/null 2>&1; then
+    RAW_CHANGED=$(git diff --name-only origin/main..."$PR_BRANCH" | grep '^packages/' | awk -F/ '{print $2}' | sort -u)
+  else
+    RAW_CHANGED=$(git diff --name-only "$PR_BRANCH@{1}"..."$PR_BRANCH" | grep '^packages/' | awk -F/ '{print $2}' | sort -u)
+  fi
 
   CHANGED=""
   for DIR in $RAW_CHANGED; do
