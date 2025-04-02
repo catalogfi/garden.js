@@ -38,12 +38,7 @@ echo "Version bump type detected: $VERSION_BUMP"
 
 if [[ "$IS_PR" == "true" && -n "$PR_BRANCH" ]]; then
   git fetch origin "$PR_BRANCH:$PR_BRANCH"
-
-  if ! git rev-parse --verify "$PR_BRANCH@{1}" >/dev/null 2>&1; then
-    RAW_CHANGED=$(git diff --name-only origin/main..."$PR_BRANCH" | grep '^packages/' | awk -F/ '{print $2}' | sort -u)
-  else
-    RAW_CHANGED=$(git diff --name-only "$PR_BRANCH@{1}"..."$PR_BRANCH" | grep '^packages/' | awk -F/ '{print $2}' | sort -u)
-  fi
+  RAW_CHANGED=$(git diff --name-only origin/main..."$PR_BRANCH" | grep '^packages/' | awk -F/ '{print $2}' | sort -u)
 
   CHANGED=""
   for DIR in $RAW_CHANGED; do
@@ -106,10 +101,19 @@ done
 
 declare -A REVERSE_DEP_MAP
 for PKG in $TOPO_ORDER; do
-  PKG_DIR=$(echo "$PKG" | cut -d/ -f2)
+  PKG_DIR="${PKG_NAME_TO_DIR[$PKG]}"
+  if [[ -z "$PKG_DIR" ]]; then
+    echo "⚠️ Skipping $PKG: Directory not found in PKG_NAME_TO_DIR"
+    continue
+  fi
+
   DEPS=$(jq -r '.dependencies // {} | keys[]' "packages/$PKG_DIR/package.json" 2>/dev/null | grep '^@gardenfi/' || true)
   for DEP in $DEPS; do
-    REVERSE_DEP_MAP[$DEP]="${REVERSE_DEP_MAP[$DEP]} $PKG"
+    if [[ -n "${REVERSE_DEP_MAP[$DEP]}" ]]; then
+      REVERSE_DEP_MAP[$DEP]="${REVERSE_DEP_MAP[$DEP]} $PKG"
+    else
+      REVERSE_DEP_MAP[$DEP]="$PKG"
+    fi
   done
 done
 
