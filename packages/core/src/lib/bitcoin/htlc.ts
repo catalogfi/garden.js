@@ -212,7 +212,11 @@ export class GardenHTLC implements IHTLCWallet {
     if (balance === 0) throw new Error(`${address} ${htlcErrors.notFunded}`);
 
     for (let i = 0; i < utxos.length; i++) {
-      tx.addInput(Buffer.from(utxos[i].txid, 'hex').reverse(), utxos[i].vout);
+      tx.addInput(
+        Buffer.from(utxos[i].txid, 'hex').reverse(),
+        utxos[i].vout,
+        4294967293,
+      );
     }
 
     // add output without fees
