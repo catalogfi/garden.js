@@ -30,7 +30,6 @@
     "vite-plugin-eslint": "^1.8.1",
     "vitest": "^1.6.0"
   },
-  "packageManager": "yarn@4.3.1",
   "dependencies": {
     "@catalogfi/utils": "^0.1.12"
   }
