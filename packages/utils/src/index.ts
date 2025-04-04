@@ -7,3 +7,4 @@ export * from './lib/approve';
 export * from './lib/blockNumber';
 export * from './lib/eventBroker';
 export * from './lib/result';
+export * from './lib/digestKey/digestKey';

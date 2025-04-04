@@ -1,9 +1,10 @@
 import { WalletClient } from 'viem';
-import { OrderWithStatus } from '@gardenfi/core';
+import { IEVMHTLC, IStarknetHTLC, OrderWithStatus } from '@gardenfi/core';
 import { AsyncResult, Request, Result } from '@catalogfi/utils';
 import { IGardenJS, IQuote, QuoteResponse, SwapParams } from '@gardenfi/core';
 import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
-import { Environment, IStore, SiweOpts } from '@gardenfi/utils';
+import { Environment, Url } from '@gardenfi/utils';
+import { Account } from 'starknet';
 
 export type GardenContextType = {
   /**
@@ -34,43 +35,29 @@ export type GardenContextType = {
    * @returns {IGardenJS}
    */
   garden?: IGardenJS;
-  /**
-   * Indicates if the orders are executing.
-   */
-  isExecuting: boolean;
-
-  /**
-   * Indicates if the executor is required based on pending orders.
-   */
-  isExecutorRequired: boolean;
 
   /**
    * The quote instance.
    * @returns {IQuote}
    */
   quote?: IQuote;
-
-  /**
-   * Initiates the order in the EVM chain. This can be useful if the initiation is failed when `swapAndInitiate` function is called.
-   * @param order - The order to initiate.
-   * @returns {AsyncResult<MatchedOrder, string>} - The initiated order.
-   * @NOTE This is only required if the source chain is EVM.
-   */
-  evmInitiate?: (order: MatchedOrder) => AsyncResult<MatchedOrder, string>;
 };
 
 export type GardenProviderProps = {
   children: React.ReactNode;
   config: {
-    store: IStore;
     environment: Environment;
-    walletClient?: WalletClient;
-    orderBookUrl?: string;
-    quoteUrl?: string;
-    bitcoinRPCUrl?: string;
-    blockNumberFetcherUrl?: string;
-    siweOpts?: SiweOpts;
-    apiKey?: string;
+    orderBook?: IOrderbook;
+    quote?: IQuote;
+    blockNumberFetcherUrl?: Url;
+    htlc?: {
+      evm?: IEVMHTLC;
+      starknet?: IStarknetHTLC;
+    };
+    wallets?: {
+      evm?: WalletClient;
+      starknet?: Account;
+    };
   };
 };
 

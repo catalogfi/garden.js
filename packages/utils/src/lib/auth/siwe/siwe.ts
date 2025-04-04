@@ -9,7 +9,7 @@ import { createSiweMessage } from 'viem/siwe';
 import { add0x, Authorization, parseJwt } from '../../utils';
 import { privateKeyToAccount } from 'viem/accounts';
 import { mainnet } from 'viem/chains';
-
+import { DigestKey } from '../../digestKey/digestKey';
 export class Siwe implements IAuth {
   private readonly API = new Url('https://api.garden.finance');
   private readonly url: Url;
@@ -31,14 +31,14 @@ export class Siwe implements IAuth {
     this.store = opts?.store ?? new MemoryStorage();
   }
 
-  static fromDigestKey(url: Url, digestKey: string) {
+  static fromDigestKey(url: Url, digestKey: DigestKey, siweOpts?: SiweOpts) {
     const walletClient = createWalletClient({
-      account: privateKeyToAccount(add0x(digestKey) as `0x${string}`),
+      account: privateKeyToAccount(add0x(digestKey.digestKey) as `0x${string}`),
       transport: http(),
       chain: mainnet,
     });
 
-    return new Siwe(url, walletClient);
+    return new Siwe(url, walletClient, siweOpts);
   }
 
   verifyToken(token: string, account: string): Result<boolean, string> {

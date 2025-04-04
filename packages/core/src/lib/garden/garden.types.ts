@@ -1,14 +1,14 @@
 import { AsyncResult } from '@catalogfi/utils';
 import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
 import { OrderStatus } from '../orderStatus/status';
-import { Environment, EventBroker, IAuth } from '@gardenfi/utils';
+import { Environment, EventBroker, IAuth, SiweOpts } from '@gardenfi/utils';
 import { ISecretManager } from '../secretManager/secretManager.types';
 import { IQuote } from '../quote/quote.types';
 import { IBlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
 import { IBitcoinWallet } from '@catalogfi/wallets';
 import { IEVMHTLC } from '../evm/htlc.types';
-import { DigestKey } from './digestKey/digestKey';
 import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
+import { DigestKey } from '@gardenfi/utils';
 
 export type SwapParams = {
   /**
@@ -165,12 +165,13 @@ export interface IOrderExecutorCache {
 
 export type GardenProps = {
   environment: Environment;
-  digestKey: string;
+  digestKey: string | DigestKey;
   api?: string;
   secretManager?: ISecretManager;
   orderbook?: IOrderbook;
   quote?: IQuote;
   blockNumberFetcher?: IBlockNumberFetcher;
+  siweOpts?: SiweOpts;
   htlc: {
     evm?: IEVMHTLC;
     starknet?: IStarknetHTLC;
