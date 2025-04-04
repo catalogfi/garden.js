@@ -1,6 +1,6 @@
 import { trim0x } from '@catalogfi/utils';
 import { Err, Ok } from '../result';
-import { randomBytes } from 'crypto-browserify';
+import { Crypto } from '@peculiar/webcrypto';
 import { privateKeyToAccount } from 'viem/accounts';
 
 export class DigestKey {
@@ -48,18 +48,11 @@ export class DigestKey {
   }
 
   private static generateRandomDigestKey(): string {
-    let privateKey;
+    const crypto = new Crypto();
+    const randomBytes = new Uint8Array(32);
+    crypto.getRandomValues(randomBytes);
 
-    if (typeof window !== 'undefined' && window.crypto) {
-      // Browser environment
-      const randomBytes = new Uint8Array(32);
-      window.crypto.getRandomValues(randomBytes);
-      privateKey = trim0x(Buffer.from(randomBytes).toString('hex'));
-    } else {
-      // Node.js environment
-      const _randomBytes = randomBytes(32);
-      privateKey = trim0x(Buffer.from(_randomBytes).toString('hex'));
-    }
+    const privateKey = trim0x(Buffer.from(randomBytes).toString('hex'));
 
     return DigestKey.isValidPrivateKey(privateKey)
       ? privateKey
