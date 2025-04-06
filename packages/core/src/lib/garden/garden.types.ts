@@ -9,7 +9,7 @@ import { BitcoinWallet, IBitcoinWallet } from '@catalogfi/wallets';
 import { IEVMHTLC } from '../evm/htlc.types';
 import { DigestKey } from './digestKey/digestKey';
 import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
-import { AnchorProvider } from '@coral-xyz/anchor';
+import { ISolanaHTLC } from '../solana/htlc/ISolanaHTLC';
 
 export type SwapParams = {
   /**
@@ -179,13 +179,11 @@ export type GardenProps = {
   orderbook?: IOrderbook;
   quote?: IQuote;
   blockNumberFetcher?: IBlockNumberFetcher;
-  solanaRelayUrl?: URL;
-  solanaRelayerAddress?: string;
-  solWallet?: AnchorProvider;
   btcWallet?: BitcoinWallet;
   htlc: {
     evm?: IEVMHTLC;
     starknet?: IStarknetHTLC;
+    solana?: ISolanaHTLC;
   };
 };
 
