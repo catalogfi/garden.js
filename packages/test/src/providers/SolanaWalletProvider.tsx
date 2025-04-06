@@ -8,7 +8,7 @@ import {
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { clusterApiUrl } from '@solana/web3.js';
-import { UnsafeBurnerWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { PhantomWalletAdapter, SolflareWalletAdapter, UnsafeBurnerWalletAdapter } from '@solana/wallet-adapter-wallets';
 
 // Default styles that can be overridden by your app
 require('@solana/wallet-adapter-react-ui/styles.css');
@@ -22,10 +22,12 @@ export default function SolanaWalletProvider({
 }) {
   const network = WalletAdapterNetwork.Devnet;
   // const endpoint = useMemo(() => clusterApiUrl(network), [network]); This points to api.devnet.solana.com
-  const endpoint = 'http://localhost:8899';
+  const endpoint = 'https://api.devnet.solana.com';
 
   const wallets = useMemo(
     () => [
+      new PhantomWalletAdapter(),
+      new SolflareWalletAdapter(),
       // manually add any legacy wallet adapters here
       // new UnsafeBurnerWalletAdapter(),
     ],

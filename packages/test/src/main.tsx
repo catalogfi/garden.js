@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { createConfig, http, WagmiProvider } from 'wagmi';
-import { arbitrum, mainnet } from 'wagmi/chains';
+import { arbitrum, arbitrumSepolia, mainnet } from 'wagmi/chains';
 import { injected, metaMask, safe } from 'wagmi/connectors';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ArbitrumLocalnet, EthereumLocalnet } from '@gardenfi/orderbook';
@@ -27,6 +27,7 @@ export const config = createConfig({
     [arbitrum.id]: http(),
     [ArbitrumLocalnet.id]: http(),
     [EthereumLocalnet.id]: http(),
+    [arbitrumSepolia.id]: http()
   },
 });
 
