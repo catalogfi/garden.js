@@ -144,8 +144,8 @@ export const SupportedAssets = {
       symbol: 'WBTC',
       logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
       chain: Chains.arbitrum_sepolia,
-      tokenAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
-      atomicSwapAddress: '0x1cd0bBd55fD66B4C5F7dfE434eFD009C09e628d1',
+      tokenAddress: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
+      atomicSwapAddress: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
     },
     arbitrum_sepolia_SEED: {
       name: 'Seed',
