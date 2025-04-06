@@ -1,85 +1,144 @@
 import { web3, AnchorProvider, Program } from "@coral-xyz/anchor";
-import { IHTLCWallet } from "@catalogfi/wallets";
 import idl from "../idl/solana_native_swaps.json";
 import { SolanaNativeSwaps } from "../idl/solana_native_swaps";
 import { SwapConfig, validateSecret } from "../solanaTypes";
+import { ISolanaHTLC } from "./ISolanaHTLC";
+import { MatchedOrder } from "@gardenfi/orderbook";
+import { AsyncResult, Err, Ok } from "@catalogfi/utils";
 
 /**
- * SolanaHTLC is an implementation of IHTLCWallet that performs atomic swaps directly on-chain.
+ * SolanaHTLC is an implementation of ISolanaHTLC that performs atomic swaps directly on-chain.
  * As such, fees will be deducted from the initiator.
  * To use a relayer that pays fees on behalf, see SolanaRelay
  */
-export class SolanaHTLC implements IHTLCWallet {
+export class SolanaHTLC implements ISolanaHTLC {
     /**
      * The on-chain Program Derived Address (PDA) that facilitates this swap.
      * Stores the swap state (initiator, redeemer, secrethash etc) and escrows the tokens.
      */
-    private swapAccount: web3.PublicKey;
+    private swapAccount?: web3.PublicKey;
     private program: Program<SolanaNativeSwaps>;
 
     /**
-     * @constructor
-     * @param swapConfig Config for the swap.
-     * @param provider Solana Provider (abstraction of RPC connection and a Wallet)
+     * Creates a new instance of SolanaHTLC.
+     * @param {AnchorProvider} provider - Solana Provider (abstraction of RPC connection and a Wallet)
+     * @throws {Error} If provider is not provided
      */
     constructor(
-        private swap: SwapConfig,
         private provider: AnchorProvider,
     ) {
+        if (!provider) throw new Error("Provider is required");
+        this.provider = provider;
         this.program = new Program(idl as SolanaNativeSwaps, provider);
-        const pdaSeeds = [Buffer.from("swap_account"), Buffer.from(swap.swapId)];
+    }
+
+    /**
+     * Gets the on-chain address of the atomic swap program.
+     * @returns {string} The program's on-chain address in base58 format
+     * @throws {Error} If no program ID is found
+     */
+    get htlcActorAddress(): string {
+        if (!this.program.programId)
+            throw new Error("No program found");
+        return this.provider.publicKey.toBase58();
+    }
+
+    /**
+     * Initiates a swap by creating a new swap account and locking funds.
+     * @param {MatchedOrder} order - The matched order containing swap details
+     * @returns {Promise<AsyncResult<string, string>>} A promise that resolves to either:
+     *   - Ok with the transaction ID on success
+     *   - Err with an error message on failure
+     */
+    async initiate(order: MatchedOrder): AsyncResult<string, string> {
+        if (!order) return Err("Order is required");
+
+        try {
+            const { swapId, redeemer, secretHash, amount, expiresIn } = SwapConfig.from(order);
+
+            // Initializing the data on blockchain
+            const pdaSeeds = [Buffer.from("swap_account"), Buffer.from(swapId)];
+            this.swapAccount = web3.PublicKey.findProgramAddressSync(pdaSeeds, this.program.programId)[0];
+
+            const tx = await this.program.methods
+                .initiate(swapId, redeemer, secretHash, amount, expiresIn)
+                .accounts({ initiator: this.provider.publicKey })
+                .transaction();
+            const txHex = await this.provider.sendAndConfirm(tx);
+
+            return txHex ? Ok(txHex) : Err("Failed to initiate HTLC transaction");
+        } catch (error) {
+            return Err(`Error initiating swap: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
+
+    /**
+     * Redeems a swap by providing the secret.
+     * @param {MatchedOrder} order - Matched order object containing swap details
+     * @param {string} secret - Secret key in hex format
+     * @returns {AsyncResult<string, string>} A promise that resolves to either:
+     *   - Ok with the transaction ID on success
+     *   - Err with an error message on failure
+     */
+    async redeem(order: MatchedOrder, secret: string): AsyncResult<string, string> {
+        if (!order) return Err("Order is required");
+        if (!secret) return Err("Secret is required");
+        const { swapId } = SwapConfig.from(order)
+
+        const pdaSeeds = [Buffer.from("swap_account"), Buffer.from(swapId)];
         this.swapAccount = web3.PublicKey.findProgramAddressSync(pdaSeeds, this.program.programId)[0];
+
+        try {
+            const { redeemer } = SwapConfig.from(order);
+            if (!this.swapAccount)
+                return Err("Swap account not initialized. Call initiate() first or provide swap ID.");
+
+            const tx = await this.program.methods
+                .redeem(validateSecret(secret))
+                .accounts({
+                    swapAccount: this.swapAccount,
+                    redeemer: redeemer,
+                })
+                .transaction();
+            const txId = await this.provider.sendAndConfirm(tx);
+
+            return txId ? Ok(txId) : Err("Failed to redeem HTLC transaction");
+        } catch (error) {
+            return Err(`Error redeeming swap: ${error instanceof Error ? error.message : String(error)}`);
+        }
     }
 
     /**
-     * The on-chain address of the atomic swap program
-     * @returns {string} The program's on-chain address (base58)
+     * Refunds the swap back to the initiator.
+     * @param {MatchedOrder} order - Matched order object
+     * @returns {AsyncResult<string, string>} A promise that resolves to either:
+     *   - Ok with the transaction ID on success
+     *   - Err with an error message on failure
      */
-    id(): string {
-        return this.program.programId.toBase58();
-    }
+    async refund(order: MatchedOrder): AsyncResult<string, string> {
+        if (!order) return Err("Order is required");
 
-    /**
-     * Initiates the swap, paying the fees
-     * @returns {Promise<string>} Transaction ID
-     */
-    async init(): Promise<string> {
-        const { swapId, redeemer, secretHash, amount, expiresIn } = this.swap;
-        const tx = await this.program.methods
-            .initiate(swapId, redeemer, secretHash, amount, expiresIn)
-            .accounts({ initiator: this.provider.publicKey })
-            .transaction();
-        return await this.provider.sendAndConfirm(tx);
-    }
+        const { swapId } = SwapConfig.from(order)
+        const pdaSeeds = [Buffer.from("swap_account"), Buffer.from(swapId)];
+        this.swapAccount = web3.PublicKey.findProgramAddressSync(pdaSeeds, this.program.programId)[0];
 
-    /**
-     * Redeem the swap
-     * @param secret - A 32 byte hex encoded string
-     * @returns {string} Transaction ID
-     */
-    async redeem(secret: string): Promise<string> {
-        const tx = await this.program.methods
-            .redeem(validateSecret(secret))
-            .accounts({
-                swapAccount: this.swapAccount,
-                redeemer: this.swap.redeemer,
-            })
-            .transaction();
-        return await this.provider.sendAndConfirm(tx);
-    }
+        try {
+            console.log("Initiating refund for ::", order.source_swap.swap_id);
+            if (!this.swapAccount)
+                return Err("Swap account not initialized. Call initiate() first or provide swap ID.");
 
-    /**
-     * Refunds the swap
-     * @returns {string} Transaction ID
-     */
-    async refund(): Promise<string> {
-        const tx = await this.program.methods
-            .refund()
-            .accounts({
-                swapAccount: this.swapAccount,
-                refundee: this.provider.publicKey,
-            })
-            .transaction();
-        return await this.provider.sendAndConfirm(tx);
+            const tx = await this.program.methods
+                .refund()
+                .accounts({
+                    swapAccount: this.swapAccount,
+                    refundee: this.provider.publicKey,
+                })
+                .transaction();
+
+            const txId = await this.provider.sendAndConfirm(tx);
+            return txId ? Ok(txId) : Err("Failed to refund HTLC transaction");
+        } catch (error) {
+            return Err(`Error refunding swap: ${error instanceof Error ? error.message : String(error)}`);
+        }
     }
 }
