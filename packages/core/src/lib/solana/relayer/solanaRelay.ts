@@ -67,7 +67,7 @@ export class SolanaRelay implements ISolanaHTLC {
      *   - Err with an error message on failure
      * @private
      */
-    private async sendViaRelayer(transaction: web3.Transaction, isInitiate: boolean = false): AsyncResult<string, string> {
+    private async sendViaRelayer(transaction: web3.Transaction, isInitiate: boolean = false, orderId: string): AsyncResult<string, string> {
         try {
             transaction.recentBlockhash = (await this.provider.connection.getLatestBlockhash()).blockhash;
             transaction.feePayer = this.relayer;
@@ -79,11 +79,16 @@ export class SolanaRelay implements ISolanaHTLC {
                 // Use the signed transaction (with compute budget instructions) for encoding
                 const encodedTx = bs58.encode(signedTransaction.serialize({ requireAllSignatures: false }));
 
+                const relayRequest = {
+                    orderId: orderId,
+                    serializedTx: encodedTx
+                };
+
                 // Send to relayer
                 const res: APIResponse<string> = await Fetcher.post(this.endpoint, {
-                    body: encodedTx,
+                    body: JSON.stringify(relayRequest),
                     headers: {
-                        'Content-Type': 'text/plain',
+                        'Content-Type': 'application/json',
                     },
                 });
 
@@ -133,7 +138,7 @@ export class SolanaRelay implements ISolanaHTLC {
             .accounts({ initiator: this.provider.publicKey })
             .transaction();
 
-        return await this.sendViaRelayer(tx, true);
+        return await this.sendViaRelayer(tx, true, order.create_order.create_id);
     }
 
     /**
@@ -158,7 +163,7 @@ export class SolanaRelay implements ISolanaHTLC {
             })
             .transaction();
 
-        return this.sendViaRelayer(tx, false);
+        return this.sendViaRelayer(tx, false, order.create_order.create_id);
     }
 
     /**
