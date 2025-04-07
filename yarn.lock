@@ -645,7 +645,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@gardenfi/orderbook@workspace:packages/orderbook"
   dependencies:
-    "@gardenfi/utils": "workspace:^"
+    "@gardenfi/utils": "workspace:*"
     "@types/ws": "npm:^8.5.7"
     bufferutil: "npm:^4.0.8"
     dotenv: "npm:^16.3.1"
@@ -719,7 +719,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@gardenfi/utils@workspace:^, @gardenfi/utils@workspace:packages/utils":
+"@gardenfi/utils@workspace:*, @gardenfi/utils@workspace:^, @gardenfi/utils@workspace:packages/utils":
   version: 0.0.0-use.local
   resolution: "@gardenfi/utils@workspace:packages/utils"
   dependencies:

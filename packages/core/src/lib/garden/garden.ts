@@ -30,6 +30,7 @@ import {
   SiweOpts,
   sleep,
   Url,
+  DigestKey,
 } from '@gardenfi/utils';
 import { IQuote } from '../quote/quote.types';
 import { getBitcoinNetwork, isValidBitcoinPubKey, toXOnly } from '../utils';
@@ -60,7 +61,6 @@ import { EvmRelay } from '../evm/relay/evmRelay';
 import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { Account } from 'starknet';
 import { StarknetRelay } from '../starknet/relay/starknetRelay';
-import { DigestKey } from '@gardenfi/utils';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment;
