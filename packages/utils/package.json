@@ -1,6 +1,6 @@
 {
   "name": "@gardenfi/utils",
-  "version": "2.0.6-beta.7",
+  "version": "2.0.6-beta.8",
   "type": "module",
   "scripts": {
     "build": "vite build",
@@ -37,7 +37,6 @@
   "dependencies": {
     "@peculiar/webcrypto": "^1.5.0",
     "@simplewebauthn/browser": "^13.1.0",
-    "crypto-browserify": "^3.12.1",
     "jwt-decode": "^4.0.0",
     "viem": "^2.21.23"
   }
