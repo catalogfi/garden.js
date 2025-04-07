@@ -620,13 +620,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gardenfi/core@workspace:^, @gardenfi/core@workspace:packages/core":
+"@gardenfi/core@workspace:*, @gardenfi/core@workspace:^, @gardenfi/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@gardenfi/core@workspace:packages/core"
   dependencies:
     "@catalogfi/wallets": "npm:^0.2.59"
-    "@gardenfi/orderbook": "workspace:^"
-    "@gardenfi/utils": "workspace:^"
+    "@gardenfi/orderbook": "workspace:*"
+    "@gardenfi/utils": "workspace:*"
     bignumber.js: "npm:^9.1.2"
     bitcoinjs-lib: "npm:^6.1.6"
     dotenv: "npm:^16.3.1"
@@ -641,7 +641,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@gardenfi/orderbook@workspace:^, @gardenfi/orderbook@workspace:packages/orderbook":
+"@gardenfi/orderbook@workspace:*, @gardenfi/orderbook@workspace:^, @gardenfi/orderbook@workspace:packages/orderbook":
   version: 0.0.0-use.local
   resolution: "@gardenfi/orderbook@workspace:packages/orderbook"
   dependencies:
@@ -665,9 +665,9 @@ __metadata:
   resolution: "@gardenfi/react-hooks@workspace:packages/react-hooks"
   dependencies:
     "@catalogfi/wallets": "npm:^0.2.59"
-    "@gardenfi/core": "workspace:^"
-    "@gardenfi/orderbook": "workspace:^"
-    "@gardenfi/utils": "workspace:^"
+    "@gardenfi/core": "workspace:*"
+    "@gardenfi/orderbook": "workspace:*"
+    "@gardenfi/utils": "workspace:*"
     "@types/react": "npm:^18"
     dotenv: "npm:^16.3.1"
     eslint-plugin-react: "npm:^7.37.4"
@@ -743,7 +743,7 @@ __metadata:
   dependencies:
     "@catalogfi/utils": "npm:^0.1.11"
     "@catalogfi/wallets": "npm:^0.2.54"
-    "@gardenfi/utils": "workspace:^"
+    "@gardenfi/utils": "workspace:*"
     "@types/react": "npm:^18"
     "@types/ws": "npm:^8.5.7"
     axios: "npm:^1.7.9"
