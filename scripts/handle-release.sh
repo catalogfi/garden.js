@@ -179,6 +179,11 @@ increment_version() {
 }
 export -f increment_version
 
+if [[ "$IS_PR" == "true" && -n "$PR_BRANCH" ]]; then
+  git checkout $PR_BRANCH
+else
+  git checkout main
+fi
 yarn workspaces foreach --all --topological --no-private run build
 
 for PKG in "${PUBLISH_ORDER[@]}"; do
