@@ -4,8 +4,6 @@ set -e
 COMMIT_EMAIL=$(git log -1 --pretty=format:'%ae')
 COMMIT_NAME=$(git log -1 --pretty=format:'%an')
 
-echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-
 git fetch --tags
 git fetch origin main:refs/remotes/origin/main
 
@@ -241,5 +239,3 @@ if [[ "$IS_PR" != "true" && -n $(git status --porcelain) ]]; then
       commit -m "commit release script and config changes"
   git push https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git HEAD:main
 fi
-
-rm -f ~/.npmrc
