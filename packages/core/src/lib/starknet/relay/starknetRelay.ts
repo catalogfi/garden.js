@@ -2,6 +2,7 @@ import { checkAllowanceAndApprove } from '../checkAllowanceAndApprove';
 import {
   Account,
   Contract,
+  RpcProvider,
   TypedData,
   TypedDataRevision,
   WeierstrassSignatureType,
@@ -37,17 +38,22 @@ const INITIATE_TYPE = {
   ],
 };
 
-const DEFAULT_NODE_URL = 'https://starknet-mainnet.public.blastapi.io';
+const DEFAULT_NODE_URL =
+  'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/fjZ8CPTHtjIN989lInvYqljpGNqJTspg';
 
 export class StarknetRelay implements IStarknetHTLC {
   private url: Url;
   private nodeUrl: string;
   private account: Account;
+  private starknetProvider: RpcProvider;
 
   constructor(relayerUrl: string | Url, account: Account, nodeUrl?: string) {
     this.nodeUrl = nodeUrl || DEFAULT_NODE_URL;
     this.url = new Url('/', relayerUrl);
     this.account = account;
+    this.starknetProvider = new RpcProvider({
+      nodeUrl: this.nodeUrl,
+    });
   }
 
   get htlcActorAddress(): string {
@@ -56,6 +62,7 @@ export class StarknetRelay implements IStarknetHTLC {
   }
 
   async initiate(order: MatchedOrder): AsyncResult<string, string> {
+    console.log('Initiating order: ', order.create_order.create_id);
     if (!this.account.address) return Err('No account address');
 
     const { create_order, source_swap } = order;
@@ -69,16 +76,19 @@ export class StarknetRelay implements IStarknetHTLC {
     ) {
       return Err('Invalid order');
     }
+    console.log('yo');
 
     try {
       const contract = new Contract(
         starknetHtlcABI,
         order.source_swap.asset,
-        this.account,
+        this.starknetProvider,
       );
+      console.log('Contract: ', contract.address);
 
       const token = await contract?.['token']();
       const tokenHex = num.toHex(token);
+      console.log('token: ', tokenHex);
 
       const approvalResult = await checkAllowanceAndApprove(
         this.account,

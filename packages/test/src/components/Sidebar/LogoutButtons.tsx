@@ -8,7 +8,7 @@ export const LogoutButtons = () => {
   const { address: EvmAddress } = useAccount();
   const { disconnect: disconnectWallet } = useDisconnect();
   const { disconnect: disconnectBTWWallet, account } = useBitcoinWallet();
-  const { account: starkAccount, disconnect: starkDisconnect } =
+  const { disconnect: disconnectStarknetWallet, account: starknetaccount } =
     useWalletStore();
 
   const EVMdisconnect = () => {
@@ -18,6 +18,11 @@ export const LogoutButtons = () => {
   const BTCDisconnect = () => {
     disconnectBTWWallet();
   };
+
+  const StarknetDisconnect = () => {
+    disconnectStarknetWallet();
+  };
+
   return (
     <div className="flex gap-2 w-1/2">
       <Button secondary disabled={!EvmAddress} onClick={EVMdisconnect}>
@@ -26,7 +31,11 @@ export const LogoutButtons = () => {
       <Button secondary disabled={!account} onClick={BTCDisconnect}>
         BTC Logout
       </Button>
-      <Button secondary disabled={!starkAccount} onClick={starkDisconnect}>
+      <Button
+        secondary
+        disabled={!starknetaccount}
+        onClick={StarknetDisconnect}
+      >
         Starknet Logout
       </Button>
     </div>

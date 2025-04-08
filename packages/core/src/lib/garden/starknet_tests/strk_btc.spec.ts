@@ -121,6 +121,7 @@ describe('StarkNet Integration Tests - STRK -> BTC', () => {
       '1',
       '0x3',
     );
+    // const starknetWallet = new WalletAccount(snProvider, window.braavos, '1');
     console.log('StarkNet account address:', starknetWallet.address);
 
     // const bitcoinProvider = new BitcoinProvider(

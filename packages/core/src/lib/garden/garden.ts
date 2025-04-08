@@ -239,14 +239,17 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       min_destination_confirmations: params.minDestinationConfirmations ?? 0,
       additional_data: additionalData,
     };
+    console.log('createOrderRequest', order);
 
     const quoteRes = await this._quote.getAttestedQuote(order);
     if (quoteRes.error) return Err(quoteRes.error);
+    console.log('attested quote response:', quoteRes.val);
 
     const createOrderRes = await this._orderbook.createOrder(
       quoteRes.val,
       this.auth,
     );
+    console.log('order created', createOrderRes.val);
     if (createOrderRes.error) return Err(createOrderRes.error);
 
     const orderRes = await this.pollOrder(createOrderRes.val);

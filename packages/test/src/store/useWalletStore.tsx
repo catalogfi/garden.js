@@ -1,66 +1,125 @@
 import { create } from 'zustand';
-import { connect, disconnect } from 'starknetkit';
+import { connect, disconnect, StarknetWindowObject } from 'starknetkit';
 import { InjectedConnector } from 'starknetkit/injected';
-import { Account, RpcProvider } from 'starknet';
+import { Account, AccountInterface } from 'starknet';
+import { persist } from 'zustand/middleware';
+// import {
+//   StarknetWalletProvider,
+//   SignerInterface,
+//   CairoVersion,
+// } from 'starknet';
 
+// Modify the WalletState interface to be more flexible
 interface WalletState {
   wallet: Account | null;
   account: string | undefined;
   isConnected: boolean;
   chainId: bigint | undefined;
-  connectWallet: (walletName: string) => Promise<void>;
-  disconnectWallet: () => Promise<void>;
+  connect: (
+    walletId: string,
+  ) => Promise<{ wallet: any; connectorData: any } | void>;
+  disconnect: () => Promise<void>;
 }
 
-export const useWalletStore = create<WalletState>((set) => ({
-  wallet: null,
-  account: undefined,
-  isConnected: false,
-  chainId: undefined,
+export const useWalletStore = create<WalletState>()(
+  persist(
+    (set, get) => ({
+      wallet: null,
+      account: undefined,
+      isConnected: false,
+      chainId: undefined,
 
-  connectWallet: async (walletName: string) => {
-    try {
-      const { wallet: connectedWallet, connectorData } = await connect({
-        connectors: [new InjectedConnector({ options: { id: walletName } })],
-      });
+      connect: async (walletId: string) => {
+        try {
+          const { wallet, connectorData } = await connect({
+            modalMode: 'alwaysAsk',
+            modalTheme: 'light',
+            connectors: [new InjectedConnector({ options: { id: walletId } })],
+          });
+          console.log(connectorData);
+          if (wallet && connectorData) {
+            const walletAcc = wallet?.account as AccountInterface;
+            const formatAddress = (address: string) => {
+              const cleanAddr = address.toLowerCase().startsWith('0x')
+                ? address.slice(2)
+                : address;
+              return `0x${cleanAddr.padStart(64, '0')}`;
+            };
 
-      if (connectedWallet && connectorData) {
-        const provider = new RpcProvider({
-          nodeUrl: `https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
-        });
+            const formattedAccount = connectorData.account
+              ? formatAddress(connectorData.account)
+              : undefined;
 
-        const account = new Account(
-          provider,
-          connectorData.account || '',
-          connectorData.address,
-          '1',
-        );
+            // Use type assertion to resolve type compatibility
+            const newState = {
+              wallet: {
+                ...walletAcc,
+                address: formattedAccount,
+              },
+              account: formattedAccount,
+              isConnected: true,
+              chainId: connectorData.chainId
+                ? BigInt(connectorData.chainId)
+                : undefined,
+            } as WalletState;
 
-        set({
-          wallet: account,
-          account: connectorData.account,
-          isConnected: true,
-          chainId: connectorData.chainId
-            ? BigInt(connectorData.chainId)
-            : undefined,
-        });
-      }
-    } catch (error) {
-      console.error('Error connecting wallet:', error);
-    }
-  },
+            set(newState);
 
-  disconnectWallet: async () => {
-    try {
-      await disconnect();
-      set({
-        wallet: null,
-        account: undefined,
-        isConnected: false,
-        chainId: undefined,
-      });
-    } catch (error) {
-      console.error('Error disconnecting wallet:', error);
-    }
-  },
-}));
+            // Setup event listeners with null checks
+            if (wallet) {
+              wallet.on('accountsChanged', (accounts?: string[]) => {
+                const newAccount = accounts?.[0]
+                  ? formatAddress(accounts[0])
+                  : undefined;
+                set({ account: newAccount });
+              });
+
+              wallet.on('networkChanged', (chainId?: string) => {
+                set({ chainId: chainId ? BigInt(chainId) : undefined });
+              });
+            }
+
+            return { wallet, connectorData };
+          }
+        } catch (error) {
+          console.error('Error connecting to wallet:', error);
+          // Optionally reset state on error
+          set({
+            wallet: null,
+            account: undefined,
+            isConnected: false,
+            chainId: undefined,
+          });
+        }
+      },
+
+      disconnect: async () => {
+        try {
+          const currentState = get();
+
+          // Only attempt to disconnect if currently connected
+          if (currentState.isConnected) {
+            await disconnect();
+            set({
+              wallet: null,
+              account: undefined,
+              isConnected: false,
+              chainId: undefined,
+            });
+          }
+        } catch (error) {
+          console.error('Error disconnecting wallet:', error);
+        }
+      },
+    }),
+    {
+      name: 'starknet-wallet-storage',
+      partialize: (state) => ({
+        account: state.account,
+        isConnected: state.isConnected,
+        chainId: state.chainId?.toString(),
+      }),
+      version: 1,
+    },
+  ),
+);

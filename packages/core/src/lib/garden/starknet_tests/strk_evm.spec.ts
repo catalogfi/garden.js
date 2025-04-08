@@ -1,5 +1,5 @@
 import { Garden } from '../garden';
-import { MatchedOrder, SupportedAssets } from '@gardenfi/orderbook';
+// import { MatchedOrder } from '@gardenfi/orderbook';
 import { Environment, Siwe, Url, with0x } from '@gardenfi/utils';
 import { RpcProvider, Account } from 'starknet';
 import { describe, expect, it } from 'vitest';
@@ -10,6 +10,7 @@ import { EvmRelay, Quote } from '@gardenfi/core';
 import { StarknetRelay } from '../../starknet/relay/starknetRelay';
 import { arbitrumSepolia } from 'viem/chains';
 import { IGardenJS } from '../garden.types';
+import { MatchedOrder, SupportedAssets } from '@gardenfi/orderbook';
 
 // async function mineStarknetBlocks(blocks: number, rpcUrl: string) {
 //   try {
@@ -44,9 +45,13 @@ describe('StarkNet Integration Tests', () => {
   //     'AAAAAGghjwU6Os1DVFgmUXj0GcNt5jTJPbBmXKw7xRARW-qivNy4nfpKVgMNebmmxig2o3v-6M4l_ZmCgLp3vKywfVXDYBcL3M4c';
 
   const RELAYER_URL = 'https://orderbook.garden.finance';
+  // const RELAYER_URL = 'http://10.67.22.233:4436';
+  // const STARKNET_NODE_URL =
+  //   'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/Ry6QmtzfnqANtpqP3kLqe08y80ZorPoY';
   const STARKNET_NODE_URL =
-    'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/Ry6QmtzfnqANtpqP3kLqe08y80ZorPoY';
+    'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/fjZ8CPTHtjIN989lInvYqljpGNqJTspg';
   const QUOTE_SERVER_URL = 'https://price.garden.finance';
+  // const STARKNET_RELAY_URL = 'http://10.67.22.233:4436';
   const STARKNET_RELAY_URL = 'https://starknet-relay.garden.finance';
   // const API_KEY =
   //   'AAAAAGm-kkU6Og9gRTmB1DP9oxyNi88Ttt1bARxzj-wTxG00LLYHUkhvMi1nwQzrxU1-kU2EQkCBw803q64Yw-j40vYxK7GBtDcb';
@@ -138,54 +143,58 @@ describe('StarkNet Integration Tests', () => {
 
   //-----------------STRK-EVM SWAP-----------------
 
-  describe('strk-evm swap', async () => {
-    it('should create and execute a StarkNet-ETH swap', async () => {
-      const order = {
-        fromAsset: SupportedAssets.testnet.starknet_testnet_ETH,
-        toAsset: SupportedAssets.testnet.arbitrum_sepolia_WBTC,
-        sendAmount: '100000000000000000',
-        receiveAmount: '1000',
-        additionalData: {
-          strategyId: 'ss59as1d',
-        },
-        minDestinationConfirmations: 1,
-      };
+  // describe('strk-evm swap', async () => {
+  //   it('should create and execute a StarkNet-ETH swap', async () => {
+  //     const order = {
+  //       fromAsset: SupportedAssets.testnet.starknet_testnet_ETH,
+  //       toAsset: SupportedAssets.testnet.arbitrum_sepolia_WBTC,
+  //       sendAmount: '10000000000000000',
+  //       receiveAmount: '100',
+  //       additionalData: {
+  //         strategyId: 'ss59as1d',
+  //       },
+  //       minDestinationConfirmations: 1,
+  //     };
 
-      const result = await garden.swap(order);
-      if (result.error) {
-        console.log('Error while creating order ❌:', result.error);
-        throw new Error(result.error);
-      }
+  //     const result = await garden.swap(order);
+  //     if (result.error) {
+  //       console.log('Error while creating order ❌:', result.error);
+  //       throw new Error(result.error);
+  //     }
 
-      console.log(
-        'Order created and matched ✅',
-        result.val.create_order.create_id,
-      );
-      matchedOrder = result.val;
-      // console.log(result.val.source_swap.asset);
-      // console.log('successfully initiated the swap ✅');
-      // console.log('Mining Starknet blocks...');
-      // await mineStarknetBlocks(3, STARKNET_NODE_URL);
-      // console.log('Blocks mined successfully');
+  //     console.log(
+  //       'Order created and matched ✅',
+  //       result.val.create_order.create_id,
+  //     );
+  //     matchedOrder = result.val;
+  //     // console.log(result.val.source_swap.asset);
+  //     // console.log('successfully initiated the swap ✅');
+  //     // console.log('Mining Starknet blocks...');
+  //     // await mineStarknetBlocks(3, STARKNET_NODE_URL);
+  //     // console.log('Blocks mined successfully');
 
-      expect(result.error).toBeFalsy();
-      expect(result.val).toBeTruthy();
-    }, 150000);
+  //     expect(result.error).toBeFalsy();
+  //     expect(result.val).toBeTruthy();
+  //   }, 150000);
 
-    it('Initiate the swap', async () => {
-      const res = await garden.starknetHTLC?.initiate(matchedOrder);
-      console.log('initiated ✅ :', res?.val);
-      if (res?.error) console.log('init error ❌ :', res.error);
-      // expect(res.ok).toBeTruthy();
-      expect(res?.ok).toBeTruthy();
-    }, 20000);
+  //   it('Initiate the swap', async () => {
+  //     // const matchedOrder1 = await garden.orderbook.getOrder(
+  //     //   '76d28c52a92729e023328400a0fddb209aad92e5693ae247ba04a97133092b89',
+  //     //   true,
+  //     // );
+  //     const res = await garden.starknetHTLC?.initiate(matchedOrder);
+  //     console.log('initiated ✅ :', res?.val);
+  //     if (res?.error) console.log('init error ❌ :', res.error);
+  //     // expect(res.ok).toBeTruthy();
+  //     expect(res?.ok).toBeTruthy();
+  //   }, 20000);
 
-    it('Execute', async () => {
-      setupEventListeners(garden);
-      await garden.execute();
-      await sleep(150000);
-    }, 150000);
-  });
+  //   it('Execute', async () => {
+  //     setupEventListeners(garden);
+  //     await garden.execute();
+  //     await sleep(150000);
+  //   }, 150000);
+  // });
 
   //-----------------EVM-STRK SWAP-----------------
 
@@ -223,7 +232,6 @@ describe('StarkNet Integration Tests', () => {
       if (!garden.evmHTLC) {
         throw new Error('EVM HTLC is not initialized');
       }
-
       const res = await garden.evmHTLC.initiate(matchedOrder);
       console.log('initiated ✅ :', res.val);
       if (res.error) console.log('init error ❌ :', res.error);

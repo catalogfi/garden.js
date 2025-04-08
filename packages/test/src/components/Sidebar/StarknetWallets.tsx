@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useWalletStore } from '../../store/useWalletStore';
 import { Button } from '../common/Button';
 
@@ -5,7 +6,7 @@ const STARKNET_WALLETS = [
   {
     id: 'braavos',
     name: 'Braavos',
-    icon: '/icons/braavos.png',
+    icon: 'https://play-lh.googleusercontent.com/HUk0fYbBtiJUFO1H_GCYq4p6kPxifsRP5vqHG96ZeK38-hepdPUU0GMprslWvItn3WUj',
   },
   {
     id: 'argentX',
@@ -15,7 +16,21 @@ const STARKNET_WALLETS = [
 ];
 
 export const StarknetWallets = () => {
-  const { isConnected, connectWallet, wallet } = useWalletStore();
+  const {
+    isConnected,
+    connect: connectWallet,
+    wallet,
+    account,
+  } = useWalletStore();
+
+  useEffect(() => {
+    const autoConnect = async () => {
+      if (!isConnected && account) {
+        await connectWallet('argentX');
+      }
+    };
+    autoConnect();
+  }, []);
 
   //   const handleClick = async () => {
   //     try {
@@ -26,7 +41,7 @@ export const StarknetWallets = () => {
   //     }
   //   };
 
-  console.log(wallet?.getChainId());
+  console.log(wallet);
 
   return (
     <div className="flex flex-col items-start justify-start gap-2">
