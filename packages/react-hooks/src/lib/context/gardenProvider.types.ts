@@ -4,7 +4,7 @@ import { AsyncResult, Request, Result } from '@catalogfi/utils';
 import { IGardenJS, IQuote, QuoteResponse, SwapParams } from '@gardenfi/core';
 import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
 import { Environment, Url } from '@gardenfi/utils';
-import { Account } from 'starknet';
+import { AccountInterface } from 'starknet';
 
 export type GardenContextType = {
   /**
@@ -56,7 +56,7 @@ export type GardenProviderProps = {
     };
     wallets?: {
       evm?: WalletClient;
-      starknet?: Account;
+      starknet?: AccountInterface;
     };
   };
 };
