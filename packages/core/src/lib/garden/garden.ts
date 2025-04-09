@@ -59,7 +59,7 @@ import { IEVMHTLC } from '../evm/htlc.types';
 import { WalletClient } from 'viem';
 import { EvmRelay } from '../evm/relay/evmRelay';
 import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
-import { Account } from 'starknet';
+import { AccountInterface } from 'starknet';
 import { StarknetRelay } from '../starknet/relay/starknetRelay';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
@@ -131,7 +131,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     siweOpts?: SiweOpts;
     wallets: {
       evm?: WalletClient;
-      starknet?: Account;
+      starknet?: AccountInterface;
     };
   }) {
     let digestKey: DigestKey;

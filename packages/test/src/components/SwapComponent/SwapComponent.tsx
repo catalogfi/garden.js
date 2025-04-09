@@ -1,5 +1,5 @@
 import { useGarden } from '@gardenfi/react-hooks';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { Button } from '../common/Button';
 import { chainToAsset } from '../../constants/constants';
@@ -9,17 +9,59 @@ import SwapOutput from './SwapOutput';
 export const SwapComponent = () => {
   const [loading, setLoading] = useState(false);
   const [swapParams, setSwapParams] = useState({
-    inputToken: chainToAsset.ethereum_localnet,
-    outputToken: chainToAsset.arbitrum_localnet,
+    inputToken: chainToAsset.ethereum_sepolia_WBTC,
+    outputToken: chainToAsset.starknet_testnet_ETH,
     inputAmount: 0.001,
     outputAmount: 0.0009,
     btcAddress: '',
+    strategyId: '',
   });
 
   const { garden } = useGarden();
-
   const { address: EvmAddress } = useAccount();
-  const { swapAndInitiate } = useGarden();
+  const { swapAndInitiate, getQuote } = useGarden();
+
+  useEffect(() => {
+    const fetchQuote = async () => {
+      if (
+        !swapParams.inputAmount ||
+        !swapParams.inputToken ||
+        !swapParams.outputToken
+      )
+        return;
+
+      try {
+        if (!getQuote) return;
+        const quote = await getQuote({
+          fromAsset: swapParams.inputToken,
+          toAsset: swapParams.outputToken,
+          amount: swapParams.inputAmount * 10 ** swapParams.inputToken.decimals,
+        });
+        console.log('quote', quote);
+
+        if (quote.ok && quote.val) {
+          const strategyId = Object.keys(quote.val.quotes)[0];
+          const receiveAmount = Object.values(quote.val.quotes)[0];
+
+          setSwapParams((prev) => ({
+            ...prev,
+            outputAmount:
+              Number(receiveAmount) / 10 ** swapParams.outputToken.decimals,
+            strategyId: strategyId,
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to fetch quote:', error);
+      }
+    };
+
+    fetchQuote();
+  }, [
+    swapParams.inputAmount,
+    swapParams.inputToken,
+    swapParams.outputToken,
+    getQuote,
+  ]);
 
   const handleSwap = async () => {
     const sendAmount =
@@ -33,15 +75,6 @@ export const SwapComponent = () => {
       !swapParams.outputAmount
     )
       return;
-    console.log({
-      sendAddress: EvmAddress,
-      receiveAddress: EvmAddress,
-      fromAsset: swapParams.inputToken,
-      toAsset: swapParams.outputToken,
-      sendAmount: sendAmount.toFixed(),
-      receiveAmount: receiveAmount.toFixed(),
-      minDestinationConfirmations: 3,
-    });
 
     setLoading(true);
     const res = await swapAndInitiate({
@@ -52,7 +85,7 @@ export const SwapComponent = () => {
       minDestinationConfirmations: 3,
       additionalData: {
         btcAddress: swapParams.btcAddress,
-        strategyId: '1',
+        strategyId: swapParams.strategyId,
       },
     });
     setLoading(false);
@@ -68,6 +101,12 @@ export const SwapComponent = () => {
   const handleInitialize = async () => {
     if (!garden) return;
     await garden.secretManager.initialize();
+    const matchedorder = await garden.orderbook.getOrder(
+      'b47fa6fe5fe5842e80c143f5103376c50f0897f9b8deed5d9f11eee0734d93c4',
+      true,
+    );
+    const res = await garden.starknetHTLC?.initiate(matchedorder.val);
+    console.log('res', res?.val);
   };
 
   return (

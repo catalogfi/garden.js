@@ -1,10 +1,9 @@
 import { checkAllowanceAndApprove } from '../checkAllowanceAndApprove';
 import {
-  Account,
+  AccountInterface,
   Contract,
   TypedData,
   TypedDataRevision,
-  WeierstrassSignatureType,
   cairo,
   num,
   shortString,
@@ -42,9 +41,13 @@ const DEFAULT_NODE_URL = 'https://starknet-sepolia.public.blastapi.io/rpc/v0_7';
 export class StarknetRelay implements IStarknetHTLC {
   private url: Url;
   private nodeUrl: string;
-  private account: Account;
+  private account: AccountInterface;
 
-  constructor(relayerUrl: string | Url, account: Account, nodeUrl?: string) {
+  constructor(
+    relayerUrl: string | Url,
+    account: AccountInterface,
+    nodeUrl?: string,
+  ) {
     this.nodeUrl = nodeUrl || DEFAULT_NODE_URL;
     this.url = new Url('/', relayerUrl);
     this.account = account;
@@ -57,7 +60,6 @@ export class StarknetRelay implements IStarknetHTLC {
 
   async initiate(order: MatchedOrder): AsyncResult<string, string> {
     if (!this.account.address) return Err('No account address');
-
     const { create_order, source_swap } = order;
     const { redeemer, amount } = source_swap;
 
@@ -79,7 +81,6 @@ export class StarknetRelay implements IStarknetHTLC {
 
       const token = await contract?.['token']();
       const tokenHex = num.toHex(token);
-
       const approvalResult = await checkAllowanceAndApprove(
         this.account,
         tokenHex,
@@ -101,10 +102,10 @@ export class StarknetRelay implements IStarknetHTLC {
         },
       };
 
-      const signature = (await this.account.signMessage(
-        TypedData,
-      )) as WeierstrassSignatureType;
-      const { r, s } = signature;
+      const signature = (await this.account.signMessage(TypedData)) as string[];
+      // const { r, s } = signature;
+      const r = signature[1];
+      const s = signature[2];
 
       const res = await Fetcher.post<APIResponse<string>>(
         this.url.endpoint('initiate'),
