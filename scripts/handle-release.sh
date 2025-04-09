@@ -213,7 +213,7 @@ for PKG in "${PUBLISH_ORDER[@]}"; do
   export NPM_TOKEN=$NPM_TOKEN
 
   if [[ "$VERSION_BUMP" == "prerelease" ]]; then
-    yarn npm publish --tag beta --npmAuthToken "$NPM_TOKEN"
+    yarn npm publish --tag alpha --npmAuthToken "$NPM_TOKEN"
   else
     if [[ "$IS_PR" != "true" ]]; then
       git add package.json
