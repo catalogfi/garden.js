@@ -40,7 +40,7 @@ jobs:
           RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
             "https://api.github.com/repos/${{ github.repository }}/collaborators/${COMMENTER}/permission")
           
-          PERMISSION=$(echo "$RESPONSE" | jq -r '.permission')
+          PERMISSION=$(echo "$RESPONSE" | jq -r '.role_name')
           echo "Commenter's permission level: $PERMISSION"
 
           if [[ "$PERMISSION" == "admin" || "$PERMISSION" == "maintain" ]]; then
