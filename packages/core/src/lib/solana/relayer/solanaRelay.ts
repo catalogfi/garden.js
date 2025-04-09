@@ -101,10 +101,15 @@ export class SolanaRelay implements ISolanaHTLC {
                 // Non-initiate transactions continue as before
                 const encodedTx = bs58.encode(transaction.serialize({ requireAllSignatures: false }));
 
+                const relayRequest = {
+                    orderId: orderId,
+                    serializedTx: encodedTx
+                };
+
                 const res: APIResponse<string> = await Fetcher.post(this.endpoint, {
-                    body: encodedTx,
+                    body: JSON.stringify(relayRequest),
                     headers: {
-                        'Content-Type': 'text/plain',
+                        'Content-Type': 'application/json',
                     },
                 });
 
