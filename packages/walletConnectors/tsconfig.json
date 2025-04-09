@@ -11,9 +11,9 @@
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "composite": true
+    "composite": true,
+    "moduleResolution": "bundler"
   },
-  "files": [],
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["src/**/*.spec.ts"],
   "references": [

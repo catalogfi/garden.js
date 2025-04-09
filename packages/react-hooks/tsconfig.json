@@ -11,7 +11,8 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "composite": true,
-    "jsx": "react"
+    "jsx": "react",
+    "moduleResolution": "bundler"
   },
   "files": [],
   "include": ["src/**/*.ts", "src/**/*.tsx"],
@@ -22,6 +23,15 @@
     },
     {
       "path": "./tsconfig.spec.json"
+    },
+    {
+      "path": "../core"
+    },
+    {
+      "path": "../orderbook"
+    },
+    {
+      "path": "../utils"
     }
   ]
 }
