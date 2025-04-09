@@ -3,7 +3,7 @@ export const API = {
     orderbook: 'https://orderbookv2.garden.finance',
     quote: 'https://pricev2.garden.finance',
     info: 'https://infov2.garden.finance',
-    evmRelay: '',
+    evmRelay: 'https://orderbookv2.garden.finance',
     starknetRelay: '',
   },
   testnet: {

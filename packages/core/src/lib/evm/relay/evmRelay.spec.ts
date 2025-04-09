@@ -1,7 +1,9 @@
-// import { EvmRelay } from './evmRelay';
-// import { privateKeyToAccount } from 'viem/accounts';
-// import { beforeAll, describe, expect, it } from 'vitest';
-// import { createWalletClient, http, createPublicClient, sha256 } from 'viem';
+import { EvmRelay } from './evmRelay';
+import { privateKeyToAccount } from 'viem/accounts';
+import { describe, it } from 'vitest';
+import { createWalletClient, http } from 'viem';
+import { DigestKey, Siwe, Url } from '@gardenfi/utils';
+import { arbitrumSepolia } from 'viem/chains';
 // import { MatchedOrder, Orderbook } from '@gardenfi/orderbook';
 // import { randomBytes } from 'crypto';
 // import { sleep } from '@catalogfi/utils';
@@ -162,3 +164,26 @@
 //     console.log('orderID', orderId);
 //   }, 15000);
 // });
+
+describe('evmRelay', () => {
+  const privKey =
+    '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
+  const digestKey = new DigestKey(
+    '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
+  );
+
+  const account = privateKeyToAccount(privKey);
+  const arbitrumWalletClient = createWalletClient({
+    account,
+    chain: arbitrumSepolia,
+    transport: http(),
+  });
+  it('should create a order', () => {
+    const relayer = new EvmRelay(
+      'https://testnet.purrsec.com/evm',
+      arbitrumWalletClient,
+      Siwe.fromDigestKey(new Url('https://testnet.purrsec.com/evm'), digestKey),
+    );
+    console.log('relayer :', relayer);
+  });
+});

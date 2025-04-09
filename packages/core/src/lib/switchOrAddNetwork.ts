@@ -34,6 +34,27 @@ const updatedSepolia = {
   },
 };
 
+export const hyperliquidTestnet: viemChain = {
+  id: 998,
+  name: 'Hyperliquid EVM Testnet',
+  nativeCurrency: {
+    name: 'Hyperliquid',
+    symbol: 'HYPE',
+    decimals: 18,
+  },
+  blockExplorers: {
+    default: {
+      name: 'Hyperliquid Explorer',
+      url: 'https://testnet.purrsec.com/',
+    },
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://rpc.hyperliquid-testnet.xyz/evm'],
+    },
+  },
+};
+
 export const evmToViemChainMap: Record<EvmChain, viemChain> = {
   ethereum: mainnet,
   arbitrum: arbitrum,
@@ -47,6 +68,7 @@ export const evmToViemChainMap: Record<EvmChain, viemChain> = {
   citrea_testnet: citreaTestnet,
   bera: berachain,
   monad_testnet: monadTestnet,
+  hyperliquid_testnet: hyperliquidTestnet,
 };
 
 /**

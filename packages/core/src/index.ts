@@ -50,6 +50,7 @@ export { constructOrderPair, validateBTCAddress } from './lib/utils';
 export {
   evmToViemChainMap,
   switchOrAddNetwork,
+  hyperliquidTestnet,
 } from './lib/switchOrAddNetwork';
 
 export { API } from './lib/constants';
