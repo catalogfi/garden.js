@@ -210,15 +210,17 @@ for PKG in "${PUBLISH_ORDER[@]}"; do
   echo "Bumping $PACKAGE_NAME to $NEW_VERSION"
   jq --arg new_version "$NEW_VERSION" '.version = $new_version' package.json > package.tmp.json && mv package.tmp.json package.json
 
+  export NPM_TOKEN=$NPM_TOKEN
+
   if [[ "$VERSION_BUMP" == "prerelease" ]]; then
-    yarn npm publish --tag beta --access public
+    yarn npm publish --tag beta --npmAuthToken "$NPM_TOKEN"
   else
     if [[ "$IS_PR" != "true" ]]; then
       git add package.json
       git -c user.email="$COMMIT_EMAIL" \
           -c user.name="$COMMIT_NAME" \
           commit -m "V$NEW_VERSION"
-      yarn npm publish --access public
+      yarn npm publish --npmAuthToken "$NPM_TOKEN"
       git tag "$PACKAGE_NAME@$NEW_VERSION"
       git push https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git HEAD:main --tags
     else
