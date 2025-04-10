@@ -48,6 +48,7 @@ export type GardenProviderProps = {
   config: {
     environment: Environment;
     orderBook?: IOrderbook;
+    api?: string;
     quote?: IQuote;
     blockNumberFetcherUrl?: Url;
     htlc?: {
