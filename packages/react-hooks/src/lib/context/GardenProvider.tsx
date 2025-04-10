@@ -13,9 +13,11 @@ import {
   getBlockchainType,
   isBitcoin,
   MatchedOrder,
+  Orderbook,
 } from '@gardenfi/orderbook';
 import { constructOrderpair } from '../utils';
 import { useDigestKey } from '../hooks/useDigestKey';
+import { Url } from '@gardenfi/utils';
 
 export const GardenContext = createContext<GardenContextType>({});
 
@@ -31,6 +33,13 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   const quote = useMemo(() => {
     return config.quote ?? new Quote(API[config.environment].quote);
   }, [config.quote, config.environment]);
+
+  const orderbook = useMemo(() => {
+    return (
+      config.orderBook ??
+      new Orderbook(new Url(API[config.environment].orderbook))
+    );
+  }, [config.orderBook, config.environment]);
 
   const getQuote = useMemo(
     () =>
@@ -118,6 +127,8 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         siweOpts: {
           store: localStorage,
         },
+        orderbook: orderbook,
+        quote: quote,
       });
     } else {
       // Handle case where neither wallets nor htlc is provided
