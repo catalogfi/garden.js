@@ -12,7 +12,7 @@ import { useWalletStore } from '../../store/useWalletStore';
 const STARKNET_WALLETS = [argent(), braavos()];
 
 export const StarknetWallets = () => {
-  const { connectors, connect } = useConnect();
+  const { connectors, connectAsync } = useConnect();
   const { address, chainId, account } = useAccount();
   const { disconnect } = useDisconnect();
   const { isConnected, setWalletDetails, resetWallet } = useWalletStore();
@@ -32,7 +32,7 @@ export const StarknetWallets = () => {
     try {
       const connector = connectors.find((c) => c.id === walletId);
       if (connector) {
-        connect({ connector });
+        connectAsync({ connector });
       }
     } catch (error) {
       console.error('Failed to connect:', error);

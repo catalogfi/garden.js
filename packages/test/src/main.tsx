@@ -16,6 +16,7 @@ import {
   publicProvider,
   StarknetConfig,
 } from '@starknet-react/core';
+import { connectors } from './constants/connectors.ts';
 
 export const SupportedChains = [
   mainnet,
@@ -39,7 +40,7 @@ export const config = createConfig({
 
 const queryClient = new QueryClient();
 
-const connectors = [argent(), braavos()];
+// const connectors = [argent(), braavos()];
 const chains = [snMainnet, sepolia];
 const providers = publicProvider();
 
