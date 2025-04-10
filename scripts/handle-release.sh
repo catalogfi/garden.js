@@ -54,10 +54,8 @@ if [[ "$IS_PR" == "true" && -n "$PR_BRANCH" ]]; then
 elif [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
   if git describe --tags --abbrev=0 >/dev/null 2>&1; then
     LATEST_TAG=$(git describe --tags --abbrev=0)
-    echo "Latest tag found: $LATEST_TAG"
     RAW_CHANGED=$(git diff --name-only "$LATEST_TAG"...HEAD | grep '^packages/' | awk -F/ '{print $2}' | sort -u)
   else
-    echo "No tags found. Falling back to HEAD~1."
     RAW_CHANGED=$(git diff --name-only HEAD~1 | grep '^packages/' | awk -F/ '{print $2}' | sort -u)
   fi
 
@@ -86,7 +84,6 @@ fi
 TOPO_ORDER=$(yarn workspaces foreach --all --topological --no-private exec node -p "require('./package.json').name" 2>/dev/null | grep '^@' | sed 's/\[//;s/\]://')
 
 declare -A PKG_NAME_TO_DIR
-
 for DIR in packages/*; do
   if [[ -f "$DIR/package.json" ]]; then
     NAME=$(jq -r .name "$DIR/package.json")
@@ -184,6 +181,8 @@ else
 fi
 yarn workspaces foreach --all --topological --no-private run build
 
+echo "Publishing in order: ${PUBLISH_ORDER[@]}"
+
 for PKG in "${PUBLISH_ORDER[@]}"; do
   echo ""
   echo "📦 Processing $PKG..."
@@ -192,16 +191,21 @@ for PKG in "${PUBLISH_ORDER[@]}"; do
 
   PACKAGE_NAME=$(jq -r .name package.json)
   LATEST_STABLE_VERSION=$(npm view $PACKAGE_NAME version || jq -r .version package.json)
-
-  echo "Latest version: $LATEST_STABLE_VERSION"
-
   if [[ "$VERSION_BUMP" == "prerelease" ]]; then
-    LATEST_BETA_VERSION=$(npm view $PACKAGE_NAME versions --json | jq -r '[.[] | select(contains("-beta"))] | max // empty')
-    if [[ -n "$LATEST_BETA_VERSION" ]]; then
-      BETA_NUMBER=$(echo "$LATEST_BETA_VERSION" | sed -E "s/.*-beta\.([0-9]+)/\1/")
-      NEW_VERSION="${LATEST_STABLE_VERSION}-beta.$((BETA_NUMBER + 1))"
+    BETA_PATTERN="${LATEST_STABLE_VERSION}-beta."
+
+    LATEST_BETA_VERSION=$(npm view $PACKAGE_NAME versions --json | jq -r '[.[] | select(contains("'"$BETA_PATTERN"'"))] | last')
+
+    echo "Latest stable version: $LATEST_STABLE_VERSION"
+    echo "Latest beta version: $LATEST_BETA_VERSION"
+
+    if [[ -n "$LATEST_BETA_VERSION" && "$LATEST_BETA_VERSION" != "null" ]]; then
+        BETA_NUMBER=$(echo "$LATEST_BETA_VERSION" | sed -E "s/.*-beta\.([0-9]+)$/\1/")
+        NEW_BETA_NUMBER=$((BETA_NUMBER + 1))
+        NEW_VERSION="${LATEST_STABLE_VERSION}-beta.${NEW_BETA_NUMBER}"
     else
-      NEW_VERSION="${LATEST_STABLE_VERSION}-beta.0"
+        echo "No beta version found. Creating the first beta version."
+        NEW_VERSION="${LATEST_STABLE_VERSION}-beta.0"
     fi
   else
     NEW_VERSION=$(increment_version "$LATEST_STABLE_VERSION" "$VERSION_BUMP")
@@ -209,8 +213,6 @@ for PKG in "${PUBLISH_ORDER[@]}"; do
 
   echo "Bumping $PACKAGE_NAME to $NEW_VERSION"
   jq --arg new_version "$NEW_VERSION" '.version = $new_version' package.json > package.tmp.json && mv package.tmp.json package.json
-
-  export NPM_TOKEN=$NPM_TOKEN
 
   if [[ "$VERSION_BUMP" == "prerelease" ]]; then
     yarn npm publish --tag beta --access public
