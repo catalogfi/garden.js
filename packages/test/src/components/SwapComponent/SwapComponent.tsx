@@ -103,7 +103,7 @@ export const SwapComponent = () => {
     if (!garden) return;
     await garden.secretManager.initialize();
     const matchedorder = await garden.orderbook.getOrder(
-      '5dc3911ba9b06b2c168c02a99304adad8ff2a05ab0d005de2c6a9e267f596407',
+      '5de42b739c21207ab94a6f619d6710cce4b2eb86cd8683d2992804b8af9b5cd3',
       true,
     );
     const res = await garden.starknetHTLC?.initiate(matchedorder.val);
