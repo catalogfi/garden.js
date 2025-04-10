@@ -9,8 +9,8 @@ import SwapOutput from './SwapOutput';
 export const SwapComponent = () => {
   const [loading, setLoading] = useState(false);
   const [swapParams, setSwapParams] = useState({
-    inputToken: chainToAsset.ethereum_sepolia_WBTC,
-    outputToken: chainToAsset.starknet_testnet_ETH,
+    inputToken: chainToAsset.arbitrum_sepolia_WBTC,
+    outputToken: chainToAsset.starknet_sepolia_ETH,
     inputAmount: 0.001,
     outputAmount: 0.0009,
     btcAddress: '',
@@ -32,6 +32,7 @@ export const SwapComponent = () => {
 
       try {
         if (!getQuote) return;
+        console.log('swapParams', swapParams);
         const quote = await getQuote({
           fromAsset: swapParams.inputToken,
           toAsset: swapParams.outputToken,
@@ -102,7 +103,7 @@ export const SwapComponent = () => {
     if (!garden) return;
     await garden.secretManager.initialize();
     const matchedorder = await garden.orderbook.getOrder(
-      'b47fa6fe5fe5842e80c143f5103376c50f0897f9b8deed5d9f11eee0734d93c4',
+      '5dc3911ba9b06b2c168c02a99304adad8ff2a05ab0d005de2c6a9e267f596407',
       true,
     );
     const res = await garden.starknetHTLC?.initiate(matchedorder.val);

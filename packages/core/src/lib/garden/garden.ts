@@ -113,7 +113,8 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       this._digestKey,
       config.siweOpts,
     );
-    this._orderbook = new Orderbook(new Url(config.api ?? api.orderbook));
+    this._orderbook =
+      config.orderbook ?? new Orderbook(new Url(config.api ?? api.orderbook));
     this._evmHTLC = config.htlc.evm;
     this._starknetHTLC = config.htlc.starknet;
     this._secretManager =
