@@ -34,7 +34,7 @@ function App() {
           ),
         },
         quote: new Quote('https://quote-staging.hashira.io/'),
-        orderBook: new Orderbook(new Url('https://orderbook-stage.hashira.io')),
+        api: 'https://orderbook-stage.hashira.io',
       }}
     >
       <Swap />
