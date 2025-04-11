@@ -2,12 +2,13 @@ import { ISecretManager } from './../secretManager/secretManager.types';
 import { AsyncResult, Err, Fetcher, Ok, trim0x } from '@catalogfi/utils';
 import {
   GardenEvents,
-  GardenProps,
   IGardenJS,
   IOrderExecutorCache,
   OrderActions,
   OrderWithStatus,
   SwapParams,
+  GardenConfigWithHTLCs,
+  GardenConfigWithWallets,
 } from './garden.types';
 import {
   BlockchainType,
@@ -55,10 +56,8 @@ import { Api, API } from '../constants';
 import { Quote } from '../quote/quote';
 import { SecretManager } from '../secretManager/secretManager';
 import { IEVMHTLC } from '../evm/htlc.types';
-import { WalletClient } from 'viem';
 import { EvmRelay } from '../evm/relay/evmRelay';
 import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
-import { AccountInterface } from 'starknet';
 import { StarknetRelay } from '../starknet/relay/starknetRelay';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
@@ -82,7 +81,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private _digestKey: DigestKey;
   private _api: Api;
 
-  constructor(config: GardenProps) {
+  constructor(config: GardenConfigWithHTLCs) {
     super();
     if (typeof config.digestKey === 'string') {
       const _digestKey = DigestKey.from(config.digestKey);
@@ -121,14 +120,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       new BlockNumberFetcher(this._api.info, config.environment);
   }
 
-  static from(config: {
-    environment: Environment;
-    digestKey: DigestKey | string;
-    wallets: {
-      evm?: WalletClient;
-      starknet?: AccountInterface;
-    };
-  }) {
+  static fromWallets(config: GardenConfigWithWallets) {
     let digestKey: DigestKey;
     if (typeof config.digestKey === 'string') {
       const _digestKey = DigestKey.from(config.digestKey);
@@ -163,9 +155,8 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     };
 
     return new Garden({
-      environment: config.environment,
-      digestKey: config.digestKey,
       htlc,
+      ...config,
     });
   }
 

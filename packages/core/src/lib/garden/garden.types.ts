@@ -9,6 +9,8 @@ import { IBitcoinWallet } from '@catalogfi/wallets';
 import { IEVMHTLC } from '../evm/htlc.types';
 import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { DigestKey } from '@gardenfi/utils';
+import { AccountInterface } from 'starknet';
+import { WalletClient } from 'viem';
 
 export type SwapParams = {
   /**
@@ -157,7 +159,7 @@ export interface IOrderExecutorCache {
   remove(order: MatchedOrder, action: OrderActions): void;
 }
 
-export type GardenProps = {
+export type GardenCoreConfig = {
   environment: Environment;
   digestKey: string | DigestKey;
   secretManager?: ISecretManager;
@@ -165,11 +167,24 @@ export type GardenProps = {
   orderbook?: IOrderbook;
   quote?: IQuote;
   blockNumberFetcher?: IBlockNumberFetcher;
+};
+
+export type GardenHTLCModules = {
   htlc: {
     evm?: IEVMHTLC;
     starknet?: IStarknetHTLC;
   };
 };
+
+export type GardenWalletModules = {
+  wallets: {
+    evm?: WalletClient;
+    starknet?: AccountInterface;
+  };
+};
+
+export type GardenConfigWithWallets = GardenCoreConfig & GardenWalletModules;
+export type GardenConfigWithHTLCs = GardenCoreConfig & GardenHTLCModules;
 
 /**
  * Actions that can be performed on the order.

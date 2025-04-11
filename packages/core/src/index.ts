@@ -7,8 +7,13 @@ export type {
   OrderCacheValue,
   EventCallback,
   OrderWithStatus,
+  OrderActions,
+  GardenCoreConfig,
+  GardenWalletModules,
+  GardenHTLCModules,
+  GardenConfigWithWallets,
+  GardenConfigWithHTLCs,
 } from './lib/garden/garden.types';
-export { OrderActions } from './lib/garden/garden.types';
 
 export { EvmRelay } from './lib/evm/relay/evmRelay';
 export type { IEVMRelay } from './lib/evm/relay/evmRelay.types';

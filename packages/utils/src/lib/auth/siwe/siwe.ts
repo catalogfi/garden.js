@@ -30,7 +30,11 @@ export class Siwe implements IAuth {
     }
     this.signingStatement = opts?.signingStatement ?? 'Garden.fi';
 
-    this.store = opts?.store ?? new MemoryStorage();
+    this.store =
+      opts?.store ??
+      (typeof window !== 'undefined'
+        ? window.localStorage
+        : new MemoryStorage());
 
     if (typeof window === 'undefined') {
       // Node.js environment
