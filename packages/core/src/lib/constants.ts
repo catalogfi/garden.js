@@ -1,6 +1,7 @@
 export const API = {
   mainnet: {
     orderbook: 'https://orderbookv2.garden.finance',
+    auth: '',
     quote: 'https://pricev2.garden.finance',
     info: 'https://infov2.garden.finance',
     evmRelay: 'https://orderbookv2.garden.finance',
@@ -8,6 +9,7 @@ export const API = {
   },
   testnet: {
     orderbook: 'https://orderbook.garden.finance',
+    auth: '',
     quote: 'https://price.garden.finance',
     info: 'https://info.garden.finance',
     evmRelay: 'https://orderbook.garden.finance',
@@ -15,6 +17,7 @@ export const API = {
   },
   localnet: {
     orderbook: '',
+    auth: '',
     quote: '',
     info: '',
     evmRelay: '',
