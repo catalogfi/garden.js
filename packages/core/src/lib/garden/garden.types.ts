@@ -1,7 +1,7 @@
 import { AsyncResult } from '@catalogfi/utils';
 import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
 import { OrderStatus } from '../orderStatus/status';
-import { Environment, EventBroker, IAuth, SiweOpts } from '@gardenfi/utils';
+import { Environment, EventBroker, IAuth } from '@gardenfi/utils';
 import { ISecretManager } from '../secretManager/secretManager.types';
 import { IQuote } from '../quote/quote.types';
 import { IBlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
@@ -86,12 +86,6 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
   execute(): Promise<() => void>;
 
   /**
-   * The URL of the orderbook.
-   * @readonly
-   */
-  get orderbookUrl(): string;
-
-  /**
    * The EVM relay.
    * @readonly
    */
@@ -166,12 +160,11 @@ export interface IOrderExecutorCache {
 export type GardenProps = {
   environment: Environment;
   digestKey: string | DigestKey;
-  api?: string;
   secretManager?: ISecretManager;
+  auth?: IAuth;
   orderbook?: IOrderbook;
   quote?: IQuote;
   blockNumberFetcher?: IBlockNumberFetcher;
-  siweOpts?: SiweOpts;
   htlc: {
     evm?: IEVMHTLC;
     starknet?: IStarknetHTLC;

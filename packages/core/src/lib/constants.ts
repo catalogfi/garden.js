@@ -1,4 +1,14 @@
-export const API = {
+import { Environment } from '@gardenfi/utils';
+
+export type Api = {
+  orderbook: string;
+  auth: string;
+  quote: string;
+  info: string;
+  evmRelay: string;
+  starknetRelay: string;
+};
+export const API: Record<Environment, Api> = {
   mainnet: {
     orderbook: 'https://orderbookv2.garden.finance',
     auth: '',
@@ -21,6 +31,6 @@ export const API = {
     quote: '',
     info: '',
     evmRelay: '',
-    strkRelay: '',
+    starknetRelay: '',
   },
 } as const;
