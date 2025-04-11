@@ -148,17 +148,6 @@ export type OrderCacheValue = {
   btcRedeemUTXO?: string;
 };
 
-export interface IOrderExecutorCache {
-  set(
-    order: MatchedOrder,
-    action: OrderActions,
-    txHash: string,
-    utxo?: string,
-  ): void;
-  get(order: MatchedOrder, action: OrderActions): OrderCacheValue | null;
-  remove(order: MatchedOrder, action: OrderActions): void;
-}
-
 export type GardenCoreConfig = {
   environment: Environment;
   digestKey: string | DigestKey;

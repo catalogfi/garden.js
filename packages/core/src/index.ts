@@ -3,7 +3,6 @@ export type {
   IGardenJS,
   SwapParams,
   GardenEvents,
-  IOrderExecutorCache,
   OrderCacheValue,
   EventCallback,
   OrderWithStatus,
