@@ -1,5 +1,6 @@
-import { Err, Ok, trim0x } from '@catalogfi/utils';
-import { randomBytes } from 'crypto-browserify';
+import { trim0x } from '@catalogfi/utils';
+import { Err, Ok } from '../result';
+import { Crypto } from '@peculiar/webcrypto';
 import { privateKeyToAccount } from 'viem/accounts';
 
 export class DigestKey {
@@ -7,6 +8,10 @@ export class DigestKey {
   private _userId: string;
 
   constructor(digestKey: string) {
+    if (!DigestKey.isValidDigestKey(digestKey)) {
+      throw new Error('Invalid digest key format');
+    }
+
     this._digestKey = digestKey;
     const account = privateKeyToAccount(('0x' + digestKey) as `0x${string}`);
     this._userId = account.address;
@@ -15,12 +20,8 @@ export class DigestKey {
   static from(digestKey: string) {
     digestKey = trim0x(digestKey);
 
-    if (!/^[0-9a-fA-F]{64}$/.test(digestKey)) {
+    if (!this.isValidDigestKey(digestKey)) {
       return Err('Invalid digest key format');
-    }
-
-    if (!DigestKey.isValidPrivateKey(digestKey)) {
-      return Err('Invalid private key');
     }
 
     return Ok(new DigestKey(digestKey));
@@ -29,6 +30,12 @@ export class DigestKey {
   static generateRandom() {
     const privateKey = DigestKey.generateRandomDigestKey();
     return DigestKey.from(privateKey);
+  }
+
+  private static isValidDigestKey(digestKey: string): boolean {
+    return (
+      /^[0-9a-fA-F]{64}$/.test(digestKey) && this.isValidPrivateKey(digestKey)
+    );
   }
 
   private static isValidPrivateKey(privateKey: string): boolean {
@@ -41,18 +48,11 @@ export class DigestKey {
   }
 
   private static generateRandomDigestKey(): string {
-    let privateKey;
+    const crypto = new Crypto();
+    const randomBytes = new Uint8Array(32);
+    crypto.getRandomValues(randomBytes);
 
-    if (typeof window !== 'undefined' && window.crypto) {
-      // Browser environment
-      const randomBytes = new Uint8Array(32);
-      window.crypto.getRandomValues(randomBytes);
-      privateKey = trim0x(Buffer.from(randomBytes).toString('hex'));
-    } else {
-      // Node.js environment
-      const _randomBytes = randomBytes(32);
-      privateKey = trim0x(Buffer.from(_randomBytes).toString('hex'));
-    }
+    const privateKey = trim0x(Buffer.from(randomBytes).toString('hex'));
 
     return DigestKey.isValidPrivateKey(privateKey)
       ? privateKey

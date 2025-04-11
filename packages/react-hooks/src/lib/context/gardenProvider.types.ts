@@ -1,9 +1,8 @@
-import { WalletClient } from 'viem';
 import { OrderWithStatus } from '@gardenfi/core';
 import { AsyncResult, Request, Result } from '@catalogfi/utils';
 import { IGardenJS, IQuote, QuoteResponse, SwapParams } from '@gardenfi/core';
 import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
-import { Environment, IStore, SiweOpts } from '@gardenfi/utils';
+import { GardenConfigWithHTLCs, GardenConfigWithWallets } from '@gardenfi/core';
 
 export type GardenContextType = {
   /**
@@ -28,50 +27,27 @@ export type GardenContextType = {
    * @param params
    * @returns
    */
-  getQuote?: (params: QuoteParams) => Promise<Result<QuoteResponse, string>>;
+  getQuote?: (
+    params: QuoteParams,
+  ) => Promise<Result<QuoteResponse, string> | undefined>;
   /**
    * The garden instance.
    * @returns {IGardenJS}
    */
   garden?: IGardenJS;
-  /**
-   * Indicates if the orders are executing.
-   */
-  isExecuting: boolean;
-
-  /**
-   * Indicates if the executor is required based on pending orders.
-   */
-  isExecutorRequired: boolean;
 
   /**
    * The quote instance.
    * @returns {IQuote}
    */
   quote?: IQuote;
-
-  /**
-   * Initiates the order in the EVM chain. This can be useful if the initiation is failed when `swapAndInitiate` function is called.
-   * @param order - The order to initiate.
-   * @returns {AsyncResult<MatchedOrder, string>} - The initiated order.
-   * @NOTE This is only required if the source chain is EVM.
-   */
-  evmInitiate?: (order: MatchedOrder) => AsyncResult<MatchedOrder, string>;
 };
 
 export type GardenProviderProps = {
   children: React.ReactNode;
-  config: {
-    store: IStore;
-    environment: Environment;
-    walletClient?: WalletClient;
-    orderBookUrl?: string;
-    quoteUrl?: string;
-    bitcoinRPCUrl?: string;
-    blockNumberFetcherUrl?: string;
-    siweOpts?: SiweOpts;
-    apiKey?: string;
-  };
+  config:
+    | Omit<GardenConfigWithHTLCs, 'digestKey'>
+    | Omit<GardenConfigWithWallets, 'digestKey'>;
 };
 
 export type QuoteParams = {

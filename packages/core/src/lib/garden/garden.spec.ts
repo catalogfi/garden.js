@@ -23,7 +23,7 @@ import {
 } from 'viem/chains';
 import { EvmRelay } from './../evm/relay/evmRelay';
 import { Quote } from '../quote/quote';
-import { DigestKey } from './digestKey/digestKey';
+import { DigestKey } from '@gardenfi/utils';
 // import { SecretManager } from '../secretManager/secretManager';
 // import { DigestKey } from './digestKey/digestKey';
 // import { BitcoinNetwork, BitcoinProvider } from '@catalogfi/wallets';
@@ -67,7 +67,6 @@ describe('swap and execute using garden', () => {
   console.log('digestKey :', digestKey.userId);
 
   const garden = new Garden({
-    api,
     environment: Environment.TESTNET,
     digestKey:
       '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
@@ -76,10 +75,7 @@ describe('swap and execute using garden', () => {
       evm: new EvmRelay(
         api,
         arbitrumWalletClient,
-        Siwe.fromDigestKey(
-          new Url(api),
-          '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
-        ),
+        Siwe.fromDigestKey(new Url(api), digestKey),
       ),
     },
   });

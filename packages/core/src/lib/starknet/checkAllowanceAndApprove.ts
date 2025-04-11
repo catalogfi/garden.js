@@ -1,5 +1,5 @@
 import {
-  Account,
+  AccountInterface,
   cairo,
   Contract,
   RpcProvider,
@@ -10,7 +10,7 @@ import { AsyncResult, Err, Ok, with0x } from '@catalogfi/utils';
 import { TokenABI } from './abi/starknetTokenABI';
 
 export const checkAllowanceAndApprove = async (
-  account: Account,
+  account: AccountInterface,
   tokenAddress: string,
   htlcAddress: string,
   amount: bigint,

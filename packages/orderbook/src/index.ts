@@ -23,4 +23,6 @@ export {
   EthereumLocalnet,
   bitcoinRegtestAsset,
   SupportedAssets,
+  StarknetLocalnet,
+  STRKStarknetLocalnetAsset,
 } from './lib/constants';

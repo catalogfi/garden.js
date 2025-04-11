@@ -10,6 +10,7 @@ import { Fetcher, trim0x } from '@catalogfi/utils';
 import { APIResponse, IAuth, Url, with0x } from '@gardenfi/utils';
 import { AtomicSwapABI } from '../abi/atomicSwap';
 import { IEVMHTLC } from '../htlc.types';
+import { switchOrAddNetwork } from './../../switchOrAddNetwork';
 
 export class EvmRelay implements IEVMHTLC {
   private url: Url;
@@ -34,6 +35,14 @@ export class EvmRelay implements IEVMHTLC {
       order.source_swap.initiator.toLowerCase()
     )
       return Err('Account address and order initiator mismatch');
+
+    const _walletClient = await switchOrAddNetwork(
+      order.source_swap.chain,
+      this.wallet,
+    );
+    if (_walletClient.error) return Err(_walletClient.error);
+    this.wallet = _walletClient.val.walletClient;
+    if (!this.wallet.account) return Err('No account found');
 
     const { create_order, source_swap } = order;
 
