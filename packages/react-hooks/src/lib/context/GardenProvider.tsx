@@ -1,6 +1,6 @@
 import React, { createContext, FC, useEffect, useMemo, useState } from 'react';
 import { useOrderbook } from '../hooks/useOrderbook';
-import { API, Garden, IGardenJS, Quote } from '@gardenfi/core';
+import { Garden, IGardenJS } from '@gardenfi/core';
 import { SwapParams } from '@gardenfi/core';
 import type {
   GardenContextType,
@@ -28,10 +28,6 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   const { digestKey } = useDigestKey();
   const { pendingOrders } = useOrderbook(garden, digestKey);
 
-  const quote = useMemo(() => {
-    return config.quote ?? new Quote(API[config.environment].quote);
-  }, [config.quote, config.environment]);
-
   const getQuote = useMemo(
     () =>
       async ({
@@ -41,14 +37,17 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         isExactOut = false,
         request,
       }: QuoteParams) => {
-        return await quote.getQuote(
-          constructOrderpair(fromAsset, toAsset),
-          amount,
-          isExactOut,
-          request,
+        return (
+          garden &&
+          (await garden.quote.getQuote(
+            constructOrderpair(fromAsset, toAsset),
+            amount,
+            isExactOut,
+            request,
+          ))
         );
       },
-    [quote],
+    [garden],
   );
 
   const swapAndInitiate = async (params: SwapParams) => {
@@ -81,6 +80,9 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         init_tx_hash = starknetInitRes.val;
         break;
       }
+      case BlockchainType.Bitcoin:
+        init_tx_hash = order.val.source_swap.initiate_tx_hash;
+        break;
       default:
         return Err('Unsupported chain');
     }
@@ -98,28 +100,19 @@ export const GardenProvider: FC<GardenProviderProps> = ({
 
   // Initialize Garden
   useEffect(() => {
-    if (!window || !digestKey || (!config.wallets && !config.htlc)) return;
+    if (!window || !digestKey) return;
+    if (!('wallets' in config) && !('htlc' in config)) return;
 
     let garden: Garden;
-    if (config.wallets) {
-      garden = Garden.from({
-        environment: config.environment,
+    if ('wallets' in config) {
+      garden = Garden.fromWallets({
+        ...config,
         digestKey: digestKey,
-        wallets: config.wallets,
-        siweOpts: {
-          store: localStorage,
-        },
       });
-    } else if (config.htlc) {
+    } else if ('htlc' in config) {
       garden = new Garden({
-        environment: config.environment,
+        ...config,
         digestKey: digestKey,
-        htlc: config.htlc,
-        siweOpts: {
-          store: localStorage,
-        },
-        api: config.api,
-        quote: quote,
       });
     } else {
       // Handle case where neither wallets nor htlc is provided
@@ -127,13 +120,11 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     }
 
     setGarden(garden);
-  }, [config.wallets, config.htlc, config.environment, digestKey]);
+  }, [config, digestKey]);
 
   return (
     <GardenContext.Provider
       value={{
-        orderBook: garden?.orderbook,
-        quote: quote,
         swapAndInitiate,
         pendingOrders,
         getQuote,

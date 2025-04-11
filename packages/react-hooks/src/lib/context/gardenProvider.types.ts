@@ -1,10 +1,8 @@
-import { WalletClient } from 'viem';
-import { IEVMHTLC, IStarknetHTLC, OrderWithStatus } from '@gardenfi/core';
+import { OrderWithStatus } from '@gardenfi/core';
 import { AsyncResult, Request, Result } from '@catalogfi/utils';
 import { IGardenJS, IQuote, QuoteResponse, SwapParams } from '@gardenfi/core';
 import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
-import { Environment, Url } from '@gardenfi/utils';
-import { AccountInterface } from 'starknet';
+import { GardenConfigWithHTLCs, GardenConfigWithWallets } from '@gardenfi/core';
 
 export type GardenContextType = {
   /**
@@ -29,7 +27,9 @@ export type GardenContextType = {
    * @param params
    * @returns
    */
-  getQuote?: (params: QuoteParams) => Promise<Result<QuoteResponse, string>>;
+  getQuote?: (
+    params: QuoteParams,
+  ) => Promise<Result<QuoteResponse, string> | undefined>;
   /**
    * The garden instance.
    * @returns {IGardenJS}
@@ -45,21 +45,9 @@ export type GardenContextType = {
 
 export type GardenProviderProps = {
   children: React.ReactNode;
-  config: {
-    environment: Environment;
-    orderBook?: IOrderbook;
-    api?: string;
-    quote?: IQuote;
-    blockNumberFetcherUrl?: Url;
-    htlc?: {
-      evm?: IEVMHTLC;
-      starknet?: IStarknetHTLC;
-    };
-    wallets?: {
-      evm?: WalletClient;
-      starknet?: AccountInterface;
-    };
-  };
+  config:
+    | Omit<GardenConfigWithHTLCs, 'digestKey'>
+    | Omit<GardenConfigWithWallets, 'digestKey'>;
 };
 
 export type QuoteParams = {
