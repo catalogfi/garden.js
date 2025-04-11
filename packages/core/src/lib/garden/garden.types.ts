@@ -1,7 +1,7 @@
 import { AsyncResult } from '@catalogfi/utils';
 import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
 import { OrderStatus } from '../orderStatus/status';
-import { Environment, EventBroker, IAuth, SiweOpts } from '@gardenfi/utils';
+import { Environment, EventBroker, IAuth } from '@gardenfi/utils';
 import { ISecretManager } from '../secretManager/secretManager.types';
 import { IQuote } from '../quote/quote.types';
 import { IBlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
@@ -9,6 +9,8 @@ import { IBitcoinWallet } from '@catalogfi/wallets';
 import { IEVMHTLC } from '../evm/htlc.types';
 import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { DigestKey } from '@gardenfi/utils';
+import { AccountInterface } from 'starknet';
+import { WalletClient } from 'viem';
 
 export type SwapParams = {
   /**
@@ -86,12 +88,6 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
   execute(): Promise<() => void>;
 
   /**
-   * The URL of the orderbook.
-   * @readonly
-   */
-  get orderbookUrl(): string;
-
-  /**
    * The EVM relay.
    * @readonly
    */
@@ -152,20 +148,32 @@ export type OrderCacheValue = {
   btcRedeemUTXO?: string;
 };
 
-export type GardenProps = {
+export type GardenCoreConfig = {
   environment: Environment;
   digestKey: string | DigestKey;
-  api?: string;
   secretManager?: ISecretManager;
+  auth?: IAuth;
   orderbook?: IOrderbook;
   quote?: IQuote;
   blockNumberFetcher?: IBlockNumberFetcher;
-  siweOpts?: SiweOpts;
+};
+
+export type GardenHTLCModules = {
   htlc: {
     evm?: IEVMHTLC;
     starknet?: IStarknetHTLC;
   };
 };
+
+export type GardenWalletModules = {
+  wallets: {
+    evm?: WalletClient;
+    starknet?: AccountInterface;
+  };
+};
+
+export type GardenConfigWithWallets = GardenCoreConfig & GardenWalletModules;
+export type GardenConfigWithHTLCs = GardenCoreConfig & GardenHTLCModules;
 
 /**
  * Actions that can be performed on the order.

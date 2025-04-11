@@ -67,7 +67,6 @@ describe('swap and execute using garden', () => {
   console.log('digestKey :', digestKey.userId);
 
   const garden = new Garden({
-    api,
     environment: Environment.TESTNET,
     digestKey:
       '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',

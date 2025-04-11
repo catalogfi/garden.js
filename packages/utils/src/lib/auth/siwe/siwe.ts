@@ -1,5 +1,7 @@
+import { CookieJar } from 'tough-cookie';
+import fetchCookie from 'fetch-cookie';
 import { AuthHeader, IAuth, SiweOpts } from '../auth.types';
-import { AsyncResult, Err, Fetcher, Ok, Result } from '@catalogfi/utils';
+import { AsyncResult, Err, Ok, Result } from '@catalogfi/utils';
 import { Url } from '../../url';
 import { MemoryStorage } from '../../store/memoryStorage';
 import { IStore, StoreKeys } from '../../store/store.interface';
@@ -11,15 +13,15 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { mainnet } from 'viem/chains';
 import { DigestKey } from '../../digestKey/digestKey';
 export class Siwe implements IAuth {
-  private readonly API = new Url('https://api.garden.finance');
   private readonly url: Url;
   private store: IStore;
   private walletClient: WalletClient;
   private readonly signingStatement: string;
   private readonly domain: string;
+  private fetchWithCookies: typeof fetch;
 
   constructor(url: Url, walletClient: WalletClient, opts?: SiweOpts) {
-    this.url = url ?? this.API;
+    this.url = url.endpoint('siwe');
     this.walletClient = walletClient;
 
     this.domain = opts?.domain || 'app.garden.finance';
@@ -28,7 +30,20 @@ export class Siwe implements IAuth {
     }
     this.signingStatement = opts?.signingStatement ?? 'Garden.fi';
 
-    this.store = opts?.store ?? new MemoryStorage();
+    this.store =
+      opts?.store ??
+      (typeof window !== 'undefined'
+        ? window.localStorage
+        : new MemoryStorage());
+
+    if (typeof window === 'undefined') {
+      // Node.js environment
+      const jar = new CookieJar();
+      this.fetchWithCookies = fetchCookie(fetch, jar);
+    } else {
+      // Browser environment
+      this.fetchWithCookies = window.fetch.bind(window);
+    }
   }
 
   static fromDigestKey(url: Url, digestKey: DigestKey, siweOpts?: SiweOpts) {
@@ -77,21 +92,28 @@ export class Siwe implements IAuth {
       return Err(res.error);
     }
 
-    const tokenRes = await Fetcher.post<APIResponse<string>>(
-      this.url.endpoint('verify'),
-      {
-        body: JSON.stringify({
-          ...res.val,
-        }),
-        headers: {
-          'Content-Type': 'application/json',
+    let token: string;
+    try {
+      const tokenRes = await this.fetchWithCookies(
+        this.url.endpoint('tokens'),
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            ...res.val,
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+            credentials: 'include',
+          },
         },
-      },
-    );
-    if (tokenRes.error) return Err(tokenRes.error);
-
-    const token = tokenRes.result;
-    if (!token) return Err('Failed to get token');
+      );
+      const tokenResp: APIResponse<string> = await tokenRes.json();
+      if (tokenResp.error || !tokenResp.result)
+        return Err(tokenResp.error ?? 'Failed to get token');
+      token = tokenResp.result;
+    } catch (error) {
+      return Err('Failed to get token', error);
+    }
 
     const verify = this.verifyToken(token, this.walletClient.account.address);
     if (!verify.val) {
@@ -116,12 +138,22 @@ export class Siwe implements IAuth {
     const date = new Date();
     const expirationTime = new Date(date.getTime() + 300 * 1000); //message expires in 5min
 
-    const res = await Fetcher.get<APIResponse<string>>(
-      this.url.endpoint('nonce'),
-    );
-    const nonce = res.result;
-    if (!nonce) {
-      return Err('Failed to get nonce');
+    let nonce: string;
+    try {
+      const res = await this.fetchWithCookies(this.url.endpoint('challenges'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          credentials: 'include',
+        },
+      });
+      const nonceResp: APIResponse<string> = await res.json();
+      if (nonceResp.error || !nonceResp.result) {
+        return Err('Failed to get nonce');
+      }
+      nonce = nonceResp.result;
+    } catch (error) {
+      return Err('Failed to get nonce', error);
     }
 
     const chainID = await this.walletClient.getChainId();
