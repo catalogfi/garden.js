@@ -99,7 +99,7 @@ describe('swap and execute using garden', () => {
         decimals: 8,
         symbol: 'WBTC',
         chain: 'arbitrum_sepolia',
-        logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
+        logo: 'https://garden-finance.imgix.net/token-images/wbtc.svgl',
         tokenAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
         atomicSwapAddress: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
       } as const,

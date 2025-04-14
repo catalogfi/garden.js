@@ -4,7 +4,6 @@ import { useWalletClient } from 'wagmi';
 import { Swap } from './components/Swap';
 import { useAccount } from '@starknet-react/core';
 import { EvmRelay, Quote, StarknetRelay } from '@gardenfi/core';
-import { Orderbook } from '@gardenfi/orderbook';
 
 function App() {
   const { data: walletClient } = useWalletClient();

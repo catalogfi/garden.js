@@ -4,7 +4,6 @@ import {
   GardenEvents,
   GardenProps,
   IGardenJS,
-  IOrderExecutorCache,
   OrderActions,
   OrderWithStatus,
   SwapParams,
@@ -45,7 +44,6 @@ import {
   ParseOrderStatus,
 } from '../orderStatus/orderStatusParser';
 import { GardenHTLC } from '../bitcoin/htlc';
-import { Cache, ExecutorCache } from './cache/executorCache';
 import BigNumber from 'bignumber.js';
 import {
   BlockNumberFetcher,
@@ -61,6 +59,7 @@ import { EvmRelay } from '../evm/relay/evmRelay';
 import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { AccountInterface } from 'starknet';
 import { StarknetRelay } from '../starknet/relay/starknetRelay';
+import { GardenCache } from '../cache/GardenCache';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment;
@@ -70,18 +69,19 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private getOrderThreshold = 20;
   private _orderbookUrl: Url;
   private _auth: IAuth;
-  private orderExecutorCache: IOrderExecutorCache;
+  // private orderExecutorCache: IOrderExecutorCache;
   private _blockNumberFetcher: IBlockNumberFetcher;
-  private refundSacpCache = new Map<string, any>();
+  // private refundSacpCache = new Map<string, any>();
   private _evmHTLC: IEVMHTLC | undefined;
   private _starknetHTLC: IStarknetHTLC | undefined;
   private _btcWallet: IBitcoinWallet | undefined;
-  private bitcoinRedeemCache = new Cache<{
-    redeemedFromUTXO: string;
-    redeemedAt: number;
-    redeemTxHash: string;
-  }>();
+  // private bitcoinRedeemCache = new Cache<{
+  //   redeemedFromUTXO: string;
+  //   redeemedAt: number;
+  //   redeemTxHash: string;
+  // }>();
   private _digestKey: DigestKey;
+  private cacheManager: GardenCache;
 
   constructor(config: GardenProps) {
     super();
@@ -116,13 +116,17 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this._orderbook = new Orderbook(new Url(config.api ?? api.orderbook));
     this._evmHTLC = config.htlc.evm;
     this._starknetHTLC = config.htlc.starknet;
-    this._secretManager =
-      config.secretManager ??
-      SecretManager.fromDigestKey(this._digestKey.digestKey);
-    this.orderExecutorCache = new ExecutorCache();
     this._blockNumberFetcher =
       config.blockNumberFetcher ??
       new BlockNumberFetcher(api.info, config.environment);
+    this._secretManager =
+      config.secretManager ??
+      SecretManager.fromDigestKey(this._digestKey.digestKey);
+
+    this.cacheManager = new GardenCache({
+      max: 1000,
+      ttl: 1000 * 60 * 60 * 24,
+    });
   }
 
   static from(config: {
@@ -523,7 +527,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   private async evmRedeem(order: MatchedOrder, secret: string): Promise<void> {
     this.emit('log', order.create_order.create_id, 'executing evm redeem');
-    const cache = this.orderExecutorCache.get(order, OrderActions.Redeem);
+    const cache = this.cacheManager.getOrderExecution(
+      order,
+      OrderActions.Redeem,
+    );
     if (cache) {
       this.emit('log', order.create_order.create_id, 'already redeemed');
       return;
@@ -539,7 +546,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     if (res.error) {
       this.emit('error', order, res.error);
       if (res.error.includes('Order already redeemed')) {
-        this.orderExecutorCache.set(
+        this.cacheManager.setOrderExecution(
           order,
           OrderActions.Redeem,
           order.destination_swap.redeem_tx_hash,
@@ -548,13 +555,16 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       return;
     }
 
-    this.orderExecutorCache.set(order, OrderActions.Redeem, res.val);
+    this.cacheManager.setOrderExecution(order, OrderActions.Redeem, res.val);
     this.emit('success', order, OrderActions.Redeem, res.val);
   }
 
   private async starknetRedeem(order: MatchedOrder, secret: string) {
     this.emit('log', order.create_order.create_id, 'executing starknet redeem');
-    const cache = this.orderExecutorCache.get(order, OrderActions.Redeem);
+    const cache = this.cacheManager.getOrderExecution(
+      order,
+      OrderActions.Redeem,
+    );
     if (cache) {
       this.emit('log', order.create_order.create_id, 'already redeemed');
       return;
@@ -568,17 +578,21 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     if (res.error) {
       this.emit('error', order, res.error);
       if (res.error.includes('Order already redeemed')) {
-        this.orderExecutorCache.set(
+        this.cacheManager.setOrderExecution(
           order,
           OrderActions.Redeem,
           order.destination_swap.redeem_tx_hash,
         );
+        return;
       }
-      return;
-    }
-    if (res.val) {
-      this.orderExecutorCache.set(order, OrderActions.Redeem, res.val);
-      this.emit('success', order, OrderActions.Redeem, res.val);
+      if (res.val) {
+        this.cacheManager.setOrderExecution(
+          order,
+          OrderActions.Redeem,
+          res.val,
+        );
+        this.emit('success', order, OrderActions.Redeem, res.val);
+      }
     }
   }
 
@@ -587,7 +601,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     order: MatchedOrder,
     secret: string,
   ) {
-    const _cache = this.bitcoinRedeemCache.get(order.create_order.create_id);
+    const _cache = this.cacheManager.getBitcoinRedeem(
+      order.create_order.create_id,
+    );
     const fillerInitTx = order.destination_swap.initiate_tx_hash
       .split(',')
       .at(-1)
@@ -655,7 +671,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
             redeemedAt = Date.now();
           }
 
-          this.bitcoinRedeemCache.set(order.create_order.create_id, {
+          this.cacheManager.setBitcoinRedeem(order.create_order.create_id, {
             redeemedFromUTXO: fillerInitTx,
             redeemedAt,
             redeemTxHash: order.destination_swap.redeem_tx_hash,
@@ -705,7 +721,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         );
         this.emit('rbf', order, res.val);
       } else this.emit('success', order, OrderActions.Redeem, res.val);
-      this.bitcoinRedeemCache.set(order.create_order.create_id, {
+      this.cacheManager.setBitcoinRedeem(order.create_order.create_id, {
         redeemedFromUTXO: fillerInitTx,
         redeemedAt: Date.now(),
         redeemTxHash: res.val,
@@ -717,7 +733,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   }
 
   private async btcRefund(wallet: IBitcoinWallet, order: MatchedOrder) {
-    if (this.orderExecutorCache.get(order, OrderActions.Refund)) {
+    if (this.cacheManager.getOrderExecution(order, OrderActions.Refund)) {
       return;
     }
 
@@ -735,7 +751,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       const res = await bitcoinExecutor.refund(
         order.create_order.additional_data?.bitcoin_optional_recipient,
       );
-      this.orderExecutorCache.set(order, OrderActions.Refund, res);
+      this.cacheManager.setOrderExecution(order, OrderActions.Refund, res);
       this.emit('success', order, OrderActions.Refund, res);
     } catch (error) {
       this.emit('error', order, 'Failed btc refund: ' + error);
@@ -743,7 +759,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   }
 
   private async postRefundSACP(order: MatchedOrder, wallet: IBitcoinWallet) {
-    const cachedOrder = this.refundSacpCache.get(order.create_order.create_id);
+    const cachedOrder = this.cacheManager.getSacpCache(
+      order.create_order.create_id,
+    );
     if (cachedOrder?.initTxHash === order.source_swap.initiate_tx_hash) return;
 
     const bitcoinExecutor = await GardenHTLC.from(
@@ -774,7 +792,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         }),
       });
       if (res.status === 'Ok') {
-        this.refundSacpCache.set(order.create_order.create_id, {
+        this.cacheManager.setSacpCache(order.create_order.create_id, {
           initTxHash: order.source_swap.initiate_tx_hash,
         });
       }
