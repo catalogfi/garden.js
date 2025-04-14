@@ -154,8 +154,8 @@ const TokenSwap: React.FC = () => {
       environment: Environment.TESTNET,
       digestKey: digestKey,
       htlc: {
-        solana: new SolanaHTLC(solanaProvider),
-        // solana: new SolanaRelay(solanaProvider, new Url(API.testnet.solanaRelay), SolanaRelayerAddress.testnet),
+        // solana: new SolanaHTLC(solanaProvider),
+        solana: new SolanaRelay(solanaProvider, new Url(API.testnet.solanaRelay), SolanaRelayerAddress.testnet),
         evm: new EvmRelay(
           API.testnet.evmRelay,
           arbitrumWalletClient,
@@ -607,7 +607,7 @@ const swapSOLTowBTC = async () => {
                 minDestinationConfirmations: 1,
             };
 
-      console.log('Creating SOL to BTC swap order...', orderObj);
+      console.log('Creating BTC to SOL swap order...', orderObj);
       const result = await gardenObj.swap(orderObj);
       console.log('Result of swap method', result);
 
@@ -616,7 +616,7 @@ const swapSOLTowBTC = async () => {
       }
 
       order = result.val;
-      console.log('Matched order created:', order);
+      console.log('Matched order created:', order.create_order.create_id);
       setOrderDetails(order);
 
       alert(`Please send ${order.source_swap.amount}BTC to ${order.source_swap.swap_id} to proceed`);
@@ -677,7 +677,7 @@ const swapSOLTowBTC = async () => {
         executionTimeoutId = window.setTimeout(() => {
           console.log('Execution timeout reached, but continuing...');
           resolve();
-        }, 90000);
+        }, 90 * 60 * 1000);
       });
 
       // Start execution and wait for completion or timeout
@@ -965,7 +965,7 @@ const swapSOLTowBTC = async () => {
               <span
                 onClick={() =>
                   window.open(
-                    `https://gardenexplorer.hashira.io/order/${orderDetails?.create_order.create_id}`,
+                    `https://orderbook-stage.hashira.io/orders/id/matched/${orderDetails?.create_order.create_id}`,
                     '_blank',
                   )
                 }
@@ -1037,8 +1037,8 @@ const swapSOLTowBTC = async () => {
 </Button> */}
 
         <button
-          onClick={() => swapSOLToBTC()}
-          // onClick={() => swapBTCToSOL()}
+          // onClick={() => swapSOLToBTC()}
+          onClick={() => swapBTCToSOL()}
           // onClick={() => swapSOLTowBTC()}
           // onClick={() => swapwBTCToSOL()}
           className={`w-full p-2 cursor-pointer text-white rounded-xl ${
