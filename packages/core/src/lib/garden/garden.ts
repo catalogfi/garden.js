@@ -61,7 +61,7 @@ import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { StarknetRelay } from '../starknet/relay/starknetRelay';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
-  private environment: Environment;
+  private environment: Environment = Environment.TESTNET;
   private _secretManager: ISecretManager;
   private _orderbook: IOrderbook;
   private _quote: IQuote;
@@ -79,7 +79,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     redeemTxHash: string;
   }>();
   private _digestKey: DigestKey;
-  private _api: Api;
+  private _api: Api | undefined;
 
   constructor(config: GardenConfigWithHTLCs) {
     super();
@@ -91,17 +91,21 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       this._digestKey = config.digestKey;
     }
 
-    this.environment = config.environment;
-    this._api =
-      config.environment === Environment.MAINNET
-        ? API.mainnet
-        : config.environment === Environment.TESTNET
-        ? API.testnet
-        : API.localnet;
-    if (!this._api)
-      throw new Error(
-        'API not found, invalid environment ' + config.environment,
-      );
+    if (typeof config.environment === 'string') {
+      this.environment = config.environment;
+      this._api =
+        config.environment === Environment.MAINNET
+          ? API.mainnet
+          : config.environment === Environment.TESTNET
+          ? API.testnet
+          : undefined;
+      if (!this._api)
+        throw new Error(
+          'API not found, invalid environment ' + config.environment,
+        );
+    } else {
+      this._api = config.environment;
+    }
 
     this._quote = config.quote ?? new Quote(this._api.quote);
     this._auth =
@@ -117,7 +121,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this.orderExecutorCache = new ExecutorCache();
     this._blockNumberFetcher =
       config.blockNumberFetcher ??
-      new BlockNumberFetcher(this._api.info, config.environment);
+      new BlockNumberFetcher(this._api.info, this.environment);
   }
 
   static fromWallets(config: GardenConfigWithWallets) {
@@ -130,12 +134,18 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       digestKey = config.digestKey;
     }
 
-    const api =
-      config.environment === Environment.MAINNET
-        ? API.mainnet
-        : config.environment === Environment.TESTNET
-        ? API.testnet
-        : undefined;
+    let api;
+
+    if (typeof config.environment === 'string') {
+      api =
+        config.environment === Environment.MAINNET
+          ? API.mainnet
+          : config.environment === Environment.TESTNET
+          ? API.testnet
+          : undefined;
+    } else {
+      api = config.environment;
+    }
     if (!api)
       throw new Error(
         'API not found, invalid environment ' + config.environment,
@@ -146,13 +156,14 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         ? new EvmRelay(
             api.evmRelay,
             config.wallets.evm,
-            Siwe.fromDigestKey(new Url(api.orderbook), digestKey),
+            Siwe.fromDigestKey(new Url(api.auth), digestKey),
           )
         : undefined,
       starknet: config.wallets.starknet
         ? new StarknetRelay(api.starknetRelay, config.wallets.starknet)
         : undefined,
     };
+    console.log('api.auth :', api.auth);
 
     return new Garden({
       htlc,
@@ -743,8 +754,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       const sacp = await bitcoinExecutor.generateInstantRefundSACP(
         userBTCAddress,
       );
-      const url = new Url(this._api.evmRelay).endpoint(
-        'gasless/order/bitcoin/add-instant-refund-sacp',
+      if (!this._api) return;
+      const url = new Url(this._api.orderbook).endpoint(
+        'orders/bitcoin/' + order.create_order.create_id + '/instant-refund',
       );
 
       const res = await Fetcher.post<APIResponse<string>>(url, {
@@ -752,7 +764,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          order_id: order.create_order.create_id,
           instant_refund_tx_bytes: sacp,
         }),
       });
@@ -810,9 +821,8 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   private async broadcastRedeemTx(redeemTx: string, orderId: string) {
     try {
-      const url = new Url(this._api.evmRelay).endpoint(
-        'gasless/order/bitcoin/redeem',
-      );
+      if (!this._api) return Err('API not found');
+      const url = new Url(this._api.evmRelay).endpoint('/bitcoin/redeem ');
       const authHeaders = await this._auth.getAuthHeaders();
       const res = await fetch(url, {
         method: 'POST',

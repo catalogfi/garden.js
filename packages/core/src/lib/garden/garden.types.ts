@@ -11,6 +11,7 @@ import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { DigestKey } from '@gardenfi/utils';
 import { AccountInterface } from 'starknet';
 import { WalletClient } from 'viem';
+import { Api } from '../constants';
 
 export type SwapParams = {
   /**
@@ -160,7 +161,7 @@ export interface IOrderExecutorCache {
 }
 
 export type GardenCoreConfig = {
-  environment: Environment;
+  environment: Environment | Api;
   digestKey: string | DigestKey;
   secretManager?: ISecretManager;
   auth?: IAuth;

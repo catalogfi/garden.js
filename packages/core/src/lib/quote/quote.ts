@@ -16,7 +16,7 @@ export class Quote implements IQuote {
   private quoteUrl: Url;
 
   constructor(quoteUrl: string) {
-    this.quoteUrl = new Url('/quote', quoteUrl);
+    this.quoteUrl = new Url(quoteUrl);
   }
 
   async getQuote(

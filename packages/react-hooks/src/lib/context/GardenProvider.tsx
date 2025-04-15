@@ -128,7 +128,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         swapAndInitiate,
         pendingOrders,
         getQuote,
-        garden: garden,
+        garden,
       }}
     >
       {children}

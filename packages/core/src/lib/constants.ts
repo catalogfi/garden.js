@@ -18,12 +18,12 @@ export const API: Record<Environment, Api> = {
     starknetRelay: '',
   },
   testnet: {
-    orderbook: 'https://orderbook.garden.finance',
-    auth: '',
-    quote: 'https://price.garden.finance',
+    orderbook: 'https://testnet.api.hashira.io',
+    auth: 'https://testnet.api.hashira.io/auth',
+    quote: 'https://testnet.api.hashira.io/quote',
     info: 'https://info.garden.finance',
-    evmRelay: 'https://orderbook.garden.finance',
-    starknetRelay: 'https://starknet-relay.garden.finance',
+    evmRelay: 'https://testnet.api.hashira.io/relayer',
+    starknetRelay: '',
   },
   localnet: {
     orderbook: '',
