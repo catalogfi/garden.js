@@ -1,24 +1,102 @@
 import { describe, expect, it } from 'vitest';
-import { ExecutorCache } from './cache';
-import { MatchedOrder } from '@gardenfi/orderbook';
+import { Cache } from './cache';
 import { OrderActions } from '../garden.types';
 
-describe('order Executor cache', () => {
-  it('should set and get the same data', () => {
-    const cache = new ExecutorCache();
-    const order = {
-      create_order: {
-        create_id: '123',
+describe('Cache', () => {
+  it('should set and get the same data for OrderExecutorCache', () => {
+    const cache = new Cache();
+    const params = {
+      type: 'OrderExecutorCache',
+      action: OrderActions.Redeem,
+      order: {
+        create_order: {
+          create_id: '123',
+        },
       },
-    } as MatchedOrder;
+      txHash: 'txHash123',
+      utxo: 'utxo123',
+    };
 
-    cache.set(order, OrderActions.Redeem, 'txHash');
-    const res = cache.get(order, OrderActions.Redeem);
+    cache.set(params);
+    const result = cache.get({
+      type: 'OrderExecutorCache',
+      action: OrderActions.Redeem,
+      order: {
+        create_order: {
+          create_id: '123',
+        },
+      },
+    });
 
-    if (res) {
-      console.log('found Cache');
-    }
+    expect(result).toEqual({
+      txHash: 'txHash123',
+      timeStamp: expect.any(Number),
+      btcRedeemUTXO: 'utxo123',
+    });
+  });
 
-    expect(res?.txHash).toBe('txHash');
+  it('should set and get the same data for RefundSacpCache', () => {
+    const cache = new Cache();
+    const params = {
+      type: 'RefundSacpCache',
+      orderId: 'order123',
+      value: { refundAmount: 100 },
+    };
+
+    cache.set(params);
+    const result = cache.get({
+      type: 'RefundSacpCache',
+      orderId: 'order123',
+    });
+
+    expect(result).toEqual({ refundAmount: 100 });
+  });
+
+  it('should set and get the same data for BitcoinRedeemCache', () => {
+    const cache = new Cache();
+    const params = {
+      type: 'BitcoinRedeemCache',
+      orderId: 'btcOrder123',
+      value: { redeemAmount: 200 },
+    };
+
+    cache.set(params);
+    const result = cache.get({
+      type: 'BitcoinRedeemCache',
+      orderId: 'btcOrder123',
+    });
+
+    expect(result).toEqual({ redeemAmount: 200 });
+  });
+
+  it('should remove data from the cache', () => {
+    const cache = new Cache();
+    const params = {
+      type: 'RefundSacpCache',
+      orderId: 'orderToRemove',
+      value: { refundAmount: 50 },
+    };
+
+    cache.set(params);
+    cache.remove({
+      type: 'RefundSacpCache',
+      orderId: 'orderToRemove',
+    });
+    const result = cache.get({
+      type: 'RefundSacpCache',
+      orderId: 'orderToRemove',
+    });
+
+    expect(result).toBeNull();
+  });
+
+  it('should throw an error for invalid cache type', () => {
+    const cache = new Cache();
+
+    expect(() => {
+      cache.set({
+        type: 'InvalidCacheType',
+      } as any);
+    }).toThrowError('Invalid cache type');
   });
 });
