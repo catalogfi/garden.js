@@ -11,7 +11,7 @@ export type Api = {
 export const API: Record<Environment, Api> = {
   mainnet: {
     orderbook: 'https://orderbookv2.garden.finance',
-    auth: '',
+    auth: 'https://orderbookv2.garden.finance/auth',
     quote: 'https://pricev2.garden.finance',
     info: 'https://infov2.garden.finance',
     evmRelay: 'https://orderbookv2.garden.finance',

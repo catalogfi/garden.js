@@ -3,14 +3,16 @@ import { PhantomBitcoinProvider } from './phantom.types';
 import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
 import * as bitcoin from 'bitcoinjs-lib';
 import axios from 'axios';
-import { initEccLib } from 'bitcoinjs-lib';
+import { initEccLib, networks } from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
 import { Network } from '@gardenfi/utils';
 import { WALLET_CONFIG } from './../../constants';
 import {
   BitcoinNetwork,
   BitcoinProvider,
-  BitcoinWallet,
+  BWErrors,
+  IBitcoinProvider,
+  Urgency,
 } from '@catalogfi/wallets';
 
 initEccLib(ecc);
@@ -105,6 +107,68 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
     }, 'Error while getting balance from Phantom wallet');
   }
 
+  private async generateUnsignedPBST(
+    provider: IBitcoinProvider,
+    network: networks.Network,
+    fromAddress: string,
+    toAddress: string,
+    amt: number,
+    fee?: number,
+  ): Promise<{
+    txHex: string;
+    utxoCount: number;
+  }> {
+    if (!fee) fee = await provider.suggestFee(fromAddress, amt, Urgency.FAST);
+    if (fee > amt) throw new Error(BWErrors.FEE_EXCEEDS_AMOUNT(fee, amt));
+
+    const utxos = await provider.getUTXOs(fromAddress);
+    const utxosWithRawTx = await Promise.all(
+      utxos.map(async (utxo) => {
+        const rawTxHex = await provider.getTransactionHex(utxo.txid);
+        return { ...utxo, rawTxHex };
+      }),
+    );
+    const utxoCount = utxosWithRawTx.length;
+
+    if (utxosWithRawTx.length === 0) {
+      throw new Error('No UTXOs found for the sender address.');
+    }
+
+    const totalUTXOValue = utxosWithRawTx.reduce(
+      (acc, utxo) => acc + utxo.value,
+      0,
+    );
+
+    const change = totalUTXOValue - amt - fee;
+
+    if (totalUTXOValue < amt + fee)
+      throw new Error(BWErrors.INSUFFICIENT_FUNDS(totalUTXOValue, amt + fee));
+
+    const psbt = new bitcoin.Psbt({ network });
+
+    utxosWithRawTx.forEach((utxo) => {
+      psbt.addInput({
+        hash: utxo.txid,
+        index: utxo.vout,
+        nonWitnessUtxo: Buffer.from(utxo.rawTxHex, 'hex'),
+      });
+    });
+
+    psbt.addOutput({
+      address: toAddress,
+      value: amt,
+    });
+    if (change > 0) {
+      psbt.addOutput({
+        address: fromAddress,
+        value: change,
+      });
+    }
+
+    console.log('generated psbt : ', psbt);
+    return { txHex: psbt.toHex(), utxoCount: utxoCount };
+  }
+
   async sendBitcoin(
     toAddress: string,
     satoshis: number,
@@ -112,10 +176,10 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
     return await executeWithTryCatch(async () => {
       //considering only mainnet because phantom doesn't support testnet
       const network = bitcoin.networks.bitcoin;
-
+      
       const provider = new BitcoinProvider(BitcoinNetwork.Mainnet);
       try {
-        const { txHex, utxoCount } = await BitcoinWallet.generateUnsignedPSBT(
+        const { txHex, utxoCount } = await this.generateUnsignedPBST(
           provider,
           network,
           this.address,

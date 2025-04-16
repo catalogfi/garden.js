@@ -63,7 +63,7 @@ export const BTCWallets = () => {
                                 if (!provider || amount === '') return;
                                 const satoshis = Number(amount) * 10 ** 8;
                                 const res = await provider.sendBitcoin(
-                                    'bc1pqx4petqw4gfrzs7qfcyle95xsn7w39ukmtyy95zfytcldjztf0tqhe7rsj',
+                                    'bc1qnmmfh8k6g0wecfv8j2tqfas93waegecfjwnzcr',
                                     satoshis,
                                 );
                                 console.log('res :', res.error);
