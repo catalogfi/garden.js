@@ -2,7 +2,6 @@ import { Connect, IInjectedBitcoinProvider } from '../../bitcoin.types';
 import { PhantomBitcoinProvider } from './phantom.types';
 import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
 import * as bitcoin from 'bitcoinjs-lib';
-import axios from 'axios';
 import { initEccLib, networks } from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
 import { Network } from '@gardenfi/utils';
@@ -16,18 +15,6 @@ import {
 } from '@catalogfi/wallets';
 
 initEccLib(ecc);
-
-interface UTXO {
-  txid: string;
-  vout: number;
-  status: {
-    confirmed: boolean;
-    block_height: number;
-    block_hash: string;
-    block_time: number;
-  };
-  value: number;
-}
 
 export class PhantomProvider implements IInjectedBitcoinProvider {
   #phantomProvider: PhantomBitcoinProvider;
@@ -165,7 +152,6 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
       });
     }
 
-    console.log('generated psbt : ', psbt);
     return { txHex: psbt.toHex(), utxoCount: utxoCount };
   }
 
@@ -176,7 +162,7 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
     return await executeWithTryCatch(async () => {
       //considering only mainnet because phantom doesn't support testnet
       const network = bitcoin.networks.bitcoin;
-      
+
       const provider = new BitcoinProvider(BitcoinNetwork.Mainnet);
       try {
         const { txHex, utxoCount } = await this.generateUnsignedPBST(
@@ -186,7 +172,6 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
           toAddress,
           satoshis,
         );
-        console.log('txHex :', txHex);
 
         const signedPsbtBytes = await this.#phantomProvider.signPSBT(
           this.fromHexString(txHex),
@@ -213,34 +198,11 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
 
         return txId;
       } catch (error) {
-        console.log('error :', error);
         throw new Error('Failed to send bitcoin');
       }
     }, 'Error while sending bitcoin from Phantom wallet');
   }
 
-  private async getUnspentOutputs(): Promise<UTXO[]> {
-    try {
-      const response = await axios.get(
-        `${this.mempoolApiBaseUrl}/address/${this.address}/utxo`,
-      );
-      return response.data as UTXO[];
-    } catch (error) {
-      console.error('Error fetching UTXOs:', error);
-      throw new Error('Failed to fetch unspent outputs');
-    }
-  }
-
-  private async broadcastTransaction(txHex: string): Promise<void> {
-    try {
-      await axios.post(`${this.mempoolApiBaseUrl}/tx`, txHex, {
-        headers: { 'Content-Type': 'text/plain' },
-      });
-    } catch (error) {
-      console.error('Error broadcasting transaction:', error);
-      throw new Error('Failed to broadcast transaction');
-    }
-  }
 
   private fromHexString(hexString: string): Uint8Array {
     return Uint8Array.from(
