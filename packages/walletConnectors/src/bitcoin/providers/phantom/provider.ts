@@ -152,7 +152,7 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
       });
     }
 
-    return { txHex: psbt.toHex(), utxoCount: utxoCount };
+    return { txHex: psbt.toHex(), utxoCount };
   }
 
   async sendBitcoin(
