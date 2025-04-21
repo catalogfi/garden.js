@@ -52,7 +52,7 @@ export const checkAllowanceAndApprove = async (
           successStates: [TransactionExecutionStatus.SUCCEEDED],
         },
       );
-      sleep(2000);
+      await sleep(2000);
       return Ok(approveResponse.transaction_hash);
     }
 
