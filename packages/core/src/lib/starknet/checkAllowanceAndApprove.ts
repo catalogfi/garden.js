@@ -8,6 +8,7 @@ import {
 } from 'starknet';
 import { AsyncResult, Err, Ok, with0x } from '@catalogfi/utils';
 import { TokenABI } from './abi/starknetTokenABI';
+import { sleep } from '@gardenfi/utils';
 
 export const checkAllowanceAndApprove = async (
   account: AccountInterface,
@@ -51,6 +52,7 @@ export const checkAllowanceAndApprove = async (
           successStates: [TransactionExecutionStatus.SUCCEEDED],
         },
       );
+      sleep(2000);
       return Ok(approveResponse.transaction_hash);
     }
 
