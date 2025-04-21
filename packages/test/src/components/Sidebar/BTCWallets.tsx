@@ -66,7 +66,7 @@ export const BTCWallets = () => {
                                     'bc1pqx4petqw4gfrzs7qfcyle95xsn7w39ukmtyy95zfytcldjztf0tqhe7rsj',
                                     satoshis,
                                 );
-                                console.log('res :', res);
+                                console.log('res :', res.error);
                             }}
                         >
                             Send Bitcoin
