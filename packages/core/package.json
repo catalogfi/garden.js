@@ -1,6 +1,6 @@
 {
   "name": "@gardenfi/core",
-  "version": "2.0.25",
+  "version": "2.1.2",
   "type": "module",
   "scripts": {
     "build": "vite build",
@@ -27,11 +27,10 @@
   },
   "dependencies": {
     "@catalogfi/wallets": "^0.2.59",
-    "@gardenfi/orderbook": "workspace:^",
-    "@gardenfi/utils": "workspace:^",
+    "@gardenfi/orderbook": "workspace:*",
+    "@gardenfi/utils": "workspace:*",
     "bignumber.js": "^9.1.2",
     "bitcoinjs-lib": "^6.1.6",
-    "crypto-browserify": "^3.12.1",
     "starknet": "6.23.1",
     "tiny-secp256k1": "^2.2.3",
     "varuint-bitcoin": "^1.1.2",

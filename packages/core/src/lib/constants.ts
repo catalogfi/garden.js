@@ -1,23 +1,36 @@
-export const API = {
+import { Environment } from '@gardenfi/utils';
+
+export type Api = {
+  orderbook: string;
+  auth: string;
+  quote: string;
+  info: string;
+  evmRelay: string;
+  starknetRelay: string;
+};
+export const API: Record<Environment, Api> = {
   mainnet: {
-    orderbook: 'https://orderbookv2.garden.finance',
-    quote: 'https://pricev2.garden.finance',
-    info: 'https://infov2.garden.finance',
-    evmRelay: '',
+    orderbook: 'https://api.garden.finance',
+    auth: 'https://api.garden.finance/auth',
+    quote: 'https://api.garden.finance/quote',
+    info: 'https://api.garden.finance/info',
+    evmRelay: 'https://api.garden.finance/relayer',
     starknetRelay: '',
   },
   testnet: {
-    orderbook: 'https://orderbook.garden.finance',
-    quote: 'https://price.garden.finance',
-    info: 'https://info.garden.finance',
-    evmRelay: 'https://orderbook.garden.finance',
-    starknetRelay: 'https://starknet-relay.garden.finance',
+    orderbook: 'https://testnet.api.garden.finance',
+    auth: 'https://testnet.api.garden.finance/auth',
+    quote: 'https://testnet.api.garden.finance/quote',
+    info: 'https://testnet.api.garden.finance/info',
+    evmRelay: 'https://testnet.api.garden.finance/relayer',
+    starknetRelay: '',
   },
   localnet: {
     orderbook: '',
+    auth: '',
     quote: '',
     info: '',
     evmRelay: '',
-    strkRelay: '',
+    starknetRelay: '',
   },
 } as const;

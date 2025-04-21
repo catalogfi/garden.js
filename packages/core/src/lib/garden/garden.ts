@@ -2,12 +2,13 @@ import { ISecretManager } from './../secretManager/secretManager.types';
 import { AsyncResult, Err, Fetcher, Ok, trim0x } from '@catalogfi/utils';
 import {
   GardenEvents,
-  GardenProps,
   IGardenJS,
   IOrderExecutorCache,
   OrderActions,
   OrderWithStatus,
   SwapParams,
+  GardenConfigWithHTLCs,
+  GardenConfigWithWallets,
 } from './garden.types';
 import {
   BlockchainType,
@@ -29,6 +30,7 @@ import {
   Siwe,
   sleep,
   Url,
+  DigestKey,
 } from '@gardenfi/utils';
 import { IQuote } from '../quote/quote.types';
 import { getBitcoinNetwork, isValidBitcoinPubKey, toXOnly } from '../utils';
@@ -50,24 +52,20 @@ import {
   IBlockNumberFetcher,
 } from '../blockNumberFetcher/blockNumber';
 import { OrderStatus } from '../orderStatus/status';
-import { API } from '../constants';
+import { Api, API } from '../constants';
 import { Quote } from '../quote/quote';
 import { SecretManager } from '../secretManager/secretManager';
 import { IEVMHTLC } from '../evm/htlc.types';
-import { DigestKey } from './digestKey/digestKey';
-import { WalletClient } from 'viem';
 import { EvmRelay } from '../evm/relay/evmRelay';
 import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
-import { Account } from 'starknet';
 import { StarknetRelay } from '../starknet/relay/starknetRelay';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
-  private environment: Environment;
+  private environment: Environment = Environment.TESTNET;
   private _secretManager: ISecretManager;
   private _orderbook: IOrderbook;
   private _quote: IQuote;
   private getOrderThreshold = 20;
-  private _orderbookUrl: Url;
   private _auth: IAuth;
   private orderExecutorCache: IOrderExecutorCache;
   private _blockNumberFetcher: IBlockNumberFetcher;
@@ -81,33 +79,40 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     redeemTxHash: string;
   }>();
   private _digestKey: DigestKey;
+  private _api: Api | undefined;
 
-  constructor(config: GardenProps) {
+  constructor(config: GardenConfigWithHTLCs) {
     super();
-    const _digestKey = DigestKey.from(config.digestKey);
-    if (_digestKey.error) throw new Error(_digestKey.error);
-    this._digestKey = _digestKey.val;
+    if (typeof config.digestKey === 'string') {
+      const _digestKey = DigestKey.from(config.digestKey);
+      if (_digestKey.error) throw new Error(_digestKey.error);
+      this._digestKey = _digestKey.val;
+    } else {
+      this._digestKey = config.digestKey;
+    }
 
-    this.environment = config.environment;
-    const api =
-      config.environment === Environment.MAINNET
-        ? API.mainnet
-        : config.environment === Environment.TESTNET
-        ? API.testnet
-        : API.localnet;
-    if (!api)
-      throw new Error(
-        'API not found, invalid environment ' + config.environment,
-      );
+    if (typeof config.environment === 'string') {
+      this.environment = config.environment;
+      this._api =
+        config.environment === Environment.MAINNET
+          ? API.mainnet
+          : config.environment === Environment.TESTNET
+          ? API.testnet
+          : undefined;
+      if (!this._api)
+        throw new Error(
+          'API not found, invalid environment ' + config.environment,
+        );
+    } else {
+      this._api = config.environment;
+    }
 
-    this._orderbookUrl = new Url(config.api ?? api.orderbook);
-
-    this._quote = config.quote ?? new Quote(api.quote);
-    this._auth = Siwe.fromDigestKey(
-      new Url(config.api ?? api.orderbook),
-      this._digestKey.digestKey,
-    );
-    this._orderbook = new Orderbook(new Url(config.api ?? api.orderbook));
+    this._quote = config.quote ?? new Quote(this._api.quote);
+    this._auth =
+      config.auth ??
+      Siwe.fromDigestKey(new Url(this._api.auth), this._digestKey);
+    this._orderbook =
+      config.orderbook ?? new Orderbook(new Url(this._api.orderbook));
     this._evmHTLC = config.htlc.evm;
     this._starknetHTLC = config.htlc.starknet;
     this._secretManager =
@@ -116,46 +121,53 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this.orderExecutorCache = new ExecutorCache();
     this._blockNumberFetcher =
       config.blockNumberFetcher ??
-      new BlockNumberFetcher(api.info, config.environment);
+      new BlockNumberFetcher(this._api.info, this.environment);
   }
 
-  static from(config: {
-    environment: Environment;
-    digestKey: string;
-    wallets: {
-      evm: WalletClient;
-      starknet: Account;
-    };
-  }) {
-    const api =
-      config.environment === Environment.MAINNET
-        ? API.mainnet
-        : config.environment === Environment.TESTNET
-        ? API.testnet
-        : undefined;
+  static fromWallets(config: GardenConfigWithWallets) {
+    let digestKey: DigestKey;
+    if (typeof config.digestKey === 'string') {
+      const _digestKey = DigestKey.from(config.digestKey);
+      if (_digestKey.error) throw new Error(_digestKey.error);
+      digestKey = _digestKey.val;
+    } else {
+      digestKey = config.digestKey;
+    }
+
+    let api;
+
+    if (typeof config.environment === 'string') {
+      api =
+        config.environment === Environment.MAINNET
+          ? API.mainnet
+          : config.environment === Environment.TESTNET
+          ? API.testnet
+          : undefined;
+    } else {
+      api = config.environment;
+    }
     if (!api)
       throw new Error(
         'API not found, invalid environment ' + config.environment,
       );
 
     const htlc = {
-      evm: new EvmRelay(
-        api.evmRelay,
-        config.wallets.evm,
-        Siwe.fromDigestKey(new Url(api.orderbook), config.digestKey),
-      ),
-      starknet: new StarknetRelay(api.starknetRelay, config.wallets.starknet),
+      evm: config.wallets.evm
+        ? new EvmRelay(
+            api.evmRelay,
+            config.wallets.evm,
+            Siwe.fromDigestKey(new Url(api.auth), digestKey),
+          )
+        : undefined,
+      starknet: config.wallets.starknet
+        ? new StarknetRelay(api.starknetRelay, config.wallets.starknet)
+        : undefined,
     };
 
     return new Garden({
-      environment: config.environment,
-      digestKey: config.digestKey,
       htlc,
+      ...config,
     });
-  }
-
-  get orderbookUrl() {
-    return this._orderbookUrl.toString();
   }
 
   get evmHTLC() {
@@ -493,7 +505,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         }
         return;
       },
-      true,
+      'pending',
       {
         per_page: 500,
       },
@@ -741,14 +753,16 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       const sacp = await bitcoinExecutor.generateInstantRefundSACP(
         userBTCAddress,
       );
-      const url = this._orderbookUrl.endpoint('orders/add-instant-refund-sacp');
+      if (!this._api) return;
+      const url = new Url(this._api.orderbook).endpoint(
+        'orders/bitcoin/' + order.create_order.create_id + '/instant-refund',
+      );
 
       const res = await Fetcher.post<APIResponse<string>>(url, {
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          order_id: order.create_order.create_id,
           instant_refund_tx_bytes: sacp,
         }),
       });
@@ -806,7 +820,8 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   private async broadcastRedeemTx(redeemTx: string, orderId: string) {
     try {
-      const url = this._orderbookUrl.endpoint('gasless/order/bitcoin/redeem');
+      if (!this._api) return Err('API not found');
+      const url = new Url(this._api.evmRelay).endpoint('/bitcoin/redeem ');
       const authHeaders = await this._auth.getAuthHeaders();
       const res = await fetch(url, {
         method: 'POST',

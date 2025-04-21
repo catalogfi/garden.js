@@ -34,6 +34,48 @@ const updatedSepolia = {
   },
 };
 
+export const hyperliquidTestnet: viemChain = {
+  id: 998,
+  name: 'Hyperliquid EVM Testnet',
+  nativeCurrency: {
+    name: 'Hyperliquid',
+    symbol: 'HYPE',
+    decimals: 18,
+  },
+  blockExplorers: {
+    default: {
+      name: 'Hyperliquid Explorer',
+      url: 'https://testnet.purrsec.com/',
+    },
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://rpc.hyperliquid-testnet.xyz/evm'],
+    },
+  },
+};
+
+export const hyperliquid: viemChain = {
+  id: 999,
+  name: 'HyperEVM',
+  nativeCurrency: {
+    name: 'Hyperliquid',
+    symbol: 'HYPE',
+    decimals: 18,
+  },
+  blockExplorers: {
+    default: {
+      name: 'Hyperliquid Explorer',
+      url: 'https://hyperscan.gas.zip/',
+    },
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://rpc.hyperliquid.xyz/evm'],
+    },
+  },
+};
+
 export const evmToViemChainMap: Record<EvmChain, viemChain> = {
   ethereum: mainnet,
   arbitrum: arbitrum,
@@ -47,6 +89,8 @@ export const evmToViemChainMap: Record<EvmChain, viemChain> = {
   citrea_testnet: citreaTestnet,
   bera: berachain,
   monad_testnet: monadTestnet,
+  hyperliquid_testnet: hyperliquidTestnet,
+  hyperliquid: hyperliquid,
 };
 
 /**
@@ -70,7 +114,7 @@ export const switchOrAddNetwork = async (
       const newWalletClient = createWalletClient({
         account: walletClient.account,
         chain: chainID,
-        transport: custom(window.ethereum!),
+        transport: custom(walletClient.transport),
       });
 
       return Ok({

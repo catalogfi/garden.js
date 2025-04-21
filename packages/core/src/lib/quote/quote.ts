@@ -16,7 +16,7 @@ export class Quote implements IQuote {
   private quoteUrl: Url;
 
   constructor(quoteUrl: string) {
-    this.quoteUrl = new Url('/quote', quoteUrl);
+    this.quoteUrl = new Url(quoteUrl);
   }
 
   async getQuote(
@@ -26,7 +26,7 @@ export class Quote implements IQuote {
     request?: Request,
   ) {
     try {
-      const url = this.quoteUrl.addSearchParams({
+      const url = this.quoteUrl.endpoint('/').addSearchParams({
         order_pair: orderpair,
         amount: amount.toString(),
         exact_out: isExactOut.toString(),

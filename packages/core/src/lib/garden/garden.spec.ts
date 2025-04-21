@@ -1,5 +1,5 @@
 import { Garden } from './garden';
-import { Environment, Siwe, Url, with0x } from '@gardenfi/utils';
+import { Environment, with0x } from '@gardenfi/utils';
 import {
   createWalletClient,
   http,
@@ -18,12 +18,13 @@ import {
 } from '@gardenfi/orderbook';
 import { sleep } from '@catalogfi/utils';
 import {
-  arbitrumSepolia,
+  arbitrum,
+  // arbitrumSepolia,
   // sepolia
 } from 'viem/chains';
-import { EvmRelay } from './../evm/relay/evmRelay';
-import { Quote } from '../quote/quote';
-import { DigestKey } from './digestKey/digestKey';
+// import { EvmRelay } from './../evm/relay/evmRelay';
+import { DigestKey } from '@gardenfi/utils';
+import { EvmRelay } from 'gardenfi/core/dist';
 // import { SecretManager } from '../secretManager/secretManager';
 // import { DigestKey } from './digestKey/digestKey';
 // import { BitcoinNetwork, BitcoinProvider } from '@catalogfi/wallets';
@@ -32,16 +33,15 @@ import { DigestKey } from './digestKey/digestKey';
 
 describe('swap and execute using garden', () => {
   // const bitcoinAddress = 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru';
-  const pk =
-    '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
+  const pk = 'e3aaf79d424a3ce49627a38eb0dbcba5af6e0e98215a9b71a61e4a622d7d37c1';
   // const address = '0x52FE8afbbB800a33edcbDB1ea87be2547EB30000';
   const account = privateKeyToAccount(with0x(pk));
-  const api = 'https://orderbook-stage.hashira.io';
+  // const api = 'https://orderbook-stage.hashira.io';
   console.log('account :', account.address);
 
   const arbitrumWalletClient = createWalletClient({
     account,
-    chain: arbitrumSepolia,
+    chain: arbitrum,
     transport: http(),
   });
   // const ethereumWalletClient = createWalletClient({
@@ -66,54 +66,72 @@ describe('swap and execute using garden', () => {
   );
   console.log('digestKey :', digestKey.userId);
 
-  const garden = new Garden({
-    api,
-    environment: Environment.TESTNET,
+  const garden = Garden.fromWallets({
+    environment: Environment.MAINNET,
     digestKey:
       '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
-    quote: new Quote('https://quote-staging.hashira.io'),
-    htlc: {
-      evm: new EvmRelay(
-        api,
-        arbitrumWalletClient,
-        Siwe.fromDigestKey(
-          new Url(api),
-          '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
-        ),
-      ),
+    wallets: {
+      evm: arbitrumWalletClient,
     },
   });
 
-  // let secret = await secretManager.generateSecret(order.create_order.nonce);
+  it.skip('initialize garden from wallets', async () => {
+    const garden = Garden.fromWallets({
+      environment: Environment.TESTNET,
+      digestKey:
+        '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
+      wallets: {
+        evm: arbitrumWalletClient,
+      },
+    });
 
-  // let wallets: Partial<{ [key in Chain]: WalletClient }> = {};
+    const garden = new Garden({
+      environment: Environment.TESTNET,
+      digestKey:
+        '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
+      htlcs: {
+        evm: new EvmRelay(
+          'https://evm-swapper-relay-1.onrender.com/',
+          arbitrumWalletClient,
+          new Siwe({
+            domain: 'evm-swapper-relay-1.onrender.com',
+            nonce: '1',
+          }),
+        ),
+      },
+    });
+  });
 
-  // wallets = {
-  //   [Chains.arbitrum_sepolia]: arbitrumWalletClient,
-  //   [Chains.ethereum_sepolia]: ethereumWalletClient,
-  //   // [Chains.bitcoin_regtest]: btcWallet,
-  // };
   let order: MatchedOrder;
 
   it('should create an order', async () => {
+    // const orderObj = {
+    //   fromAsset: {
+    //     name: 'Wrapped Bitcoin',
+    //     decimals: 8,
+    //     symbol: 'WBTC',
+    //     chain: 'arbitrum_sepolia',
+    //     logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
+    //     tokenAddress: '0xD8a6E3FCA403d79b6AD6216b60527F51cc967D39',
+    //     atomicSwapAddress: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
+    //   } as const,
+    //   toAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
+    //   sendAmount: '100000'.toString(),
+    //   receiveAmount: '99700'.toString(),
+    //   additionalData: {
+    //     strategyId: 'asacbtyr',
+    //     btcAddress: 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru',
+    //   },
+    // };
     const orderObj = {
-      fromAsset: {
-        name: 'Wrapped Bitcoin',
-        decimals: 8,
-        symbol: 'WBTC',
-        chain: 'arbitrum_sepolia',
-        logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
-        tokenAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
-        atomicSwapAddress: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
-      } as const,
-      toAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
-      sendAmount: '100000'.toString(),
-      receiveAmount: '99700'.toString(),
+      fromAsset: SupportedAssets.mainnet.arbitrum_WBTC,
+      toAsset: SupportedAssets.mainnet.bitcoin_BTC,
+      sendAmount: '10000'.toString(),
+      receiveAmount: '9970'.toString(),
       additionalData: {
-        strategyId: 'asacbtyr',
-        btcAddress: 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru',
+        strategyId: 'ambcbnyr',
+        btcAddress: 'bc1qxtztdl8qn24axe7dnvp75xgcns6pl5ka0depc0',
       },
-      minDestinationConfirmations: 0,
     };
 
     const result = await garden.swap(orderObj);

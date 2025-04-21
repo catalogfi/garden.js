@@ -9,7 +9,7 @@ describe('url', async () => {
     expect(newURL.pathname).toEqual('/orders/id/matched');
   });
 
-  it.only('test', () => {
+  it('test', () => {
     const url = new Url('https://api.hashira.io/orderbook').endpoint(
       '/relayer',
     );
@@ -17,5 +17,11 @@ describe('url', async () => {
     console.log('newURL :', newURL.toString());
     // expect(url.pathname).toEqual('/orders');
     // expect(newURL.pathname).toEqual('/orders/id/matched');
+  });
+
+  it('test', () => {
+    const url = new Url('https://api.hashira.io/quote').endpoint('/');
+    const newURL = url.endpoint('/id/matched');
+    console.log('newURL :', newURL.toString());
   });
 });

@@ -7,6 +7,11 @@ export type {
   OrderCacheValue,
   EventCallback,
   OrderWithStatus,
+  GardenCoreConfig,
+  GardenWalletModules,
+  GardenHTLCModules,
+  GardenConfigWithWallets,
+  GardenConfigWithHTLCs,
 } from './lib/garden/garden.types';
 export { OrderActions } from './lib/garden/garden.types';
 
@@ -50,6 +55,8 @@ export { constructOrderPair, validateBTCAddress } from './lib/utils';
 export {
   evmToViemChainMap,
   switchOrAddNetwork,
+  hyperliquidTestnet,
+  hyperliquid,
 } from './lib/switchOrAddNetwork';
 
 export { API } from './lib/constants';

@@ -1,6 +1,6 @@
 {
   "name": "@gardenfi/orderbook",
-  "version": "2.0.9",
+  "version": "2.1.2",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -26,7 +26,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
-    "@gardenfi/utils": "workspace:^",
+    "@gardenfi/utils": "workspace:*",
     "bufferutil": "^4.0.8",
     "siwe": "^2.1.4",
     "utf-8-validate": "^6.0.3",
