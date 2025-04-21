@@ -17,7 +17,9 @@ import {
 import { constructOrderpair } from '../utils';
 import { useDigestKey } from '../hooks/useDigestKey';
 
-export const GardenContext = createContext<GardenContextType>({});
+export const GardenContext = createContext<GardenContextType>({
+  pendingOrders: [],
+});
 
 export const GardenProvider: FC<GardenProviderProps> = ({
   children,
@@ -129,6 +131,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         pendingOrders,
         getQuote,
         garden,
+        orderBook: garden?.orderbook,
       }}
     >
       {children}

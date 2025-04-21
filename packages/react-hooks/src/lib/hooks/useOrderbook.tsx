@@ -39,7 +39,7 @@ export const useOrderbook = (
       if (res.error) return;
       const { val: blockNumbers } = res;
       garden.orderbook
-        .getMatchedOrders(digestKey.userId, true, {
+        .getMatchedOrders(digestKey.userId, 'pending', {
           per_page: 500,
         })
         .then((orders) => {

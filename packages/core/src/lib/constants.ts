@@ -10,19 +10,19 @@ export type Api = {
 };
 export const API: Record<Environment, Api> = {
   mainnet: {
-    orderbook: 'https://orderbookv2.garden.finance',
-    auth: '',
-    quote: 'https://pricev2.garden.finance',
-    info: 'https://infov2.garden.finance',
-    evmRelay: 'https://orderbookv2.garden.finance',
+    orderbook: 'https://api.garden.finance',
+    auth: 'https://api.garden.finance/auth',
+    quote: 'https://api.garden.finance/quote',
+    info: 'https://api.garden.finance/info',
+    evmRelay: 'https://api.garden.finance/relayer',
     starknetRelay: '',
   },
   testnet: {
-    orderbook: 'https://testnet.api.hashira.io',
-    auth: 'https://testnet.api.hashira.io/auth',
-    quote: 'https://testnet.api.hashira.io/quote',
-    info: 'https://info.garden.finance',
-    evmRelay: 'https://testnet.api.hashira.io/relayer',
+    orderbook: 'https://testnet.api.garden.finance',
+    auth: 'https://testnet.api.garden.finance/auth',
+    quote: 'https://testnet.api.garden.finance/quote',
+    info: 'https://testnet.api.garden.finance/info',
+    evmRelay: 'https://testnet.api.garden.finance/relayer',
     starknetRelay: '',
   },
   localnet: {

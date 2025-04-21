@@ -7,6 +7,7 @@ import {
   MatchedOrder,
   PaginatedData,
   PaginationConfig,
+  Status,
 } from './orderbook.types';
 import { APIResponse, ApiStatus, IAuth, Url } from '@gardenfi/utils';
 import { ConstructUrl } from '../utils';
@@ -79,7 +80,7 @@ export class Orderbook implements IOrderbook {
 
   async getMatchedOrders(
     address: string,
-    pending: boolean,
+    status: Status,
     paginationConfig?: PaginationConfig,
   ): AsyncResult<PaginatedData<MatchedOrder>, string> {
     const url = ConstructUrl(
@@ -87,7 +88,7 @@ export class Orderbook implements IOrderbook {
       `/user/${address}/matched`,
       {
         ...paginationConfig,
-        pending,
+        status,
       },
     );
 
@@ -164,7 +165,7 @@ export class Orderbook implements IOrderbook {
     cb: (
       orders: PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
     ) => Promise<void>,
-    pending: boolean = false,
+    status: Status = 'all',
     paginationConfig?: PaginationConfig,
   ): Promise<() => void> {
     let isProcessing = false;
@@ -175,7 +176,7 @@ export class Orderbook implements IOrderbook {
 
       try {
         const result = matched
-          ? await this.getMatchedOrders(account, pending, paginationConfig)
+          ? await this.getMatchedOrders(account, status, paginationConfig)
           : await this.getUnMatchedOrders(account, paginationConfig);
         if (result.ok) {
           await cb(

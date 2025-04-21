@@ -1,5 +1,5 @@
 import { CookieJar } from 'tough-cookie';
-import fetchCookie from 'fetch-cookie';
+import { default as fetchCookie } from 'fetch-cookie';
 import { AuthHeader, IAuth, SiweOpts } from '../auth.types';
 import { AsyncResult, Err, Ok, Result } from '@catalogfi/utils';
 import { Url } from '../../url';
@@ -103,8 +103,8 @@ export class Siwe implements IAuth {
           }),
           headers: {
             'Content-Type': 'application/json',
-            credentials: 'include',
           },
+          credentials: 'include',
         },
       );
       const tokenResp: APIResponse<string> = await tokenRes.json();
@@ -144,8 +144,8 @@ export class Siwe implements IAuth {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          credentials: 'include',
         },
+        credentials: 'include',
       });
       const nonceResp: APIResponse<string> = await res.json();
       if (nonceResp.error || !nonceResp.result) {

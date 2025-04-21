@@ -14,7 +14,7 @@ export class BlockNumberFetcher implements IBlockNumberFetcher {
   private url: Url;
 
   constructor(url: string, network: Environment) {
-    this.url = new Url('/blocknumber/' + network, url);
+    this.url = new Url(url).endpoint('blocknumbers').endpoint(network);
   }
 
   async fetchBlockNumbers(): AsyncResult<Response, string> {

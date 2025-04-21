@@ -56,6 +56,7 @@ export {
   evmToViemChainMap,
   switchOrAddNetwork,
   hyperliquidTestnet,
+  hyperliquid,
 } from './lib/switchOrAddNetwork';
 
 export { API } from './lib/constants';

@@ -163,7 +163,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         ? new StarknetRelay(api.starknetRelay, config.wallets.starknet)
         : undefined,
     };
-    console.log('api.auth :', api.auth);
 
     return new Garden({
       htlc,
@@ -506,7 +505,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         }
         return;
       },
-      true,
+      'pending',
       {
         per_page: 500,
       },

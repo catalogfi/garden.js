@@ -37,6 +37,7 @@ export default defineConfig({
       external: [...Object.keys(pkg.dependencies || {})],
       output: {
         preserveModules: true,
+        interop: 'auto',
       },
     },
   },

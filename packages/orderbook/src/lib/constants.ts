@@ -301,5 +301,13 @@ export const SupportedAssets = {
       tokenAddress: '0xecAc9C5F704e954931349Da37F60E39f515c11c1',
       atomicSwapAddress: '0x39f3294352208905fc6ebf033954E6c6455CdB4C',
     },
+    hyperliquid_UBTC: {
+      name: 'Unit Bitcoin',
+      decimals: 8,
+      symbol: 'UBTC',
+      chain: Chains.hyperliquid,
+      tokenAddress: '0x9FDBdA0A5e284c32744D2f17Ee5c74B284993463',
+      atomicSwapAddress: '0x39f3294352208905fc6ebf033954E6c6455CdB4C',
+    },
   },
 } as const;
