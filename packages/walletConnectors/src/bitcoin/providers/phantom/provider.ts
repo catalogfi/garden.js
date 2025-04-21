@@ -94,7 +94,7 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
     }, 'Error while getting balance from Phantom wallet');
   }
 
-  private async generateUnsignedPBST(
+  private async generateUnsignedPSBT(
     provider: IBitcoinProvider,
     network: networks.Network,
     fromAddress: string,
@@ -165,7 +165,7 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
 
       const provider = new BitcoinProvider(BitcoinNetwork.Mainnet);
       try {
-        const { txHex, utxoCount } = await this.generateUnsignedPBST(
+        const { txHex, utxoCount } = await this.generateUnsignedPSBT(
           provider,
           network,
           this.address,
@@ -202,7 +202,6 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
       }
     }, 'Error while sending bitcoin from Phantom wallet');
   }
-
 
   private fromHexString(hexString: string): Uint8Array {
     return Uint8Array.from(
