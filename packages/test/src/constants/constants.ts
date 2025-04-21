@@ -47,5 +47,4 @@ export const stagingAssets = {
   },
 };
 
-// export const chainToAsset = stagingAssets.testnet;
-export const chainToAsset = SupportedAssets.mainnet;
+export const chainToAsset = stagingAssets.testnet;

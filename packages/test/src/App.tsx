@@ -14,27 +14,27 @@ function App() {
   return (
     <GardenProvider
       config={{
-        environment: Environment.MAINNET,
-        wallets: {
-          evm: walletClient,
-          // starknet: starknetWallet,
-        },
-        // htlc: {
-        //   starknet: new StarknetRelay(
-        //     'https://starknet-relayer.hashira.io',
-        //     starknetAccount!,
-        //   ),
-        //   evm: new EvmRelay(
-        //     'https://orderbook-stage.hashira.io',
-        //     walletClient!,
-        //     Siwe.fromDigestKey(
-        //       new Url('https://orderbook-stage.hashira.io'),
-        //       DigestKey.generateRandom().val,
-        //     ),
-        //   ),
+        environment: Environment.TESTNET,
+        // wallets: {
+        //   evm: walletClient,
+        //   starknet: starknetWallet,
         // },
-        // quote: new Quote('https://quote-staging.hashira.io/'),
-        // api: 'https://orderbook-stage.hashira.io',
+        htlc: {
+          starknet: new StarknetRelay(
+            'https://starknet-relayer.hashira.io',
+            starknetAccount!,
+          ),
+          evm: new EvmRelay(
+            'https://orderbook-stage.hashira.io',
+            walletClient!,
+            Siwe.fromDigestKey(
+              new Url('https://orderbook-stage.hashira.io'),
+              DigestKey.generateRandom().val,
+            ),
+          ),
+        },
+        quote: new Quote('https://quote-staging.hashira.io/'),
+        api: 'https://orderbook-stage.hashira.io',
       }}
     >
       <Swap />

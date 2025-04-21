@@ -16,7 +16,7 @@ import { XdefiBitcoinProvider } from './providers/xdefi/xdefi.types';
 import { PhantomBitcoinProvider } from './providers/phantom/phantom.types';
 import { UnisatProvider } from './providers/unisat/provider';
 import { PhantomProvider } from './providers/phantom/provider';
-// import { XverseProvider } from './providers/xverse/provider';
+import { XverseProvider } from './providers/xverse/provider';
 // import { XdefiProvider } from './providers/xdefi/provider';
 import {
   AvailableWallets,
@@ -146,14 +146,12 @@ export const BTCWalletProvider = ({
       const uniProvider = new UnisatProvider(window.unisat);
       addToWalletList(uniProvider);
     }
-    // if (window.XverseProviders && window.XverseProviders.BitcoinProvider) {
-    //   const xverseProvider = new XverseProvider(
-    //     window.XverseProviders.BitcoinProvider,
-    //   );
-    //   addToWalletList(BitcoinWallets.XVERSE, xverseProvider);
-//   const res = await xverseProvider.getAccounts();
-    //   setAccount(res.val[0]);
-    // }
+    if (window.XverseProviders && window.XverseProviders.BitcoinProvider) {
+      const xverseProvider = new XverseProvider(
+        window.XverseProviders.BitcoinProvider,
+      );
+      addToWalletList(xverseProvider)
+    }
     // if (window.xfi && window.xfi.bitcoin) {
     //   const xdefiProvider = new XdefiProvider(window.xfi.bitcoin);
     //   addToWalletList(BitcoinWallets.XDEFI, xdefiProvider);

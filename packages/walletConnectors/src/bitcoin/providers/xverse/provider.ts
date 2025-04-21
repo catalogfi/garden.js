@@ -1,6 +1,13 @@
 import { WALLET_CONFIG } from './../../constants';
-import { Balance, IInjectedBitcoinProvider } from '../../bitcoin.types';
-import { XVerseBitcoinProvider } from './xverse.types';
+import {
+  Balance,
+  Connect,
+  IInjectedBitcoinProvider,
+} from '../../bitcoin.types';
+import {
+  XverseBitcoinNetworkType,
+  XVerseBitcoinProvider,
+} from './xverse.types';
 import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
 import { Network } from '@gardenfi/utils';
 
@@ -15,17 +22,8 @@ export class XverseProvider implements IInjectedBitcoinProvider {
     this.#xverseProvider = provider;
   }
 
-  connect = async () => {
+  connect = async (network?: Network): AsyncResult<Connect, string> => {
     try {
-      const res = await this.#xverseProvider.request('getAccounts', {
-        purposes: ['payment'],
-        message: 'I want to connect',
-        network: 'testnet',
-      });
-
-      const address = res.result[0].address;
-      this.address = address;
-
       if (!window.XverseProviders || !window.XverseProviders.BitcoinProvider) {
         return Err('XVerse wallet not found');
       }
@@ -35,13 +33,28 @@ export class XverseProvider implements IInjectedBitcoinProvider {
       );
       this.#xverseProvider = provider.provider;
 
-      const network = await this.getNetwork();
-      if (network.error) return Err('Could not get network', network.error);
+      if (!network) network = Network.MAINNET;
+
+      await this.#xverseProvider.request('wallet_connect', null);
+
+      const currentNetwork = await this.getNetwork();
+      if (currentNetwork.error)
+        return Err('Could not get network', currentNetwork.error);
+
+      if (currentNetwork.val !== network) {
+        const switchRes = await this.switchNetwork();
+        if (switchRes.error)
+          return Err('Failed to switch network', switchRes.error);
+      }
+      const res = await this.#xverseProvider.request('getAddresses', {
+        purposes: ['payment'],
+      });
+      this.address = res.result.addresses[0]['address'];
 
       return Ok({
         address: this.address,
         provider: provider,
-        network: network.val,
+        network: network,
         id: WALLET_CONFIG.Xverse.id,
       });
     } catch (error) {
@@ -96,26 +109,48 @@ export class XverseProvider implements IInjectedBitcoinProvider {
   };
 
   //TODO: get network from the wallet
-  getNetwork = async (): AsyncResult<Network, string> => {
-    if (
-      this.address.startsWith('1') ||
-      this.address.startsWith('3') ||
-      this.address.startsWith('bc1')
-    ) {
-      return Ok(Network.MAINNET);
-    } else if (
-      this.address.startsWith('m') ||
-      this.address.startsWith('n') ||
-      this.address.startsWith('2') ||
-      this.address.startsWith('tb1')
-    ) {
-      return Ok(Network.TESTNET);
-    }
-    return Ok(Network.TESTNET);
-  };
+  async getNetwork() {
+    return await executeWithTryCatch(async () => {
+      const network = await this.#xverseProvider.request(
+        'wallet_getNetwork',
+        null,
+      );
+      if (network.result.bitcoin.name === XverseBitcoinNetworkType.Mainnet) {
+        return Network.MAINNET;
+      } else if (
+        network.result.bitcoin.name === XverseBitcoinNetworkType.Testnet4
+      ) {
+        return Network.TESTNET;
+      }
+      throw new Error('Invalid or unsupported network' + network.result);
+    }, 'Error while getting network from Xverse wallet');
+  }
 
-  async switchNetwork() {
-    return Err('Not available in xverse wallet');
+  async switchNetwork(): AsyncResult<Network, string> {
+    try {
+      const currentNetwork = await this.getNetwork();
+      if (currentNetwork.error) {
+        return Err('Failed to get current network');
+      }
+
+      const toNetwork =
+        currentNetwork.val === Network.MAINNET
+          ? XverseBitcoinNetworkType.Testnet4
+          : XverseBitcoinNetworkType.Mainnet;
+
+      await this.#xverseProvider.request('wallet_changeNetwork', {
+        name: toNetwork,
+      });
+
+      const newNetwork = await this.getNetwork();
+      if (newNetwork.error) {
+        return Err('Failed to verify network switch');
+      }
+
+      return Ok(newNetwork.val);
+    } catch (error) {
+      return Err('Error while switching network in Xverse:', error);
+    }
   }
 
   /**
