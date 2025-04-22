@@ -13,7 +13,7 @@ import { AsyncResult, Err, Ok, Fetcher } from '@catalogfi/utils';
 import { APIResponse, Url, hexToU32Array } from '@gardenfi/utils';
 import { IStarknetHTLC } from '../starknetHTLC.types';
 import { starknetHtlcABI } from '../abi/starknetHtlcABI';
-import { formatStarknetSignature } from 'src/lib/utils';
+import { formatStarknetSignature } from '../../utils';
 
 const DOMAIN = {
   name: 'HTLC',

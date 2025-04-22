@@ -7,7 +7,7 @@ import { trim0x } from '@catalogfi/utils';
 import * as secp256k1 from 'tiny-secp256k1';
 import * as bitcoin from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
-import { Signature, WeierstrassSignatureType } from 'starknet';
+import { Signature } from 'starknet';
 
 export const computeSecret = async (
   fromChain: Chain,
