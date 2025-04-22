@@ -104,6 +104,10 @@ export class StarknetRelay implements IStarknetHTLC {
       };
 
       const signature = await this.account.signMessage(TypedData);
+      const formattedSignature = formatStarknetSignature(signature);
+      if (formattedSignature.error) {
+        return Err(formattedSignature.error);
+      }
       // const { r, s } = signature;
       // const r = signature[1];
       // const s = signature[2];
@@ -112,7 +116,7 @@ export class StarknetRelay implements IStarknetHTLC {
         {
           body: JSON.stringify({
             order_id: create_order.create_id,
-            signature: formatStarknetSignature(signature),
+            signature: formattedSignature.val,
             perform_on: 'Source',
           }),
           headers: {

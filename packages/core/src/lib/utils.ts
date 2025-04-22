@@ -1,5 +1,5 @@
 import { BitcoinNetwork, IBaseWallet } from '@catalogfi/wallets';
-import { Environment, Err, with0x } from '@gardenfi/utils';
+import { AsyncResult, Environment, Err, Ok, with0x } from '@gardenfi/utils';
 import { Chain } from '@gardenfi/orderbook';
 import { sha256 } from 'viem';
 import * as varuint from 'varuint-bitcoin';
@@ -155,7 +155,7 @@ export const getBitcoinNetwork = (network: Environment): BitcoinNetwork => {
 export const formatStarknetSignature = (value: Signature) => {
   // Handle object format
   if (typeof value === 'object' && 'r' in value && 's' in value) {
-    return [value.r.toString(), value.s.toString()];
+    return Ok([value.r.toString(), value.s.toString()]);
   }
 
   // Handle array format
@@ -172,7 +172,7 @@ export const formatStarknetSignature = (value: Signature) => {
 ]
      */
     if (value.length === 3) {
-      return [value[1], value[2]];
+      return Ok([value[1], value[2]]);
     }
 
     // Get number of signatures from first element
@@ -211,7 +211,7 @@ export const formatStarknetSignature = (value: Signature) => {
       }
     }
 
-    return result;
+    return Ok(result);
   }
 
   return Err('Invalid signature format');
