@@ -1,5 +1,5 @@
 import { BitcoinNetwork, IBaseWallet } from '@catalogfi/wallets';
-import { AsyncResult, Environment, Err, Ok, with0x } from '@gardenfi/utils';
+import { Environment, Err, Ok, with0x } from '@gardenfi/utils';
 import { Chain } from '@gardenfi/orderbook';
 import { sha256 } from 'viem';
 import * as varuint from 'varuint-bitcoin';
