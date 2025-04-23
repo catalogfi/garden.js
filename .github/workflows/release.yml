@@ -58,7 +58,7 @@ jobs:
       - name: Enable Corepack and Set Yarn Version
         run: |
           corepack enable
-          corepack prepare yarn@4.3.1 --activate
+          corepack prepare yarn@4.5.1 --activate
 
       - name: Install Dependencies
         run: yarn install
@@ -106,7 +106,7 @@ jobs:
       - name: Enable Corepack and Set Yarn Version
         run: |
           corepack enable
-          corepack prepare yarn@4.3.1 --activate
+          corepack prepare yarn@4.5.1 --activate
 
       - name: Install Dependencies
         run: yarn install
