@@ -152,15 +152,15 @@ export const getBitcoinNetwork = (network: Environment): BitcoinNetwork => {
   }
 };
 
-export const formatStarknetSignature = (value: Signature) => {
+export const formatStarknetSignature = (sig: Signature) => {
   // Handle object format
-  if (typeof value === 'object' && 'r' in value && 's' in value) {
-    return Ok([value.r.toString(), value.s.toString()]);
+  if (typeof sig === 'object' && 'r' in sig && 's' in sig) {
+    return Ok([sig.r.toString(), sig.s.toString()]);
   }
 
   // Handle array format
-  if (Array.isArray(value)) {
-    if (value.length < 3) return Err('Invalid signature length');
+  if (Array.isArray(sig)) {
+    if (sig.length < 3) return Err('Invalid signature length');
     // If array length is 3, return last two values as [r, s]
     /**
      * 
@@ -171,8 +171,8 @@ export const formatStarknetSignature = (value: Signature) => {
     "3349251680103955626256385099327904987172866494101233942670984344700799940807"
 ]
      */
-    if (value.length === 3) {
-      return Ok([value[1], value[2]]);
+    if (sig.length === 3) {
+      return Ok([sig[1], sig[2]]);
     }
 
     // Get number of signatures from first element
@@ -192,10 +192,10 @@ export const formatStarknetSignature = (value: Signature) => {
 ]
      */
 
-    const numSignatures = parseInt(value[0]);
+    const numSignatures = parseInt(sig[0]);
     if (isNaN(numSignatures)) return Err('Invalid signature format');
     const VALUES_PER_SIGNATURE = 4;
-    if (value.length !== numSignatures * VALUES_PER_SIGNATURE + 1)
+    if (sig.length !== numSignatures * VALUES_PER_SIGNATURE + 1)
       return Err('Invalid signature format');
     const result: string[] = [];
 
@@ -204,8 +204,8 @@ export const formatStarknetSignature = (value: Signature) => {
       // Calculate the starting index for each signature group
       // Skip 2 values (public key and something) and get r,s
       const baseIndex = 1 + i * 4;
-      const r = value[baseIndex + 2];
-      const s = value[baseIndex + 3];
+      const r = sig[baseIndex + 2];
+      const s = sig[baseIndex + 3];
       if (r && s) {
         result.push(r, s);
       }
