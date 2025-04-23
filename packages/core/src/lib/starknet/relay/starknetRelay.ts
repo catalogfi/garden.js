@@ -37,7 +37,7 @@ const INITIATE_TYPE = {
   ],
 };
 
-const DEFAULT_NODE_URL = 'https://starknet-sepolia.public.blastapi.io/rpc/v0_7';
+const DEFAULT_NODE_URL = 'https://starknet-sepolia.public.blastapi.io/rpc/v0_8';
 
 export class StarknetRelay implements IStarknetHTLC {
   private url: Url;
