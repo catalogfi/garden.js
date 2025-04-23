@@ -72,7 +72,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private refundSacpCache = new Map<string, any>();
   private _evmHTLC: IEVMHTLC | undefined;
   private _starknetHTLC: IStarknetHTLC | undefined;
-  private _btcWallet: IBitcoinWallet | undefined;
+  private _btcWallet: IBitcoinWallet;
   private bitcoinRedeemCache = new Cache<{
     redeemedFromUTXO: string;
     redeemedAt: number;
@@ -122,6 +122,12 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this._blockNumberFetcher =
       config.blockNumberFetcher ??
       new BlockNumberFetcher(this._api.info, this.environment);
+
+    const provider = new BitcoinProvider(getBitcoinNetwork(this.environment));
+    this._btcWallet = BitcoinWallet.fromPrivateKey(
+      this._digestKey.digestKey,
+      provider,
+    );
   }
 
   static fromWallets(config: GardenConfigWithWallets) {
@@ -204,17 +210,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   get digestKey() {
     return this._digestKey;
-  }
-
-  private async initializeSMandBTCWallet() {
-    if (this._secretManager.isInitialized && this._btcWallet)
-      return Ok(this._btcWallet);
-    const digestKey = await this._secretManager.getDigestKey();
-    if (digestKey.error) return Err(digestKey.error);
-
-    const provider = new BitcoinProvider(getBitcoinNetwork(this.environment));
-    this._btcWallet = BitcoinWallet.fromPrivateKey(digestKey.val, provider);
-    return Ok(this._btcWallet);
   }
 
   async swap(params: SwapParams): AsyncResult<MatchedOrder, string> {
@@ -304,14 +299,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         return Err(
           'btcAddress in additionalData is required if source or destination chain is bitcoin, it is used as refund or redeem address.',
         );
-
-      const walletRes = await this.initializeSMandBTCWallet();
-      if (walletRes.error) return Err(walletRes.error);
-
-      if (!this._btcWallet)
-        return Err(
-          'btcWallet is required for bitcoin chain. Please provide btcWallet in the constructor',
-        );
     }
 
     const sendAddress = await this.getAddresses(params.fromAsset.chain);
@@ -391,9 +378,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   }
 
   async execute(interval: number = 5000): Promise<() => void> {
-    //initiate SM and bitcoinWallet if not initialized
-    await this.initializeSMandBTCWallet();
-
     return await this._orderbook.subscribeOrders(
       this._digestKey.userId,
       true,

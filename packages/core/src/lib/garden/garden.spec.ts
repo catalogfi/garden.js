@@ -18,13 +18,12 @@ import {
 } from '@gardenfi/orderbook';
 import { sleep } from '@catalogfi/utils';
 import {
-  arbitrum,
+  arbitrumSepolia,
   // arbitrumSepolia,
   // sepolia
 } from 'viem/chains';
 // import { EvmRelay } from './../evm/relay/evmRelay';
 import { DigestKey } from '@gardenfi/utils';
-import { EvmRelay } from 'gardenfi/core/dist';
 // import { SecretManager } from '../secretManager/secretManager';
 // import { DigestKey } from './digestKey/digestKey';
 // import { BitcoinNetwork, BitcoinProvider } from '@catalogfi/wallets';
@@ -33,7 +32,7 @@ import { EvmRelay } from 'gardenfi/core/dist';
 
 describe('swap and execute using garden', () => {
   // const bitcoinAddress = 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru';
-  const pk = 'e3aaf79d424a3ce49627a38eb0dbcba5af6e0e98215a9b71a61e4a622d7d37c1';
+  const pk = '8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
   // const address = '0x52FE8afbbB800a33edcbDB1ea87be2547EB30000';
   const account = privateKeyToAccount(with0x(pk));
   // const api = 'https://orderbook-stage.hashira.io';
@@ -41,7 +40,7 @@ describe('swap and execute using garden', () => {
 
   const arbitrumWalletClient = createWalletClient({
     account,
-    chain: arbitrum,
+    chain: arbitrumSepolia,
     transport: http(),
   });
   // const ethereumWalletClient = createWalletClient({
@@ -67,7 +66,7 @@ describe('swap and execute using garden', () => {
   console.log('digestKey :', digestKey.userId);
 
   const garden = Garden.fromWallets({
-    environment: Environment.MAINNET,
+    environment: Environment.TESTNET,
     digestKey:
       '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
     wallets: {
@@ -76,28 +75,12 @@ describe('swap and execute using garden', () => {
   });
 
   it.skip('initialize garden from wallets', async () => {
-    const garden = Garden.fromWallets({
+    Garden.fromWallets({
       environment: Environment.TESTNET,
       digestKey:
         '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
       wallets: {
         evm: arbitrumWalletClient,
-      },
-    });
-
-    const garden = new Garden({
-      environment: Environment.TESTNET,
-      digestKey:
-        '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
-      htlcs: {
-        evm: new EvmRelay(
-          'https://evm-swapper-relay-1.onrender.com/',
-          arbitrumWalletClient,
-          new Siwe({
-            domain: 'evm-swapper-relay-1.onrender.com',
-            nonce: '1',
-          }),
-        ),
       },
     });
   });
@@ -124,8 +107,8 @@ describe('swap and execute using garden', () => {
     //   },
     // };
     const orderObj = {
-      fromAsset: SupportedAssets.mainnet.arbitrum_WBTC,
-      toAsset: SupportedAssets.mainnet.bitcoin_BTC,
+      fromAsset: SupportedAssets.testnet.arbitrum_sepolia_WBTC,
+      toAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
       sendAmount: '10000'.toString(),
       receiveAmount: '9970'.toString(),
       additionalData: {
