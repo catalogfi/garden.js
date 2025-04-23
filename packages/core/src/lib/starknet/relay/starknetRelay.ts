@@ -13,6 +13,7 @@ import { AsyncResult, Err, Ok, Fetcher } from '@catalogfi/utils';
 import { APIResponse, Url, hexToU32Array } from '@gardenfi/utils';
 import { IStarknetHTLC } from '../starknetHTLC.types';
 import { starknetHtlcABI } from '../abi/starknetHtlcABI';
+import { formatStarknetSignature } from '../../utils';
 
 const DOMAIN = {
   name: 'HTLC',
@@ -102,20 +103,20 @@ export class StarknetRelay implements IStarknetHTLC {
         },
       };
 
-      const signature = (await this.account.signMessage(TypedData)) as string[];
+      const signature = await this.account.signMessage(TypedData);
+      const formattedSignature = formatStarknetSignature(signature);
+      if (formattedSignature.error) {
+        return Err(formattedSignature.error);
+      }
       // const { r, s } = signature;
-      const r = signature[1];
-      const s = signature[2];
-
+      // const r = signature[1];
+      // const s = signature[2];
       const res = await Fetcher.post<APIResponse<string>>(
         this.url.endpoint('initiate'),
         {
           body: JSON.stringify({
             order_id: create_order.create_id,
-            signature: {
-              r: r.toString(),
-              s: s.toString(),
-            },
+            signature: formattedSignature.val,
             perform_on: 'Source',
           }),
           headers: {

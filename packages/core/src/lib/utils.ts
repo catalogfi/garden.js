@@ -1,5 +1,5 @@
 import { BitcoinNetwork, IBaseWallet } from '@catalogfi/wallets';
-import { Environment, with0x } from '@gardenfi/utils';
+import { Environment, Err, Ok, with0x } from '@gardenfi/utils';
 import { Chain } from '@gardenfi/orderbook';
 import { sha256 } from 'viem';
 import * as varuint from 'varuint-bitcoin';
@@ -7,6 +7,7 @@ import { trim0x } from '@catalogfi/utils';
 import * as secp256k1 from 'tiny-secp256k1';
 import * as bitcoin from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
+import { Signature } from 'starknet';
 
 export const computeSecret = async (
   fromChain: Chain,
@@ -149,4 +150,69 @@ export const getBitcoinNetwork = (network: Environment): BitcoinNetwork => {
     default:
       throw new Error(`Invalid bitcoin network ${network}`);
   }
+};
+
+export const formatStarknetSignature = (sig: Signature) => {
+  // Handle object format
+  if (typeof sig === 'object' && 'r' in sig && 's' in sig) {
+    return Ok([sig.r.toString(), sig.s.toString()]);
+  }
+
+  // Handle array format
+  if (Array.isArray(sig)) {
+    if (sig.length < 3) return Err('Invalid signature length');
+    // If array length is 3, return last two values as [r, s]
+    /**
+     * 
+     * if the length is 3 it is braavos wallet signature format which doesn't have public key and number of signers
+     * [
+      "1",
+    "1397143895404075508936944356003143689047557551326484990082294792268036007513",
+    "3349251680103955626256385099327904987172866494101233942670984344700799940807"
+]
+     */
+    if (sig.length === 3) {
+      return Ok([sig[1], sig[2]]);
+    }
+
+    // Get number of signatures from first element
+    /**
+     * for argentX gaurdian account and other smart wallet accounts it will have atleast 5 and more than that based on the number of signers the account has
+     * [
+     * 
+    "2",
+    "0",
+    "3110252091434162898955592158301035810375222512166513837071308032702453555343",
+    "923648691038969237637610266832990816009421370765529594613068607580470687166" - r1,
+    "2505324274416372764593918179311311859444197600215142191583887251012240964880" - s1,
+    "0",
+    "1767017484118352246184616171749889718076041796854226187659186123550126699123",
+    "526758090264781317553605607284059479343300536052962560516394204590347566536" - r2,
+    "1509230547367219669226859762147642072098535158080045416549616491239821516502" - s2
+]
+     */
+
+    const numSignatures = parseInt(sig[0]);
+    if (isNaN(numSignatures)) return Err('Invalid signature format');
+    const VALUES_PER_SIGNATURE = 4;
+    if (sig.length !== numSignatures * VALUES_PER_SIGNATURE + 1)
+      return Err('Invalid signature format');
+    const result: string[] = [];
+
+    // Process based on number of signatures
+    for (let i = 0; i < numSignatures; i++) {
+      // Calculate the starting index for each signature group
+      // Skip 2 values (public key and something) and get r,s
+      const baseIndex = 1 + i * 4;
+      const r = sig[baseIndex + 2];
+      const s = sig[baseIndex + 3];
+      if (r && s) {
+        result.push(r, s);
+      }
+    }
+
+    return Ok(result);
+  }
+
+  return Err('Invalid signature format');
 };
