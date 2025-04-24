@@ -4,6 +4,7 @@ import {
   getContract,
   maxUint256,
   TransactionReceipt,
+  TransactionReceiptNotFoundError,
   WalletClient,
 } from 'viem';
 import { with0x } from './utils';
@@ -56,20 +57,29 @@ export const waitForTransactionReceipt = async (
   walletClient: WalletClient,
   hash: `0x${string}`,
   interval = 2_000,
-  timeout = 60_000,
+  timeout = 120_000,
 ): AsyncResult<TransactionReceipt, string> => {
   const maxAttempts = Math.ceil(timeout / interval);
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const receipt = await getTransactionReceipt(walletClient, { hash });
-    if (receipt) {
-      return Ok(receipt);
+    try {
+      const receipt = await getTransactionReceipt(walletClient, { hash });
+      if (receipt) {
+        return Ok(receipt);
+      }
+    } catch (err: unknown) {
+      if (err instanceof TransactionReceiptNotFoundError) {
+        // ignore and continue polling
+      } else {
+        // for other errors, propagate immediately
+        return Err((err as Error).message);
+      }
     }
 
-    if (attempt === maxAttempts - 1) break;
-
-    await new Promise((res) => setTimeout(res, interval));
+    // no receipt yet—wait before next attempt
+    if (attempt < maxAttempts - 1) {
+      await new Promise((res) => setTimeout(res, interval));
+    }
   }
-
   return Err(`Timed out waiting for receipt of ${hash}`);
 };
