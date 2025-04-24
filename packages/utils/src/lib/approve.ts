@@ -4,7 +4,6 @@ import {
   getContract,
   maxUint256,
   TransactionReceipt,
-  TransactionReceiptNotFoundError,
   WalletClient,
 } from 'viem';
 import { with0x } from './utils';
@@ -68,7 +67,8 @@ export const waitForTransactionReceipt = async (
         return Ok(receipt);
       }
     } catch (err: unknown) {
-      if (err instanceof TransactionReceiptNotFoundError) {
+      console.log('txReceipt err: ', err);
+      if ((err as Error).message.includes('Transaction receipt with hash')) {
         // ignore and continue polling
       } else {
         // for other errors, propagate immediately
