@@ -10,7 +10,7 @@ import {
 } from 'starknet';
 import { MatchedOrder } from '@gardenfi/orderbook';
 import { AsyncResult, Err, Ok, Fetcher } from '@catalogfi/utils';
-import { APIResponse, Url, hexToU32Array } from '@gardenfi/utils';
+import { APIResponse, Network, Url, hexToU32Array } from '@gardenfi/utils';
 import { IStarknetHTLC } from '../starknetHTLC.types';
 import { starknetHtlcABI } from '../abi/starknetHtlcABI';
 import { formatStarknetSignature } from '../../utils';
@@ -37,7 +37,10 @@ const INITIATE_TYPE = {
   ],
 };
 
-const DEFAULT_NODE_URL = 'https://starknet-sepolia.public.blastapi.io/rpc/v0_7';
+const DEFAULT_NODE_URL: Record<Network, string> = {
+  [Network.MAINNET]: 'https://starknet-mainnet.public.blastapi.io/rpc/v0_8',
+  [Network.TESTNET]: 'https://starknet-testnet.public.blastapi.io/rpc/v0_8',
+};
 
 export class StarknetRelay implements IStarknetHTLC {
   private url: Url;
@@ -47,9 +50,9 @@ export class StarknetRelay implements IStarknetHTLC {
   constructor(
     relayerUrl: string | Url,
     account: AccountInterface,
-    nodeUrl?: string,
+    network: Network,
   ) {
-    this.nodeUrl = nodeUrl || DEFAULT_NODE_URL;
+    this.nodeUrl = DEFAULT_NODE_URL[network];
     this.url = new Url('/', relayerUrl);
     this.account = account;
   }
@@ -108,9 +111,7 @@ export class StarknetRelay implements IStarknetHTLC {
       if (formattedSignature.error) {
         return Err(formattedSignature.error);
       }
-      // const { r, s } = signature;
-      // const r = signature[1];
-      // const s = signature[2];
+
       const res = await Fetcher.post<APIResponse<string>>(
         this.url.endpoint('initiate'),
         {

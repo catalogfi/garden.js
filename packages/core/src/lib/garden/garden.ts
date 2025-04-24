@@ -31,6 +31,7 @@ import {
   sleep,
   Url,
   DigestKey,
+  Network,
 } from '@gardenfi/utils';
 import { IQuote } from '../quote/quote.types';
 import { getBitcoinNetwork, isValidBitcoinPubKey, toXOnly } from '../utils';
@@ -166,7 +167,13 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           )
         : undefined,
       starknet: config.wallets.starknet
-        ? new StarknetRelay(api.starknetRelay, config.wallets.starknet)
+        ? new StarknetRelay(
+            api.starknetRelay,
+            config.wallets.starknet,
+            config.environment === Environment.MAINNET
+              ? Network.MAINNET
+              : Network.TESTNET,
+          )
         : undefined,
     };
 
