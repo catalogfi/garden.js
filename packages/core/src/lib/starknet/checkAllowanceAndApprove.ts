@@ -50,9 +50,9 @@ export const checkAllowanceAndApprove = async (
       );
       await sleep(2000);
 
-      // in a loop check if the allowance is approved for every 2 sec until 20sec and exit
+      // in a loop check if the allowance is approved for every 2 sec until 40sec and exit
       let allowance = 0n;
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < 20; i++) {
         const _allowance = await checkAllowance(
           account.address,
           tokenAddress,
