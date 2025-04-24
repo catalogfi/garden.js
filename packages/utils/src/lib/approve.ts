@@ -67,11 +67,11 @@ export const waitForTransactionReceipt = async (
         return Ok(receipt);
       }
     } catch (err: unknown) {
-      console.log('txReceipt err: ', err);
-      if ((err as Error).message.includes('Transaction receipt with hash')) {
-        // ignore and continue polling
-      } else {
-        // for other errors, propagate immediately
+      if (
+        !(err as Error).message.includes(
+          `Transaction receipt with hash "${hash}" could not be found.`,
+        )
+      ) {
         return Err((err as Error).message);
       }
     }
