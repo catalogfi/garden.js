@@ -37,7 +37,6 @@ export const checkAllowanceAndApprove = async (
           chain: walletClient.chain,
         },
       );
-      console.log('approval tx: ', res);
 
       const receipt = await waitForTransactionReceipt(walletClient, res);
       if (receipt.error) return Err(receipt.error);
