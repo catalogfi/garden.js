@@ -31,10 +31,13 @@ export const checkAllowanceAndApprove = async (
           chain: walletClient.chain,
         },
       );
+      console.log('approval tx: ', res);
+
       const receipt = await waitForTransactionReceipt(walletClient, {
         hash: res,
         timeout: 60000,
       });
+      console.log('receipt: ', receipt);
       if (receipt.status !== 'success') return Err('Failed to approve');
 
       return Ok(res);
