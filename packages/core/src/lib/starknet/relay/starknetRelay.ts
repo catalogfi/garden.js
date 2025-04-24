@@ -39,7 +39,7 @@ const INITIATE_TYPE = {
 
 const DEFAULT_NODE_URL: Record<Network, string> = {
   [Network.MAINNET]: 'https://starknet-mainnet.public.blastapi.io/rpc/v0_8',
-  [Network.TESTNET]: 'https://starknet-testnet.public.blastapi.io/rpc/v0_8',
+  [Network.TESTNET]: 'https://starknet-sepolia.public.blastapi.io/rpc/v0_8',
 };
 
 export class StarknetRelay implements IStarknetHTLC {
