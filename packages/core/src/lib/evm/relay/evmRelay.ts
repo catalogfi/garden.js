@@ -11,6 +11,7 @@ import { APIResponse, IAuth, Url, with0x } from '@gardenfi/utils';
 import { AtomicSwapABI } from '../abi/atomicSwap';
 import { IEVMHTLC } from '../htlc.types';
 import { switchOrAddNetwork } from './../../switchOrAddNetwork';
+import { nativeHTLCAbi } from '../abi/nativeHTLC';
 
 export class EvmRelay implements IEVMHTLC {
   private url: Url;
@@ -112,7 +113,7 @@ export class EvmRelay implements IEVMHTLC {
     try {
       const contract = getContract({
         address: with0x(asset),
-        abi: AtomicSwapABI,
+        abi: nativeHTLCAbi,
         client: this.wallet,
       });
 
@@ -121,6 +122,7 @@ export class EvmRelay implements IEVMHTLC {
         {
           account: this.wallet.account,
           chain: this.wallet.chain,
+          value: amount,
         },
       );
 
