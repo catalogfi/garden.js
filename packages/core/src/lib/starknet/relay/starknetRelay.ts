@@ -123,6 +123,8 @@ export class StarknetRelay implements IStarknetHTLC {
           headers: {
             'Content-Type': 'application/json',
           },
+          retryCount: 5,
+          retryDelay: 2000,
         },
       );
 
