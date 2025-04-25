@@ -158,3 +158,12 @@ export const getTimeLock = (chain: Chain) => {
   if (!TimeLocks[chain]) throw new Error('Invalid or unsupported chain');
   return TimeLocks[chain];
 };
+
+export const NativeTokenAddress = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
+
+export const isEvmNativeToken = (chain: Chain, tokenAddress: string) => {
+  return (
+    isEVM(chain) &&
+    tokenAddress.toLowerCase() === NativeTokenAddress.toLowerCase()
+  );
+};

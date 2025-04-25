@@ -5,12 +5,13 @@ import {
   Err,
 } from '@gardenfi/utils';
 import { WalletClient, getContract } from 'viem';
-import { MatchedOrder } from '@gardenfi/orderbook';
+import { isEVM, isEvmNativeToken, MatchedOrder } from '@gardenfi/orderbook';
 import { Fetcher, trim0x } from '@catalogfi/utils';
 import { APIResponse, IAuth, Url, with0x } from '@gardenfi/utils';
 import { AtomicSwapABI } from '../abi/atomicSwap';
 import { IEVMHTLC } from '../htlc.types';
 import { switchOrAddNetwork } from './../../switchOrAddNetwork';
+import { nativeHTLCAbi } from '../abi/nativeHTLC';
 
 export class EvmRelay implements IEVMHTLC {
   private url: Url;
@@ -35,6 +36,8 @@ export class EvmRelay implements IEVMHTLC {
       order.source_swap.initiator.toLowerCase()
     )
       return Err('Account address and order initiator mismatch');
+    if (!isEVM(order.source_swap.chain))
+      return Err('Source chain is not an EVM chain');
 
     const _walletClient = await switchOrAddNetwork(
       order.source_swap.chain,
@@ -59,21 +62,101 @@ export class EvmRelay implements IEVMHTLC {
     const redeemer = with0x(source_swap.redeemer);
     const amount = BigInt(source_swap.amount);
 
+    const tokenAddress = await this.getTokenAddress(order.source_swap.asset);
+    if (tokenAddress.error) return Err(tokenAddress.error);
+
+    if (isEvmNativeToken(order.source_swap.chain, tokenAddress.val)) {
+      return this._initiateOnNativeHTLC(
+        secretHash,
+        timelock,
+        amount,
+        redeemer,
+        order.source_swap.asset,
+      );
+    } else {
+      return this._initiateOnErc20HTLC(
+        secretHash,
+        timelock,
+        amount,
+        redeemer,
+        order.source_swap.asset,
+        tokenAddress.val,
+        create_order.create_id,
+      );
+    }
+  }
+
+  private async getTokenAddress(asset: string): AsyncResult<string, string> {
+    try {
+      const atomicSwap = getContract({
+        address: with0x(asset),
+        abi: AtomicSwapABI,
+        client: this.wallet,
+      });
+
+      const token = await atomicSwap.read.token();
+      return Ok(token);
+    } catch (error) {
+      return Err('Failed to get token address', String(error));
+    }
+  }
+
+  private async _initiateOnNativeHTLC(
+    secretHash: `0x${string}`,
+    timelock: bigint,
+    amount: bigint,
+    redeemer: `0x${string}`,
+    asset: string,
+  ): AsyncResult<string, string> {
+    if (!this.wallet.account) return Err('No account found');
+
+    try {
+      const contract = getContract({
+        address: with0x(asset),
+        abi: nativeHTLCAbi,
+        client: this.wallet,
+      });
+
+      const txHash = await contract.write.initiate(
+        [redeemer, timelock, amount, secretHash],
+        {
+          account: this.wallet.account,
+          chain: this.wallet.chain,
+          value: amount,
+        },
+      );
+
+      return Ok(txHash);
+    } catch (error) {
+      return Err('Failed to initiate on native HTLC', String(error));
+    }
+  }
+
+  private async _initiateOnErc20HTLC(
+    secretHash: `0x${string}`,
+    timelock: bigint,
+    amount: bigint,
+    redeemer: `0x${string}`,
+    asset: string,
+    tokenAddress: string,
+    orderId: string,
+  ): AsyncResult<string, string> {
+    if (!this.wallet.account) return Err('No account found');
+
     try {
       const auth = await this.auth.getAuthHeaders();
       if (auth.error) return Err(auth.error);
 
       const atomicSwap = getContract({
-        address: with0x(order.source_swap.asset),
+        address: with0x(asset),
         abi: AtomicSwapABI,
         client: this.wallet,
       });
-      const token = await atomicSwap.read.token();
 
       const approval = await checkAllowanceAndApprove(
         Number(amount),
-        token,
-        order.source_swap.asset,
+        tokenAddress,
+        asset,
         this.wallet,
       );
       if (approval.error) return Err(approval.error);
@@ -114,7 +197,7 @@ export class EvmRelay implements IEVMHTLC {
         this.url.endpoint('initiate'),
         {
           body: JSON.stringify({
-            order_id: create_order.create_id,
+            order_id: orderId,
             signature,
             perform_on: 'Source',
           }),

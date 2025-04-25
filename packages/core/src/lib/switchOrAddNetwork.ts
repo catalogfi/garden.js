@@ -13,7 +13,6 @@ import {
 } from 'viem/chains';
 import {
   ArbitrumLocalnet,
-  Chain,
   EthereumLocalnet,
   EvmChain,
 } from '@gardenfi/orderbook';
@@ -100,10 +99,10 @@ export const evmToViemChainMap: Record<EvmChain, viemChain> = {
  * @returns new walletClient with updated chain
  */
 export const switchOrAddNetwork = async (
-  chain: Chain,
+  chain: EvmChain,
   walletClient: WalletClient,
 ): AsyncResult<{ message: string; walletClient: WalletClient }, string> => {
-  const chainID = evmToViemChainMap[chain as EvmChain];
+  const chainID = evmToViemChainMap[chain];
   if (chainID) {
     try {
       if (chainID.id === walletClient.chain?.id) {
