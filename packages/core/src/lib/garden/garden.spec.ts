@@ -36,7 +36,7 @@ describe('swap and execute using garden', () => {
     '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
   // const address = '0x52FE8afbbB800a33edcbDB1ea87be2547EB30000';
   const account = privateKeyToAccount(with0x(pk));
-  const api = 'https://orderbook-stage.hashira.io';
+  const api = 'https://orderbook-v2-staging.hashira.io';
   console.log('account :', account.address);
 
   const arbitrumWalletClient = createWalletClient({
@@ -71,7 +71,7 @@ describe('swap and execute using garden', () => {
     environment: Environment.TESTNET,
     digestKey:
       '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
-    quote: new Quote('https://quote-staging.hashira.io'),
+    quote: new Quote('https://testnet.api.hashira.io'),
     htlc: {
       evm: new EvmRelay(
         api,

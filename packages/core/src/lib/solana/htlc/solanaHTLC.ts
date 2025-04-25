@@ -54,14 +54,14 @@ export class SolanaHTLC implements ISolanaHTLC {
         if (!order) return Err("Order is required");
 
         try {
-            const { swapId, redeemer, secretHash, amount, expiresIn } = SwapConfig.from(order);
+            const { redeemer, secretHash, amount, expiresIn } = SwapConfig.from(order);
 
             // Initializing the data on blockchain
-            const pdaSeeds = [Buffer.from("swap_account"), Buffer.from(swapId)];
+            const pdaSeeds = [Buffer.from("swap_account"), Buffer.from(secretHash)];
             this.swapAccount = web3.PublicKey.findProgramAddressSync(pdaSeeds, this.program.programId)[0];
 
             const tx = await this.program.methods
-                .initiate(swapId, redeemer, secretHash, amount, expiresIn)
+                .initiate(amount, expiresIn, redeemer, secretHash)
                 .accounts({ initiator: this.provider.publicKey })
                 .transaction();
             const txHex = await this.provider.sendAndConfirm(tx);
@@ -83,9 +83,9 @@ export class SolanaHTLC implements ISolanaHTLC {
     async redeem(order: MatchedOrder, secret: string): AsyncResult<string, string> {
         if (!order) return Err("Order is required");
         if (!secret) return Err("Secret is required");
-        const { swapId } = SwapConfig.from(order)
+        const { secretHash } = SwapConfig.from(order)
 
-        const pdaSeeds = [Buffer.from("swap_account"), Buffer.from(swapId)];
+        const pdaSeeds = [Buffer.from("swap_account"), Buffer.from(secretHash)];
         this.swapAccount = web3.PublicKey.findProgramAddressSync(pdaSeeds, this.program.programId)[0];
 
         try {
@@ -118,8 +118,8 @@ export class SolanaHTLC implements ISolanaHTLC {
     async refund(order: MatchedOrder): AsyncResult<string, string> {
         if (!order) return Err("Order is required");
 
-        const { swapId } = SwapConfig.from(order)
-        const pdaSeeds = [Buffer.from("swap_account"), Buffer.from(swapId)];
+        const { secretHash } = SwapConfig.from(order)
+        const pdaSeeds = [Buffer.from("swap_account"), Buffer.from(secretHash)];
         this.swapAccount = web3.PublicKey.findProgramAddressSync(pdaSeeds, this.program.programId)[0];
 
         try {

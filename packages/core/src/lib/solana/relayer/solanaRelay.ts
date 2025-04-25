@@ -72,6 +72,8 @@ export class SolanaRelay implements ISolanaHTLC {
             transaction.recentBlockhash = (await this.provider.connection.getLatestBlockhash()).blockhash;
             transaction.feePayer = this.relayer;
 
+            console.log("Transaction to be sent:: ", transaction);
+
             // For initiate transactions - properly await the signed transaction
             if (isInitiate) {
                 const signedTransaction = await this.provider.wallet.signTransaction(transaction);
@@ -83,6 +85,8 @@ export class SolanaRelay implements ISolanaHTLC {
                     orderId: orderId,
                     serializedTx: encodedTx
                 };
+
+                console.log("Relay Requets:: ", relayRequest)
 
                 // Send to relayer
                 const res: APIResponse<string> = await Fetcher.post(this.endpoint, {
@@ -133,13 +137,13 @@ export class SolanaRelay implements ISolanaHTLC {
      *   - Err with an error message on failure
      */
     async initiate(order: MatchedOrder): AsyncResult<string, string> {
-        const { swapId, redeemer, secretHash, amount, expiresIn } = SwapConfig.from(order);
-        const pdaSeeds = [Buffer.from("swap_account"), Buffer.from(swapId)];
+        const { redeemer, secretHash, amount, expiresIn } = SwapConfig.from(order);
+        const pdaSeeds = [Buffer.from("swap_account"), Buffer.from(secretHash)];
 
         this.swapAccount = web3.PublicKey.findProgramAddressSync(pdaSeeds, this.program.programId)[0];
 
         const tx = await this.program.methods
-            .initiate(swapId, redeemer, secretHash, amount, expiresIn)
+            .initiate(amount, expiresIn, redeemer, secretHash)
             .accounts({ initiator: this.provider.publicKey })
             .transaction();
 
@@ -155,8 +159,8 @@ export class SolanaRelay implements ISolanaHTLC {
      *   - Err with an error message on failure
      */
     async redeem(order: MatchedOrder, secret: string): AsyncResult<string, string> {
-        const { swapId, redeemer } = SwapConfig.from(order);
-        const pdaSeeds = [Buffer.from("swap_account"), Buffer.from(swapId)];
+        const { secretHash, redeemer } = SwapConfig.from(order);
+        const pdaSeeds = [Buffer.from("swap_account"), Buffer.from(secretHash)];
 
         this.swapAccount = web3.PublicKey.findProgramAddressSync(pdaSeeds, this.program.programId)[0];
 

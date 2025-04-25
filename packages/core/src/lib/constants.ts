@@ -19,7 +19,7 @@ export const API = {
     orderbook: 'http://localhost:4422',
     quote: 'http://localhost:6969',
     info: 'https://info.garden.finance',
-    SolanaRelay: 'http://localhost:5014/relay',
+    solanaRelay: 'http://localhost:5014/relay',
     evmRelay: 'http://localhost:4422',
     strkRelay: '',
   },

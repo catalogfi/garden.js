@@ -43,7 +43,7 @@ import { Transaction } from '@solana/web3.js';
 
 const TokenSwap: React.FC = () => {
   const TEST_RPC_URL = 'https://api.devnet.solana.com';
-  const TEST_SWAPPER_RELAYER = 'https://orderbook-stage.hashira.io';
+  const TEST_SWAPPER_RELAYER = 'https://orderbook-v2-staging.hashira.io';
   const TEST_PRIVATE_KEY =
     '9c1508f9071bf5fefc69fbb71c98cd3150a323e953c6979ef8b508f1461dd2e1';
   const TEST_RELAYER_ADDRESS = 'AKnL4NNf3DGWZJS6cPknBuEGnVsV4A4m5tgebLHaRSZ9';
@@ -171,7 +171,7 @@ const TokenSwap: React.FC = () => {
         TEST_BLOCKFETCHER_URL,
         Environment.TESTNET,
       ),
-       quote: new Quote("https://quote-staging.hashira.io/")
+       quote: new Quote("https://testnet.api.hashira.io/")
     });
 
     console.log('Garden initialized...');
@@ -965,7 +965,7 @@ const swapSOLTowBTC = async () => {
               <span
                 onClick={() =>
                   window.open(
-                    `https://orderbook-stage.hashira.io/orders/id/matched/${orderDetails?.create_order.create_id}`,
+                    `https://orderbook-v2-staging.hashira.io/orders/id/matched/${orderDetails?.create_order.create_id}`,
                     '_blank',
                   )
                 }
@@ -1038,8 +1038,8 @@ const swapSOLTowBTC = async () => {
 
         <button
           // onClick={() => swapSOLToBTC()}
-          onClick={() => swapBTCToSOL()}
-          // onClick={() => swapSOLTowBTC()}
+          // onClick={() => swapBTCToSOL()}
+          onClick={() => swapSOLTowBTC()}
           // onClick={() => swapwBTCToSOL()}
           className={`w-full p-2 cursor-pointer text-white rounded-xl ${
             loading || isSwapping

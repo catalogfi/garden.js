@@ -5,11 +5,10 @@
  * IDL can be found at `target/idl/solana_native_swaps.json`.
  */
 export type SolanaNativeSwaps = {
-  // "address": "GfCxk9H9EoHP7cvophozquwRTkkm3ierP6sVUWKBBwCe",
   "address": "6eksgdCnSjUaGQWZ6iYvauv1qzvYPF33RTGTM1ZuyENx",
   "metadata": {
     "name": "solanaNativeSwaps",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "spec": "0.1.0",
     "description": "Created with Anchor"
   },
@@ -51,13 +50,16 @@ export type SolanaNativeSwaps = {
               },
               {
                 "kind": "arg",
-                "path": "swapId"
+                "path": "secretHash"
               }
             ]
           }
         },
         {
           "name": "initiator",
+          "docs": [
+            "Initiator must sign this transaction."
+          ],
           "writable": true,
           "signer": true
         },
@@ -68,13 +70,12 @@ export type SolanaNativeSwaps = {
       ],
       "args": [
         {
-          "name": "swapId",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          }
+          "name": "amountLamports",
+          "type": "u64"
+        },
+        {
+          "name": "expiresInSlots",
+          "type": "u64"
         },
         {
           "name": "redeemer",
@@ -88,14 +89,6 @@ export type SolanaNativeSwaps = {
               32
             ]
           }
-        },
-        {
-          "name": "amount",
-          "type": "u64"
-        },
-        {
-          "name": "expiresIn",
-          "type": "u32"
         }
       ]
     },
@@ -122,6 +115,9 @@ export type SolanaNativeSwaps = {
         },
         {
           "name": "redeemer",
+          "docs": [
+            "Redeemer must sign this transaction."
+          ],
           "signer": true
         }
       ],
@@ -284,13 +280,20 @@ export type SolanaNativeSwaps = {
         "kind": "struct",
         "fields": [
           {
-            "name": "swapId",
-            "type": {
-              "array": [
-                "u8",
-                32
-              ]
-            }
+            "name": "amountLamports",
+            "type": "u64"
+          },
+          {
+            "name": "expiresInSlots",
+            "type": "u64"
+          },
+          {
+            "name": "initiator",
+            "type": "pubkey"
+          },
+          {
+            "name": "redeemer",
+            "type": "pubkey"
           },
           {
             "name": "secretHash",
@@ -300,10 +303,6 @@ export type SolanaNativeSwaps = {
                 32
               ]
             }
-          },
-          {
-            "name": "amount",
-            "type": "u64"
           }
         ]
       }
@@ -314,7 +313,7 @@ export type SolanaNativeSwaps = {
         "kind": "struct",
         "fields": [
           {
-            "name": "swapId",
+            "name": "secretHash",
             "type": {
               "array": [
                 "u8",
@@ -330,15 +329,6 @@ export type SolanaNativeSwaps = {
       "type": {
         "kind": "struct",
         "fields": [
-          {
-            "name": "swapId",
-            "type": {
-              "array": [
-                "u8",
-                32
-              ]
-            }
-          },
           {
             "name": "secret",
             "type": {
@@ -357,7 +347,7 @@ export type SolanaNativeSwaps = {
         "kind": "struct",
         "fields": [
           {
-            "name": "swapId",
+            "name": "secretHash",
             "type": {
               "array": [
                 "u8",
@@ -374,13 +364,12 @@ export type SolanaNativeSwaps = {
         "kind": "struct",
         "fields": [
           {
-            "name": "swapId",
-            "type": {
-              "array": [
-                "u8",
-                32
-              ]
-            }
+            "name": "amountLamports",
+            "type": "u64"
+          },
+          {
+            "name": "expirySlot",
+            "type": "u64"
           },
           {
             "name": "initiator",
@@ -398,14 +387,6 @@ export type SolanaNativeSwaps = {
                 32
               ]
             }
-          },
-          {
-            "name": "expirySlot",
-            "type": "u64"
-          },
-          {
-            "name": "amount",
-            "type": "u64"
           }
         ]
       }
