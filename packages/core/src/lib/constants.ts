@@ -1,4 +1,4 @@
-import { Environment } from '@gardenfi/utils';
+import { Environment, Network } from '@gardenfi/utils';
 
 export type Api = {
   orderbook: string;
@@ -34,3 +34,8 @@ export const API: Record<Environment, Api> = {
     starknetRelay: '',
   },
 } as const;
+
+export const DEFAULT_NODE_URL: Record<Network, string> = {
+  [Network.MAINNET]: 'https://starknet-mainnet.public.blastapi.io/rpc/v0_8',
+  [Network.TESTNET]: 'https://starknet-sepolia.public.blastapi.io/rpc/v0_8',
+};

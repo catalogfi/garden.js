@@ -1,21 +1,24 @@
+import { DEFAULT_NODE_URL } from './../../constants';
 import { MatchedOrder } from '@gardenfi/orderbook';
 import { AsyncResult, Err, Ok } from '@catalogfi/utils';
-import { Account, cairo, Contract, num, CallData } from 'starknet';
-import { hexToU32Array } from '@gardenfi/utils';
+import { Account, cairo, Contract, num, CallData, RpcProvider } from 'starknet';
+import { hexToU32Array, Network } from '@gardenfi/utils';
 import { TokenABI } from '../abi/starknetTokenABI';
 import { IStarknetHTLC } from '../starknetHTLC.types';
 import { checkAllowanceAndApprove } from '../checkAllowanceAndApprove';
 import { starknetHtlcABI } from '../abi/starknetHtlcABI';
 
-const DEFAULT_NODE_URL = 'https://starknet-sepolia.public.blastapi.io/rpc/v0_7';
-
 export class StarknetHTLC implements IStarknetHTLC {
-  private nodeUrl: string;
   private account: Account;
+  private starknetProvider: RpcProvider;
 
-  constructor(account: Account, nodeUrl?: string) {
-    this.nodeUrl = nodeUrl || DEFAULT_NODE_URL;
+  constructor(account: Account, nodeUrl?: string, network?: Network) {
     this.account = account;
+    this.starknetProvider = new RpcProvider({
+      nodeUrl:
+        nodeUrl ||
+        (network ? DEFAULT_NODE_URL[network] : DEFAULT_NODE_URL.mainnet),
+    });
   }
 
   get htlcActorAddress(): string {
@@ -56,7 +59,7 @@ export class StarknetHTLC implements IStarknetHTLC {
           tokenHex,
           order.source_swap.asset,
           BigInt(order.source_swap.amount),
-          this.nodeUrl,
+          this.starknetProvider,
         );
         if (approvalResult.error) return Err(approvalResult.error);
       } catch (error) {

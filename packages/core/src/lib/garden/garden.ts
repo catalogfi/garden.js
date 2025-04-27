@@ -390,14 +390,13 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       true,
       interval,
       async (pendingOrders) => {
-        if (pendingOrders.data.length === 0) return;
-
         const ordersWithStatus = await this.filterExpiredAndAssignStatus(
           pendingOrders.data,
         );
         if (ordersWithStatus.error) return;
 
         this.emit('onPendingOrdersChanged', ordersWithStatus.val);
+        if (pendingOrders.data.length === 0) return;
 
         //initialize swappers and execute orders
         for (let i = 0; i < ordersWithStatus.val.length; i++) {

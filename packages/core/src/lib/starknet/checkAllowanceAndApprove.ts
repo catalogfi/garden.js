@@ -15,18 +15,14 @@ export const checkAllowanceAndApprove = async (
   tokenAddress: string,
   htlcAddress: string,
   amount: bigint,
-  nodeUrl: string,
+  starknetProvider: RpcProvider,
 ): AsyncResult<string, string> => {
   try {
-    const starknetProvider = new RpcProvider({
-      nodeUrl: nodeUrl,
-    });
-
     const allowance = await checkAllowance(
       account.address,
       tokenAddress,
       htlcAddress,
-      nodeUrl,
+      starknetProvider,
     );
     if (allowance.error) return Err(allowance.error);
 
@@ -57,7 +53,7 @@ export const checkAllowanceAndApprove = async (
           account.address,
           tokenAddress,
           htlcAddress,
-          nodeUrl,
+          starknetProvider,
         );
         if (_allowance.error) return Err(_allowance.error);
         allowance = _allowance.val;
@@ -87,13 +83,9 @@ export const checkAllowance = async (
   accountAddress: string,
   tokenAddress: string,
   htlcAddress: string,
-  nodeUrl: string,
+  starknetProvider: RpcProvider,
 ): AsyncResult<bigint, string> => {
   try {
-    const starknetProvider = new RpcProvider({
-      nodeUrl: nodeUrl,
-    });
-
     const tokenContract = new Contract(
       TokenABI,
       with0x(tokenAddress),
@@ -113,4 +105,22 @@ export const checkAllowance = async (
       }`,
     );
   }
+};
+
+export const isAllowanceSufficient = async (
+  accountAddress: string,
+  tokenAddress: string,
+  htlcAddress: string,
+  starknetProvider: RpcProvider,
+  amount: bigint,
+): AsyncResult<boolean, string> => {
+  const allowance = await checkAllowance(
+    accountAddress,
+    tokenAddress,
+    htlcAddress,
+    starknetProvider,
+  );
+  if (allowance.error) return Err(allowance.error);
+
+  return Ok(allowance.val >= amount);
 };
