@@ -15,7 +15,7 @@ export const API: Record<Environment, Api> = {
     quote: 'https://api.garden.finance/quote',
     info: 'https://api.garden.finance/info',
     evmRelay: 'https://api.garden.finance/relayer',
-    starknetRelay: '',
+    starknetRelay: 'https://api.garden.finance/starknet',
   },
   testnet: {
     orderbook: 'https://testnet.api.garden.finance',
@@ -23,7 +23,7 @@ export const API: Record<Environment, Api> = {
     quote: 'https://testnet.api.garden.finance/quote',
     info: 'https://testnet.api.garden.finance/info',
     evmRelay: 'https://testnet.api.garden.finance/relayer',
-    starknetRelay: '',
+    starknetRelay: 'https://testnet.api.garden.finance/starknet',
   },
   localnet: {
     orderbook: '',

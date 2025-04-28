@@ -19,11 +19,6 @@ import {
 import { createWalletClient, custom, WalletClient } from 'viem';
 import { AsyncResult, Err, Ok } from '@catalogfi/utils';
 
-interface EthereumWindow extends Window {
-  ethereum?: any;
-}
-declare const window: EthereumWindow;
-
 const updatedSepolia = {
   ...sepolia,
   rpcUrls: {
@@ -128,7 +123,7 @@ export const switchOrAddNetwork = async (
           const newWalletClient = createWalletClient({
             account: walletClient.account,
             chain: chainID,
-            transport: custom(window.ethereum!),
+            transport: custom(walletClient.transport),
           });
 
           return Ok({
@@ -136,7 +131,7 @@ export const switchOrAddNetwork = async (
             walletClient: newWalletClient as WalletClient,
           });
         } catch (addError) {
-          return Err('Failed to add network');
+          return Err('Failed to add network', addError);
         }
       } else {
         return Err('Failed to switch network');

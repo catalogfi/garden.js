@@ -20,13 +20,6 @@ import { starknetHtlcABI } from '../abi/starknetHtlcABI';
 import { formatStarknetSignature } from '../../utils';
 import { DEFAULT_NODE_URL } from '../../constants';
 
-const DOMAIN = {
-  name: 'HTLC',
-  version: shortString.encodeShortString('1'),
-  chainId: '0x534e5f5345504f4c4941',
-  revision: TypedDataRevision.ACTIVE,
-};
-
 const INITIATE_TYPE = {
   StarknetDomain: [
     { name: 'name', type: 'shortstring' },
@@ -53,7 +46,7 @@ export class StarknetRelay implements IStarknetHTLC {
     network: Network,
     nodeUrl?: string,
   ) {
-    this.url = new Url('/', relayerUrl);
+    this.url = relayerUrl instanceof Url ? relayerUrl : new Url(relayerUrl);
     this.account = account;
     this.starknetProvider = new RpcProvider({
       nodeUrl: nodeUrl || DEFAULT_NODE_URL[network],
@@ -63,6 +56,15 @@ export class StarknetRelay implements IStarknetHTLC {
   get htlcActorAddress(): string {
     if (!this.account.address) throw new Error('No account found');
     return this.account.address;
+  }
+
+  async getChainId(): AsyncResult<string, string> {
+    try {
+      const res = await this.account.getChainId();
+      return Ok(res);
+    } catch (error) {
+      return Err(String(error));
+    }
   }
 
   async initiate(order: MatchedOrder): AsyncResult<string, string> {
@@ -155,6 +157,16 @@ export class StarknetRelay implements IStarknetHTLC {
   ): AsyncResult<string, string> {
     const { create_order, source_swap } = order;
     const { redeemer, amount } = source_swap;
+
+    const chainId = await this.getChainId();
+    if (chainId.error) return Err(chainId.error);
+
+    const DOMAIN = {
+      name: 'HTLC',
+      version: shortString.encodeShortString('1'),
+      chainId: chainId.val,
+      revision: TypedDataRevision.ACTIVE,
+    };
 
     const TypedData: TypedData = {
       domain: DOMAIN,
