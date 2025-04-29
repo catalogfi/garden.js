@@ -35,7 +35,19 @@ export const API: Record<Environment, Api> = {
   },
 } as const;
 
-export const DEFAULT_NODE_URL: Record<Network, string> = {
-  [Network.MAINNET]: 'https://starknet-mainnet.public.blastapi.io/rpc/v0_8',
-  [Network.TESTNET]: 'https://starknet-sepolia.public.blastapi.io/rpc/v0_8',
+export const STARKNET_CONFIG: Record<
+  Network,
+  {
+    chainId: string;
+    nodeUrl: string;
+  }
+> = {
+  [Network.MAINNET]: {
+    chainId: '0x534e5f4d41494e',
+    nodeUrl: 'https://starknet-mainnet.public.blastapi.io/rpc/v0_8',
+  },
+  [Network.TESTNET]: {
+    chainId: '0x534e5f5345504f4c4941',
+    nodeUrl: 'https://starknet-sepolia.public.blastapi.io/rpc/v0_8',
+  },
 };

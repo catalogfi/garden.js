@@ -8,7 +8,7 @@ import { sleep } from '@catalogfi/utils';
 import { createWalletClient, http } from 'viem';
 import { arbitrumSepolia } from 'viem/chains';
 import { IGardenJS } from '../garden.types';
-import { DEFAULT_NODE_URL } from '../../constants';
+import { STARKNET_CONFIG } from './../../constants';
 
 describe('StarkNet Integration Tests', () => {
   // Wallet configurations
@@ -29,7 +29,7 @@ describe('StarkNet Integration Tests', () => {
     transport: http(),
   });
   const snProvider = new RpcProvider({
-    nodeUrl: DEFAULT_NODE_URL[Network.TESTNET],
+    nodeUrl: STARKNET_CONFIG[Network.TESTNET].nodeUrl,
   });
   const starknetWallet = new Account(
     snProvider,

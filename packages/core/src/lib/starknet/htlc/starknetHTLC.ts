@@ -1,4 +1,4 @@
-import { DEFAULT_NODE_URL } from './../../constants';
+import { STARKNET_CONFIG } from './../../constants';
 import { MatchedOrder } from '@gardenfi/orderbook';
 import { AsyncResult, Err, Ok } from '@catalogfi/utils';
 import { Account, cairo, Contract, num, CallData, RpcProvider } from 'starknet';
@@ -17,7 +17,9 @@ export class StarknetHTLC implements IStarknetHTLC {
     this.starknetProvider = new RpcProvider({
       nodeUrl:
         nodeUrl ||
-        (network ? DEFAULT_NODE_URL[network] : DEFAULT_NODE_URL.mainnet),
+        (network
+          ? STARKNET_CONFIG[network].nodeUrl
+          : STARKNET_CONFIG.mainnet.nodeUrl),
     });
   }
 

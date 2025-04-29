@@ -18,7 +18,7 @@ import { APIResponse, Network, Url, hexToU32Array } from '@gardenfi/utils';
 import { IStarknetHTLC } from '../starknetHTLC.types';
 import { starknetHtlcABI } from '../abi/starknetHtlcABI';
 import { formatStarknetSignature } from '../../utils';
-import { DEFAULT_NODE_URL } from '../../constants';
+import { STARKNET_CONFIG } from './../../constants';
 
 const INITIATE_TYPE = {
   StarknetDomain: [
@@ -49,7 +49,7 @@ export class StarknetRelay implements IStarknetHTLC {
     this.url = relayerUrl instanceof Url ? relayerUrl : new Url(relayerUrl);
     this.account = account;
     this.starknetProvider = new RpcProvider({
-      nodeUrl: nodeUrl || DEFAULT_NODE_URL[network],
+      nodeUrl: nodeUrl || STARKNET_CONFIG[network].nodeUrl,
     });
   }
 
