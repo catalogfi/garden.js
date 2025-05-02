@@ -19,11 +19,13 @@ import {
 import { sleep } from '@catalogfi/utils';
 import {
   arbitrumSepolia,
+  sepolia,
   // arbitrumSepolia,
   // sepolia
 } from 'viem/chains';
 // import { EvmRelay } from './../evm/relay/evmRelay';
 import { DigestKey } from '@gardenfi/utils';
+import { switchOrAddNetwork } from '../switchOrAddNetwork';
 // import { SecretManager } from '../secretManager/secretManager';
 // import { DigestKey } from './digestKey/digestKey';
 // import { BitcoinNetwork, BitcoinProvider } from '@catalogfi/wallets';
@@ -183,4 +185,49 @@ describe('swap and execute using garden', () => {
     await garden.execute();
     await sleep(150000);
   }, 150000);
+});
+
+export const getAssetByAtomicSwapAddress = (
+  chain: string,
+  atomicSwapAddress: string,
+) => {
+  const testnetAssets = SupportedAssets.testnet;
+  // Convert the testnetAssets object to an array of entries
+  const assetEntries = Object.entries(testnetAssets);
+
+  // Find the asset entry where atomicSwapAddress matches
+  const matchingAssetEntry = assetEntries.find(
+    ([, asset]) =>
+      asset.atomicSwapAddress.toLowerCase() ===
+        atomicSwapAddress.toLowerCase() && asset.chain === chain.toLowerCase(),
+  );
+
+  if (!matchingAssetEntry) {
+    throw new Error(
+      `No asset found with chain: ${chain} and atomic swap address: ${atomicSwapAddress}`,
+    );
+  }
+
+  // Return the asset object
+  return matchingAssetEntry[1];
+};
+describe('networkSwitch', async () => {
+  // Increase test timeout to handle network operations
+  it('should switch network', async () => {
+    try {
+      const evmAccount = privateKeyToAccount(
+        '0xe3aaf79d424a3ce49627a38eb0dbcba5af6e0e98215a9b71a61e4a622d7d37c1',
+      );
+      const client = createWalletClient({
+        account: evmAccount,
+        chain: sepolia,
+        transport: http(),
+      });
+      const res = await switchOrAddNetwork('arbitrum_sepolia', client);
+      expect(res.ok).toBeTruthy();
+    } catch (error) {
+      console.error('Network switch test failed:', error);
+      throw error;
+    }
+  }, 15000);
 });

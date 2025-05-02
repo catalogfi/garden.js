@@ -16,8 +16,16 @@ import {
   EthereumLocalnet,
   EvmChain,
 } from '@gardenfi/orderbook';
-import { createWalletClient, custom, WalletClient } from 'viem';
+import { createWalletClient, custom, http, WalletClient } from 'viem';
 import { AsyncResult, Err, Ok } from '@catalogfi/utils';
+
+type ViemError = {
+  code?: number;
+  message?: string;
+  body?: {
+    method?: string;
+  };
+};
 
 interface EthereumWindow extends Window {
   ethereum?: any;
@@ -108,7 +116,6 @@ export const switchOrAddNetwork = async (
       if (chainID.id === walletClient.chain?.id) {
         return Ok({ message: 'Already on the network', walletClient });
       }
-      // switch the chain first
       await walletClient.switchChain({ id: chainID.id });
       const newWalletClient = createWalletClient({
         account: walletClient.account,
@@ -120,23 +127,39 @@ export const switchOrAddNetwork = async (
         message: 'Switched chain',
         walletClient: newWalletClient as WalletClient,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       // If switching fails, attempt to add the network
-      if (isChainNotFoundError(error)) {
-        try {
-          await walletClient.addChain({ chain: chainID });
+      if (isViemError(error)) {
+        console.log('error code', error.code);
+        console.log('error message', error.body);
+        if (error.code === 4902) {
+          try {
+            await walletClient.addChain({ chain: chainID });
+            const newWalletClient = createWalletClient({
+              account: walletClient.account,
+              chain: chainID,
+              transport: custom(window.ethereum!),
+            });
+
+            return Ok({
+              message: 'Added network',
+              walletClient: newWalletClient as WalletClient,
+            });
+          } catch (addError) {
+            return Err('Failed to add network');
+          }
+        } else if (error.body?.method?.includes('wallet_switchEthereumChain')) {
           const newWalletClient = createWalletClient({
             account: walletClient.account,
             chain: chainID,
-            transport: custom(window.ethereum!),
+            transport: http(),
           });
-
           return Ok({
             message: 'Added network',
             walletClient: newWalletClient as WalletClient,
           });
-        } catch (addError) {
-          return Err('Failed to add network');
+        } else {
+          return Err('Failed to switch network');
         }
       } else {
         return Err('Failed to switch network');
@@ -147,12 +170,10 @@ export const switchOrAddNetwork = async (
   }
 };
 
-const isChainNotFoundError = (error: unknown): error is { code: number } => {
-  // Error code 4902 indicates the chain is not available in the wallet
+const isViemError = (error: unknown): error is ViemError => {
   return (
     typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    (error as any).code === 4902
+    error != null &&
+    ('code' in error || 'message' in error || 'body' in error)
   );
 };
