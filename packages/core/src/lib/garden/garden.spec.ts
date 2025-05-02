@@ -213,7 +213,7 @@ export const getAssetByAtomicSwapAddress = (
 };
 describe('networkSwitch', async () => {
   // Increase test timeout to handle network operations
-  it('should switch network', async () => {
+  it('should switch network with http transport', async () => {
     try {
       const evmAccount = privateKeyToAccount(
         '0xe3aaf79d424a3ce49627a38eb0dbcba5af6e0e98215a9b71a61e4a622d7d37c1',
