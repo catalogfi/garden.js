@@ -187,30 +187,6 @@ describe('swap and execute using garden', () => {
   }, 150000);
 });
 
-export const getAssetByAtomicSwapAddress = (
-  chain: string,
-  atomicSwapAddress: string,
-) => {
-  const testnetAssets = SupportedAssets.testnet;
-  // Convert the testnetAssets object to an array of entries
-  const assetEntries = Object.entries(testnetAssets);
-
-  // Find the asset entry where atomicSwapAddress matches
-  const matchingAssetEntry = assetEntries.find(
-    ([, asset]) =>
-      asset.atomicSwapAddress.toLowerCase() ===
-        atomicSwapAddress.toLowerCase() && asset.chain === chain.toLowerCase(),
-  );
-
-  if (!matchingAssetEntry) {
-    throw new Error(
-      `No asset found with chain: ${chain} and atomic swap address: ${atomicSwapAddress}`,
-    );
-  }
-
-  // Return the asset object
-  return matchingAssetEntry[1];
-};
 describe('networkSwitch', async () => {
   // Increase test timeout to handle network operations
   it('should switch network with http transport', async () => {
