@@ -86,7 +86,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     super();
     if (typeof config.digestKey === 'string') {
       const _digestKey = DigestKey.from(config.digestKey);
-      if (_digestKey.error) throw new Error(_digestKey.error);
+      if (!_digestKey.ok) throw new Error(_digestKey.error);
       this._digestKey = _digestKey.val;
     } else {
       this._digestKey = config.digestKey;
@@ -135,7 +135,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     let digestKey: DigestKey;
     if (typeof config.digestKey === 'string') {
       const _digestKey = DigestKey.from(config.digestKey);
-      if (_digestKey.error) throw new Error(_digestKey.error);
+      if (!_digestKey.ok) throw new Error(_digestKey.error);
       digestKey = _digestKey.val;
     } else {
       digestKey = config.digestKey;
@@ -517,7 +517,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
     const res = await this._evmHTLC.redeem(order, secret);
 
-    if (res.error) {
+    if (!res.ok) {
       this.emit('error', order, res.error);
       if (res.error.includes('Order already redeemed')) {
         this.orderExecutorCache.set(
