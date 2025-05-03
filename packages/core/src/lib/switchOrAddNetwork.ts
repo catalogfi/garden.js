@@ -127,9 +127,10 @@ export const switchOrAddNetwork = async (
         message: 'Switched chain',
         walletClient: newWalletClient as WalletClient,
       });
-    } catch (error: unknown) {
+    } catch (error) {
       // If switching fails, attempt to add the network
       if (isViemError(error)) {
+        // Error code 4902 indicates the chain is not available in the wallet
         if (error.code === 4902) {
           try {
             await walletClient.addChain({ chain: chainID });
