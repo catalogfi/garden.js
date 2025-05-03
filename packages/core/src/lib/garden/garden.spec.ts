@@ -189,11 +189,11 @@ describe('swap and execute using garden', () => {
 
 describe('networkSwitch', async () => {
   // Increase test timeout to handle network operations
+  const evmAccount = privateKeyToAccount(
+    '0xf8bd44e157629a7e0e93088dcf9c9d05a3eefa4dfa05c5651ab6b0ae9ea23ecc',
+  );
   it('should switch network with http transport', async () => {
     try {
-      const evmAccount = privateKeyToAccount(
-        '0xf8bd44e157629a7e0e93088dcf9c9d05a3eefa4dfa05c5651ab6b0ae9ea23ecc',
-      );
       const client = createWalletClient({
         account: evmAccount,
         chain: sepolia,
@@ -205,5 +205,15 @@ describe('networkSwitch', async () => {
       console.error('Network switch test failed:', error);
       throw error;
     }
+  }, 15000);
+  it('should early return when client already on the network', async () => {
+    const client = createWalletClient({
+      account: evmAccount,
+      chain: sepolia,
+      transport: http(),
+    });
+    const res = await switchOrAddNetwork('ethereum_sepolia', client);
+    expect(res.ok).toBeTruthy();
+    expect(res.val.message).toBe('Already on the network');
   }, 15000);
 });
