@@ -142,7 +142,7 @@ export const SupportedAssets = {
       symbol: 'iBTC',
       chain: Chains.arbitrum_sepolia,
       logo: 'https://garden-finance.imgix.net/token-images/dlcBTCIcon.svg',
-      tokenAddress: '0x685437f025c5f33a94818408c286bc1f023201fc',
+      tokenAddress: '0x8219B871534F29ff7434519287131a875e0D8eCa',
       atomicSwapAddress: '0xdfe6d9363ee96152d39391009a6723819d9e25eb',
     },
     base_sepolia_WBTC: {
@@ -169,17 +169,8 @@ export const SupportedAssets = {
       symbol: 'iBTC',
       chain: Chains.base_sepolia,
       logo: 'https://garden-finance.imgix.net/token-images/dlcBTCIcon.svg',
-      tokenAddress: '0x0b0D554D9573bAe1a7556d220847f45182918B28',
+      tokenAddress: '0xbaFb499B60F9E30fd82A54342cb7695C92F5B527',
       atomicSwapAddress: '0xbcdad29ac77e5bb27fd528ab0045af630259fe4f',
-    },
-    bera_testnet_WBTC: {
-      name: 'Wrapped Bitcoin',
-      decimals: 8,
-      symbol: 'WBTC',
-      chain: Chains.bera_testnet,
-      logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
-      tokenAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
-      atomicSwapAddress: '0x1dC94FdcAd8Aee13cfd34Db8a26d26E31572805c',
     },
     citrea_testnet_WCBTC: {
       name: 'Wrapped Citrea Bitcoin',
@@ -190,25 +181,43 @@ export const SupportedAssets = {
       tokenAddress: '0x8d0c9d1c17aE5e40ffF9bE350f57840E9E66Cd93',
       atomicSwapAddress: '0xaD9d14CA82d9BF97fFf745fFC7d48172A1c0969E',
     },
-    starknet_testnet_ETH: {
-      name: 'Starknet ETH',
+    citrea_testnet_cBTC: {
+      name: 'Citrea Bitcoin',
       decimals: 18,
-      symbol: 'ETH',
-      chain: Chains.starknet_sepolia,
-      logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
-      tokenAddress:
-        '0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7',
-      atomicSwapAddress:
-        '0x13e7510b665d01c03f250e648c5be6f4a57b6cf56b3079293362ed2e4713c95',
+      symbol: 'cBTC',
+      chain: Chains.citrea_testnet,
+      logo: 'https://garden-finance.imgix.net/token-images/bitcoin.svg',
+      tokenAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+      atomicSwapAddress: '0x6218FA00f47a61aCD8B46D6f1b15c4D730F803F2',
     },
-    hyperliquid_testnet_WBTC: {
+    starknet_testnet_WBTC: {
       name: 'Wrapped Bitcoin',
       decimals: 8,
       symbol: 'WBTC',
-      chain: Chains.hyperliquid_testnet,
+      chain: Chains.starknet_sepolia,
       logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
-      tokenAddress: '0xD8a6E3FCA403d79b6AD6216b60527F51cc967D39',
-      atomicSwapAddress: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
+      tokenAddress:
+        '0x496bef3ed20371382fbe0ca6a5a64252c5c848f9f1f0cccf8110fc4def912d5',
+      atomicSwapAddress:
+        '0x06579d255314109429a4477d89629bc2b94f529ae01979c2f8014f9246482603',
+    },
+    monad_testnet_cbBTC: {
+      name: 'Coinbase Bitcoin',
+      decimals: 8,
+      symbol: 'cbBTC',
+      chain: Chains.monad_testnet,
+      logo: 'https://garden-finance.imgix.net/token-images/cbBTC.svg',
+      tokenAddress: '0xaD9d14CA82d9BF97fFf745fFC7d48172A1c0969E',
+      atomicSwapAddress: '0x1dC94FdcAd8Aee13cfd34Db8a26d26E31572805c',
+    },
+    monad_testnet_USDC: {
+      name: 'USD Coin',
+      decimals: 6,
+      symbol: 'USDC',
+      chain: Chains.monad_testnet,
+      logo: 'https://garden-finance.imgix.net/token-images/usdc.svg',
+      tokenAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
+      atomicSwapAddress: '0xE99D8A21d4F2ad2f90c279c869311503f9e25867',
     },
   },
   mainnet: {
@@ -301,13 +310,24 @@ export const SupportedAssets = {
       tokenAddress: '0xecAc9C5F704e954931349Da37F60E39f515c11c1',
       atomicSwapAddress: '0x39f3294352208905fc6ebf033954E6c6455CdB4C',
     },
-    hyperliquid_UBTC: {
+    hyperliquid_uBTC: {
       name: 'Unit Bitcoin',
       decimals: 8,
-      symbol: 'UBTC',
+      symbol: 'uBTC',
       chain: Chains.hyperliquid,
       tokenAddress: '0x9FDBdA0A5e284c32744D2f17Ee5c74B284993463',
       atomicSwapAddress: '0x39f3294352208905fc6ebf033954E6c6455CdB4C',
+    },
+    starknet_WBTC: {
+      name: 'Wrapped Bitcoin',
+      decimals: 8,
+      symbol: 'WBTC',
+      chain: Chains.starknet,
+      logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
+      tokenAddress:
+        '0x3fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac',
+      atomicSwapAddress:
+        '0x7defd8eb3b770005ab1ca5f89ad31f98fb5bc3c52deaeafd130be3b49f967b4',
     },
   },
 } as const;
