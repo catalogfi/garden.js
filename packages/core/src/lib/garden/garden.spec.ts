@@ -187,12 +187,11 @@ describe('swap and execute using garden', () => {
   }, 150000);
 });
 
-describe('networkSwitch', async () => {
-  // Increase test timeout to handle network operations
+describe('switch network with http transport', async () => {
   const evmAccount = privateKeyToAccount(
     '0xf8bd44e157629a7e0e93088dcf9c9d05a3eefa4dfa05c5651ab6b0ae9ea23ecc',
   );
-  it('should switch network with http transport', async () => {
+  it('switches to a different network when not already connected', async () => {
     try {
       const client = createWalletClient({
         account: evmAccount,
@@ -206,7 +205,7 @@ describe('networkSwitch', async () => {
       throw error;
     }
   }, 15000);
-  it('should early return when client already on the network', async () => {
+  it('skips switching when already connected to the target network', async () => {
     const client = createWalletClient({
       account: evmAccount,
       chain: sepolia,
