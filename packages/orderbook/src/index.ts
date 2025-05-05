@@ -24,6 +24,7 @@ export {
   ArbitrumLocalnet,
   EthereumLocalnet,
   bitcoinRegtestAsset,
+  SOLSolanaLocalnetAsset,
   SupportedAssets,
   StarknetLocalnet,
   STRKStarknetLocalnetAsset,

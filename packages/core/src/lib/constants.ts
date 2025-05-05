@@ -7,6 +7,7 @@ export type Api = {
   info: string;
   evmRelay: string;
   starknetRelay: string;
+  solanaRelay: string;
 };
 export const API: Record<Environment, Api> = {
   mainnet: {
@@ -16,6 +17,7 @@ export const API: Record<Environment, Api> = {
     info: 'https://api.garden.finance/info',
     evmRelay: 'https://api.garden.finance/relayer',
     starknetRelay: '',
+    solanaRelay: 'https://solana-relayer-staging.hashira.io/relay',
   },
   testnet: {
     orderbook: 'https://testnet.api.garden.finance',
@@ -24,6 +26,7 @@ export const API: Record<Environment, Api> = {
     info: 'https://testnet.api.garden.finance/info',
     evmRelay: 'https://testnet.api.garden.finance/relayer',
     starknetRelay: '',
+    solanaRelay: 'https://solana-relayer-staging.hashira.io/relay',
   },
   localnet: {
     orderbook: '',
@@ -32,5 +35,6 @@ export const API: Record<Environment, Api> = {
     info: '',
     evmRelay: '',
     starknetRelay: '',
+    solanaRelay: '',
   },
 } as const;

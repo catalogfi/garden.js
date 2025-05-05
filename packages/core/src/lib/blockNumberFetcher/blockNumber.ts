@@ -2,8 +2,14 @@ import { AsyncResult, Err, Fetcher, Ok } from '@catalogfi/utils';
 import { Chain } from '@gardenfi/orderbook';
 import { Environment, Url } from '@gardenfi/utils';
 
+// Updated Response type to match the nested structure from the API
+type BlockNumbersByChain = {
+  [key in Chain]?: number;
+};
+
 type Response = {
-  [key in Chain]: number;
+  testnet?: BlockNumbersByChain;
+  mainnet?: BlockNumbersByChain;
 };
 
 export interface IBlockNumberFetcher {
@@ -12,9 +18,11 @@ export interface IBlockNumberFetcher {
 
 export class BlockNumberFetcher implements IBlockNumberFetcher {
   private url: Url;
+  private environment: Environment;
 
-  constructor(url: string, network: Environment) {
-    this.url = new Url(url).endpoint('blocknumbers').endpoint(network);
+  constructor(url: string, environment: Environment) {
+    this.url = new Url(url).endpoint('blocknumber');
+    this.environment = environment;
   }
 
   async fetchBlockNumbers(): AsyncResult<Response, string> {

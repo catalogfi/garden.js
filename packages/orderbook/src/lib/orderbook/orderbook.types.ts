@@ -1,6 +1,8 @@
 import { AsyncResult } from '@catalogfi/utils';
 import { APIResponse, IAuth, IStore } from '@gardenfi/utils';
 import { Asset, Chain } from '../asset';
+import { IOrderProvider } from '../orders/orders.types';
+import { AnchorProvider } from '@coral-xyz/anchor';
 
 /**
  * Configuration for creating an order

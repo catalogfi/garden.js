@@ -48,6 +48,14 @@ export const EthereumLocalnet: Chain = {
   testnet: true,
 };
 
+export const SOLSolanaLocalnetAsset: Asset = {
+  name: 'SOL Solana Localnet',
+  decimals: 9,
+  symbol: 'SOL',
+  chain: Chains.solana_localnet,
+  atomicSwapAddress: 'primary',
+  tokenAddress: 'primary',
+};
 export const bitcoinRegtestAsset: Asset = {
   name: 'Bitcoin Regtest',
   decimals: 8,
@@ -61,7 +69,8 @@ export const WBTCArbitrumLocalnetAsset: Asset = {
   decimals: 8,
   symbol: 'WBTC',
   chain: Chains.arbitrum_localnet,
-  atomicSwapAddress: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9',
+  // atomicSwapAddress: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9',
+  atomicSwapAddress: '0x0165878A594ca255338adfa4d48449f69242Eb8F', //present on localnet
   tokenAddress: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
 };
 export const WBTCEthereumLocalnetAsset: Asset = {
@@ -69,7 +78,8 @@ export const WBTCEthereumLocalnetAsset: Asset = {
   decimals: 8,
   symbol: 'WBTC',
   chain: Chains.ethereum_localnet,
-  atomicSwapAddress: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
+  // atomicSwapAddress: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
+  atomicSwapAddress: '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0', //present on localnet
   tokenAddress: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
 };
 export const STRKStarknetLocalnetAsset: Asset = {
@@ -95,12 +105,22 @@ export const ETHStarknetLocalnetAsset: Asset = {
 
 export const SupportedAssets = {
   localnet: {
+    solana_localnet_SOL: SOLSolanaLocalnetAsset,
     arbitrum_localnet_WBTC: WBTCArbitrumLocalnetAsset,
     ethereum_localnet_WBTC: WBTCEthereumLocalnetAsset,
+    bitcoin_regtest_BTC: bitcoinRegtestAsset,
     starknet_localnet_STRK: STRKStarknetLocalnetAsset,
     starknet_localnet_ETH: ETHStarknetLocalnetAsset,
   },
   testnet: {
+    solana_testnet_SOL: {
+      name: 'SOL Solana Testnet',
+      decimals: 9,
+      symbol: 'SOL',
+      chain: Chains.solana_testnet,
+      atomicSwapAddress: 'primary',
+      tokenAddress: 'primary',
+    },
     bitcoin_testnet_BTC: {
       name: 'BTC',
       decimals: 8,
@@ -124,8 +144,8 @@ export const SupportedAssets = {
       symbol: 'WBTC',
       logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
       chain: Chains.arbitrum_sepolia,
-      tokenAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
-      atomicSwapAddress: '0x1cd0bBd55fD66B4C5F7dfE434eFD009C09e628d1',
+      tokenAddress: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
+      atomicSwapAddress: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
     },
     arbitrum_sepolia_SEED: {
       name: 'Seed',
