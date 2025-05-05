@@ -7,7 +7,7 @@ export const with0x = (str: string): `0x${string}` => {
 
 /**
  * Includes `Bearer ` in the Authorization header
- * @param authToken authToken
+ * @param authToken
  * @returns Authorization header
  */
 export const Authorization = (authToken: string) => `Bearer ${authToken}`;

@@ -1,0 +1,120 @@
+name: Build and Release Monorepo
+
+on:
+  push:
+    branches:
+      - main
+  issue_comment:
+    types:
+      - created
+      - edited
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+jobs:
+  beta-release:
+    if: github.event_name == 'issue_comment' && github.event.comment.body == '/release-beta'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      issues: read
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Get Commenter's Username
+        id: get-commenter
+        run: echo "COMMENTER=${{ github.event.comment.user.login }}"
+
+      - name: Fetch Commenter's Permissions
+        id: get-permission
+        run: |
+          COMMENTER=${{ github.event.comment.user.login }}
+          RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
+            "https://api.github.com/repos/${{ github.repository }}/collaborators/${COMMENTER}/permission")
+          
+          PERMISSION=$(echo "$RESPONSE" | jq -r '.role_name')
+          echo "Commenter's permission level: $PERMISSION"
+
+          if [[ "$PERMISSION" == "admin" || "$PERMISSION" == "maintain" ]]; then
+            echo "is_admin_or_maintain=true"
+          else
+            echo "is_admin_or_maintain=false"
+            exit 1
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.9.0
+
+      - name: Enable Corepack and Set Yarn Version
+        run: |
+          corepack enable
+          corepack prepare yarn@4.5.1 --activate
+
+      - name: Install Dependencies
+        run: yarn install
+
+      - name: Make handle-release.sh Executable
+        run: chmod +x scripts/handle-release.sh
+
+      - name: Extract PR Info (for PR comments)
+        if: github.event.issue.pull_request != null
+        run: |
+          PR_URL="${{ github.event.issue.pull_request.url }}"
+          PR_DATA=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" "$PR_URL")
+
+          echo "$PR_DATA" > pr.json
+          echo "PR_BRANCH=$(jq -r '.head.ref' pr.json)" >> $GITHUB_ENV
+          echo "PR_REPO=$(jq -r '.head.repo.full_name' pr.json)" >> $GITHUB_ENV
+
+      - name: Run Beta Release Script
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          PR_BRANCH: ${{ env.PR_BRANCH }}
+          PR_REPO: ${{ env.PR_REPO }}
+        run: ./scripts/handle-release.sh beta
+
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && (contains(github.event.head_commit.message, 'patch') || contains(github.event.head_commit.message, 'chore') || contains(github.event.head_commit.message, 'fix') || contains(github.event.head_commit.message, 'feat'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      issues: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.9.0
+
+      - name: Enable Corepack and Set Yarn Version
+        run: |
+          corepack enable
+          corepack prepare yarn@4.5.1 --activate
+
+      - name: Install Dependencies
+        run: yarn install
+
+      - name: Make handle-release.sh Executable
+        run: chmod +x scripts/handle-release.sh
+
+      - name: Run Custom Release Script
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: ./scripts/handle-release.sh

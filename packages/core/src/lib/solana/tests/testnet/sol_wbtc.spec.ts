@@ -1,13 +1,12 @@
 import * as anchor from "@coral-xyz/anchor";
 import { web3 } from "@coral-xyz/anchor";
 import { beforeAll, describe, expect, it, beforeEach } from "vitest";
-import { Environment, Siwe, Url, with0x } from '@gardenfi/utils';
+import { DigestKey, Environment, Siwe, Url, with0x } from '@gardenfi/utils';
 import { MatchedOrder, Orderbook, SupportedAssets } from "@gardenfi/orderbook";
 import { privateKeyToAccount, PrivateKeyAccount } from "viem/accounts";
 import { createWalletClient, http, WalletClient } from 'viem';
 import { arbitrumSepolia, Chain } from "viem/chains";
-import { Err } from "@catalogfi/utils";
-import { DigestKey } from "../../../garden/digestKey/digestKey";
+import { Err } from "@catalogfi/utils";;
 import { Garden } from "../../../garden/garden";
 import { EvmRelay } from "../../../evm/relay/evmRelay";
 import { API } from "../../../constants";
@@ -45,7 +44,7 @@ function setupGarden(
             evm: new EvmRelay(
                 API.testnet.evmRelay,
                 evmClient,
-                Siwe.fromDigestKey(new Url(API.testnet.orderbook), digestKey),
+                Siwe.fromDigestKey(new Url(API.testnet.orderbook), DigestKey.generateRandom().val),
             ),
         },
         blockNumberFetcher: new BlockNumberFetcher(TEST_BLOCKFETCHER_URL, Environment.TESTNET),

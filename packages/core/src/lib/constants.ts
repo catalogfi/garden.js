@@ -1,26 +1,40 @@
-export const API = {
+import { Environment } from '@gardenfi/utils';
+
+export type Api = {
+  orderbook: string;
+  auth: string;
+  quote: string;
+  info: string;
+  evmRelay: string;
+  starknetRelay: string;
+  solanaRelay: string;
+};
+export const API: Record<Environment, Api> = {
   mainnet: {
-    orderbook: 'https://orderbookv2.garden.finance',
-    quote: 'https://pricev2.garden.finance',
-    info: 'https://infov2.garden.finance',
-    evmRelay: '',
+    orderbook: 'https://api.garden.finance',
+    auth: 'https://api.garden.finance/auth',
+    quote: 'https://api.garden.finance/quote',
+    info: 'https://api.garden.finance/info',
+    evmRelay: 'https://api.garden.finance/relayer',
     starknetRelay: '',
-    solanaRelay: '',
+    solanaRelay: 'https://solana-relayer-staging.hashira.io/relay',
   },
   testnet: {
-    orderbook: 'https://orderbook-stage.hashira.io',
-    quote: 'https://price.garden.finance',
-    info: 'https://info.garden.finance',
-    evmRelay: 'https://orderbook-stage.hashira.io',
-    starknetRelay: 'https://starknet-relay.garden.finance',
+    orderbook: 'https://testnet.api.garden.finance',
+    auth: 'https://testnet.api.garden.finance/auth',
+    quote: 'https://testnet.api.garden.finance/quote',
+    info: 'https://testnet.api.garden.finance/info',
+    evmRelay: 'https://testnet.api.garden.finance/relayer',
+    starknetRelay: '',
     solanaRelay: 'https://solana-relayer-staging.hashira.io/relay',
   },
   localnet: {
-    orderbook: 'http://localhost:4422',
-    quote: 'http://localhost:6969',
-    info: 'https://info.garden.finance',
-    solanaRelay: 'http://localhost:5014/relay',
-    evmRelay: 'http://localhost:4422',
-    strkRelay: '',
+    orderbook: '',
+    auth: '',
+    quote: '',
+    info: '',
+    evmRelay: '',
+    starknetRelay: '',
+    solanaRelay: '',
   },
 } as const;

@@ -7,6 +7,7 @@ import {
   MatchedOrder,
   PaginatedData,
   PaginationConfig,
+  Status,
 } from './orderbook.types';
 import { APIResponse, ApiStatus, IAuth, Url } from '@gardenfi/utils';
 import { ConstructUrl } from '../utils';
@@ -63,7 +64,7 @@ export class Orderbook implements IOrderbook {
     id: string,
     matched: T,
   ): AsyncResult<T extends true ? MatchedOrder : CreateOrder, string> {
-    const endpoint = matched ? `/id/matched/${id}` : `/id/unmatched/${id}`;
+    const endpoint = matched ? `/id/${id}/matched` : `/id/${id}/unmatched`;
     const url = this.Url.endpoint('orders').endpoint(endpoint);
 
     try {
@@ -82,15 +83,15 @@ export class Orderbook implements IOrderbook {
 
   async getMatchedOrders(
     address: string,
-    pending: boolean,
+    status: Status,
     paginationConfig?: PaginationConfig,
   ): AsyncResult<PaginatedData<MatchedOrder>, string> {
     const url = ConstructUrl(
       this.Url.endpoint('orders'),
-      `/user/matched/${address}`,
+      `/user/${address}/matched`,
       {
         ...paginationConfig,
-        pending,
+        status,
       },
     );
 
@@ -114,7 +115,7 @@ export class Orderbook implements IOrderbook {
   ): AsyncResult<PaginatedData<CreateOrder>, string> {
     const url = ConstructUrl(
       this.Url.endpoint('orders'),
-      `/user/unmatched/${address}`,
+      `/user/${address}/unmatched`,
       paginationConfig,
     );
 
@@ -167,7 +168,7 @@ export class Orderbook implements IOrderbook {
     cb: (
       orders: PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
     ) => Promise<void>,
-    pending: boolean = false,
+    status: Status = 'all',
     paginationConfig?: PaginationConfig,
   ): Promise<() => void> {
     let isProcessing = false;
@@ -178,7 +179,7 @@ export class Orderbook implements IOrderbook {
 
       try {
         const result = matched
-          ? await this.getMatchedOrders(account, pending, paginationConfig)
+          ? await this.getMatchedOrders(account, status, paginationConfig)
           : await this.getUnMatchedOrders(account, paginationConfig);
         if (result.ok) {
           await cb(
@@ -205,7 +206,7 @@ export class Orderbook implements IOrderbook {
   }
 
   async getOrdersCount(address: string): AsyncResult<number, string> {
-    const url = this.Url.endpoint('orders').endpoint(`/user/count/${address}`);
+    const url = this.Url.endpoint('orders').endpoint(`/user/${address}/count`);
 
     try {
       const res = await Fetcher.get<APIResponse<number>>(url);

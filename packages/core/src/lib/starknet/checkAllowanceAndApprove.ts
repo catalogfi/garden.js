@@ -1,5 +1,5 @@
 import {
-  Account,
+  AccountInterface,
   cairo,
   Contract,
   RpcProvider,
@@ -8,9 +8,10 @@ import {
 } from 'starknet';
 import { AsyncResult, Err, Ok, with0x } from '@catalogfi/utils';
 import { TokenABI } from './abi/starknetTokenABI';
+import { sleep } from '@gardenfi/utils';
 
 export const checkAllowanceAndApprove = async (
-  account: Account,
+  account: AccountInterface,
   tokenAddress: string,
   htlcAddress: string,
   amount: bigint,
@@ -51,6 +52,7 @@ export const checkAllowanceAndApprove = async (
           successStates: [TransactionExecutionStatus.SUCCEEDED],
         },
       );
+      await sleep(2000);
       return Ok(approveResponse.transaction_hash);
     }
 

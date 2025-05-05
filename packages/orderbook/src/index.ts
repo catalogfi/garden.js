@@ -7,10 +7,13 @@ export {
   isMainnet,
   isBitcoin,
   isEVM,
+  isStarknet,
   getBlockchainType,
   NetworkType,
   TimeLocks,
   getTimeLock,
+  NativeTokenAddress,
+  isEvmNativeToken,
 } from './lib/asset';
 export { OrdersProvider } from './lib/orders/ordersProvider';
 export type { IOrderProvider } from './lib/orders/orders.types';
@@ -23,4 +26,6 @@ export {
   bitcoinRegtestAsset,
   SOLSolanaLocalnetAsset,
   SupportedAssets,
+  StarknetLocalnet,
+  STRKStarknetLocalnetAsset,
 } from './lib/constants';

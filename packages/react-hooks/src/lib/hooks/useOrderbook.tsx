@@ -5,50 +5,16 @@ import {
   ParseOrderStatus,
 } from '@gardenfi/core';
 import { useEffect, useState } from 'react';
-import { Address } from 'viem';
+import { DigestKey } from '@gardenfi/utils';
 
 export const useOrderbook = (
   garden: IGardenJS | undefined,
-  address: Address | undefined,
+  digestKey: DigestKey | undefined,
 ) => {
   const [pendingOrders, setPendingOrders] = useState<OrderWithStatus[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [digestKeyMap, setDigestKeyMap] = useState<Record<string, string>>({});
-
-  const digestKey = address ? digestKeyMap[address] : undefined;
 
   useEffect(() => {
     if (!garden) return;
-
-    const checkInitialization = () => {
-      if (garden.secretManager.isInitialized) {
-        setIsInitialized(true);
-
-        if (!address) return;
-
-        garden.secretManager.getDigestKey().then((dkRes) => {
-          if (dkRes.error) {
-            console.error('Failed to get Master DigestKey:', dkRes.error);
-            return;
-          }
-          setDigestKeyMap((prevMap) => ({
-            ...prevMap,
-            [address]: dkRes.val,
-          }));
-        });
-      }
-    };
-
-    checkInitialization();
-    garden.secretManager.on('initialized', checkInitialization);
-
-    return () => {
-      garden.secretManager.off('initialized', checkInitialization);
-    };
-  }, [garden]);
-
-  useEffect(() => {
-    if (!garden || !isInitialized) return;
 
     const unsubscribe = garden.execute();
 
@@ -64,16 +30,16 @@ export const useOrderbook = (
       })();
       garden.off('onPendingOrdersChanged', handlePendingOrdersChange);
     };
-  }, [garden, isInitialized]);
+  }, [garden]);
 
   // Fetch orders for the first time
   useEffect(() => {
-    if (!garden) return;
+    if (!garden || !digestKey) return;
     garden.blockNumberFetcher.fetchBlockNumbers().then((res) => {
       if (res.error) return;
       const { val: blockNumbers } = res;
       garden.orderbook
-        .fetchOrders(true, true, {
+        .getMatchedOrders(digestKey.userId, 'pending', {
           per_page: 500,
         })
         .then((orders) => {
@@ -99,7 +65,7 @@ export const useOrderbook = (
           setPendingOrders(orderWithStatus);
         });
     });
-  }, [garden]);
+  }, [garden, digestKey]);
 
-  return { pendingOrders, isExecuting: isInitialized, digestKey };
+  return { pendingOrders };
 };

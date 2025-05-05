@@ -1,6 +1,6 @@
 {
   "name": "@gardenfi/utils",
-  "version": "2.0.5",
+  "version": "2.1.2",
   "type": "module",
   "scripts": {
     "build": "vite build",
@@ -35,8 +35,11 @@
   },
   "sideEffects": false,
   "dependencies": {
+    "@peculiar/webcrypto": "^1.5.0",
     "@simplewebauthn/browser": "^13.1.0",
+    "fetch-cookie": "^3.1.0",
     "jwt-decode": "^4.0.0",
+    "tough-cookie": "^5.1.2",
     "viem": "^2.21.23"
   }
 }

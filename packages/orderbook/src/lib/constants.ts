@@ -221,6 +221,15 @@ export const SupportedAssets = {
       atomicSwapAddress:
         '0x13e7510b665d01c03f250e648c5be6f4a57b6cf56b3079293362ed2e4713c95',
     },
+    hyperliquid_testnet_WBTC: {
+      name: 'Wrapped Bitcoin',
+      decimals: 8,
+      symbol: 'WBTC',
+      chain: Chains.hyperliquid_testnet,
+      logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
+      tokenAddress: '0xD8a6E3FCA403d79b6AD6216b60527F51cc967D39',
+      atomicSwapAddress: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
+    },
   },
   mainnet: {
     bitcoin_BTC: {
@@ -310,6 +319,14 @@ export const SupportedAssets = {
       chain: Chains.bera,
       logo: 'https://garden-finance.imgix.net/token-images/LBTC.svg',
       tokenAddress: '0xecAc9C5F704e954931349Da37F60E39f515c11c1',
+      atomicSwapAddress: '0x39f3294352208905fc6ebf033954E6c6455CdB4C',
+    },
+    hyperliquid_UBTC: {
+      name: 'Unit Bitcoin',
+      decimals: 8,
+      symbol: 'UBTC',
+      chain: Chains.hyperliquid,
+      tokenAddress: '0x9FDBdA0A5e284c32744D2f17Ee5c74B284993463',
       atomicSwapAddress: '0x39f3294352208905fc6ebf033954E6c6455CdB4C',
     },
   },
