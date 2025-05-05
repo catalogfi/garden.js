@@ -10,6 +10,8 @@ export class SwapConfig {
     public redeemer: web3.PublicKey;
     public secretHash: number[];
     public amount: BN;
+    public expiresIn: BN;
+
     /**
      * @param swapId - A Unique 32-bit ID to represent this configuration in hex
      * @param redeemer - The Solana address of redeemer in base58
@@ -22,7 +24,7 @@ export class SwapConfig {
         redeemer: string,
         secretHash: string,
         amount: bigint,
-        public expiresIn: number
+        expiresIn: number
     ) {
         try {
             this.swapId = [...hex.decode(swapId)];
@@ -41,6 +43,7 @@ export class SwapConfig {
         }
         try {
             this.amount = new BN(amount.toString(10), 10);
+            this.expiresIn = new BN(expiresIn)
         } catch (cause) {
             throw new Error("Error decoding amount. Invalid value for amount", { cause });
         }
