@@ -8,6 +8,33 @@ import * as secp256k1 from 'tiny-secp256k1';
 import * as bitcoin from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
 import { Signature } from 'starknet';
+import { API, Api } from './constants';
+import { ApiConfig } from './garden/garden.types';
+
+export function resolveApiConfig(env: ApiConfig): {
+  api: Api;
+  environment: Environment;
+} {
+  const environment =
+    typeof env === 'string' ? env : env.environment ?? Environment.TESTNET;
+
+  const baseApi =
+    environment === Environment.MAINNET
+      ? API.mainnet
+      : Environment.TESTNET
+      ? API.testnet
+      : API.localnet;
+
+  const api: Api =
+    typeof env === 'string'
+      ? baseApi
+      : {
+          ...baseApi,
+          ...env,
+        };
+
+  return { api, environment };
+}
 
 export const computeSecret = async (
   fromChain: Chain,
