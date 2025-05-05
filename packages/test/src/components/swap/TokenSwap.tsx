@@ -13,7 +13,7 @@ import {
 import * as anchor from '@coral-xyz/anchor';
 // import { web3 } from '@coral-xyz/anchor';
 import { API, BlockNumberFetcher, EvmRelay, Garden, Quote, SwapParams } from '@gardenfi/core';
-import { Environment, Siwe, Url, with0x } from '@gardenfi/utils';
+import { DigestKey, Environment, Siwe, Url, with0x } from '@gardenfi/utils';
 import { privateKeyToAccount } from 'viem/accounts';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import {
@@ -27,7 +27,7 @@ import {
   BitcoinProvider,
   BitcoinWallet,
 } from '@catalogfi/wallets';
-import { DigestKey } from '../../../../core/src/lib/garden/digestKey/digestKey';
+
 import {SolanaHTLC} from "../../../../core/src/lib/solana/htlc/solanaHTLC";
 import {SolanaRelay} from "../../../../core/src/lib/solana/relayer/solanaRelay";
 import {SolanaRelayerAddress} from "../../../../core/src/lib/solana/constants";
@@ -43,11 +43,15 @@ import { Transaction } from '@solana/web3.js';
 
 const TokenSwap: React.FC = () => {
   const TEST_RPC_URL = 'https://api.devnet.solana.com';
-  const TEST_SWAPPER_RELAYER = 'https://orderbook-v2-staging.hashira.io';
+const TEST_ORDERBOOK_STAGE = "https://testnet.api.hashira.io";
   const TEST_PRIVATE_KEY =
     '9c1508f9071bf5fefc69fbb71c98cd3150a323e953c6979ef8b508f1461dd2e1';
   const TEST_RELAYER_ADDRESS = 'AKnL4NNf3DGWZJS6cPknBuEGnVsV4A4m5tgebLHaRSZ9';
   const TEST_BLOCKFETCHER_URL = "https://info-stage.hashira.io/";
+  const TEST_STAGE_QUOTE = "https://testnet.api.hashira.io/quote";
+  const TEST_STAGE_AUTH = "https://testnet.api.hashira.io/auth";
+const TEST_STAGE_EVM_RELAY = "https://testnet.api.hashira.io/relayer"
+
   const [btcAdd, setBtcAdd] = useState('');
   let BTC_ADDRESS: string;
   
@@ -148,30 +152,26 @@ const TokenSwap: React.FC = () => {
     console.log("Setting bitcoin address")
     setBtcAdd(BTC_ADDRESS)
 
-    let digestKey = DigestKey.generateRandom().val.digestKey
+    let digestKey = DigestKey.generateRandom()
+    const auth = Siwe.fromDigestKey(new Url(TEST_STAGE_AUTH), digestKey.val);
 
     const garden = new Garden({
       environment: Environment.TESTNET,
-      digestKey: digestKey,
+      digestKey: digestKey.val,
       htlc: {
         // solana: new SolanaHTLC(solanaProvider),
         solana: new SolanaRelay(solanaProvider, new Url(API.testnet.solanaRelay), SolanaRelayerAddress.testnet),
         evm: new EvmRelay(
-          API.testnet.evmRelay,
+          TEST_STAGE_EVM_RELAY,
           arbitrumWalletClient,
-          Siwe.fromDigestKey(
-            new Url(API.testnet.orderbook),
-            digestKey
-          )
+          auth
         )
       },
       btcWallet: btcWalletx as any,
-     orderbook: new Orderbook(new Url(TEST_SWAPPER_RELAYER)),
-      blockNumberFetcher: new BlockNumberFetcher(
-        TEST_BLOCKFETCHER_URL,
-        Environment.TESTNET,
-      ),
-       quote: new Quote("https://testnet.api.hashira.io/")
+              blockNumberFetcher: new BlockNumberFetcher(TEST_BLOCKFETCHER_URL, Environment.TESTNET),
+     orderbook: new Orderbook(new Url(TEST_ORDERBOOK_STAGE)),
+       quote: new Quote(TEST_STAGE_QUOTE),
+         auth: auth
     });
 
     console.log('Garden initialized...');
@@ -360,7 +360,7 @@ const swapSOLTowBTC = async () => {
                 minDestinationConfirmations: 1,
             };
 
-      console.log('Creating SOL to wBTC swap order...');
+      console.log('Creating wBTC to SOL swap order...');
       const result = await gardenObj.swap(orderObj);
       console.log('Result of swap method', result);
 
@@ -1038,8 +1038,8 @@ const swapSOLTowBTC = async () => {
 
         <button
           // onClick={() => swapSOLToBTC()}
-          // onClick={() => swapBTCToSOL()}
-          onClick={() => swapSOLTowBTC()}
+          onClick={() => swapBTCToSOL()}
+          // onClick={() => swapSOLTowBTC()}
           // onClick={() => swapwBTCToSOL()}
           className={`w-full p-2 cursor-pointer text-white rounded-xl ${
             loading || isSwapping
