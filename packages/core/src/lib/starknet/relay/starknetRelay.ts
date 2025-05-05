@@ -39,6 +39,7 @@ export class StarknetRelay implements IStarknetHTLC {
   private url: Url;
   private account: AccountInterface;
   private starknetProvider: RpcProvider;
+  private chainId: string;
 
   constructor(
     relayerUrl: string | Url,
@@ -51,20 +52,12 @@ export class StarknetRelay implements IStarknetHTLC {
     this.starknetProvider = new RpcProvider({
       nodeUrl: nodeUrl || STARKNET_CONFIG[network].nodeUrl,
     });
+    this.chainId = STARKNET_CONFIG[network].chainId;
   }
 
   get htlcActorAddress(): string {
     if (!this.account.address) throw new Error('No account found');
     return this.account.address;
-  }
-
-  async getChainId(): AsyncResult<string, string> {
-    try {
-      const res = await this.account.getChainId();
-      return Ok(res);
-    } catch (error) {
-      return Err(String(error));
-    }
   }
 
   async initiate(order: MatchedOrder): AsyncResult<string, string> {
@@ -158,13 +151,10 @@ export class StarknetRelay implements IStarknetHTLC {
     const { create_order, source_swap } = order;
     const { redeemer, amount } = source_swap;
 
-    const chainId = await this.getChainId();
-    if (chainId.error) return Err(chainId.error);
-
     const DOMAIN = {
       name: 'HTLC',
       version: shortString.encodeShortString('1'),
-      chainId: chainId.val,
+      chainId: this.chainId,
       revision: TypedDataRevision.ACTIVE,
     };
 

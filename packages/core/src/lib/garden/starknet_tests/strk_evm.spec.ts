@@ -159,7 +159,7 @@ describe('StarkNet Integration Tests', () => {
     it('should create order and match', async () => {
       const order = {
         fromAsset: SupportedAssets.testnet.arbitrum_sepolia_WBTC,
-        toAsset: SupportedAssets.testnet.starknet_testnet_ETH,
+        toAsset: SupportedAssets.testnet.starknet_testnet_WBTC,
         sendAmount: '500000',
         receiveAmount: '214821925172042749',
         additionalData: {
@@ -209,7 +209,7 @@ describe('StarkNet Integration Tests', () => {
       console.log('\n------ CREATING SWAP ORDER ------');
       const order = {
         fromAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
-        toAsset: SupportedAssets.testnet.starknet_testnet_ETH,
+        toAsset: SupportedAssets.testnet.starknet_testnet_WBTC,
         sendAmount: '10000',
         receiveAmount: '4292202826399481',
         additionalData: {
@@ -251,7 +251,7 @@ describe('StarkNet Integration Tests', () => {
     it.skip('should create order and match', async () => {
       console.log('\n------ CREATING SWAP ORDER ------');
       const order = {
-        fromAsset: SupportedAssets.testnet.starknet_testnet_ETH,
+        fromAsset: SupportedAssets.testnet.starknet_testnet_WBTC,
         toAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
         sendAmount: '10000000000000000',
         receiveAmount: '23159',
