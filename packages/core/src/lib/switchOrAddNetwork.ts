@@ -143,8 +143,8 @@ export const switchOrAddNetwork = async (
             return Err('Failed to add network');
           }
         } else if (
-          error.message?.includes('method is not available') &&
-          error.body?.method?.includes('wallet_switchEthereumChain')
+          error.body?.method?.includes('wallet_switchEthereumChain') ||
+          error.message?.includes('wallet_switchEthereumChain')
         ) {
           const newWalletClient = createWalletClient({
             account: walletClient.account,

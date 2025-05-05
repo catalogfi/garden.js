@@ -13,12 +13,12 @@ import {
   isBitcoin,
   MatchedOrder,
   SupportedAssets,
-
   // SupportedAssets,
 } from '@gardenfi/orderbook';
 import { sleep } from '@catalogfi/utils';
 import {
   arbitrumSepolia,
+  citreaTestnet,
   sepolia,
   // arbitrumSepolia,
   // sepolia
@@ -195,7 +195,7 @@ describe('switch network with http transport', async () => {
     try {
       const client = createWalletClient({
         account: evmAccount,
-        chain: sepolia,
+        chain: citreaTestnet,
         transport: http(),
       });
       const res = await switchOrAddNetwork('base_sepolia', client);
