@@ -9,6 +9,7 @@ import {
   SwapParams,
   GardenConfigWithHTLCs,
   GardenConfigWithWallets,
+  ApiConfig,
 } from './garden.types';
 import {
   BlockchainType,
@@ -34,12 +35,7 @@ import {
   Network,
 } from '@gardenfi/utils';
 import { IQuote } from '../quote/quote.types';
-import {
-  getBitcoinNetwork,
-  isValidBitcoinPubKey,
-  resolveApiConfig,
-  toXOnly,
-} from '../utils';
+import { getBitcoinNetwork, isValidBitcoinPubKey, toXOnly } from '../utils';
 import {
   BitcoinProvider,
   BitcoinWallet,
@@ -58,13 +54,38 @@ import {
   IBlockNumberFetcher,
 } from '../blockNumberFetcher/blockNumber';
 import { OrderStatus } from '../orderStatus/status';
-import { Api } from '../constants';
+import { API, Api } from '../constants';
 import { Quote } from '../quote/quote';
 import { SecretManager } from '../secretManager/secretManager';
 import { IEVMHTLC } from '../evm/htlc.types';
 import { EvmRelay } from '../evm/relay/evmRelay';
 import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { StarknetRelay } from '../starknet/relay/starknetRelay';
+
+function resolveApiConfig(env: ApiConfig): {
+  api: Api;
+  environment: Environment;
+} {
+  const environment =
+    typeof env === 'string' ? env : env.environment ?? Environment.TESTNET;
+
+  const baseApi =
+    environment === Environment.MAINNET
+      ? API.mainnet
+      : Environment.TESTNET
+      ? API.testnet
+      : API.localnet;
+
+  const api: Api =
+    typeof env === 'string'
+      ? baseApi
+      : {
+          ...baseApi,
+          ...env,
+        };
+
+  return { api, environment };
+}
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment = Environment.TESTNET;
