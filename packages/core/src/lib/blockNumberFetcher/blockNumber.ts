@@ -21,16 +21,13 @@ export class BlockNumberFetcher implements IBlockNumberFetcher {
   private environment: Environment;
 
   constructor(url: string, environment: Environment) {
-    console.log(environment);
     this.url = new Url(url).endpoint('blocknumber');
     this.environment = environment;
   }
 
   async fetchBlockNumbers(): AsyncResult<Response, string> {
     try {
-      console.log("Get block number:: ", this.url);
       const res = await Fetcher.get<Response>(this.url);
-      console.log("res of block numeber:: ", res);
       return Ok(res);
     } catch (error) {
       return Err('Failed to fetch block numbers', error);

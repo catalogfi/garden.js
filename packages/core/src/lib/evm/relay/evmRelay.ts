@@ -66,6 +66,7 @@ export class EvmRelay implements IEVMHTLC {
     if (tokenAddress.error) return Err(tokenAddress.error);
 
     if (isEvmNativeToken(order.source_swap.chain, tokenAddress.val)) {
+      console.log("Calling initiate on native htlc")
       return this._initiateOnNativeHTLC(
         secretHash,
         timelock,
@@ -74,6 +75,7 @@ export class EvmRelay implements IEVMHTLC {
         order.source_swap.asset,
       );
     } else {
+      console.log("Calling initiate on ERC 20 htlc");
       return this._initiateOnErc20HTLC(
         secretHash,
         timelock,
@@ -145,6 +147,7 @@ export class EvmRelay implements IEVMHTLC {
 
     try {
       const auth = await this.auth.getAuthHeaders();
+      console.log("header in _initateOnERC20::", auth.val);
       if (auth.error) return Err(auth.error);
 
       const atomicSwap = getContract({
@@ -204,10 +207,14 @@ export class EvmRelay implements IEVMHTLC {
           headers,
         },
       );
-      if (res.error) return Err(res.error);
+
+      if (res.error) {
+        console.log("Error in initiating", res.error)
+        return Err(res.error)
+      };
       return res.result ? Ok(res.result) : Err('Init: No result found');
     } catch (error) {
-      console.log('init error :', error);
+      console.log('catch init error :', error);
       return Err(String(error));
     }
   }

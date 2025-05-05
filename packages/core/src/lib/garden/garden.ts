@@ -417,7 +417,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       true,
       interval,
       async (pendingOrders) => {
-        if (pendingOrders.data.length === 0) return;
+        if (pendingOrders.data.length === 0) {
+          console.log("No pending orders");
+          return
+        };
 
         const ordersWithStatus = await this.filterExpiredAndAssignStatus(
           pendingOrders.data,
@@ -663,7 +666,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     order: MatchedOrder,
     secret: string,
   ) {
-
     const _cache = this.bitcoinRedeemCache.get(order.create_order.create_id);
     const fillerInitTx = order.destination_swap.initiate_tx_hash
       .split(',')
@@ -839,7 +841,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         userBTCAddress,
       );
       if (!this._api) return;
-      const url = new Url(this._api.orderbook).endpoint(
+      const url = new Url("https://testnet.api.hashira.io/").endpoint(
         'orders/bitcoin/' + order.create_order.create_id + '/instant-refund',
       );
 
@@ -880,30 +882,47 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       const sourceChain = order.source_swap.chain;
       const destinationChain = order.destination_swap.chain;
 
-      //For localnet
-      if (blockNumbers.val.solana) {
-        blockNumbers.val.solana_testnet = blockNumbers.val.solana;
-        blockNumbers.val.solana_localnet = blockNumbers.val.solana;
+      // Get the environment (testnet/mainnet) from the chain name
+      const environment = sourceChain.includes('mainnet') ? 'mainnet' : 'testnet';
+
+      // Handle block numbers from the nested structure
+      if (!blockNumbers.val || !blockNumbers.val[environment]) {
+        this.emit('error', order, `Block numbers not available for environment: ${environment}`);
+        continue;
       }
 
-      if (blockNumbers.val.arbitrum) {
-        blockNumbers.val.arbitrum_localnet = blockNumbers.val.arbitrum;
+      const blockNumbersForEnv = blockNumbers.val[environment];
+
+      // For localnet
+      if (blockNumbersForEnv.solana) {
+        blockNumbersForEnv.solana_testnet = blockNumbersForEnv.solana;
+        blockNumbersForEnv.solana_localnet = blockNumbersForEnv.solana;
       }
 
-      if (blockNumbers.val.ethereum) {
-        blockNumbers.val.ethereum_localnet = blockNumbers.val.ethereum
+      if (blockNumbersForEnv.arbitrum_sepolia) {
+        blockNumbersForEnv.arbitrum_localnet = blockNumbersForEnv.arbitrum_sepolia;
       }
 
-      if (blockNumbers.val.bitcoin) {
-        blockNumbers.val.bitcoin_regtest = blockNumbers.val.bitcoin
-        blockNumbers.val.bitcoin_testnet = blockNumbers.val.bitcoin
+      if (blockNumbersForEnv.ethereum) {
+        blockNumbersForEnv.ethereum_localnet = blockNumbersForEnv.ethereum;
       }
 
-      const sourceChainBlockNumber = blockNumbers?.val[sourceChain];
-      const destinationChainBlockNumber = blockNumbers?.val[destinationChain];
+      if (blockNumbersForEnv.bitcoin) {
+        blockNumbersForEnv.bitcoin_regtest = blockNumbersForEnv.bitcoin;
+        blockNumbersForEnv.bitcoin_testnet = blockNumbersForEnv.bitcoin;
+      }
+
+      // console.log("Block numbers:", blockNumbers);
+
+
+      // Get block numbers from the correct environment
+      const sourceChainBlockNumber = blockNumbersForEnv[sourceChain];
+      const destinationChainBlockNumber = blockNumbersForEnv[destinationChain];
+
+      // console.log("Source block number:", sourceChainBlockNumber, "Destination block number:", destinationChainBlockNumber);
 
       if (!sourceChainBlockNumber || !destinationChainBlockNumber) {
-        this.emit('error', order, 'Error while fetching CurrentBlockNumbers');
+        this.emit('error', order, `Error while fetching CurrentBlockNumbers for chains: ${sourceChain}, ${destinationChain}`);
         continue;
       }
 
@@ -912,6 +931,8 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         sourceChainBlockNumber,
         destinationChainBlockNumber,
       );
+
+      // console.log("Status:", status, "Source block:", sourceChainBlockNumber, "Destination block:", destinationChainBlockNumber);
 
       orderWithStatuses.push({
         ...order,
@@ -925,7 +946,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private async broadcastRedeemTx(redeemTx: string, orderId: string) {
     try {
       if (!this._api) return Err('API not found');
-      const url = new Url(this._api.evmRelay).endpoint('/bitcoin/redeem ');
+      const url = new Url("https://testnet.api.hashira.io/relayer").endpoint('/bitcoin/redeem');
       const authHeaders = await this._auth.getAuthHeaders();
       const res = await fetch(url, {
         method: 'POST',
