@@ -189,7 +189,7 @@ describe('swap and execute using garden', () => {
 
 describe('switch network with http transport', async () => {
   const evmAccount = privateKeyToAccount(
-    '0xf8bd44e157629a7e0e93088dcf9c9d05a3eefa4dfa05c5651ab6b0ae9ea23ecc',
+    '0x097bf624466f3ff5de902316c31d001a41db4f5774a54c4ba4768b084737c8bc',
   );
   it('switches to a different network when not already connected', async () => {
     try {
