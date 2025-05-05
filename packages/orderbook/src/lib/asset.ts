@@ -134,7 +134,7 @@ export const TimeLocks: Record<Chain, number> = {
   [Chains.arbitrum_localnet]: 7200,
   [Chains.arbitrum_sepolia]: 7200,
   [Chains.ethereum_localnet]: 7200,
-  [Chains.base_sepolia]: 7200,
+  [Chains.base_sepolia]: 43200,
   [Chains.base]: 43200,
   [Chains.bera_testnet]: 28800,
   [Chains.citrea_testnet]: 28800,

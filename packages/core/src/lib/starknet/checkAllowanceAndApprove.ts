@@ -15,28 +15,20 @@ export const checkAllowanceAndApprove = async (
   tokenAddress: string,
   htlcAddress: string,
   amount: bigint,
-  nodeUrl: string,
+  starknetProvider: RpcProvider,
 ): AsyncResult<string, string> => {
   try {
-    const starknetProvider = new RpcProvider({
-      nodeUrl: nodeUrl,
-    });
-
-    const tokenContract = new Contract(
-      TokenABI,
-      with0x(tokenAddress),
+    const allowance = await checkAllowance(
+      account.address,
+      tokenAddress,
+      htlcAddress,
       starknetProvider,
     );
+    if (allowance.error) return Err(allowance.error);
 
-    const allowanceResponse = await tokenContract.call('allowance', [
-      with0x(account.address),
-      with0x(htlcAddress),
-    ]);
-
-    const allowance = BigInt(allowanceResponse?.toString() || '0');
     const maxUint256 = cairo.uint256(BigInt(uint256.UINT_256_MAX));
 
-    if (allowance < amount) {
+    if (allowance.val < amount) {
       const approveResponse = await account.execute([
         {
           contractAddress: with0x(tokenAddress),
@@ -53,6 +45,27 @@ export const checkAllowanceAndApprove = async (
         },
       );
       await sleep(2000);
+
+      // in a loop check if the allowance is approved for every 2 sec until 40sec and exit
+      let allowance = 0n;
+      for (let i = 0; i < 20; i++) {
+        const _allowance = await checkAllowance(
+          account.address,
+          tokenAddress,
+          htlcAddress,
+          starknetProvider,
+        );
+        if (_allowance.error) return Err(_allowance.error);
+        allowance = _allowance.val;
+        if (allowance >= amount) {
+          break;
+        }
+        await sleep(2000);
+      }
+      if (allowance < amount) {
+        return Err('Allowance not approved');
+      }
+
       return Ok(approveResponse.transaction_hash);
     }
 
@@ -64,4 +77,50 @@ export const checkAllowanceAndApprove = async (
       }`,
     );
   }
+};
+
+export const checkAllowance = async (
+  accountAddress: string,
+  tokenAddress: string,
+  htlcAddress: string,
+  starknetProvider: RpcProvider,
+): AsyncResult<bigint, string> => {
+  try {
+    const tokenContract = new Contract(
+      TokenABI,
+      with0x(tokenAddress),
+      starknetProvider,
+    );
+
+    const allowance = await tokenContract.call('allowance', [
+      with0x(accountAddress),
+      with0x(htlcAddress),
+    ]);
+
+    return Ok(BigInt(allowance?.toString() || '0'));
+  } catch (error) {
+    return Err(
+      `Failed to check allowance: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+  }
+};
+
+export const isAllowanceSufficient = async (
+  accountAddress: string,
+  tokenAddress: string,
+  htlcAddress: string,
+  starknetProvider: RpcProvider,
+  amount: bigint,
+): AsyncResult<boolean, string> => {
+  const allowance = await checkAllowance(
+    accountAddress,
+    tokenAddress,
+    htlcAddress,
+    starknetProvider,
+  );
+  if (allowance.error) return Err(allowance.error);
+
+  return Ok(allowance.val >= amount);
 };

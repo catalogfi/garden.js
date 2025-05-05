@@ -28,7 +28,7 @@ describe('Approve', () => {
       '0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7',
       '0x13e7510b665d01c03f250e648c5be6f4a57b6cf56b3079293362ed2e4713c95',
       BigInt(10000000000000000),
-      STARKNET_NODE_URL,
+      snProvider,
     );
     console.log('approve :', approve.val);
     expect(approve.val).toBeDefined();

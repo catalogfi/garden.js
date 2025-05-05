@@ -19,11 +19,13 @@ import {
 import { sleep } from '@catalogfi/utils';
 import {
   arbitrumSepolia,
+  sepolia,
   // arbitrumSepolia,
   // sepolia
 } from 'viem/chains';
 // import { EvmRelay } from './../evm/relay/evmRelay';
 import { DigestKey } from '@gardenfi/utils';
+import { switchOrAddNetwork } from '../switchOrAddNetwork';
 // import { SecretManager } from '../secretManager/secretManager';
 // import { DigestKey } from './digestKey/digestKey';
 // import { BitcoinNetwork, BitcoinProvider } from '@catalogfi/wallets';
@@ -183,4 +185,34 @@ describe('swap and execute using garden', () => {
     await garden.execute();
     await sleep(150000);
   }, 150000);
+});
+
+describe('switch network with http transport', async () => {
+  const evmAccount = privateKeyToAccount(
+    '0x097bf624466f3ff5de902316c31d001a41db4f5774a54c4ba4768b084737c8bc',
+  );
+  it('switches to a different network when not already connected', async () => {
+    try {
+      const client = createWalletClient({
+        account: evmAccount,
+        chain: sepolia,
+        transport: http(),
+      });
+      const res = await switchOrAddNetwork('base_sepolia', client);
+      expect(res.ok).toBeTruthy();
+    } catch (error) {
+      console.error('Network switch test failed:', error);
+      throw error;
+    }
+  }, 15000);
+  it('skips switching when already connected to the target network', async () => {
+    const client = createWalletClient({
+      account: evmAccount,
+      chain: sepolia,
+      transport: http(),
+    });
+    const res = await switchOrAddNetwork('ethereum_sepolia', client);
+    expect(res.ok).toBeTruthy();
+    expect(res.val.message).toBe('Already on the network');
+  }, 15000);
 });
