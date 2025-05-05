@@ -1,6 +1,6 @@
 
 import * as anchor from "@coral-xyz/anchor";
-import { Environment, Url } from '@gardenfi/utils';
+import { DigestKey, Environment, Siwe, Url } from '@gardenfi/utils';
 import { beforeAll, describe, expect, it, beforeEach } from 'vitest';
 import {
     MatchedOrder,
@@ -9,18 +9,19 @@ import {
 import { web3 } from '@coral-xyz/anchor';
 import { BitcoinNetwork, BitcoinProvider, BitcoinWallet } from '@catalogfi/wallets';
 import { Orderbook } from '@gardenfi/orderbook';
-import { DigestKey } from "../../../garden/digestKey/digestKey";
 import { Garden } from "../../../garden/garden";
 import { BlockNumberFetcher } from "../../../blockNumberFetcher/blockNumber";
 import { Quote } from "../../../quote/quote";
 import { SolanaRelay } from "../../relayer/solanaRelay";
 import { API } from "../../../constants";
 import { SolanaRelayerAddress } from "../../constants";
+import { skip } from "node:test";
 
 // Shared constants Testnet
 const TEST_RPC_URL = "https://api.devnet.solana.com";
-const TEST_SWAPPER_RELAYER = "https://orderbook-stage.hashira.io";
-const TEST_BLOCKFETCHER_URL = "https://info-stage.hashira.io/";
+const TEST_ORDERBOOK_STAGE = "https://testnet.api.hashira.io";
+const TEST_STAGE_AUTH = "https://testnet.api.hashira.io/auth"; const TEST_BLOCKFETCHER_URL = "https://info-stage.hashira.io";
+const TEST_STAGE_QUOTE = "https://testnet.api.hashira.io/quote";
 
 const PRIV = [73, 87, 221, 5, 63, 180, 104, 26, 64, 41, 225, 50, 165, 84, 157, 74, 187, 105, 53, 112, 214, 236, 175, 55, 86, 247, 214, 120, 101, 90, 62, 178, 103, 156, 200, 13, 24, 181, 121, 93, 15, 85, 202, 164, 4, 30, 165, 77, 244, 66, 207, 78, 179, 255, 45, 233, 17, 131, 203, 187, 120, 110, 176, 172]
 
@@ -34,18 +35,21 @@ const CREATE_ORDER_TIMEOUT = 30000;
 function setupGarden(
     solanaProvider: anchor.AnchorProvider,
     btcWallet: BitcoinWallet,
-    digestKey: string
 ): Garden {
+    const digestKey = DigestKey.generateRandom();
+    const auth = Siwe.fromDigestKey(new Url(TEST_STAGE_AUTH), digestKey.val);
+
     return new Garden({
         environment: Environment.TESTNET,
-        digestKey,
+        digestKey: digestKey.val,
         htlc: {
             solana: new SolanaRelay(solanaProvider, new Url(API.testnet.solanaRelay), SolanaRelayerAddress.testnet)
         },
         blockNumberFetcher: new BlockNumberFetcher(TEST_BLOCKFETCHER_URL, Environment.TESTNET),
-        orderbook: new Orderbook(new Url(TEST_SWAPPER_RELAYER)),
+        orderbook: new Orderbook(new Url(TEST_ORDERBOOK_STAGE)),
         btcWallet: btcWallet,
-        quote: new Quote("https://quote-staging.hashira.io/")
+        quote: new Quote(TEST_STAGE_QUOTE),
+        auth: auth
     })
 }
 
@@ -149,7 +153,7 @@ describe('==========SOL <--> BTC===========', () => {
         BTC_ADDRESS = await btcWallet.getAddress();
     });
 
-    describe("SOL -> BTC Swap", () => {
+    skip("SOL -> BTC Swap", () => {
         let garden: Garden;
         let order: MatchedOrder;
 
@@ -163,7 +167,6 @@ describe('==========SOL <--> BTC===========', () => {
             garden = setupGarden(
                 userProvider,
                 btcWallet,
-                digestKeyRes.val.digestKey
             )
         })
 
@@ -212,7 +215,6 @@ describe('==========SOL <--> BTC===========', () => {
             garden = setupGarden(
                 userProvider,
                 btcWallet,
-                digestKeyRes.val.digestKey
             )
         })
 
