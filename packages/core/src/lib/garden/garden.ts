@@ -31,6 +31,7 @@ import {
   sleep,
   Url,
   DigestKey,
+  Network,
 } from '@gardenfi/utils';
 import { IQuote } from '../quote/quote.types';
 import { getBitcoinNetwork, isValidBitcoinPubKey, toXOnly } from '../utils';
@@ -85,7 +86,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     super();
     if (typeof config.digestKey === 'string') {
       const _digestKey = DigestKey.from(config.digestKey);
-      if (_digestKey.error) throw new Error(_digestKey.error);
+      if (!_digestKey.ok) throw new Error(_digestKey.error);
       this._digestKey = _digestKey.val;
     } else {
       this._digestKey = config.digestKey;
@@ -134,7 +135,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     let digestKey: DigestKey;
     if (typeof config.digestKey === 'string') {
       const _digestKey = DigestKey.from(config.digestKey);
-      if (_digestKey.error) throw new Error(_digestKey.error);
+      if (!_digestKey.ok) throw new Error(_digestKey.error);
       digestKey = _digestKey.val;
     } else {
       digestKey = config.digestKey;
@@ -166,7 +167,13 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           )
         : undefined,
       starknet: config.wallets.starknet
-        ? new StarknetRelay(api.starknetRelay, config.wallets.starknet)
+        ? new StarknetRelay(
+            api.starknetRelay,
+            config.wallets.starknet,
+            config.environment === Environment.MAINNET
+              ? Network.MAINNET
+              : Network.TESTNET,
+          )
         : undefined,
     };
 
@@ -383,14 +390,13 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       true,
       interval,
       async (pendingOrders) => {
-        if (pendingOrders.data.length === 0) return;
-
         const ordersWithStatus = await this.filterExpiredAndAssignStatus(
           pendingOrders.data,
         );
         if (ordersWithStatus.error) return;
 
         this.emit('onPendingOrdersChanged', ordersWithStatus.val);
+        if (pendingOrders.data.length === 0) return;
 
         //initialize swappers and execute orders
         for (let i = 0; i < ordersWithStatus.val.length; i++) {
@@ -511,7 +517,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
     const res = await this._evmHTLC.redeem(order, secret);
 
-    if (res.error) {
+    if (!res.ok) {
       this.emit('error', order, res.error);
       if (res.error.includes('Order already redeemed')) {
         this.orderExecutorCache.set(

@@ -16,7 +16,7 @@ import {
   EthereumLocalnet,
   EvmChain,
 } from '@gardenfi/orderbook';
-import { createWalletClient, custom, http, WalletClient } from 'viem';
+import { createWalletClient, custom, WalletClient } from 'viem';
 import { AsyncResult, Err, Ok } from '@catalogfi/utils';
 
 type ViemError = {
@@ -26,11 +26,6 @@ type ViemError = {
     method?: string;
   };
 };
-
-interface EthereumWindow extends Window {
-  ethereum?: any;
-}
-declare const window: EthereumWindow;
 
 const updatedSepolia = {
   ...sepolia,
@@ -137,7 +132,7 @@ export const switchOrAddNetwork = async (
             const newWalletClient = createWalletClient({
               account: walletClient.account,
               chain: chainID,
-              transport: custom(window.ethereum!),
+              transport: custom(walletClient.transport),
             });
 
             return Ok({
@@ -151,7 +146,7 @@ export const switchOrAddNetwork = async (
           const newWalletClient = createWalletClient({
             account: walletClient.account,
             chain: chainID,
-            transport: http(),
+            transport: custom(walletClient.transport),
           });
           return Ok({
             message: 'Added network',

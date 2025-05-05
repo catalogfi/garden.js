@@ -67,7 +67,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
           return Err('EVM HTLC not initialized: Please provide evmHTLC');
 
         const initRes = await garden.evmHTLC.initiate(order.val);
-        if (initRes.error) return Err(initRes.error);
+        if (!initRes.ok) return Err(initRes.error);
         init_tx_hash = initRes.val;
         break;
       }
