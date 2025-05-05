@@ -26,11 +26,63 @@ import {
 // import { EvmRelay } from './../evm/relay/evmRelay';
 import { DigestKey } from '@gardenfi/utils';
 import { switchOrAddNetwork } from '../switchOrAddNetwork';
+// import { EvmRelay } from '../evm/relay/evmRelay';
 // import { SecretManager } from '../secretManager/secretManager';
 // import { DigestKey } from './digestKey/digestKey';
 // import { BitcoinNetwork, BitcoinProvider } from '@catalogfi/wallets';
 // import { Quote } from './../quote/quote';
 // import { Orderbook } from 'gardenfi/orderbook';
+
+describe.only('checking garden initialisation', async () => {
+  const pk = '8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
+  // const address = '0x52FE8afbbB800a33edcbDB1ea87be2547EB30000';
+  const account = privateKeyToAccount(with0x(pk));
+  // const digestKey = new DigestKey(
+  //   '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
+  // );
+  // const authurl = 'https://testnet.api.hashira.io/auth';
+  // const url = 'https://testnet.api.hashira.io/relayer';
+  // const api = 'https://orderbook-stage.hashira.io';
+
+  const arbitrumWalletClient = createWalletClient({
+    account,
+    chain: arbitrumSepolia,
+    transport: http(),
+  });
+
+  // const garden = new Garden({
+  //   environment: {
+  //     environment: Environment.TESTNET,
+  //     orderbook: 'https://testnet.api.hashira.io',
+  //   },
+  //   digestKey,
+  //   htlc: {
+  //     evm: new EvmRelay(
+  //       url,
+  //       arbitrumWalletClient,
+  //       Siwe.fromDigestKey(new Url(authurl), digestKey),
+  //     ),
+  //   },
+  // });
+  const garden = Garden.fromWallets({
+    environment: {
+      environment: Environment.TESTNET,
+      orderbook: 'https://api.garden.finance',
+    },
+    digestKey:
+      '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
+    wallets: {
+      evm: arbitrumWalletClient,
+    },
+  });
+
+  console.log('garden :', garden);
+  const order = await garden.orderbook.getOrder(
+    'df4d18a3f4d8754d17c831b491b375f8b925625fa8b389b4b671325a66bdc176',
+    true,
+  );
+  console.log('this is an order fetched', order.val);
+});
 
 describe('swap and execute using garden', () => {
   // const bitcoinAddress = 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru';

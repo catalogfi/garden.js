@@ -34,7 +34,12 @@ import {
   Network,
 } from '@gardenfi/utils';
 import { IQuote } from '../quote/quote.types';
-import { getBitcoinNetwork, isValidBitcoinPubKey, toXOnly } from '../utils';
+import {
+  getBitcoinNetwork,
+  isValidBitcoinPubKey,
+  resolveApiConfig,
+  toXOnly,
+} from '../utils';
 import {
   BitcoinProvider,
   BitcoinWallet,
@@ -53,7 +58,7 @@ import {
   IBlockNumberFetcher,
 } from '../blockNumberFetcher/blockNumber';
 import { OrderStatus } from '../orderStatus/status';
-import { Api, API } from '../constants';
+import { Api } from '../constants';
 import { Quote } from '../quote/quote';
 import { SecretManager } from '../secretManager/secretManager';
 import { IEVMHTLC } from '../evm/htlc.types';
@@ -84,6 +89,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   constructor(config: GardenConfigWithHTLCs) {
     super();
+    const { api, environment } = resolveApiConfig(config.environment);
+    this.environment = environment;
+    this._api = api;
     if (typeof config.digestKey === 'string') {
       const _digestKey = DigestKey.from(config.digestKey);
       if (!_digestKey.ok) throw new Error(_digestKey.error);
@@ -91,23 +99,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     } else {
       this._digestKey = config.digestKey;
     }
-
-    if (typeof config.environment === 'string') {
-      this.environment = config.environment;
-      this._api =
-        config.environment === Environment.MAINNET
-          ? API.mainnet
-          : config.environment === Environment.TESTNET
-          ? API.testnet
-          : undefined;
-      if (!this._api)
-        throw new Error(
-          'API not found, invalid environment ' + config.environment,
-        );
-    } else {
-      this._api = config.environment;
-    }
-
     this._quote = config.quote ?? new Quote(this._api.quote);
     this._auth =
       config.auth ??
@@ -140,19 +131,8 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     } else {
       digestKey = config.digestKey;
     }
+    const { api } = resolveApiConfig(config.environment);
 
-    let api;
-
-    if (typeof config.environment === 'string') {
-      api =
-        config.environment === Environment.MAINNET
-          ? API.mainnet
-          : config.environment === Environment.TESTNET
-          ? API.testnet
-          : undefined;
-    } else {
-      api = config.environment;
-    }
     if (!api)
       throw new Error(
         'API not found, invalid environment ' + config.environment,
