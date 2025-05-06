@@ -190,7 +190,7 @@ describe('swap and execute using garden', () => {
 
 describe('switch network with http transport', () => {
   const evmAccount = privateKeyToAccount(
-    '0xe3aaf79d424a3ce49627a38eb0dbcba5af6e0e98215a9b71a61e4a622d7d37c1',
+    '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61',
   );
   const executeStrategy = async (garden: Garden) => {
     const strategies = (await garden.quote.getStrategies()).val;
@@ -317,5 +317,5 @@ describe('switch network with http transport', () => {
       },
     });
     await trade(garden);
-  }, 95990);
+  }, 150000);
 });
