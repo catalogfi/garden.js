@@ -6,6 +6,7 @@ import {
   StrategiesResponse,
 } from './quote.types';
 import {
+  Asset,
   CreateOrderRequestWithAdditionalData,
   CreateOrderReqWithStrategyId,
 } from '@gardenfi/orderbook';
@@ -19,28 +20,71 @@ export class Quote implements IQuote {
     this.quoteUrl = new Url(quoteUrl);
   }
 
+  async getQuoteWithAssets(
+    fromAsset: Asset,
+    toAsset: Asset,
+    amount: number,
+    isExactOut = false,
+    options?: {
+      affiliateFee?: number;
+      request?: Request;
+    },
+  ) {
+    try {
+      const orderpair = constructOrderPair(
+        fromAsset.chain,
+        fromAsset.atomicSwapAddress,
+        toAsset.chain,
+        toAsset.atomicSwapAddress,
+      );
+      const params: Record<string, string> = {
+        order_pair: orderpair,
+        amount: amount.toString(),
+        exact_out: isExactOut.toString(),
+        ...(options?.affiliateFee !== undefined && {
+          affiliate_fee: options.affiliateFee.toString(),
+        }),
+      };
+
+      const url = this.quoteUrl.endpoint('/').addSearchParams(params);
+      const res = await Fetcher.get<APIResponse<QuoteResponse>>(url, {
+        retryCount: 0,
+        ...options?.request,
+      });
+
+      if (res.error) return Err(res.error);
+      if (!res.result)
+        return Err('GetQuote: Unexpected error, result is undefined');
+
+      return Ok(res.result);
+    } catch (error) {
+      return Err('GetQuote:', String(error));
+    }
+  }
+
   async getQuote(
     orderpair: string,
     amount: number,
     isExactOut = false,
-    affiliateFee?: number,
-    request?: Request,
+    options?: {
+      affiliateFee?: number;
+      request?: Request;
+    },
   ) {
     try {
       const params: Record<string, string> = {
         order_pair: orderpair,
         amount: amount.toString(),
         exact_out: isExactOut.toString(),
+        ...(options?.affiliateFee !== undefined && {
+          affiliate_fee: options.affiliateFee.toString(),
+        }),
       };
-
-      if (affiliateFee !== undefined) {
-        params['integrator_fee'] = affiliateFee.toString();
-      }
 
       const url = this.quoteUrl.endpoint('/').addSearchParams(params);
       const res = await Fetcher.get<APIResponse<QuoteResponse>>(url, {
         retryCount: 0,
-        ...request,
+        ...options?.request,
       });
 
       if (res.error) return Err(res.error);
@@ -57,13 +101,6 @@ export class Quote implements IQuote {
     order: CreateOrderReqWithStrategyId,
   ): AsyncResult<CreateOrderRequestWithAdditionalData, string> {
     try {
-      console.log(this.quoteUrl.endpoint('/attested').toString(), {
-        body: JSON.stringify(order),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
       const res = await Fetcher.post<
         APIResponse<CreateOrderRequestWithAdditionalData>
       >(this.quoteUrl.endpoint('/attested').toString(), {

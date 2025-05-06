@@ -49,6 +49,8 @@ export type QuoteParams = {
   toAsset: Asset;
   amount: number;
   isExactOut?: boolean;
-  affiliateFee?: number;
-  request?: Request;
+  options?: {
+    affiliateFee?: number;
+    request?: Request;
+  };
 };

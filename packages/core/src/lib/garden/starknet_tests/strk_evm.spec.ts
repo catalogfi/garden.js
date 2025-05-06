@@ -115,14 +115,16 @@ describe('StarkNet Integration Tests', () => {
 
   describe.only('strk-evm swap', async () => {
     it('should create and execute a StarkNet-ETH swap', async () => {
-      // const quoteRes = await garden.quote.getQuote(
-      //   'ethereum_sepolia:0x29C9C37D0Fec7E64AFab0f806c8049d9e2f9B0b6::arbitrum_sepolia:0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
-      //   100000,
-      //   false,
-      //   50,
-      // );
-      // console.log('Quote :', quoteRes.val);
-      // console.log('Quote :', quoteRes.error);
+      const quoteRes = await garden.quote.getQuote(
+        'ethereum_sepolia:0x29C9C37D0Fec7E64AFab0f806c8049d9e2f9B0b6::arbitrum_sepolia:0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
+        100000,
+        false,
+        {
+          affiliateFee: 30,
+        },
+      );
+      console.log('Quote :', quoteRes.val);
+      console.log('Quote :', quoteRes.error);
       // console.log('now running attested quote');
       // const attId: CreateOrderReqWithStrategyId = {
       //   source_chain: 'arbitrum_sepolia',
