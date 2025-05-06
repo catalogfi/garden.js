@@ -15,8 +15,7 @@ export function resolveApiConfig(env: ApiConfig): {
   api: Api;
   environment: Environment;
 } {
-  const environment =
-    typeof env === 'string' ? env : env.environment ?? Environment.TESTNET;
+  const environment = typeof env === 'string' ? env : env.environment;
 
   const baseApi =
     environment === Environment.MAINNET
