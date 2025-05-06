@@ -133,10 +133,9 @@ export const BTCWalletProvider = ({
   const updateWalletList = async () => {
     if (
       window.okxwallet &&
-      network === Network.MAINNET &&
-      window.okxwallet.bitcoin
+      window.okxwallet.bitcoin && window.okxwallet.bitcoinTestnet
     ) {
-      const okxProvider = new OKXProvider(window.okxwallet.bitcoin, network);
+      const okxProvider = new OKXProvider(network === Network.MAINNET ? window.okxwallet.bitcoin : window.okxwallet.bitcoinTestnet, network);
       addToWalletList(okxProvider);
     }
     if (
@@ -148,7 +147,7 @@ export const BTCWalletProvider = ({
       addToWalletList(phantomProvider);
     }
     if (window.unisat) {
-      const uniProvider = new UnisatProvider(window.unisat);
+      const uniProvider = new UnisatProvider(window.unisat, network);
       addToWalletList(uniProvider);
     }
     if (window.XverseProviders && window.XverseProviders.BitcoinProvider) {
