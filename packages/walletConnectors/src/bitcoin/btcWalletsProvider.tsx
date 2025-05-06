@@ -14,9 +14,11 @@ import { UnisatBitcoinProvider } from './providers/unisat/unisat.types';
 import { XVerseBitcoinProvider } from './providers/xverse/xverse.types';
 import { XdefiBitcoinProvider } from './providers/xdefi/xdefi.types';
 import { PhantomBitcoinProvider } from './providers/phantom/phantom.types';
+import { KeplrBitcoinProvider } from './providers/keplr/keplr.types';
 import { UnisatProvider } from './providers/unisat/provider';
 import { PhantomProvider } from './providers/phantom/provider';
 import { XverseProvider } from './providers/xverse/provider';
+import { KeplrProvider } from './providers/keplr/provider';
 // import { XdefiProvider } from './providers/xdefi/provider';
 import {
   AvailableWallets,
@@ -41,6 +43,9 @@ declare global {
     phantom?: {
       bitcoin: PhantomBitcoinProvider;
     };
+    keplr?: {
+      bitcoin: KeplrBitcoinProvider;
+    }
   }
 }
 
@@ -151,6 +156,14 @@ export const BTCWalletProvider = ({
         window.XverseProviders.BitcoinProvider,
       );
       addToWalletList(xverseProvider)
+    }
+    if (
+      network === Network.MAINNET &&
+      window.keplr &&
+      window.keplr.bitcoin
+    ) {
+      const keplrProvider = new KeplrProvider(window.keplr.bitcoin);
+      addToWalletList(keplrProvider);
     }
     // if (window.xfi && window.xfi.bitcoin) {
     //   const xdefiProvider = new XdefiProvider(window.xfi.bitcoin);

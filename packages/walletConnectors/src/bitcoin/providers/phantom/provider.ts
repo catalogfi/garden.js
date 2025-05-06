@@ -2,16 +2,14 @@ import { Connect, IInjectedBitcoinProvider } from '../../bitcoin.types';
 import { PhantomBitcoinProvider } from './phantom.types';
 import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
 import * as bitcoin from 'bitcoinjs-lib';
-import { initEccLib, networks } from 'bitcoinjs-lib';
+import { initEccLib } from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
 import { Network } from '@gardenfi/utils';
 import { WALLET_CONFIG } from './../../constants';
 import {
   BitcoinNetwork,
   BitcoinProvider,
-  BWErrors,
-  IBitcoinProvider,
-  Urgency,
+  BitcoinWallet,
 } from '@catalogfi/wallets';
 
 initEccLib(ecc);
@@ -35,26 +33,16 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
 
     try {
       const accounts = await this.#phantomProvider.requestAccounts();
-
-      if (!window.phantom) return Err('phantom wallet not found');
-      if (accounts.length === 0) return Err('No accounts found');
-
-      const provider = new PhantomProvider(window.phantom.bitcoin);
-      this.#phantomProvider = provider.#phantomProvider;
-
       for (const account of accounts) {
         if (account.purpose === 'payment') this.address = account.address;
       }
       if (this.address === '')
         return Err('Could not connect to Phantom bitcoin payment account');
 
-      const network = await this.getNetwork();
-      if (network.error) return Err('Could not get network: ' + network.error);
-
       return Ok({
         address: this.address,
-        provider: provider,
-        network: network.val,
+        provider: this,
+        network: network,
         id: WALLET_CONFIG.Phantom.id,
       });
     } catch (error) {
@@ -94,67 +82,6 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
     }, 'Error while getting balance from Phantom wallet');
   }
 
-  private async generateUnsignedPSBT(
-    provider: IBitcoinProvider,
-    network: networks.Network,
-    fromAddress: string,
-    toAddress: string,
-    amt: number,
-    fee?: number,
-  ): Promise<{
-    txHex: string;
-    utxoCount: number;
-  }> {
-    if (!fee) fee = await provider.suggestFee(fromAddress, amt, Urgency.FAST);
-    if (fee > amt) throw new Error(BWErrors.FEE_EXCEEDS_AMOUNT(fee, amt));
-
-    const utxos = await provider.getUTXOs(fromAddress);
-    const utxosWithRawTx = await Promise.all(
-      utxos.map(async (utxo) => {
-        const rawTxHex = await provider.getTransactionHex(utxo.txid);
-        return { ...utxo, rawTxHex };
-      }),
-    );
-    const utxoCount = utxosWithRawTx.length;
-
-    if (utxosWithRawTx.length === 0) {
-      throw new Error('No UTXOs found for the sender address.');
-    }
-
-    const totalUTXOValue = utxosWithRawTx.reduce(
-      (acc, utxo) => acc + utxo.value,
-      0,
-    );
-
-    const change = totalUTXOValue - amt - fee;
-
-    if (totalUTXOValue < amt + fee)
-      throw new Error(BWErrors.INSUFFICIENT_FUNDS(totalUTXOValue, amt + fee));
-
-    const psbt = new bitcoin.Psbt({ network });
-
-    utxosWithRawTx.forEach((utxo) => {
-      psbt.addInput({
-        hash: utxo.txid,
-        index: utxo.vout,
-        nonWitnessUtxo: Buffer.from(utxo.rawTxHex, 'hex'),
-      });
-    });
-
-    psbt.addOutput({
-      address: toAddress,
-      value: amt,
-    });
-    if (change > 0) {
-      psbt.addOutput({
-        address: fromAddress,
-        value: change,
-      });
-    }
-
-    return { txHex: psbt.toHex(), utxoCount };
-  }
-
   async sendBitcoin(
     toAddress: string,
     satoshis: number,
@@ -165,7 +92,7 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
 
       const provider = new BitcoinProvider(BitcoinNetwork.Mainnet);
       try {
-        const { txHex, utxoCount } = await this.generateUnsignedPSBT(
+        const { txHex, utxoCount } = await BitcoinWallet.generateUnsignedPSBT(
           provider,
           network,
           this.address,
@@ -185,12 +112,10 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
             ],
           },
         );
-
         const signedPsbt = bitcoin.Psbt.fromBuffer(
           Buffer.from(signedPsbtBytes),
         );
-        signedPsbt.finalizeAllInputs();
-
+        
         const tx = signedPsbt.extractTransaction();
         const txId = tx.getId();
 
