@@ -18,7 +18,6 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
   #phantomProvider: PhantomBitcoinProvider;
   public address: string = '';
   public id = WALLET_CONFIG.Phantom.id;
-  private mempoolApiBaseUrl: string = 'https://mempool.space/api';
   public name = WALLET_CONFIG.Phantom.name;
   public icon = WALLET_CONFIG.Phantom.icon;
 

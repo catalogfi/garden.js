@@ -18,21 +18,12 @@ export class XverseProvider implements IInjectedBitcoinProvider {
   public name = WALLET_CONFIG.Xverse.name;
   public icon = WALLET_CONFIG.Xverse.icon;
 
-  constructor(private provider: XVerseBitcoinProvider) {
+  constructor(provider: XVerseBitcoinProvider) {
     this.#xverseProvider = provider;
   }
 
   connect = async (network?: Network): AsyncResult<Connect, string> => {
     try {
-      if (!window.XverseProviders || !window.XverseProviders.BitcoinProvider) {
-        return Err('XVerse wallet not found');
-      }
-
-      const provider = new XverseProvider(
-        window.XverseProviders.BitcoinProvider,
-      );
-      this.#xverseProvider = provider.provider;
-
       if (!network) network = Network.MAINNET;
 
       await this.#xverseProvider.request('wallet_connect', null);
@@ -49,11 +40,13 @@ export class XverseProvider implements IInjectedBitcoinProvider {
       const res = await this.#xverseProvider.request('getAddresses', {
         purposes: ['payment'],
       });
-      this.address = res.result.addresses[0]['address'];
+      if (res.result.addresses.length !== 0) {
+        this.address = res.result.addresses[0]['address'];
+      }
 
       return Ok({
         address: this.address,
-        provider: provider,
+        provider: this,
         network: network,
         id: WALLET_CONFIG.Xverse.id,
       });
@@ -122,7 +115,7 @@ export class XverseProvider implements IInjectedBitcoinProvider {
       ) {
         return Network.TESTNET;
       }
-      throw new Error('Invalid or unsupported network' + network.result);
+      throw new Error(network.result);
     }, 'Error while getting network from Xverse wallet');
   }
 
