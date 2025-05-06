@@ -1,14 +1,27 @@
 import { Garden } from '../garden';
-import { Chains, MatchedOrder, SupportedAssets } from '@gardenfi/orderbook';
-import { Environment, with0x, Network } from '@gardenfi/utils';
+import {
+  Chains,
+  MatchedOrder,
+  Orderbook,
+  SupportedAssets,
+} from '@gardenfi/orderbook';
+import {
+  Environment,
+  with0x,
+  Network,
+  Url,
+  DigestKey,
+  Siwe,
+} from '@gardenfi/utils';
 import { RpcProvider, Account } from 'starknet';
 import { describe, expect, it } from 'vitest';
 import { privateKeyToAccount } from 'viem/accounts';
 import { sleep } from '@catalogfi/utils';
 import { createWalletClient, http } from 'viem';
 import { arbitrumSepolia } from 'viem/chains';
-import { IGardenJS } from '../garden.types';
+import { IGardenJS, SwapParams } from '../garden.types';
 import { STARKNET_CONFIG } from './../../constants';
+import { Quote } from '../../quote/quote';
 
 describe('StarkNet Integration Tests', () => {
   // Wallet configurations
@@ -18,8 +31,9 @@ describe('StarkNet Integration Tests', () => {
     '0x03eb1a8fc77eac663580829c3cfc3c3f8d495f16366af1cf42a7f4460cfbcd97';
   const STARKNET_ADDRESS =
     '0x035c50625822eab248eb63f9198a0e4bdd02627526a4edc47d89ce678fe47b16';
-  const DIGEST_KEY =
-    '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857';
+  // const DIGEST_KEY =
+  //   '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857';
+  const DIGEST_KEY = DigestKey.generateRandom().val;
 
   // Global variables
   const evmAccount = privateKeyToAccount(with0x(EVM_PRIVATE_KEY));
@@ -39,13 +53,19 @@ describe('StarkNet Integration Tests', () => {
     '0x3',
   );
 
+  const quoteurl = 'https://testnet.api.hashira.io/quote';
+  const orderbook = 'https://testnet.api.hashira.io';
+  const authurl = 'https://testnet.api.hashira.io/auth';
   const garden = Garden.fromWallets({
     environment: Environment.TESTNET,
-    digestKey: DIGEST_KEY,
+    digestKey: DIGEST_KEY!,
     wallets: {
       evm: evmWallet,
       starknet: starknetWallet,
     },
+    quote: new Quote(quoteurl),
+    orderbook: new Orderbook(new Url(orderbook)),
+    auth: Siwe.fromDigestKey(new Url(authurl), DigestKey.generateRandom().val!),
   });
 
   const setupEventListeners = (garden: IGardenJS) => {
@@ -95,19 +115,70 @@ describe('StarkNet Integration Tests', () => {
 
   describe.only('strk-evm swap', async () => {
     it('should create and execute a StarkNet-ETH swap', async () => {
-      const order = {
-        fromAsset: {
-          name: 'Starknet ETH',
-          decimals: 18,
-          symbol: 'ETH',
-          chain: Chains.starknet_sepolia,
-          logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
-          tokenAddress:
-            '0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7',
-          atomicSwapAddress:
-            '0x75cf614ce4ebce29ac622a50cd5151ddfff853159707589a85dd67b9fb1eba',
-        },
+      // const quoteRes = await garden.quote.getQuote(
+      //   'ethereum_sepolia:0x29C9C37D0Fec7E64AFab0f806c8049d9e2f9B0b6::arbitrum_sepolia:0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
+      //   100000,
+      //   false,
+      //   50,
+      // );
+      // console.log('Quote :', quoteRes.val);
+      // console.log('Quote :', quoteRes.error);
+      // console.log('now running attested quote');
+      // const attId: CreateOrderReqWithStrategyId = {
+      //   source_chain: 'arbitrum_sepolia',
+      //   destination_chain: 'starknet_sepolia',
+      //   source_asset: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
+      //   destination_asset:
+      //     '0x2448040b22b27f5a814756e67da005701e525658b162d4f0343d2e011bc6dad',
+      //   initiator_source_address: '0x004Cc75ACF4132Fc08cB6a252E767804F303F729',
+      //   initiator_destination_address:
+      //     '0x004Cc75ACF4132Fc08cB6a252E767804F303F729',
+      //   source_amount: '10000',
+      //   destination_amount: '9920',
+      //   fee: '1',
+      //   nonce: '1745237807667',
+      //   timelock: 7200,
+      //   secret_hash:
+      //     '3bc8a2174da66a351ec0342003e537c8f87ab910b0c9f096962fc77acc7a2a47',
+      //   min_destination_confirmations: 0,
+      //   integrator_fees: [
+      //     {
+      //       address: '0x004Cc75ACF4132Fc08cB6a252E767804F303F729',
+      //       chain: 'arbitrum_sepolia',
+      //       asset: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
+      //       fee: 30,
+      //     },
+      //     {
+      //       address: '0x004Cc75ACF4132Fc08cB6a252E767804F303F729',
+      //       chain: 'arbitrum_sepolia',
+      //       asset: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
+      //       fee: 20,
+      //     },
+      //   ],
+      //   additional_data: {
+      //     strategy_id: 'ssabasae',
+      //   },
+      // };
+
+      // const attRes = await garden.quote.getAttestedQuote(attId);
+      // console.log('Attested Quote :', attRes.val);
+      // console.log('Attested Quote :', attRes.error);
+
+      // console.log("now it's time to create order");
+      // const createRes = await garden.orderbook.createOrder(attRes.val, auth);
+      // console.log('Order created :', createRes.val);
+      // console.log('Order created :', createRes.error);
+      const order: SwapParams = {
         toAsset: {
+          name: 'Starknet ETH',
+          decimals: 8,
+          symbol: 'WBTC',
+          chain: Chains.ethereum_sepolia,
+          logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
+          tokenAddress: '0x29C9C37D0Fec7E64AFab0f806c8049d9e2f9B0b6',
+          atomicSwapAddress: '0x29C9C37D0Fec7E64AFab0f806c8049d9e2f9B0b6',
+        },
+        fromAsset: {
           name: 'Wrapped Bitcoin',
           decimals: 8,
           symbol: 'WBTC',
@@ -116,31 +187,28 @@ describe('StarkNet Integration Tests', () => {
           tokenAddress: '0xD8a6E3FCA403d79b6AD6216b60527F51cc967D39',
           atomicSwapAddress: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
         },
-        sendAmount: '10000000000000000',
-        receiveAmount: '19234',
+        sendAmount: '100000',
+        receiveAmount: '99200',
         additionalData: {
-          strategyId: 'ssabasac',
+          strategyId: 'asaces4b',
         },
       };
-
       const result = await garden.swap(order);
       if (result.error) {
         console.log('Error while creating order ❌:', result.error);
         throw new Error(result.error);
       }
-
       console.log(
         'Order created and matched ✅',
         result.val.create_order.create_id,
       );
       matchedOrder = result.val;
-
       expect(result.error).toBeFalsy();
       expect(result.val).toBeTruthy();
     }, 150000);
 
     it('Initiate the swap', async () => {
-      const res = await garden.starknetHTLC?.initiate(matchedOrder);
+      const res = await garden.evmHTLC?.initiate(matchedOrder);
       console.log('initiated ✅ :', res?.val);
       if (res?.error) console.log('init error ❌ :', res.error);
       expect(res?.ok).toBeTruthy();
@@ -159,7 +227,7 @@ describe('StarkNet Integration Tests', () => {
     it('should create order and match', async () => {
       const order = {
         fromAsset: SupportedAssets.testnet.arbitrum_sepolia_WBTC,
-        toAsset: SupportedAssets.testnet.starknet_testnet_ETH,
+        toAsset: SupportedAssets.testnet.starknet_testnet_WBTC,
         sendAmount: '500000',
         receiveAmount: '214821925172042749',
         additionalData: {
@@ -209,7 +277,7 @@ describe('StarkNet Integration Tests', () => {
       console.log('\n------ CREATING SWAP ORDER ------');
       const order = {
         fromAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
-        toAsset: SupportedAssets.testnet.starknet_testnet_ETH,
+        toAsset: SupportedAssets.testnet.starknet_testnet_WBTC,
         sendAmount: '10000',
         receiveAmount: '4292202826399481',
         additionalData: {
@@ -251,7 +319,7 @@ describe('StarkNet Integration Tests', () => {
     it.skip('should create order and match', async () => {
       console.log('\n------ CREATING SWAP ORDER ------');
       const order = {
-        fromAsset: SupportedAssets.testnet.starknet_testnet_ETH,
+        fromAsset: SupportedAssets.testnet.starknet_testnet_WBTC,
         toAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
         sendAmount: '10000000000000000',
         receiveAmount: '23159',
@@ -286,10 +354,10 @@ describe('StarkNet Integration Tests', () => {
       expect(res?.ok).toBeTruthy();
     }, 20000);
 
-    it.only('Execute', async () => {
-      setupEventListeners(garden);
-      await garden.execute();
-      await sleep(150000);
-    }, 150000);
+    // it.only('Execute', async () => {
+    //   setupEventListeners(garden);
+    //   await garden.execute();
+    //   await sleep(150000);
+    // }, 150000);
   });
 });

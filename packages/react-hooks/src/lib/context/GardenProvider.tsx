@@ -37,6 +37,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         toAsset,
         amount,
         isExactOut = false,
+        affiliateFee,
         request,
       }: QuoteParams) => {
         return (
@@ -45,6 +46,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
             constructOrderpair(fromAsset, toAsset),
             amount,
             isExactOut,
+            affiliateFee,
             request,
           ))
         );

@@ -21,6 +21,7 @@ export interface IQuote {
     orderpair: string,
     amount: number,
     isExactOut: boolean,
+    affiliateFee?: number,
     request?: Request,
   ): AsyncResult<QuoteResponse, string>;
 

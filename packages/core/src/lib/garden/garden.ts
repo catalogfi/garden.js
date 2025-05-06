@@ -252,6 +252,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       secret_hash: trim0x(secrets.val.secretHash),
       min_destination_confirmations: params.minDestinationConfirmations ?? 0,
       additional_data: additionalData,
+      affiliate_fees: params.affiliateFee ?? [],
     };
 
     const quoteRes = await this._quote.getAttestedQuote(order);
