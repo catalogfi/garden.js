@@ -40,7 +40,7 @@ export class XverseProvider implements IInjectedBitcoinProvider {
       const res = await this.#xverseProvider.request('getAddresses', {
         purposes: ['payment'],
       });
-      if (res.result.addresses.length !== 0) {
+      if (res.result.addresses.length > 0) {
         this.address = res.result.addresses[0]['address'];
       }
 
@@ -92,7 +92,6 @@ export class XverseProvider implements IInjectedBitcoinProvider {
     }, 'Error while sending bitcoin from Xverse wallet');
   };
 
-  //TODO: get network from the wallet
   async getNetwork() {
     return await executeWithTryCatch(async () => {
       const network = await this.#xverseProvider.request(
