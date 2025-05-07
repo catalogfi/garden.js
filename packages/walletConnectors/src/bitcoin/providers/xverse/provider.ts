@@ -37,11 +37,9 @@ export class XverseProvider implements IInjectedBitcoinProvider {
         if (switchRes.error)
           return Err('Failed to switch network', switchRes.error);
       }
-      const res = await this.#xverseProvider.request('getAddresses', {
-        purposes: ['payment'],
-      });
-      if (res.result.addresses.length > 0) {
-        this.address = res.result.addresses[0]['address'];
+      const addresses = await this.getAccounts();
+      if (addresses.val.length > 0) {
+        this.address = addresses.val[0];
       }
 
       return Ok({
@@ -63,16 +61,21 @@ export class XverseProvider implements IInjectedBitcoinProvider {
   };
 
   requestAccounts = async (): AsyncResult<string[], string> => {
-    return Ok([]);
-  };
-
-  getAccounts = async (): AsyncResult<string[], string> => {
     return await executeWithTryCatch(async () => {
       const res = await this.#xverseProvider.request('getAccounts', {
         purposes: ['payment'],
         message: 'I want to connect',
       });
       return res.result.map((acc: any) => acc.address);
+    });
+  };
+
+  getAccounts = async (): AsyncResult<string[], string> => {
+    return await executeWithTryCatch(async () => {
+      const res = await this.#xverseProvider.request('getAddresses', {
+        purposes: ['payment'],
+      });
+      return res.result.addresses.map((acc: any) => acc.address);
     });
   };
 
