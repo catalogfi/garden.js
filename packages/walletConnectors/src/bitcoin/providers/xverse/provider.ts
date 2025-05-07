@@ -80,25 +80,16 @@ export class XverseProvider implements IInjectedBitcoinProvider {
     toAddress: string,
     satoshis: number,
   ): AsyncResult<string, string> => {
-    try {
+    return await executeWithTryCatch(async () => {
       const res = await this.#xverseProvider.request('sendTransfer', {
         recipients: [{ address: toAddress, amount: satoshis }],
       });
       if (res.status === 'success') {
         return Ok(res.result.txid);
       } else {
-        if (res.error.code === -32000) {
-          return Err('User rejected the transaction');
-        } else {
-          return Err(
-            'Error while sending bitcoin from XVerse wallet',
-            res.error,
-          );
-        }
+        throw new Error(res.error.message);
       }
-    } catch (error) {
-      return Err('Error while sending bitcoin from XVerse wallet', error);
-    }
+    }, 'Error while sending bitcoin from Xverse wallet');
   };
 
   //TODO: get network from the wallet
