@@ -50,12 +50,13 @@ export type {
   Strategies,
 } from './lib/quote/quote.types';
 
-export { constructOrderPair, validateBTCAddress } from './lib/utils';
+export { constructOrderPair, validateBTCAddress, toXOnly } from './lib/utils';
 
 export {
   evmToViemChainMap,
   switchOrAddNetwork,
   hyperliquidTestnet,
+  hyperliquid,
 } from './lib/switchOrAddNetwork';
 
-export { API } from './lib/constants';
+export { API, STARKNET_CONFIG } from './lib/constants';

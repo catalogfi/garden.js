@@ -1,5 +1,5 @@
 import { BitcoinNetwork, IBaseWallet } from '@catalogfi/wallets';
-import { Environment, with0x } from '@gardenfi/utils';
+import { Environment, Err, Ok, with0x } from '@gardenfi/utils';
 import { Chain } from '@gardenfi/orderbook';
 import { sha256 } from 'viem';
 import * as varuint from 'varuint-bitcoin';
@@ -7,6 +7,33 @@ import { trim0x } from '@catalogfi/utils';
 import * as secp256k1 from 'tiny-secp256k1';
 import * as bitcoin from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
+import { Signature } from 'starknet';
+import { API, Api } from './constants';
+import { ApiConfig } from './garden/garden.types';
+
+export function resolveApiConfig(env: ApiConfig): {
+  api: Api;
+  environment: Environment;
+} {
+  const environment = typeof env === 'string' ? env : env.environment;
+
+  const baseApi =
+    environment === Environment.MAINNET
+      ? API.mainnet
+      : Environment.TESTNET
+      ? API.testnet
+      : API.localnet;
+
+  const api: Api =
+    typeof env === 'string'
+      ? baseApi
+      : {
+          ...baseApi,
+          ...env,
+        };
+
+  return { api, environment };
+}
 
 export const computeSecret = async (
   fromChain: Chain,
@@ -149,4 +176,31 @@ export const getBitcoinNetwork = (network: Environment): BitcoinNetwork => {
     default:
       throw new Error(`Invalid bitcoin network ${network}`);
   }
+};
+
+export const isHexString = (value: string): boolean => {
+  const hex = value.toLowerCase().replace('0x', '');
+  return /^[0-9a-f]+$/.test(hex);
+};
+
+export const formatStarknetSignature = (sig: Signature) => {
+  // Handle object format
+  if (typeof sig === 'object' && 'r' in sig && 's' in sig) {
+    return Ok([sig.r.toString(), sig.s.toString()]);
+  }
+
+  // Handle array format
+  if (Array.isArray(sig)) {
+    const result = sig.map((value) => {
+      if (typeof value === 'string' && value.startsWith('0x')) {
+        if (isHexString(value)) {
+          return BigInt(value).toString();
+        }
+      }
+      return value;
+    });
+    return Ok(result);
+  }
+
+  return Err('Invalid signature format');
 };

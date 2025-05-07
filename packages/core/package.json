@@ -1,6 +1,6 @@
 {
   "name": "@gardenfi/core",
-  "version": "2.0.25-beta.19",
+  "version": "2.1.4",
   "type": "module",
   "scripts": {
     "build": "vite build",
@@ -33,8 +33,7 @@
     "bitcoinjs-lib": "^6.1.6",
     "starknet": "6.23.1",
     "tiny-secp256k1": "^2.2.3",
-    "varuint-bitcoin": "^1.1.2",
-    "viem": "^2.21.23"
+    "varuint-bitcoin": "^1.1.2"
   },
   "devDependencies": {
     "dotenv": "^16.3.1",

@@ -26,7 +26,7 @@ export class Quote implements IQuote {
     request?: Request,
   ) {
     try {
-      const url = this.quoteUrl.addSearchParams({
+      const url = this.quoteUrl.endpoint('/').addSearchParams({
         order_pair: orderpair,
         amount: amount.toString(),
         exact_out: isExactOut.toString(),

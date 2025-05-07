@@ -4,7 +4,7 @@ import { describe, it, expect } from 'vitest';
 import { Url } from '../../url';
 import { DigestKey } from '../../digestKey/digestKey';
 
-describe.each(['https://authenticator.hashira.io'])(
+describe.each(['https://testnet.api.garden.finance/auth'])(
   'Siwe - Orderbook API: %s',
   (OrderbookApi) => {
     // Provide a valid private key before running the test

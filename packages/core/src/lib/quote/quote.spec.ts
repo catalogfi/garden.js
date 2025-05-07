@@ -7,13 +7,13 @@ import { Quote } from './quote';
 import { describe, expect, it } from 'vitest';
 
 describe('quote', () => {
-  const quoteUrl = 'https://price.garden.finance';
+  const quoteUrl = 'https://testnet.api.hashira.io/quote';
   const quote = new Quote(quoteUrl);
 
   it('should get quote for evm-strk', async () => {
     const res = await quote.getQuote(
-      'arbitrum_sepolia:0x1cd0bBd55fD66B4C5F7dfE434eFD009C09e628d1::starknet_sepolia:0x13e7510b665d01c03f250e648c5be6f4a57b6cf56b3079293362ed2e4713c95',
-      500000,
+      'arbitrum:0x6b6303fab8ec7232b4f2a7b9fa58e5216f608fcb::bitcoin:primary',
+      10000,
     );
     console.log('quote :', res.val);
     console.log('quote error :', res.error);
@@ -34,7 +34,7 @@ describe('quote', () => {
 
   it.only('should get quote for strk-evm', async () => {
     const res = await quote.getQuote(
-      'starknet_sepolia:0x13e7510b665d01c03f250e648c5be6f4a57b6cf56b3079293362ed2e4713c95::arbitrum_sepolia:0x1cd0bBd55fD66B4C5F7dfE434eFD009C09e628d1',
+      'starknet_sepolia:0x75cf614ce4ebce29ac622a50cd5151ddfff853159707589a85dd67b9fb1eba::arbitrum_sepolia:0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
       10000000000000000,
     );
     console.log('quote :', res.val);

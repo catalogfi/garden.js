@@ -14,8 +14,35 @@ env:
   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
 jobs:
+  decide-job:
+    runs-on: ubuntu-latest
+    outputs:
+      run_beta_release: ${{ steps.set.outputs.run_beta_release }}
+      run_individual_beta: ${{ steps.set.outputs.run_individual_beta }}
+      run_main_release: ${{ steps.set.outputs.run_main_release }}
+    steps:
+      - name: Decide which job to run
+        id: set
+        run: |
+          EVENT_NAME="${{ github.event_name }}"
+          COMMENT_BODY="${{ github.event.comment.body || '' }}"
+          BRANCH="${{ github.ref }}"
+          COMMIT_MSG="${{ github.event.head_commit.message || '' }}"
+
+          echo "run_beta_release=false" >> $GITHUB_OUTPUT
+          echo "run_individual_beta=false" >> $GITHUB_OUTPUT
+          echo "run_main_release=false" >> $GITHUB_OUTPUT
+
+          if [[ "$EVENT_NAME" == "issue_comment" && "$COMMENT_BODY" == "/release-beta" ]]; then
+            echo "run_beta_release=true" >> $GITHUB_OUTPUT
+          elif [[ "$EVENT_NAME" == "issue_comment" && "$COMMENT_BODY" == /release-beta* ]]; then
+            echo "run_individual_beta=true" >> $GITHUB_OUTPUT
+          elif [[ "$EVENT_NAME" == "push" && "$BRANCH" == "refs/heads/main" && "$COMMIT_MSG" =~ (patch|chore|fix|feat) ]]; then
+            echo "run_main_release=true" >> $GITHUB_OUTPUT
+          fi
   beta-release:
-    if: github.event_name == 'issue_comment' && github.event.comment.body == '/release-beta'
+    needs: decide-job
+    if: needs.decide-job.outputs.run_beta_release == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -24,7 +51,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GH_PAT }}
@@ -58,7 +85,7 @@ jobs:
       - name: Enable Corepack and Set Yarn Version
         run: |
           corepack enable
-          corepack prepare yarn@4.3.1 --activate
+          corepack prepare yarn@4.5.1 --activate
 
       - name: Install Dependencies
         run: yarn install
@@ -83,8 +110,81 @@ jobs:
           PR_REPO: ${{ env.PR_REPO }}
         run: ./scripts/handle-release.sh beta
 
+  individual-beta-release:
+    needs: decide-job
+    if: needs.decide-job.outputs.run_individual_beta == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      issues: read
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Get Commenter's Username
+        id: get-commenter
+        run: echo "COMMENTER=${{ github.event.comment.user.login }}"
+
+      - name: Fetch Commenter's Permissions
+        id: get-permission
+        run: |
+          COMMENTER=${{ github.event.comment.user.login }}
+          RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
+            "https://api.github.com/repos/${{ github.repository }}/collaborators/${COMMENTER}/permission")
+          
+          PERMISSION=$(echo "$RESPONSE" | jq -r '.role_name')
+          echo "Commenter's permission level: $PERMISSION"
+
+          if [[ "$PERMISSION" == "admin" || "$PERMISSION" == "maintain" ]]; then
+            echo "is_admin_or_maintain=true"
+          else
+            echo "is_admin_or_maintain=false"
+            exit 1
+          fi
+
+      - name: Extract Package Names
+        id: extract-packages
+        run: |
+          COMMENT_BODY="${{ github.event.comment.body }}"
+          PACKAGE_NAMES=$(echo "$COMMENT_BODY" | sed 's/\/release-beta //')
+          echo "PACKAGE_NAMES=$PACKAGE_NAMES" >> $GITHUB_ENV
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.9.0
+
+      - name: Enable Corepack and Set Yarn Version
+        run: |
+          corepack enable
+          corepack prepare yarn@4.5.1 --activate
+
+      - name: Install Dependencies
+        run: yarn install
+
+      - name: Make handle-beta-release.sh Executable
+        run: chmod +x scripts/handle-beta-release.sh
+
+      - name: Extract PR Info (for PR comments)
+        if: github.event.issue.pull_request != null
+        run: |
+          PR_URL="${{ github.event.issue.pull_request.url }}"
+          PR_DATA=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" "$PR_URL")
+
+          echo "$PR_DATA" > pr.json
+          echo "PR_BRANCH=$(jq -r '.head.ref' pr.json)" >> $GITHUB_ENV
+          echo "PR_REPO=$(jq -r '.head.repo.full_name' pr.json)" >> $GITHUB_ENV
+        
+      - name: Run Beta Release Script
+        run: ./scripts/handle-beta-release.sh ${{ env.PACKAGE_NAMES }}
   release:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && (contains(github.event.head_commit.message, 'patch') || contains(github.event.head_commit.message, 'chore') || contains(github.event.head_commit.message, 'fix') || contains(github.event.head_commit.message, 'feat'))
+    needs: decide-job
+    if: needs.decide-job.outputs.run_main_release == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -93,7 +193,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GH_PAT }}
@@ -106,7 +206,7 @@ jobs:
       - name: Enable Corepack and Set Yarn Version
         run: |
           corepack enable
-          corepack prepare yarn@4.3.1 --activate
+          corepack prepare yarn@4.5.1 --activate
 
       - name: Install Dependencies
         run: yarn install

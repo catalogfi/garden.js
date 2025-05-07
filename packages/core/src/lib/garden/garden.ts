@@ -31,9 +31,15 @@ import {
   sleep,
   Url,
   DigestKey,
+  Network,
 } from '@gardenfi/utils';
 import { IQuote } from '../quote/quote.types';
-import { getBitcoinNetwork, isValidBitcoinPubKey, toXOnly } from '../utils';
+import {
+  getBitcoinNetwork,
+  isValidBitcoinPubKey,
+  resolveApiConfig,
+  toXOnly,
+} from '../utils';
 import {
   BitcoinProvider,
   BitcoinWallet,
@@ -52,7 +58,7 @@ import {
   IBlockNumberFetcher,
 } from '../blockNumberFetcher/blockNumber';
 import { OrderStatus } from '../orderStatus/status';
-import { Api, API } from '../constants';
+import { Api } from '../constants';
 import { Quote } from '../quote/quote';
 import { SecretManager } from '../secretManager/secretManager';
 import { IEVMHTLC } from '../evm/htlc.types';
@@ -72,7 +78,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private refundSacpCache = new Map<string, any>();
   private _evmHTLC: IEVMHTLC | undefined;
   private _starknetHTLC: IStarknetHTLC | undefined;
-  private _btcWallet: IBitcoinWallet | undefined;
+  private _btcWallet: IBitcoinWallet;
   private bitcoinRedeemCache = new Cache<{
     redeemedFromUTXO: string;
     redeemedAt: number;
@@ -83,30 +89,16 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   constructor(config: GardenConfigWithHTLCs) {
     super();
+    const { api, environment } = resolveApiConfig(config.environment);
+    this.environment = environment;
+    this._api = api;
     if (typeof config.digestKey === 'string') {
       const _digestKey = DigestKey.from(config.digestKey);
-      if (_digestKey.error) throw new Error(_digestKey.error);
+      if (!_digestKey.ok) throw new Error(_digestKey.error);
       this._digestKey = _digestKey.val;
     } else {
       this._digestKey = config.digestKey;
     }
-
-    if (typeof config.environment === 'string') {
-      this.environment = config.environment;
-      this._api =
-        config.environment === Environment.MAINNET
-          ? API.mainnet
-          : config.environment === Environment.TESTNET
-          ? API.testnet
-          : undefined;
-      if (!this._api)
-        throw new Error(
-          'API not found, invalid environment ' + config.environment,
-        );
-    } else {
-      this._api = config.environment;
-    }
-
     this._quote = config.quote ?? new Quote(this._api.quote);
     this._auth =
       config.auth ??
@@ -122,30 +114,25 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this._blockNumberFetcher =
       config.blockNumberFetcher ??
       new BlockNumberFetcher(this._api.info, this.environment);
+
+    const provider = new BitcoinProvider(getBitcoinNetwork(this.environment));
+    this._btcWallet = BitcoinWallet.fromPrivateKey(
+      this._digestKey.digestKey,
+      provider,
+    );
   }
 
   static fromWallets(config: GardenConfigWithWallets) {
     let digestKey: DigestKey;
     if (typeof config.digestKey === 'string') {
       const _digestKey = DigestKey.from(config.digestKey);
-      if (_digestKey.error) throw new Error(_digestKey.error);
+      if (!_digestKey.ok) throw new Error(_digestKey.error);
       digestKey = _digestKey.val;
     } else {
       digestKey = config.digestKey;
     }
+    const { api } = resolveApiConfig(config.environment);
 
-    let api;
-
-    if (typeof config.environment === 'string') {
-      api =
-        config.environment === Environment.MAINNET
-          ? API.mainnet
-          : config.environment === Environment.TESTNET
-          ? API.testnet
-          : undefined;
-    } else {
-      api = config.environment;
-    }
     if (!api)
       throw new Error(
         'API not found, invalid environment ' + config.environment,
@@ -160,10 +147,15 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           )
         : undefined,
       starknet: config.wallets.starknet
-        ? new StarknetRelay(api.starknetRelay, config.wallets.starknet)
+        ? new StarknetRelay(
+            api.starknetRelay,
+            config.wallets.starknet,
+            config.environment === Environment.MAINNET
+              ? Network.MAINNET
+              : Network.TESTNET,
+          )
         : undefined,
     };
-    console.log('api.auth :', api.auth);
 
     return new Garden({
       htlc,
@@ -205,17 +197,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   get digestKey() {
     return this._digestKey;
-  }
-
-  private async initializeSMandBTCWallet() {
-    if (this._secretManager.isInitialized && this._btcWallet)
-      return Ok(this._btcWallet);
-    const digestKey = await this._secretManager.getDigestKey();
-    if (digestKey.error) return Err(digestKey.error);
-
-    const provider = new BitcoinProvider(getBitcoinNetwork(this.environment));
-    this._btcWallet = BitcoinWallet.fromPrivateKey(digestKey.val, provider);
-    return Ok(this._btcWallet);
   }
 
   async swap(params: SwapParams): AsyncResult<MatchedOrder, string> {
@@ -305,14 +286,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         return Err(
           'btcAddress in additionalData is required if source or destination chain is bitcoin, it is used as refund or redeem address.',
         );
-
-      const walletRes = await this.initializeSMandBTCWallet();
-      if (walletRes.error) return Err(walletRes.error);
-
-      if (!this._btcWallet)
-        return Err(
-          'btcWallet is required for bitcoin chain. Please provide btcWallet in the constructor',
-        );
     }
 
     const sendAddress = await this.getAddresses(params.fromAsset.chain);
@@ -392,22 +365,18 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   }
 
   async execute(interval: number = 5000): Promise<() => void> {
-    //initiate SM and bitcoinWallet if not initialized
-    await this.initializeSMandBTCWallet();
-
     return await this._orderbook.subscribeOrders(
       this._digestKey.userId,
       true,
       interval,
       async (pendingOrders) => {
-        if (pendingOrders.data.length === 0) return;
-
         const ordersWithStatus = await this.filterExpiredAndAssignStatus(
           pendingOrders.data,
         );
         if (ordersWithStatus.error) return;
 
         this.emit('onPendingOrdersChanged', ordersWithStatus.val);
+        if (pendingOrders.data.length === 0) return;
 
         //initialize swappers and execute orders
         for (let i = 0; i < ordersWithStatus.val.length; i++) {
@@ -506,7 +475,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         }
         return;
       },
-      true,
+      'pending',
       {
         per_page: 500,
       },
@@ -528,7 +497,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
     const res = await this._evmHTLC.redeem(order, secret);
 
-    if (res.error) {
+    if (!res.ok) {
       this.emit('error', order, res.error);
       if (res.error.includes('Order already redeemed')) {
         this.orderExecutorCache.set(

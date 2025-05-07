@@ -1,6 +1,6 @@
 import { OrderWithStatus } from '@gardenfi/core';
 import { AsyncResult, Request, Result } from '@catalogfi/utils';
-import { IGardenJS, IQuote, QuoteResponse, SwapParams } from '@gardenfi/core';
+import { IGardenJS, QuoteResponse, SwapParams } from '@gardenfi/core';
 import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
 import { GardenConfigWithHTLCs, GardenConfigWithWallets } from '@gardenfi/core';
 
@@ -21,7 +21,7 @@ export type GardenContextType = {
    * It will not return orders that have expired (deadline expiry).
    * @returns {MatchedOrder[]} - The pending orders of the user.
    */
-  pendingOrders?: OrderWithStatus[];
+  pendingOrders: OrderWithStatus[];
   /**
    * Get the quote for the given parameters. This will also return USD values of the assets.
    * @param params
@@ -35,12 +35,6 @@ export type GardenContextType = {
    * @returns {IGardenJS}
    */
   garden?: IGardenJS;
-
-  /**
-   * The quote instance.
-   * @returns {IQuote}
-   */
-  quote?: IQuote;
 };
 
 export type GardenProviderProps = {

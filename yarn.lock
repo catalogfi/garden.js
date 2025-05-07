@@ -623,7 +623,6 @@ __metadata:
     tiny-secp256k1: "npm:^2.2.3"
     typescript: "npm:^5.2.2"
     varuint-bitcoin: "npm:^1.1.2"
-    viem: "npm:^2.21.23"
     vite: "npm:^5.1.6"
     vite-plugin-dts: "npm:^3.7.3"
     vitest: "npm:^1.6.0"
@@ -641,7 +640,6 @@ __metadata:
     siwe: "npm:^2.1.4"
     typescript: "npm:^5.2.2"
     utf-8-validate: "npm:^6.0.3"
-    viem: "npm:^2.21.23"
     vite: "npm:^5.1.6"
     vite-plugin-dts: "npm:^3.7.3"
     vitest: "npm:^1.6.0"
@@ -664,7 +662,6 @@ __metadata:
     react: "npm:^18.3.1"
     starknet: "npm:6.23.1"
     typescript: "npm:^5.2.2"
-    viem: "npm:^2.21.23"
     vite: "npm:^5.1.6"
     vite-plugin-dts: "npm:^3.7.3"
     vitest: "npm:^1.6.0"
@@ -723,7 +720,6 @@ __metadata:
     jwt-decode: "npm:^4.0.0"
     tough-cookie: "npm:^5.1.2"
     typescript: "npm:^5.2.2"
-    viem: "npm:^2.21.23"
     vite: "npm:^5.1.6"
     vite-plugin-dts: "npm:^3.7.3"
     vitest: "npm:^1.6.0"
@@ -1303,6 +1299,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@noble/curves@npm:1.8.2":
+  version: 1.8.2
+  resolution: "@noble/curves@npm:1.8.2"
+  dependencies:
+    "@noble/hashes": "npm:1.7.2"
+  checksum: 10c0/e7ef119b114681d6b7530b29a21f9bbea6fa6973bc369167da2158d05054cc6e6dbfb636ba89fad7707abacc150de30188b33192f94513911b24bdb87af50bbd
+  languageName: node
+  linkType: hard
+
 "@noble/hashes@npm:1.4.0, @noble/hashes@npm:~1.4.0":
   version: 1.4.0
   resolution: "@noble/hashes@npm:1.4.0"
@@ -1328,6 +1333,13 @@ __metadata:
   version: 1.7.1
   resolution: "@noble/hashes@npm:1.7.1"
   checksum: 10c0/2f8ec0338ccc92b576a0f5c16ab9c017a3a494062f1fbb569ae641c5e7eab32072f9081acaa96b5048c0898f972916c818ea63cbedda707886a4b5ffcfbf94e3
+  languageName: node
+  linkType: hard
+
+"@noble/hashes@npm:1.7.2":
+  version: 1.7.2
+  resolution: "@noble/hashes@npm:1.7.2"
+  checksum: 10c0/b1411eab3c0b6691d847e9394fe7f1fcd45eeb037547c8f97e7d03c5068a499b4aef188e8e717eee67389dca4fee17d69d7e0f58af6c092567b0b76359b114b2
   languageName: node
   linkType: hard
 
@@ -5580,6 +5592,7 @@ __metadata:
     ts-node: "npm:^10.9.2"
     typescript: "npm:^5.4.2"
     typescript-eslint: "npm:^7.15.0"
+    viem: "npm:^2.28.0"
     vite: "npm:^5.1.6"
     vite-plugin-dts: "npm:^3.7.3"
     vite-plugin-eslint: "npm:^1.8.1"
@@ -10110,7 +10123,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"viem@npm:^2.1.1, viem@npm:^2.20.1, viem@npm:^2.21.1, viem@npm:^2.21.23":
+"viem@npm:^2.1.1, viem@npm:^2.20.1, viem@npm:^2.21.1":
   version: 2.26.3
   resolution: "viem@npm:2.26.3"
   dependencies:
@@ -10128,6 +10141,27 @@ __metadata:
     typescript:
       optional: true
   checksum: 10c0/c808c0fb066bd55b6b726e546c3eb809ac3d1d8c163b197927c042579c65966686072607e5baf5a7667050248f332de8c7a44caa321954682ca8576dc1c152c3
+  languageName: node
+  linkType: hard
+
+"viem@npm:^2.28.0":
+  version: 2.28.0
+  resolution: "viem@npm:2.28.0"
+  dependencies:
+    "@noble/curves": "npm:1.8.2"
+    "@noble/hashes": "npm:1.7.2"
+    "@scure/bip32": "npm:1.6.2"
+    "@scure/bip39": "npm:1.5.4"
+    abitype: "npm:1.0.8"
+    isows: "npm:1.0.6"
+    ox: "npm:0.6.9"
+    ws: "npm:8.18.1"
+  peerDependencies:
+    typescript: ">=5.0.4"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 10c0/fb67861c74e0fac54278627dbf15ffdcec41e9ddee3196cca20c137bad2ac0de531037c744095a95498c061b84d76bdf2e069fab0bfb3a76acb23265cba6a97d
   languageName: node
   linkType: hard
 

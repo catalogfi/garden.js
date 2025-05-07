@@ -477,7 +477,6 @@ export class GardenHTLC implements IHTLCWallet {
     const { tx: tempTx, usedUtxos: utxos } = await this._tempBuildRawTx(
       receiverAddress,
     );
-    console.log('utxos :', utxos);
 
     const redeemLeafHash = this.leafHash(Leaf.REDEEM);
     const values = utxos.map((utxo) => utxo.value);
