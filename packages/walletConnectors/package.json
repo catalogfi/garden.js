@@ -40,7 +40,7 @@
     "@catalogfi/wallets": "^0.2.54",
     "@gardenfi/utils": "workspace:*",
     "axios": "^1.7.9",
-    "bitcoinjs-lib": "^7.0.0-rc.0",
+    "bitcoinjs-lib": "^6.1.7",
     "react": "^18.3.1",
     "tiny-secp256k1": "^2.2.3"
   }
