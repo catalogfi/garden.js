@@ -216,7 +216,30 @@ export type AdditionalDataWithStrategyId = {
 };
 
 export type CreateOrderReqWithStrategyId = CreateOrderRequest &
-  AdditionalDataWithStrategyId;
+  AdditionalDataWithStrategyId &
+  AffiliateFeeList<AffiliateFee>;
+
+export type AffiliateFee = {
+  fee: number; // fee in bps
+  address: string;
+  chain: string;
+  asset: string;
+};
+
+export type AffiliateFeeWithAmount = AffiliateFee & {
+  amount: string;
+};
+
+export type AffiliateFeeList<T extends AffiliateFee | AffiliateFeeWithAmount> =
+  {
+    affiliate_fees?: T[];
+  };
+
+export type AffiliateFeeOptionalChainAsset = Omit<
+  AffiliateFee,
+  'chain' | 'asset'
+> &
+  Partial<Pick<AffiliateFee, 'chain' | 'asset'>>;
 
 export type CreateOrderRequest = {
   source_chain: string;
@@ -235,7 +258,8 @@ export type CreateOrderRequest = {
 };
 
 export type CreateOrderRequestWithAdditionalData = CreateOrderRequest &
-  AdditionalData;
+  AdditionalData &
+  AffiliateFeeList<AffiliateFeeWithAmount>;
 
 export type CreateOrder = CreateOrderRequestWithAdditionalData & {
   created_at: string;

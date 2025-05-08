@@ -1,3 +1,4 @@
+import { SupportedAssets } from '@gardenfi/orderbook';
 import { Environment, Network } from '@gardenfi/utils';
 
 export type Api = {
@@ -50,4 +51,9 @@ export const STARKNET_CONFIG: Record<
     chainId: '0x534e5f5345504f4c4941',
     nodeUrl: 'https://starknet-sepolia.public.blastapi.io/rpc/v0_8',
   },
+};
+
+export const DEFAULT_AFFILIATE_ASSET = {
+  chain: SupportedAssets.mainnet.base_cbBTC.chain,
+  asset: SupportedAssets.mainnet.base_cbBTC.atomicSwapAddress,
 };
