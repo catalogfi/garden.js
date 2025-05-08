@@ -1,7 +1,7 @@
 import { AsyncResult } from '@catalogfi/utils';
 import {
   Asset,
-  AffiliateFees,
+  AffiliateFee,
   IOrderbook,
   MatchedOrder,
 } from '@gardenfi/orderbook';
@@ -63,7 +63,7 @@ export type SwapParams = {
   /**
    * Integrator fee for the order.
    */
-  affiliateFee?: AffiliateFees[];
+  affiliateFee?: AffiliateFee[];
 };
 
 export type OrderWithStatus = MatchedOrder & {
