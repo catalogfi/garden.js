@@ -21,8 +21,8 @@ export const SupportedWallets = {
   },
   Phantom: {
     name: 'Phantom',
-    icon: '',
-    description: 'Phantom wallet',
+    icon: 'https://garden-finance.imgix.net/wallets/phantom.svg',
+    description: 'Phantom Wallet',
   },
 };
 
