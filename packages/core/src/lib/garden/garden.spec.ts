@@ -26,11 +26,63 @@ import {
 // import { EvmRelay } from './../evm/relay/evmRelay';
 import { DigestKey } from '@gardenfi/utils';
 import { switchOrAddNetwork } from '../switchOrAddNetwork';
+import { SwapParams } from './garden.types';
 // import { SecretManager } from '../secretManager/secretManager';
 // import { DigestKey } from './digestKey/digestKey';
 // import { BitcoinNetwork, BitcoinProvider } from '@catalogfi/wallets';
 // import { Quote } from './../quote/quote';
 // import { Orderbook } from 'gardenfi/orderbook';
+
+describe.only('checking garden initialisation', async () => {
+  const pk = '8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
+  // const address = '0x52FE8afbbB800a33edcbDB1ea87be2547EB30000';
+  const account = privateKeyToAccount(with0x(pk));
+  // const digestKey = new DigestKey(
+  //   '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
+  // );
+  // const authurl = 'https://testnet.api.hashira.io/auth';
+  // const url = 'https://testnet.api.hashira.io/relayer';
+  // const api = 'https://orderbook-stage.hashira.io';
+
+  const arbitrumWalletClient = createWalletClient({
+    account,
+    chain: arbitrumSepolia,
+    transport: http(),
+  });
+
+  // const garden = new Garden({
+  //   environment: {
+  //     environment: Environment.TESTNET,
+  //     orderbook: 'https://testnet.api.hashira.io',
+  //   },
+  //   digestKey,
+  //   htlc: {
+  //     evm: new EvmRelay(
+  //       url,
+  //       arbitrumWalletClient,
+  //       Siwe.fromDigestKey(new Url(authurl), digestKey),
+  //     ),
+  //   },
+  // });
+  const garden = Garden.fromWallets({
+    environment: {
+      environment: Environment.TESTNET,
+      orderbook: 'https://api.garden.finance',
+    },
+    digestKey:
+      '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
+    wallets: {
+      evm: arbitrumWalletClient,
+    },
+  });
+
+  console.log('garden :', garden);
+  const order = await garden.orderbook.getOrder(
+    'df4d18a3f4d8754d17c831b491b375f8b925625fa8b389b4b671325a66bdc176',
+    true,
+  );
+  console.log('this is an order fetched', order.val);
+});
 
 describe('swap and execute using garden', () => {
   // const bitcoinAddress = 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru';
@@ -187,10 +239,93 @@ describe('swap and execute using garden', () => {
   }, 150000);
 });
 
-describe('switch network with http transport', async () => {
+describe('switch network with http transport', () => {
   const evmAccount = privateKeyToAccount(
-    '0x097bf624466f3ff5de902316c31d001a41db4f5774a54c4ba4768b084737c8bc',
+    '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61',
   );
+  const executeStrategy = async (garden: Garden) => {
+    const strategies = (await garden.quote.getStrategies()).val;
+    const strategyKeys = Object.keys(strategies);
+    const randomKey =
+      strategyKeys[Math.floor(Math.random() * strategyKeys.length)];
+    const strategy = strategies[randomKey];
+
+    return { strategy, randomKey };
+  };
+  const getAssetByAtomicSwapAddress = (
+    chain: string,
+    atomicSwapAddress: string,
+  ) => {
+    const testnetAssets = SupportedAssets.testnet;
+    const assetEntries = Object.entries(testnetAssets);
+
+    const matchingAssetEntry = assetEntries.find(
+      ([, asset]) =>
+        asset.atomicSwapAddress.toLowerCase() ===
+          atomicSwapAddress.toLowerCase() &&
+        asset.chain === chain.toLowerCase(),
+    );
+
+    if (!matchingAssetEntry) {
+      console.log(
+        `No asset found with china: ${chain} and atomic swap address: ${atomicSwapAddress}`,
+      );
+      return;
+    }
+
+    return matchingAssetEntry[1];
+  };
+  const trade = async (garden: Garden) => {
+    for (let i = 0; i < 10; i++) {
+      const { strategy, randomKey } = await executeStrategy(garden);
+      const quote = (
+        await garden.quote.getQuote(
+          randomKey,
+          Number(strategy.minAmount),
+          false,
+        )
+      ).val;
+      const [sourceChainAndAsset, destChainAndAsset] = randomKey.split('::');
+      const [sourceChain, sourceAsset] = sourceChainAndAsset.split(':');
+      const [destChain, destAsset] = destChainAndAsset.split(':');
+      if (
+        sourceChain.includes('bitcoin') ||
+        sourceChain.includes('starknet') ||
+        destChain.includes('bitcoin') ||
+        destChain.includes('starknet')
+      ) {
+        console.log('Stopping non-evm trade');
+        continue;
+      }
+      const fromAsset = getAssetByAtomicSwapAddress(sourceChain, sourceAsset)!;
+      const toAsset = getAssetByAtomicSwapAddress(destChain, destAsset)!;
+      const receiveAmount = Object.values(quote.quotes)[0];
+      const swapData: SwapParams = {
+        fromAsset,
+        toAsset,
+        sendAmount: strategy.minAmount,
+        receiveAmount,
+        additionalData: {
+          strategyId: strategy.id,
+        },
+      };
+      const order = await garden.swap(swapData);
+      if (order.error) {
+        const errorMsg = `Error while creating order: ${order.error}`;
+        console.log('❌', errorMsg);
+        continue;
+      }
+      const matchedOrder = order.val;
+      const initRes = await garden.evmHTLC?.initiate(matchedOrder);
+      if (initRes?.error) {
+        const errorMsg = `Error while initing order: ${initRes.error}`;
+        console.log('❌', errorMsg);
+        continue;
+      }
+      await garden.execute();
+      console.log('✅ Trade execution completed successfully');
+    }
+  };
   it('switches to a different network when not already connected', async () => {
     try {
       const client = createWalletClient({
@@ -198,8 +333,11 @@ describe('switch network with http transport', async () => {
         chain: sepolia,
         transport: http(),
       });
-      const res = await switchOrAddNetwork('base_sepolia', client);
+      const res = await switchOrAddNetwork('citrea_testnet', client);
       expect(res.ok).toBeTruthy();
+      expect(
+        res.val.walletClient.chain?.name === 'Citrea Testnet',
+      ).toBeTruthy();
     } catch (error) {
       console.error('Network switch test failed:', error);
       throw error;
@@ -215,4 +353,20 @@ describe('switch network with http transport', async () => {
     expect(res.ok).toBeTruthy();
     expect(res.val.message).toBe('Already on the network');
   }, 15000);
+  it('should switch chain and do evm-evm trades in node environment', async () => {
+    const client = createWalletClient({
+      account: evmAccount,
+      chain: sepolia,
+      transport: http(),
+    });
+    const digestKey = DigestKey.generateRandom().val!;
+    const garden = Garden.fromWallets({
+      environment: Environment.TESTNET,
+      digestKey: digestKey,
+      wallets: {
+        evm: client,
+      },
+    });
+    await trade(garden);
+  }, 150000);
 });

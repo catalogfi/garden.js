@@ -169,8 +169,12 @@ export interface IOrderExecutorCache {
   remove(order: MatchedOrder, action: OrderActions): void;
 }
 
+export type ApiConfig =
+  | Environment
+  | (Partial<Api> & { environment: Environment });
+
 export type GardenCoreConfig = {
-  environment: Environment | Api;
+  environment: ApiConfig;
   digestKey: string | DigestKey;
   secretManager?: ISecretManager;
   auth?: IAuth;

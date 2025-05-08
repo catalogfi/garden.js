@@ -16,7 +16,7 @@ import {
   EthereumLocalnet,
   EvmChain,
 } from '@gardenfi/orderbook';
-import { createWalletClient, custom, WalletClient } from 'viem';
+import { createWalletClient, custom, http, WalletClient } from 'viem';
 import { AsyncResult, Err, Ok } from '@catalogfi/utils';
 
 type ViemError = {
@@ -143,13 +143,13 @@ export const switchOrAddNetwork = async (
             return Err('Failed to add network');
           }
         } else if (
-          error.message?.includes('method is not available') &&
-          error.body?.method?.includes('wallet_switchEthereumChain')
+          error.body?.method?.includes('wallet_switchEthereumChain') ||
+          error.message?.includes('wallet_switchEthereumChain')
         ) {
           const newWalletClient = createWalletClient({
             account: walletClient.account,
             chain: chainID,
-            transport: custom(walletClient.transport),
+            transport: http(),
           });
           return Ok({
             message: 'Added network',
