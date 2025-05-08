@@ -7,12 +7,12 @@ export const SupportedWallets = {
   Unisat: {
     name: 'Unisat',
     icon: 'https://next-cdn.unisat.io/_/285/logo/color.svg',
-    description: 'Unisat wallet',
+    description: 'Unisat allet',
   },
   Xverse: {
     name: 'Xverse',
     icon: 'https://cdn.prod.website-files.com/624b08d53d7ac60ccfc11d8d/64637a04ad4e523a3e07675c_32x32.png',
-    description: 'Xverse wallet',
+    description: 'Xverse allet',
   },
   Xdefi: {
     name: 'Xdefi',
@@ -23,6 +23,11 @@ export const SupportedWallets = {
     name: 'Phantom',
     icon: 'https://garden-finance.imgix.net/wallets/phantom.svg',
     description: 'Phantom Wallet',
+  },
+  Keplr: {
+    name: 'Keplr wallet',
+    icon: 'https://garden-finance.imgix.net/wallets/keplr.svg',
+    description: 'Keplr Wallet',
   },
 };
 
@@ -39,7 +44,7 @@ export const WALLET_CONFIG = {
   },
   Xverse: {
     id: 'xverse',
-    name: 'Xverse wallet',
+    name: 'Xverse Wallet',
     icon: 'https://cdn.prod.website-files.com/624b08d53d7ac60ccfc11d8d/64637a04ad4e523a3e07675c_32x32.png',
   },
   Xdefi: {
@@ -49,12 +54,12 @@ export const WALLET_CONFIG = {
   },
   Phantom: {
     id: 'phantom',
-    name: 'Phantom wallet',
+    name: 'Phantom Wallet',
     icon: 'https://garden-finance.imgix.net/wallets/phantom.svg',
   },
   Keplr: {
     id: 'keplr',
-    name: 'Keplr wallet',
+    name: 'Keplr Wallet',
     icon: 'https://garden-finance.imgix.net/wallets/keplr.svg',
   },
 } as const;
