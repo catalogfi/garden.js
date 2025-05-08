@@ -9,7 +9,7 @@ import { APIResponse } from '@gardenfi/utils';
 
 export interface IQuote {
   /**
-   * Get a quote for the given orderpair and amount
+   * Get a quote for the given assets and amount
    * @param fromAsset - The asset to swap from
    * @param toAsset - The asset to swap to
    *
@@ -18,7 +18,7 @@ export interface IQuote {
    * @param options { affiliateFee?: number; request?: Request } - The options for the quote request, affiliate fee in bps and request object
    *
    */
-  getQuoteWithAssets(
+  getQuoteFromAssets(
     fromAsset: Asset,
     toAsset: Asset,
     amount: number,

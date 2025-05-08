@@ -1,18 +1,6 @@
 import { Garden } from '../garden';
-import {
-  Chains,
-  MatchedOrder,
-  Orderbook,
-  SupportedAssets,
-} from '@gardenfi/orderbook';
-import {
-  Environment,
-  with0x,
-  Network,
-  Url,
-  DigestKey,
-  Siwe,
-} from '@gardenfi/utils';
+import { Chains, MatchedOrder, SupportedAssets } from '@gardenfi/orderbook';
+import { Environment, with0x, Network, DigestKey } from '@gardenfi/utils';
 import { RpcProvider, Account } from 'starknet';
 import { describe, expect, it } from 'vitest';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -21,7 +9,6 @@ import { createWalletClient, http } from 'viem';
 import { arbitrumSepolia } from 'viem/chains';
 import { IGardenJS, SwapParams } from '../garden.types';
 import { STARKNET_CONFIG } from './../../constants';
-import { Quote } from '../../quote/quote';
 
 describe('StarkNet Integration Tests', () => {
   // Wallet configurations
@@ -53,9 +40,6 @@ describe('StarkNet Integration Tests', () => {
     '0x3',
   );
 
-  const quoteurl = 'https://testnet.api.hashira.io/quote';
-  const orderbook = 'https://testnet.api.hashira.io';
-  const authurl = 'https://testnet.api.hashira.io/auth';
   const garden = Garden.fromWallets({
     environment: Environment.TESTNET,
     digestKey: DIGEST_KEY!,
@@ -63,9 +47,6 @@ describe('StarkNet Integration Tests', () => {
       evm: evmWallet,
       starknet: starknetWallet,
     },
-    quote: new Quote(quoteurl),
-    orderbook: new Orderbook(new Url(orderbook)),
-    auth: Siwe.fromDigestKey(new Url(authurl), DigestKey.generateRandom().val!),
   });
 
   const setupEventListeners = (garden: IGardenJS) => {

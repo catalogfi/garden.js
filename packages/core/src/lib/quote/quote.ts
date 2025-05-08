@@ -20,7 +20,7 @@ export class Quote implements IQuote {
     this.quoteUrl = new Url(quoteUrl);
   }
 
-  async getQuoteWithAssets(
+  async getQuoteFromAssets(
     fromAsset: Asset,
     toAsset: Asset,
     amount: number,
@@ -30,36 +30,14 @@ export class Quote implements IQuote {
       request?: Request;
     },
   ) {
-    try {
-      const orderpair = constructOrderPair(
-        fromAsset.chain,
-        fromAsset.atomicSwapAddress,
-        toAsset.chain,
-        toAsset.atomicSwapAddress,
-      );
-      const params: Record<string, string> = {
-        order_pair: orderpair,
-        amount: amount.toString(),
-        exact_out: isExactOut.toString(),
-        ...(options?.affiliateFee !== undefined && {
-          affiliate_fee: options.affiliateFee.toString(),
-        }),
-      };
+    const orderpair = constructOrderPair(
+      fromAsset.chain,
+      fromAsset.atomicSwapAddress,
+      toAsset.chain,
+      toAsset.atomicSwapAddress,
+    );
 
-      const url = this.quoteUrl.endpoint('/').addSearchParams(params);
-      const res = await Fetcher.get<APIResponse<QuoteResponse>>(url, {
-        retryCount: 0,
-        ...options?.request,
-      });
-
-      if (res.error) return Err(res.error);
-      if (!res.result)
-        return Err('GetQuote: Unexpected error, result is undefined');
-
-      return Ok(res.result);
-    } catch (error) {
-      return Err('GetQuote:', String(error));
-    }
+    return this.getQuote(orderpair, amount, isExactOut, options);
   }
 
   async getQuote(
