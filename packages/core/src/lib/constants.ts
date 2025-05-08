@@ -1,3 +1,4 @@
+import { SupportedAssets } from '@gardenfi/orderbook';
 import { Environment, Network } from '@gardenfi/utils';
 
 export type Api = {
@@ -53,6 +54,6 @@ export const STARKNET_CONFIG: Record<
 };
 
 export const DEFAULT_AFFILIATE_ASSET = {
-  chain: 'base',
-  asset: '0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf',
+  chain: SupportedAssets.mainnet.base_cbBTC.chain,
+  asset: SupportedAssets.mainnet.base_cbBTC.atomicSwapAddress,
 };
