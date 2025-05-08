@@ -220,10 +220,10 @@ export type CreateOrderReqWithStrategyId = CreateOrderRequest &
   AffiliateFeeList<AffiliateFee>;
 
 export type AffiliateFee = {
+  fee: number; // fee in bps
   address: string;
   chain: string;
   asset: string;
-  fee: number; // fee in bps
 };
 
 export type AffiliateFeeWithAmount = AffiliateFee & {

@@ -9,8 +9,10 @@ import {
   SwapParams,
   GardenConfigWithHTLCs,
   GardenConfigWithWallets,
+  AffiliateFee,
 } from './garden.types';
 import {
+  AffiliateFee as OrderbookAffiliateFee,
   BlockchainType,
   Chain,
   CreateOrderReqWithStrategyId,
@@ -53,7 +55,7 @@ import {
   IBlockNumberFetcher,
 } from '../blockNumberFetcher/blockNumber';
 import { OrderStatus } from '../orderStatus/status';
-import { Api, API } from '../constants';
+import { Api, API, DEFAULT_AFFILIATE_ASSET } from '../constants';
 import { Quote } from '../quote/quote';
 import { SecretManager } from '../secretManager/secretManager';
 import { IEVMHTLC } from '../evm/htlc.types';
@@ -252,7 +254,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       secret_hash: trim0x(secrets.val.secretHash),
       min_destination_confirmations: params.minDestinationConfirmations ?? 0,
       additional_data: additionalData,
-      affiliate_fees: params.affiliateFee ?? [],
+      affiliate_fees: this.withDefaultAffiliateFees(params.affiliateFee),
     };
 
     const quoteRes = await this._quote.getAttestedQuote(order);
@@ -268,6 +270,17 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     if (orderRes.error) return Err(orderRes.error);
 
     return Ok(orderRes.val);
+  }
+
+  withDefaultAffiliateFees(
+    list: AffiliateFee[] | undefined,
+  ): OrderbookAffiliateFee[] {
+    return (list ?? []).map((fee) => ({
+      fee: fee.fee ?? 0,
+      address: fee.address ?? '',
+      chain: fee.chain ?? DEFAULT_AFFILIATE_ASSET.chain,
+      asset: fee.asset ?? DEFAULT_AFFILIATE_ASSET.asset,
+    }));
   }
 
   private async validateAndFillParams(params: SwapParams) {

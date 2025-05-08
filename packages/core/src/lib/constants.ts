@@ -51,3 +51,8 @@ export const STARKNET_CONFIG: Record<
     nodeUrl: 'https://starknet-sepolia.public.blastapi.io/rpc/v0_8',
   },
 };
+
+export const DEFAULT_AFFILIATE_ASSET = {
+  chain: 'base',
+  asset: '0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf',
+};
