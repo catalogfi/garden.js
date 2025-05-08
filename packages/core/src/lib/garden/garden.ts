@@ -272,7 +272,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     return Ok(orderRes.val);
   }
 
-  withDefaultAffiliateFees(
+  private withDefaultAffiliateFees(
     list: AffiliateFeeOptionalChainAsset[] | undefined,
   ): AffiliateFee[] {
     return (list ?? []).map((fee) => ({
