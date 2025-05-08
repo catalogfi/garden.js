@@ -235,6 +235,12 @@ export type AffiliateFeeList<T extends AffiliateFee | AffiliateFeeWithAmount> =
     affiliate_fees?: T[];
   };
 
+export type AffiliateFeeOptionalChainAsset = Omit<
+  AffiliateFee,
+  'chain' | 'asset'
+> &
+  Partial<Pick<AffiliateFee, 'chain' | 'asset'>>;
+
 export type CreateOrderRequest = {
   source_chain: string;
   destination_chain: string;

@@ -9,10 +9,10 @@ import {
   SwapParams,
   GardenConfigWithHTLCs,
   GardenConfigWithWallets,
-  AffiliateFee,
 } from './garden.types';
 import {
-  AffiliateFee as OrderbookAffiliateFee,
+  AffiliateFee,
+  AffiliateFeeOptionalChainAsset,
   BlockchainType,
   Chain,
   CreateOrderReqWithStrategyId,
@@ -273,11 +273,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   }
 
   withDefaultAffiliateFees(
-    list: AffiliateFee[] | undefined,
-  ): OrderbookAffiliateFee[] {
+    list: AffiliateFeeOptionalChainAsset[] | undefined,
+  ): AffiliateFee[] {
     return (list ?? []).map((fee) => ({
-      fee: fee.fee ?? 0,
-      address: fee.address ?? '',
+      fee: fee.fee,
+      address: fee.address,
       chain: fee.chain ?? DEFAULT_AFFILIATE_ASSET.chain,
       asset: fee.asset ?? DEFAULT_AFFILIATE_ASSET.asset,
     }));

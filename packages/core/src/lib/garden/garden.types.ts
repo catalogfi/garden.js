@@ -1,5 +1,10 @@
 import { AsyncResult } from '@catalogfi/utils';
-import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
+import {
+  AffiliateFeeOptionalChainAsset,
+  Asset,
+  IOrderbook,
+  MatchedOrder,
+} from '@gardenfi/orderbook';
 import { OrderStatus } from '../orderStatus/status';
 import { Environment, EventBroker, IAuth } from '@gardenfi/utils';
 import { ISecretManager } from '../secretManager/secretManager.types';
@@ -58,14 +63,7 @@ export type SwapParams = {
   /**
    * Integrator fee for the order.
    */
-  affiliateFee?: AffiliateFee[];
-};
-
-export type AffiliateFee = {
-  fee: number; // fee in bps
-  address: string;
-  chain?: string;
-  asset?: string;
+  affiliateFee?: AffiliateFeeOptionalChainAsset[];
 };
 
 export type OrderWithStatus = MatchedOrder & {
