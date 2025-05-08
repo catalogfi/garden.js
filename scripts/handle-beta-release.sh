@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+COMMIT_EMAIL=$(git log -1 --pretty=format:'%ae')
+COMMIT_NAME=$(git log -1 --pretty=format:'%an')
+
 if [[ -z "$1" ]]; then
   echo "No package names provided."
   exit 1
@@ -33,6 +36,22 @@ increment_beta_version() {
   yarn npm publish --tag beta --access public
 }
 
+increment_root_version() {
+  ROOT_VERSION=$(jq -r .version package.json)
+
+  if [[ "$ROOT_VERSION" =~ -beta\.[0-9]+$ ]]; then
+    ROOT_VERSION_BETA="${ROOT_VERSION%-beta.*}"
+    BETA_NUMBER=$(echo "$ROOT_VERSION" | sed -E "s/.*-beta\.([0-9]+)$/\1/")
+    NEW_BETA_NUMBER=$((BETA_NUMBER + 1))
+    NEW_ROOT_VERSION="${ROOT_VERSION_BETA}-beta.${NEW_BETA_NUMBER}"
+  else
+    NEW_ROOT_VERSION="${ROOT_VERSION}-beta.1"
+  fi
+
+  echo "Bumping root version to $NEW_ROOT_VERSION"
+  jq --arg new_version "$NEW_ROOT_VERSION" '.version = $new_version' package.json > package.tmp.json && mv package.tmp.json package.json
+}
+
 for PACKAGE in "${PACKAGE_NAMES[@]}"; do
   echo "📦 Processing package: $PACKAGE"
   
@@ -50,3 +69,11 @@ for PACKAGE in "${PACKAGE_NAMES[@]}"; do
 
   cd - > /dev/null
 done
+
+increment_root_version
+
+git add package.json
+git -c user.email="$COMMIT_EMAIL" \
+    -c user.name="$COMMIT_NAME" \
+    commit -m "commit release script and config changes"
+git push https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git HEAD:main
