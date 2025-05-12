@@ -57,7 +57,7 @@ export const Chains = {
   starknet_devnet: 'starknet_devnet',
   hyperliquid_testnet: 'hyperliquid_testnet',
   hyperliquid: 'hyperliquid',
-  unichan: 'unichan',
+  unichain: 'unichain',
 } as const;
 
 export type Chain = keyof typeof Chains;
@@ -114,7 +114,7 @@ export const isEVM = (chain: Chain) => {
     chain === Chains.monad_testnet ||
     chain === Chains.hyperliquid_testnet ||
     chain === Chains.hyperliquid ||
-    chain === Chains.unichan
+    chain === Chains.unichain
   );
 };
 
@@ -147,7 +147,7 @@ export const TimeLocks: Record<Chain, number> = {
   [Chains.starknet_sepolia]: 2880,
   [Chains.hyperliquid_testnet]: 43200,
   [Chains.hyperliquid]: 43200,
-  [Chains.unichan]: 86400,
+  [Chains.unichain]: 86400,
 };
 
 export const getBlockchainType = (chain: Chain) => {
