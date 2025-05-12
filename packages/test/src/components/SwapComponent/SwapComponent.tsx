@@ -1,5 +1,5 @@
 import { useGarden } from '@gardenfi/react-hooks';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { Button } from '../common/Button';
 import { chainToAsset } from '../../constants/constants';
@@ -24,7 +24,50 @@ export const SwapComponent = () => {
   const { garden } = useGarden();
 
   const { address: EvmAddress } = useAccount();
-  const { swapAndInitiate } = useGarden();
+  const { swapAndInitiate, getQuote } = useGarden();
+
+  useEffect(() => {
+    const fetchQuote = async () => {
+      if (
+        !swapParams.inputAmount ||
+        !swapParams.inputToken ||
+        !swapParams.outputToken
+      )
+        return;
+
+      try {
+        if (!getQuote) return;
+        console.log('swapParams', swapParams);
+        const quote = await getQuote({
+          fromAsset: swapParams.inputToken,
+          toAsset: swapParams.outputToken,
+          amount: swapParams.inputAmount * 10 ** swapParams.inputToken.decimals,
+        });
+        if (!quote) return;
+
+        if (quote.ok && quote.val) {
+          const strategyId = Object.keys(quote.val.quotes)[0];
+          const receiveAmount = Object.values(quote.val.quotes)[0];
+
+          setSwapParams((prev) => ({
+            ...prev,
+            outputAmount:
+              Number(receiveAmount) / 10 ** swapParams.outputToken.decimals,
+            strategyId: strategyId,
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to fetch quote:', error);
+      }
+    };
+
+    fetchQuote();
+  }, [
+    swapParams.inputAmount,
+    swapParams.inputToken,
+    swapParams.outputToken,
+    getQuote,
+  ]);
 
   const handleSwap = async () => {
     const sendAmount =

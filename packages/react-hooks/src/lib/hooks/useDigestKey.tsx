@@ -81,6 +81,10 @@ export const useDigestKey = () => {
 
           // Generate a new digest key if none exists or the existing one is invalid
           const newValue = DigestKey.generateRandom();
+          if (!newValue.ok) {
+            console.error('Error generating new digest key:', newValue.error);
+            return;
+          }
           const putRequest = store.put({
             id: DIGEST_KEY,
             value: newValue.val.digestKey,

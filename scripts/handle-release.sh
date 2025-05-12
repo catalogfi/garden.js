@@ -159,7 +159,7 @@ increment_version() {
       if [[ $VERSION =~ -beta\.[0-9]+$ ]]; then
         PRERELEASE_NUM=$(( ${VERSION##*-beta.} + 1 ))
       else
-        PRERELEASE_NUM=0
+        PRERELEASE_NUM=1
       fi
       PRERELEASE="beta.${PRERELEASE_NUM}"
       ;;
@@ -180,8 +180,35 @@ else
   git checkout main
 fi
 
+ROOT_VERSION=$(jq -r .version package.json)
+
 yarn install
 yarn workspaces foreach --all --topological --no-private run build
+
+if [[ "$VERSION_BUMP" == "prerelease" ]]; then
+  if [[ "$ROOT_VERSION" =~ -beta\.[0-9]+$ ]]; then
+    ROOT_VERSION_BETA="${ROOT_VERSION%-beta.*}"
+    BETA_NUMBER=$(echo "$ROOT_VERSION" | sed -E "s/.*-beta\.([0-9]+)$/\1/")
+    NEW_BETA_NUMBER=$((BETA_NUMBER + 1))
+    NEW_ROOT_VERSION="${ROOT_VERSION_BETA}-beta.${NEW_BETA_NUMBER}"
+  else
+    ROOT_VERSION_BETA="${ROOT_VERSION}"
+    NEW_ROOT_VERSION="${ROOT_VERSION_BETA}-beta.1"
+  fi
+
+else
+  if [[ "$ROOT_VERSION" =~ -beta\.[0-9]+$ ]]; then
+    ROOT_VERSION="${ROOT_VERSION%-beta.*}"
+    NEW_ROOT_VERSION=$(increment_version "$ROOT_VERSION" "$VERSION_BUMP")
+  else
+    NEW_ROOT_VERSION=$(increment_version "$ROOT_VERSION" "$VERSION_BUMP")
+  fi
+fi
+
+if [[ "$VERSION_BUMP" != "prerelease" ]]; then
+  git tag "v$NEW_ROOT_VERSION"
+  git push https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git HEAD:main --tags
+fi
 
 echo "Publishing in order: ${PUBLISH_ORDER[@]}"
 
@@ -198,16 +225,13 @@ for PKG in "${PUBLISH_ORDER[@]}"; do
 
     LATEST_BETA_VERSION=$(npm view $PACKAGE_NAME versions --json | jq -r '[.[] | select(contains("'"$BETA_PATTERN"'"))] | last')
 
-    echo "Latest stable version: $LATEST_STABLE_VERSION"
-    echo "Latest beta version: $LATEST_BETA_VERSION"
-
     if [[ -n "$LATEST_BETA_VERSION" && "$LATEST_BETA_VERSION" != "null" ]]; then
         BETA_NUMBER=$(echo "$LATEST_BETA_VERSION" | sed -E "s/.*-beta\.([0-9]+)$/\1/")
         NEW_BETA_NUMBER=$((BETA_NUMBER + 1))
         NEW_VERSION="${LATEST_STABLE_VERSION}-beta.${NEW_BETA_NUMBER}"
     else
         echo "No beta version found. Creating the first beta version."
-        NEW_VERSION="${LATEST_STABLE_VERSION}-beta.0"
+        NEW_VERSION="${LATEST_STABLE_VERSION}-beta.1"
     fi
   else
     NEW_VERSION=$(increment_version "$LATEST_STABLE_VERSION" "$VERSION_BUMP")
@@ -215,25 +239,23 @@ for PKG in "${PUBLISH_ORDER[@]}"; do
 
   echo "Bumping $PACKAGE_NAME to $NEW_VERSION"
   jq --arg new_version "$NEW_VERSION" '.version = $new_version' package.json > package.tmp.json && mv package.tmp.json package.json
+  git add package.json
 
   if [[ "$VERSION_BUMP" == "prerelease" ]]; then
     yarn npm publish --tag beta --access public
   else
-    if [[ "$IS_PR" != "true" ]]; then
-      git add package.json
-      git -c user.email="$COMMIT_EMAIL" \
-          -c user.name="$COMMIT_NAME" \
-          commit -m "V$NEW_VERSION"
-      yarn npm publish --access public
-      git tag "$PACKAGE_NAME@$NEW_VERSION"
-      git push https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git HEAD:main --tags
-    else
-      echo "Skipping commit for PR."
-    fi
+    yarn npm publish --access public
   fi
 
   cd - > /dev/null
 done
+
+jq --arg new_version "$NEW_ROOT_VERSION" '.version = $new_version' package.json > package.tmp.json && mv package.tmp.json package.json
+
+git add package.json
+  git -c user.email="$COMMIT_EMAIL" \
+      -c user.name="$COMMIT_NAME" \
+      commit -m "V$NEW_ROOT_VERSION"
 
 yarn config unset yarnPath
 jq 'del(.packageManager)' package.json > temp.json && mv temp.json package.json
@@ -244,4 +266,8 @@ if [[ "$IS_PR" != "true" && -n $(git status --porcelain) ]]; then
       -c user.name="$COMMIT_NAME" \
       commit -m "commit release script and config changes"
   git push https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git HEAD:main
+fi
+
+if [[ "$IS_PR" == "true" && -n "$PR_BRANCH" ]]; then
+  git push https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git HEAD:$PR_BRANCH
 fi

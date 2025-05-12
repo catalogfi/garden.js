@@ -59,4 +59,4 @@ export {
   hyperliquid,
 } from './lib/switchOrAddNetwork';
 
-export { API } from './lib/constants';
+export { API, STARKNET_CONFIG } from './lib/constants';

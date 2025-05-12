@@ -1,5 +1,10 @@
 import { AsyncResult } from '@catalogfi/utils';
-import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
+import {
+  AffiliateFeeOptionalChainAsset,
+  Asset,
+  IOrderbook,
+  MatchedOrder,
+} from '@gardenfi/orderbook';
 import { OrderStatus } from '../orderStatus/status';
 import { Environment, EventBroker, IAuth } from '@gardenfi/utils';
 import { ISecretManager } from '../secretManager/secretManager.types';
@@ -58,6 +63,10 @@ export type SwapParams = {
      */
     btcAddress?: string;
   };
+  /**
+   * Integrator fee for the order.
+   */
+  affiliateFee?: AffiliateFeeOptionalChainAsset[];
 };
 
 export enum TimeLocks {
@@ -170,8 +179,12 @@ export interface IOrderExecutorCache {
   remove(order: MatchedOrder, action: OrderActions): void;
 }
 
+export type ApiConfig =
+  | Environment
+  | (Partial<Api> & { environment: Environment });
+
 export type GardenCoreConfig = {
-  environment: Environment | Api;
+  environment: ApiConfig;
   digestKey: string | DigestKey;
   secretManager?: ISecretManager;
   auth?: IAuth;

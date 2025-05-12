@@ -1,26 +1,24 @@
-import { checkAllowanceAndApprove } from '../checkAllowanceAndApprove';
+import { isAllowanceSufficient } from '../checkAllowanceAndApprove';
 import {
   AccountInterface,
+  Call,
   Contract,
+  RpcProvider,
+  TransactionExecutionStatus,
   TypedData,
   TypedDataRevision,
   cairo,
   num,
   shortString,
+  uint256,
 } from 'starknet';
 import { MatchedOrder } from '@gardenfi/orderbook';
-import { AsyncResult, Err, Ok, Fetcher } from '@catalogfi/utils';
-import { APIResponse, Url, hexToU32Array } from '@gardenfi/utils';
+import { AsyncResult, Err, Ok, Fetcher, with0x } from '@catalogfi/utils';
+import { APIResponse, Network, Url, hexToU32Array } from '@gardenfi/utils';
 import { IStarknetHTLC } from '../starknetHTLC.types';
 import { starknetHtlcABI } from '../abi/starknetHtlcABI';
 import { formatStarknetSignature } from '../../utils';
-
-const DOMAIN = {
-  name: 'HTLC',
-  version: shortString.encodeShortString('1'),
-  chainId: '0x534e5f5345504f4c4941',
-  revision: TypedDataRevision.ACTIVE,
-};
+import { STARKNET_CONFIG } from './../../constants';
 
 const INITIATE_TYPE = {
   StarknetDomain: [
@@ -37,21 +35,24 @@ const INITIATE_TYPE = {
   ],
 };
 
-const DEFAULT_NODE_URL = 'https://starknet-sepolia.public.blastapi.io/rpc/v0_7';
-
 export class StarknetRelay implements IStarknetHTLC {
   private url: Url;
-  private nodeUrl: string;
   private account: AccountInterface;
+  private starknetProvider: RpcProvider;
+  private chainId: string;
 
   constructor(
     relayerUrl: string | Url,
     account: AccountInterface,
+    network: Network,
     nodeUrl?: string,
   ) {
-    this.nodeUrl = nodeUrl || DEFAULT_NODE_URL;
-    this.url = new Url('/', relayerUrl);
+    this.url = relayerUrl instanceof Url ? relayerUrl : new Url(relayerUrl);
     this.account = account;
+    this.starknetProvider = new RpcProvider({
+      nodeUrl: nodeUrl || STARKNET_CONFIG[network].nodeUrl,
+    });
+    this.chainId = STARKNET_CONFIG[network].chainId;
   }
 
   get htlcActorAddress(): string {
@@ -82,35 +83,99 @@ export class StarknetRelay implements IStarknetHTLC {
 
       const token = await contract?.['token']();
       const tokenHex = num.toHex(token);
-      const approvalResult = await checkAllowanceAndApprove(
-        this.account,
+      const _isAllowanceSufficient = await isAllowanceSufficient(
+        this.account.address,
         tokenHex,
         source_swap.asset,
+        this.starknetProvider,
         BigInt(amount),
-        this.nodeUrl,
       );
-      if (approvalResult.error) return Err(approvalResult.error);
+      if (_isAllowanceSufficient.error) {
+        return Err(_isAllowanceSufficient.error);
+      }
 
-      const TypedData: TypedData = {
-        domain: DOMAIN,
-        primaryType: 'Initiate',
-        types: INITIATE_TYPE,
-        message: {
-          redeemer: redeemer,
-          amount: cairo.uint256(amount),
-          timelock: create_order.timelock,
-          secretHash: hexToU32Array(create_order.secret_hash),
-        },
+      if (_isAllowanceSufficient.val) return this.initiateRelay(order);
+      else return this.approveAndInitiate(tokenHex, order);
+    } catch (error) {
+      return Err(String(error));
+    }
+  }
+
+  private async approveAndInitiate(
+    tokenAddress: string,
+    order: MatchedOrder,
+  ): AsyncResult<string, string> {
+    const { create_order, source_swap } = order;
+    const { redeemer, amount } = source_swap;
+    const { secret_hash, timelock } = create_order;
+    const contractAddress = source_swap.asset;
+
+    try {
+      const maxUint256 = cairo.uint256(BigInt(uint256.UINT_256_MAX));
+      const approvalCall: Call = {
+        contractAddress: with0x(tokenAddress),
+        entrypoint: 'approve',
+        calldata: [contractAddress, maxUint256.low, maxUint256.high],
       };
 
+      const _amount = cairo.uint256(amount);
+
+      const initiateCall: Call = {
+        contractAddress: with0x(contractAddress),
+        entrypoint: 'initiate',
+        calldata: [
+          redeemer,
+          timelock.toString(),
+          _amount.low.toString(),
+          _amount.high.toString(),
+          ...hexToU32Array(secret_hash),
+        ],
+      };
+
+      const tx = await this.account.execute([approvalCall, initiateCall]);
+
+      await this.starknetProvider.waitForTransaction(tx.transaction_hash, {
+        retryInterval: 2000,
+        successStates: [TransactionExecutionStatus.SUCCEEDED],
+      });
+
+      return Ok(tx.transaction_hash);
+    } catch (error) {
+      return Err(`Failed to approve and initiate: ${String(error)}`);
+    }
+  }
+
+  private async initiateRelay(
+    order: MatchedOrder,
+  ): AsyncResult<string, string> {
+    const { create_order, source_swap } = order;
+    const { redeemer, amount } = source_swap;
+
+    const DOMAIN = {
+      name: 'HTLC',
+      version: shortString.encodeShortString('1'),
+      chainId: this.chainId,
+      revision: TypedDataRevision.ACTIVE,
+    };
+
+    const TypedData: TypedData = {
+      domain: DOMAIN,
+      primaryType: 'Initiate',
+      types: INITIATE_TYPE,
+      message: {
+        redeemer: redeemer,
+        amount: cairo.uint256(amount),
+        timelock: create_order.timelock,
+        secretHash: hexToU32Array(create_order.secret_hash),
+      },
+    };
+    try {
       const signature = await this.account.signMessage(TypedData);
       const formattedSignature = formatStarknetSignature(signature);
       if (formattedSignature.error) {
         return Err(formattedSignature.error);
       }
-      // const { r, s } = signature;
-      // const r = signature[1];
-      // const s = signature[2];
+
       const res = await Fetcher.post<APIResponse<string>>(
         this.url.endpoint('initiate'),
         {
@@ -122,13 +187,14 @@ export class StarknetRelay implements IStarknetHTLC {
           headers: {
             'Content-Type': 'application/json',
           },
+          retryCount: 10,
+          retryDelay: 2000,
         },
       );
-
       if (res.error) return Err(res.error);
       return res.result ? Ok(res.result) : Err('Init: No result found');
     } catch (error) {
-      return Err(String(error));
+      return Err(`Failed to initiate relayer: ${String(error)}`);
     }
   }
 
@@ -148,6 +214,8 @@ export class StarknetRelay implements IStarknetHTLC {
           headers: {
             'Content-Type': 'application/json',
           },
+          retryCount: 10,
+          retryDelay: 2000,
         },
       );
 
