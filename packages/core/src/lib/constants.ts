@@ -61,6 +61,12 @@ export const STARKNET_CONFIG: Record<
   },
 };
 
+export const SolanaRelayerAddress: Record<Network, string> = {
+  [Network.MAINNET]: '',
+  [Network.TESTNET]: 'ANUVKxeqaec3bf4DVPqLTnG1PT3Fng56wPcE7LXAb46Q',
+  [Network.LOCALNET]: 'AKnL4NNf3DGWZJS6cPknBuEGnVsV4A4m5tgebLHaRSZ9',
+} as const;
+
 export const DEFAULT_AFFILIATE_ASSET = {
   chain: SupportedAssets.mainnet.base_cbBTC.chain,
   asset: SupportedAssets.mainnet.base_cbBTC.atomicSwapAddress,

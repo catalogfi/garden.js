@@ -60,7 +60,11 @@ import {
   IBlockNumberFetcher,
 } from '../blockNumberFetcher/blockNumber';
 import { OrderStatus } from '../orderStatus/status';
-import { Api, DEFAULT_AFFILIATE_ASSET } from '../constants';
+import {
+  Api,
+  DEFAULT_AFFILIATE_ASSET,
+  SolanaRelayerAddress,
+} from '../constants';
 import { Quote } from '../quote/quote';
 import { SecretManager } from '../secretManager/secretManager';
 import { IEVMHTLC } from '../evm/htlc.types';
@@ -69,7 +73,7 @@ import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { StarknetRelay } from '../starknet/relay/starknetRelay';
 
 import { ISolanaHTLC } from '../solana/htlc/ISolanaHTLC';
-import { SolanaHTLC } from '../solana/htlc/solanaHTLC';
+import { SolanaRelay } from '../solana/relayer/solanaRelay';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment = Environment.TESTNET;
@@ -163,7 +167,13 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           )
         : undefined,
       solana: config.wallets.solana
-        ? new SolanaHTLC(config.wallets.solana)
+        ? new SolanaRelay(
+            config.wallets.solana,
+            new Url(api.solanaRelay),
+            config.environment === Environment.MAINNET
+              ? SolanaRelayerAddress.mainnet
+              : SolanaRelayerAddress.testnet,
+          )
         : undefined,
     };
 
