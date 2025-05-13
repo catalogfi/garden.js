@@ -6,13 +6,11 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { privateKeyToAccount } from 'viem/accounts';
 import { sleep } from '@catalogfi/utils';
 import { createWalletClient, http, WalletClient } from 'viem';
-import {
-  BitcoinNetwork,
-  BitcoinProvider,
-  BitcoinWallet,
-} from '@catalogfi/wallets';
 import { Quote } from '@gardenfi/core';
 import { StarknetRelay } from '../../starknet/relay/starknetRelay';
+import { BitcoinProvider } from '../../bitcoin/provider';
+import { BitcoinNetwork } from '../../bitcoin/provider.interface';
+import { BitcoinWallet } from '../../bitcoin/wallet';
 // import axios from 'axios';
 // import { promisify } from 'util';
 // import { exec } from 'child_process';

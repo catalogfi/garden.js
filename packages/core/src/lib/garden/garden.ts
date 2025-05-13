@@ -42,11 +42,6 @@ import {
   resolveApiConfig,
   toXOnly,
 } from '../utils';
-// import {
-//   BitcoinProvider,
-//   BitcoinWallet,
-//   IBitcoinWallet,
-// } from '@catalogfi/wallets';
 import {
   isOrderExpired,
   parseActionFromStatus,

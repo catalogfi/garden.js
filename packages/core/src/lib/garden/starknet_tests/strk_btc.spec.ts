@@ -5,14 +5,12 @@ import { RpcProvider, Account } from 'starknet';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { privateKeyToAccount } from 'viem/accounts';
 import { sleep } from '@catalogfi/utils';
-import {
-  BitcoinNetwork,
-  BitcoinProvider,
-  BitcoinWallet,
-} from '@catalogfi/wallets';
 // import axios from 'axios';
 import { Quote } from '@gardenfi/core';
 import { StarknetRelay } from '../../starknet/relay/starknetRelay';
+import { BitcoinWallet } from '../../bitcoin/wallet';
+import { BitcoinProvider } from '../../bitcoin/provider';
+import { BitcoinNetwork } from '../../bitcoin/provider.interface';
 // import { promisify } from 'util';
 // import { exec } from 'child_process';
 

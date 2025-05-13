@@ -29,7 +29,6 @@ import { switchOrAddNetwork } from '../switchOrAddNetwork';
 import { SwapParams } from './garden.types';
 // import { SecretManager } from '../secretManager/secretManager';
 // import { DigestKey } from './digestKey/digestKey';
-// import { BitcoinNetwork, BitcoinProvider } from '@catalogfi/wallets';
 // import { Quote } from './../quote/quote';
 // import { Orderbook } from 'gardenfi/orderbook';
 

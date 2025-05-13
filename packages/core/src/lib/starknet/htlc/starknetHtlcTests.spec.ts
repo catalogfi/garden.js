@@ -12,13 +12,11 @@ import {
   SupportedAssets,
 } from '@gardenfi/orderbook';
 import { trim0x } from '@catalogfi/utils';
-import {
-  BitcoinNetwork,
-  BitcoinProvider,
-  BitcoinWallet,
-} from '@catalogfi/wallets';
 import { BlockNumberFetcher, Quote } from '@gardenfi/core';
 import { StarknetRelay } from '../relay/starknetRelay';
+import { BitcoinProvider } from '../../bitcoin/provider';
+import { BitcoinNetwork } from '../../bitcoin/provider.interface';
+import { BitcoinWallet } from '../../bitcoin/wallet';
 
 describe('starknetHtlcTests', () => {
   const RELAYER_URL = 'http://localhost:4426';
