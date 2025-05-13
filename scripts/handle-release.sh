@@ -12,6 +12,9 @@ if [[ "$GITHUB_EVENT_NAME" == "issue_comment" ]]; then
   IS_PR=true
 fi
 
+ROOT_VERSION=$(git tag --list 'v*' --sort=-v:refname | head -n 1 | sed 's/^v//')
+echo "Current root version: $ROOT_VERSION"
+
 if [[ $1 == "beta" ]]; then
   VERSION_BUMP="prerelease"
   PRERELEASE_SUFFIX="beta"
@@ -180,10 +183,11 @@ else
   git checkout main
 fi
 
-ROOT_VERSION=$(jq -r .version package.json)
-
 yarn install
-yarn workspaces foreach --all --topological --no-private run build
+if ! yarn workspaces foreach --all --topological --no-private run build; then
+  echo "Build failed. Exiting."
+  exit 1
+fi
 
 if [[ "$VERSION_BUMP" == "prerelease" ]]; then
   if [[ "$ROOT_VERSION" =~ -beta\.[0-9]+$ ]]; then

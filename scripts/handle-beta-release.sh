@@ -14,7 +14,11 @@ PACKAGE_NAMES=($@)
 echo "Packages to release: ${PACKAGE_NAMES[@]}"
 
 yarn install
-yarn workspaces foreach --all --topological --no-private run build
+yarn install
+if ! yarn workspaces foreach --all --topological --no-private run build; then
+  echo "Build failed. Exiting."
+  exit 1
+fi
 
 increment_beta_version() {
   PACKAGE_NAME=$1
