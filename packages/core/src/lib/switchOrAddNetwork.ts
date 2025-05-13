@@ -10,6 +10,7 @@ import {
   Chain as viemChain,
   monadTestnet,
   citreaTestnet,
+  unichain,
 } from 'viem/chains';
 import {
   ArbitrumLocalnet,
@@ -93,6 +94,7 @@ export const evmToViemChainMap: Record<EvmChain, viemChain> = {
   monad_testnet: monadTestnet,
   hyperliquid_testnet: hyperliquidTestnet,
   hyperliquid: hyperliquid,
+  unichan: unichain,
 };
 
 /**
