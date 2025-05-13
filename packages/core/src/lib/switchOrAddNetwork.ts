@@ -94,7 +94,7 @@ export const evmToViemChainMap: Record<EvmChain, viemChain> = {
   monad_testnet: monadTestnet,
   hyperliquid_testnet: hyperliquidTestnet,
   hyperliquid: hyperliquid,
-  unichan: unichain,
+  unichain: unichain,
 };
 
 /**
