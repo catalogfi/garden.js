@@ -21,7 +21,7 @@ export class BlockNumberFetcher implements IBlockNumberFetcher {
   private environment: Environment;
 
   constructor(url: string, environment: Environment) {
-    this.url = new Url(url).endpoint('blocknumber');
+    this.url = new Url(url).endpoint('blocknumbers');
     this.environment = environment;
   }
 

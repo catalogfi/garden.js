@@ -8,6 +8,7 @@ export {
   isBitcoin,
   isEVM,
   isStarknet,
+  isSolana,
   getBlockchainType,
   NetworkType,
   TimeLocks,

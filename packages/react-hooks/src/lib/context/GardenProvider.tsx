@@ -86,6 +86,9 @@ export const GardenProvider: FC<GardenProviderProps> = ({
       case BlockchainType.Bitcoin:
         init_tx_hash = order.val.source_swap.initiate_tx_hash;
         break;
+      case BlockchainType.Solana:
+        init_tx_hash = order.val.source_swap.initiate_tx_hash;
+        break;
       default:
         return Err('Unsupported chain');
     }
