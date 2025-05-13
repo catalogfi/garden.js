@@ -1,4 +1,3 @@
-import { BitcoinNetwork, IBaseWallet } from '@catalogfi/wallets';
 import { Environment, Err, Ok, with0x } from '@gardenfi/utils';
 import { Chain } from '@gardenfi/orderbook';
 import { sha256 } from 'viem';
@@ -10,8 +9,12 @@ import * as ecc from 'tiny-secp256k1';
 import { Signature } from 'starknet';
 import { API, Api } from './constants';
 import { ApiConfig } from './garden/garden.types';
+import { IBaseWallet } from './bitcoin/baseWallet';
+import { BitcoinNetwork } from './bitcoin/provider.interface';
 
-export function resolveApiConfig(env: ApiConfig): {
+export function resolveApiConfig(
+  env: ApiConfig,
+): {
   api: Api;
   environment: Environment;
 } {
@@ -204,3 +207,7 @@ export const formatStarknetSignature = (sig: Signature) => {
 
   return Err('Invalid signature format');
 };
+
+export function reversify(val: string): Buffer {
+  return Buffer.from(val, 'hex').reverse();
+}

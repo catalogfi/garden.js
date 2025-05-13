@@ -5,10 +5,8 @@ import * as ecc from 'tiny-secp256k1';
 import { EventBroker, with0x } from '@gardenfi/utils';
 import { ISecretManager, SecretManagerEvents } from './secretManager.types';
 
-export class SecretManager
-  extends EventBroker<SecretManagerEvents>
-  implements ISecretManager
-{
+export class SecretManager extends EventBroker<SecretManagerEvents>
+  implements ISecretManager {
   private digestKey?: string;
   private walletClient?: WalletClient;
 
