@@ -38,7 +38,7 @@ export const SwapComponent = () => {
           toAsset: swapParams.outputToken,
           amount: swapParams.inputAmount * 10 ** swapParams.inputToken.decimals,
         });
-        console.log('quote', quote);
+        if (!quote) return;
 
         if (quote.ok && quote.val) {
           const strategyId = Object.keys(quote.val.quotes)[0];

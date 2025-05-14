@@ -1,5 +1,6 @@
 import { AsyncResult, Request } from '@catalogfi/utils';
 import {
+  Asset,
   Chain,
   CreateOrderRequestWithAdditionalData,
   CreateOrderReqWithStrategyId,
@@ -7,6 +8,24 @@ import {
 import { APIResponse } from '@gardenfi/utils';
 
 export interface IQuote {
+  /**
+   * Get a quote for the given assets and amount
+   * @param fromAsset - The asset to swap from
+   * @param toAsset - The asset to swap to
+   *
+   * @param amount - The amount to quote
+   * @param isExactOut - Whether the amount is exact out
+   * @param options { affiliateFee?: number; request?: Request } - The options for the quote request, affiliate fee in bps and request object
+   *
+   */
+  getQuoteFromAssets(
+    fromAsset: Asset,
+    toAsset: Asset,
+    amount: number,
+    isExactOut: boolean,
+    options?: { affiliateFee?: number; request?: Request },
+  ): AsyncResult<QuoteResponse, string>;
+
   /**
    * Get a quote for the given orderpair and amount
    * @param orderpair - A string representing the order pair for which the quote is requested.
@@ -16,12 +35,13 @@ export interface IQuote {
    * Chain name and asset are separated by a colon(:) and chain pairs are separated by double colon(::)
    * @param amount - The amount to quote
    * @param isExactOut - Whether the amount is exact out
+   * @param options { affiliateFee?: number; request?: Request } - The options for the quote request, affiliate fee in bps and request object
    */
   getQuote(
     orderpair: string,
     amount: number,
     isExactOut: boolean,
-    request?: Request,
+    options?: { affiliateFee?: number; request?: Request },
   ): AsyncResult<QuoteResponse, string>;
 
   /**

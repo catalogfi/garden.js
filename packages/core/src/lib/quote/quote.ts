@@ -6,6 +6,7 @@ import {
   StrategiesResponse,
 } from './quote.types';
 import {
+  Asset,
   CreateOrderRequestWithAdditionalData,
   CreateOrderReqWithStrategyId,
 } from '@gardenfi/orderbook';
@@ -19,21 +20,49 @@ export class Quote implements IQuote {
     this.quoteUrl = new Url(quoteUrl);
   }
 
+  async getQuoteFromAssets(
+    fromAsset: Asset,
+    toAsset: Asset,
+    amount: number,
+    isExactOut = false,
+    options?: {
+      affiliateFee?: number;
+      request?: Request;
+    },
+  ) {
+    const orderpair = constructOrderPair(
+      fromAsset.chain,
+      fromAsset.atomicSwapAddress,
+      toAsset.chain,
+      toAsset.atomicSwapAddress,
+    );
+
+    return this.getQuote(orderpair, amount, isExactOut, options);
+  }
+
   async getQuote(
     orderpair: string,
     amount: number,
     isExactOut = false,
-    request?: Request,
+    options?: {
+      affiliateFee?: number;
+      request?: Request;
+    },
   ) {
     try {
-      const url = this.quoteUrl.endpoint('/').addSearchParams({
+      const params: Record<string, string> = {
         order_pair: orderpair,
         amount: amount.toString(),
         exact_out: isExactOut.toString(),
-      });
+        ...(options?.affiliateFee !== undefined && {
+          affiliate_fee: options.affiliateFee.toString(),
+        }),
+      };
+
+      const url = this.quoteUrl.endpoint('/').addSearchParams(params);
       const res = await Fetcher.get<APIResponse<QuoteResponse>>(url, {
         retryCount: 0,
-        ...request,
+        ...options?.request,
       });
 
       if (res.error) return Err(res.error);

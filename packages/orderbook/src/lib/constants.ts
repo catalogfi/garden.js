@@ -329,5 +329,14 @@ export const SupportedAssets = {
       atomicSwapAddress:
         '0x7defd8eb3b770005ab1ca5f89ad31f98fb5bc3c52deaeafd130be3b49f967b4',
     },
+    unichain_USDC: {
+      name: 'USD Coin',
+      decimals: 6,
+      symbol: 'USDC',
+      chain: Chains.unichain,
+      logo: 'https://garden-finance.imgix.net/token-images/usdc.svg',
+      tokenAddress: '0x078D782b760474a361dDA0AF3839290b0EF57AD6',
+      atomicSwapAddress: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
+    },
   },
 } as const;
