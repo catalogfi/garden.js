@@ -29,7 +29,7 @@ export enum Urgency {
  *
  * Gives read only access to the mempool
  */
-interface IBitcoinProvider {
+export interface IBitcoinProvider {
   broadcast(tx: string): Promise<string>;
   getUTXOs(address: string, balance?: number): Promise<BitcoinUTXO[]>;
   getBalance(address: string): Promise<number>;
@@ -112,5 +112,3 @@ export const UrgencyToFeeRateKey: {
   [Urgency.MEDIUM]: 'hourFee',
   [Urgency.FAST]: 'fastestFee',
 };
-
-export type { IBitcoinProvider };
