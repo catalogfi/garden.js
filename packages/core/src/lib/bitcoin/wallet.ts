@@ -5,7 +5,7 @@ import * as ecc from 'tiny-secp256k1';
 import { AbstractBitcoinWallet } from "./abstractWallet";
 import { ECPairFactory, ECPairInterface } from 'ecpair';
 import { getBitcoinNetwork, mnemonicToPrivateKey } from "./utils";
-import { BitcoinPaths } from "./bitcoinPaths";
+import { BitcoinPaths } from "./paths";
 import { BitcoinWalletConfig } from "./wallet.interface";
 import { AddSignature } from "./sig";
 import { BWErrors } from "./errors";

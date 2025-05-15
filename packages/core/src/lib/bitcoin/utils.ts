@@ -1,7 +1,7 @@
 import { networks } from 'bitcoinjs-lib';
 import { BitcoinNetwork } from './provider.interface';
 import { validateMnemonic, mnemonicToSeedSync } from 'bip39';
-import { BitcoinPaths } from './bitcoinPaths';
+import { BitcoinPaths } from './paths';
 import { BIP32Factory, BIP32Interface } from 'bip32';
 import * as ecc from 'tiny-secp256k1';
 
