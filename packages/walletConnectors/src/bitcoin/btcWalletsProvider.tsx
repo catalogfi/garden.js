@@ -9,7 +9,6 @@ import React, {
 import { Connect, IInjectedBitcoinProvider } from './bitcoin.types';
 import { OKXProvider } from './providers/okx/provider';
 import { OKXBitcoinProvider } from './providers/okx/okx.types';
-import { Err, Ok, Void } from '@catalogfi/utils';
 import { UnisatBitcoinProvider } from './providers/unisat/unisat.types';
 import { XVerseBitcoinProvider } from './providers/xverse/xverse.types';
 import { XdefiBitcoinProvider } from './providers/xdefi/xdefi.types';
@@ -23,7 +22,7 @@ import {
   BTCWalletProviderContextType,
   BTCWalletProviderProps,
 } from './btcWalletsProvider.types';
-import { Network } from '@gardenfi/utils';
+import { Err, Network, Ok, Void } from '@gardenfi/utils';
 
 declare global {
   interface Window {
@@ -60,10 +59,10 @@ export const BTCWalletProvider = ({
     {},
   );
 
-  const isConnected = useMemo(
-    () => !!provider && !!account,
-    [provider, account],
-  );
+  const isConnected = useMemo(() => !!provider && !!account, [
+    provider,
+    account,
+  ]);
 
   //connect to the specified wallet and set the provider and account
   const connect = async (bitcoinWallet: IInjectedBitcoinProvider) => {

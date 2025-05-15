@@ -1,17 +1,18 @@
 import { Connect, IInjectedBitcoinProvider } from '../../bitcoin.types';
 import { PhantomBitcoinProvider } from './phantom.types';
-import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
 import * as bitcoin from 'bitcoinjs-lib';
 import axios from 'axios';
 import { initEccLib } from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
-import { Network } from '@gardenfi/utils';
-import { WALLET_CONFIG } from './../../constants';
 import {
-  BitcoinNetwork,
-  BitcoinProvider,
-  BitcoinWallet,
-} from '@catalogfi/wallets';
+  AsyncResult,
+  Err,
+  executeWithTryCatch,
+  Network,
+  Ok,
+} from '@gardenfi/utils';
+import { WALLET_CONFIG } from './../../constants';
+import { BitcoinProvider, BitcoinWallet, BitcoinNetwork } from '@gardenfi/core';
 
 initEccLib(ecc);
 

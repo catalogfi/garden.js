@@ -1,4 +1,4 @@
-import { MarkRequired } from '@catalogfi/utils';
+import { MarkRequired } from '@gardenfi/utils';
 import { OnChainIdentifier } from 'src/lib/identifier';
 import { Address } from 'viem';
 

@@ -1,5 +1,5 @@
 import { Garden } from './garden';
-import { Environment, with0x } from '@gardenfi/utils';
+import { Environment, sleep, with0x } from '@gardenfi/utils';
 import {
   createWalletClient,
   http,
@@ -16,7 +16,6 @@ import {
 
   // SupportedAssets,
 } from '@gardenfi/orderbook';
-import { sleep } from '@catalogfi/utils';
 import {
   arbitrumSepolia,
   sepolia,

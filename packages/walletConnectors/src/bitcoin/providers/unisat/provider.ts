@@ -1,7 +1,12 @@
 import { UnisatBitcoinProvider, UnisatChainEnum } from './unisat.types';
-import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
 import { Connect, IInjectedBitcoinProvider } from '../../bitcoin.types';
-import { Network } from '@gardenfi/utils';
+import {
+  AsyncResult,
+  Err,
+  executeWithTryCatch,
+  Network,
+  Ok,
+} from '@gardenfi/utils';
 import { WALLET_CONFIG } from './../../constants';
 
 export class UnisatProvider implements IInjectedBitcoinProvider {

@@ -1,5 +1,4 @@
 import { ISecretManager } from './../secretManager/secretManager.types';
-import { AsyncResult, Err, Fetcher, Ok, trim0x } from '@catalogfi/utils';
 import {
   GardenEvents,
   IGardenJS,
@@ -34,6 +33,11 @@ import {
   Url,
   DigestKey,
   Network,
+  trim0x,
+  Err,
+  AsyncResult,
+  Ok,
+  Fetcher,
 } from '@gardenfi/utils';
 import { IQuote } from '../quote/quote.types';
 import {

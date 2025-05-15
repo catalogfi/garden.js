@@ -1,10 +1,15 @@
 import { Garden } from '../garden';
 import { Chains, MatchedOrder, SupportedAssets } from '@gardenfi/orderbook';
-import { Environment, with0x, Network, DigestKey } from '@gardenfi/utils';
+import {
+  Environment,
+  with0x,
+  Network,
+  DigestKey,
+  sleep,
+} from '@gardenfi/utils';
 import { RpcProvider, Account } from 'starknet';
 import { describe, expect, it } from 'vitest';
 import { privateKeyToAccount } from 'viem/accounts';
-import { sleep } from '@catalogfi/utils';
 import { createWalletClient, http } from 'viem';
 import { arbitrumSepolia } from 'viem/chains';
 import { IGardenJS, SwapParams } from '../garden.types';

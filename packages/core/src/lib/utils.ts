@@ -1,8 +1,7 @@
-import { Environment, Err, Ok, with0x } from '@gardenfi/utils';
+import { Environment, Err, Ok, trim0x, with0x } from '@gardenfi/utils';
 import { Chain } from '@gardenfi/orderbook';
 import { sha256 } from 'viem';
 import * as varuint from 'varuint-bitcoin';
-import { trim0x } from '@catalogfi/utils';
 import * as secp256k1 from 'tiny-secp256k1';
 import * as bitcoin from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';

@@ -1,10 +1,30 @@
-export type Ok<T> = { ok: true; val: T; error?: undefined };
-export type Err<E> = { ok: false; val?: undefined; error: E };
-export type Result<T, E> = Ok<T> | Err<E>;
+export class Result<T, E> {
+  #ok: boolean;
+  #val: T;
+  #error: E | undefined;
 
-export const Ok = <T>(val: T): Ok<T> => ({ ok: true, val });
+  constructor(ok: boolean, val: T, error: E | undefined = undefined) {
+    this.#ok = ok;
+    this.#error = error;
+    this.#val = val;
+  }
+
+  get ok() {
+    return this.#ok;
+  }
+
+  get error() {
+    return this.#error;
+  }
+
+  get val() {
+    return this.#val;
+  }
+}
 
 export type AsyncResult<T, E> = Promise<Result<T, E>>;
+
+export const Ok = <T>(val: T) => new Result<T, never>(true, val);
 
 export const Void = undefined;
 
@@ -16,11 +36,9 @@ export const Void = undefined;
 export const Err = <E>(
   error: E,
   ...optionalMsg: (E extends string ? any : never)[]
-): Err<E> => {
-  let finalError = error;
-
+) => {
   if (typeof error === 'string' && optionalMsg && optionalMsg.length > 0) {
-    const msg = [error, ...optionalMsg].map((m: any) => {
+    let msg = [error, ...optionalMsg].map((m: any) => {
       if (m) {
         if (m instanceof Error) {
           return m.message;
@@ -32,12 +50,12 @@ export const Err = <E>(
       }
       return undefined;
     });
-    finalError = msg.filter((m) => m !== undefined).join(' ') as E;
+    return new Result<never, E>(
+      false,
+      null as never,
+      msg.filter((m) => m !== undefined).join(' ') as E,
+    );
   }
 
-  return {
-    ok: false,
-    val: undefined,
-    error: finalError,
-  };
+  return new Result<never, E>(false, null as never, error);
 };

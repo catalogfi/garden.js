@@ -1,4 +1,3 @@
-import { Fetcher } from '@catalogfi/utils';
 import { getAPIs, verifyAPIs } from './API';
 import {
   BitcoinNetwork,
@@ -11,6 +10,7 @@ import {
   UrgencyToFeeRateKey,
 } from './provider.interface';
 import { BWErrors } from './errors';
+import { Fetcher } from '@gardenfi/utils';
 
 type Vout = {
   vout: { scriptpubkey_address: string }[];

@@ -1,4 +1,3 @@
-import { AsyncResult, Err, Ok } from '@catalogfi/utils';
 import {
   erc20Abi,
   getContract,
@@ -8,6 +7,7 @@ import {
 } from 'viem';
 import { with0x } from './utils';
 import { getTransactionReceipt } from 'viem/actions';
+import { AsyncResult, Err, Ok } from './result';
 
 export const checkAllowanceAndApprove = async (
   amount: number,
@@ -40,8 +40,8 @@ export const checkAllowanceAndApprove = async (
 
       const receipt = await waitForTransactionReceipt(walletClient, res);
       if (receipt.error) return Err(receipt.error);
-
-      if (receipt.val.status !== 'success') return Err('Failed to approve');
+      if (!receipt.val || receipt.val.status !== 'success')
+        return Err('Failed to approve');
 
       return Ok(res);
     }

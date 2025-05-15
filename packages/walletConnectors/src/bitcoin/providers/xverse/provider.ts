@@ -1,8 +1,13 @@
 import { WALLET_CONFIG } from './../../constants';
 import { Balance, IInjectedBitcoinProvider } from '../../bitcoin.types';
 import { XVerseBitcoinProvider } from './xverse.types';
-import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
-import { Network } from '@gardenfi/utils';
+import {
+  AsyncResult,
+  Err,
+  executeWithTryCatch,
+  Network,
+  Ok,
+} from '@gardenfi/utils';
 
 export class XverseProvider implements IInjectedBitcoinProvider {
   #xverseProvider: XVerseBitcoinProvider;

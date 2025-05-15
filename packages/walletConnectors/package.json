@@ -36,8 +36,6 @@
   },
   "sideEffects": false,
   "dependencies": {
-    "@catalogfi/utils": "^0.1.11",
-    "@catalogfi/wallets": "^0.2.54",
     "@gardenfi/utils": "workspace:*",
     "axios": "^1.7.9",
     "bitcoinjs-lib": "^7.0.0-rc.0",

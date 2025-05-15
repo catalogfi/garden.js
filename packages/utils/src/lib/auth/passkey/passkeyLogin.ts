@@ -1,4 +1,3 @@
-import { AsyncResult, Err, Fetcher, Ok, Result } from '@catalogfi/utils';
 import { Url } from 'src/lib/url';
 import {
   ConditionalLoginChallenge,
@@ -11,6 +10,8 @@ import {
   startRegistration,
 } from '@simplewebauthn/browser';
 import { IStore } from 'src/lib/store';
+import { AsyncResult, Err, Ok, Result } from '../../result';
+import { Fetcher } from '../../fetcher';
 
 export class PasskeyLogin {
   private url: Url;

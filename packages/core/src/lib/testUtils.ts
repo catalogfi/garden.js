@@ -1,9 +1,9 @@
 import { exec } from 'child_process';
 import { Asset, Chains, Chain as Network } from '@gardenfi/orderbook';
 
-import { Fetcher } from '@catalogfi/utils';
 import { Chain } from 'viem';
 import { SwapParams } from './garden/garden.types';
+import { Fetcher } from '@gardenfi/utils';
 
 export const fund = async (address: string) => {
   exec(`merry faucet --to ${address}`);

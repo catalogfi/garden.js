@@ -1,7 +1,6 @@
-import { AsyncResult, Err, Ok } from '@catalogfi/utils';
-import { IBitcoinProvider } from '@catalogfi/wallets';
 import { createPublicClient, WalletClient, http, Chain } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
+import { AsyncResult, Err, Ok } from '../result';
 
 type L2ChainId = 42161 | 421614;
 const L2_CHAINS: Record<L2ChainId, Chain> = {

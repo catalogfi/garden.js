@@ -6,9 +6,8 @@ import {
   TransactionExecutionStatus,
   uint256,
 } from 'starknet';
-import { AsyncResult, Err, Ok, with0x } from '@catalogfi/utils';
 import { TokenABI } from './abi/starknetTokenABI';
-import { sleep } from '@gardenfi/utils';
+import { AsyncResult, Err, Ok, sleep, with0x } from '@gardenfi/utils';
 
 export const checkAllowanceAndApprove = async (
   account: AccountInterface,

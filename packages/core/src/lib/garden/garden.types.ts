@@ -1,4 +1,3 @@
-import { AsyncResult } from '@catalogfi/utils';
 import {
   AffiliateFeeOptionalChainAsset,
   Asset,
@@ -6,7 +5,7 @@ import {
   MatchedOrder,
 } from '@gardenfi/orderbook';
 import { OrderStatus } from '../orderStatus/status';
-import { Environment, EventBroker, IAuth } from '@gardenfi/utils';
+import { AsyncResult, Environment, EventBroker, IAuth } from '@gardenfi/utils';
 import { ISecretManager } from '../secretManager/secretManager.types';
 import { IQuote } from '../quote/quote.types';
 import { IBlockNumberFetcher } from '../blockNumberFetcher/blockNumber';

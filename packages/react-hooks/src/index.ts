@@ -5,4 +5,4 @@ export type {
   GardenProviderProps,
 } from './lib/context/gardenProvider.types';
 export { useOrderbook } from './lib/hooks/useOrderbook';
-export { BitcoinNetwork } from '@catalogfi/wallets';
+export { BitcoinNetwork } from '@gardenfi/core';
