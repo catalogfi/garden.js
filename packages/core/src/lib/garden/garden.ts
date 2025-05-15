@@ -513,7 +513,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
     const res = await this._evmHTLC.redeem(order, secret);
 
-    if (!res.ok) {
+    if (!res.ok && res.error) {
       this.emit('error', order, res.error);
       if (res.error.includes('Order already redeemed')) {
         this.orderExecutorCache.set(
@@ -604,9 +604,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       !Number(order.destination_swap.redeem_block_number)
     ) {
       try {
-        const tx = await (await wallet.getProvider()).getTransaction(
-          order.destination_swap.redeem_tx_hash,
-        );
+        const tx = await (
+          await wallet.getProvider()
+        ).getTransaction(order.destination_swap.redeem_tx_hash);
 
         let isValidRedeem = false;
         for (const input of tx.vin) {

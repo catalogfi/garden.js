@@ -64,7 +64,7 @@ export class EvmRelay implements IEVMHTLC {
     const amount = BigInt(source_swap.amount);
 
     const tokenAddress = await this.getTokenAddress(order.source_swap.asset);
-    if (!tokenAddress.ok) return Err(tokenAddress.error);
+    if (!tokenAddress.ok && tokenAddress.error) return Err(tokenAddress.error);
 
     if (isEvmNativeToken(order.source_swap.chain, tokenAddress.val)) {
       return this._initiateOnNativeHTLC(

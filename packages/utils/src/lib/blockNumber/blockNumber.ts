@@ -1,6 +1,7 @@
 import { createPublicClient, WalletClient, http, Chain } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
 import { AsyncResult, Err, Ok } from '../result';
+import { IBitcoinProvider } from '@gardenfi/core';
 
 type L2ChainId = 42161 | 421614;
 const L2_CHAINS: Record<L2ChainId, Chain> = {

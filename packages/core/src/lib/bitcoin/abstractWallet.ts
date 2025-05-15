@@ -14,7 +14,7 @@ import { AtomicSwapConfig } from './ASConfig';
 import { IHTLCWallet } from '../htlc.interface';
 import { BitcoinHTLCErrors } from './errors';
 import { getHTLCScript } from './htlcScript';
-import { reversify } from '../utils';
+import { isErrorWithMessage, reversify } from '../utils';
 import { ScriptType } from './script';
 import { trim0x } from '@gardenfi/utils';
 
@@ -282,10 +282,13 @@ export class BitcoinHTLC implements IHTLCWallet {
         toAddress: receiver,
       });
     } catch (err) {
-      if (err.message.includes('OP_EQUALVERIFY')) {
-        throw new Error(BitcoinHTLCErrors.INVALID_PUBKEY_OR_SECRET);
+      if (isErrorWithMessage(err)) {
+        if (err.message.includes('OP_EQUALVERIFY')) {
+          throw new Error(BitcoinHTLCErrors.INVALID_PUBKEY_OR_SECRET);
+        }
+        throw new Error(err.message);
       }
-      throw new Error(err.message);
+      throw new Error(String(err));
     }
   }
 
@@ -320,12 +323,15 @@ export class BitcoinHTLC implements IHTLCWallet {
         nSequence: this.swap.expiryBlocks,
       });
     } catch (err) {
-      if (err.message.includes('OP_EQUALVERIFY')) {
-        throw new Error(BitcoinHTLCErrors.INVALID_PUBKEY);
-      } else if (err.message.includes('BIP')) {
-        throw new Error(BitcoinHTLCErrors.ORDER_NOT_EXPIRED);
+      if (isErrorWithMessage(err)) {
+        if (err.message.includes('OP_EQUALVERIFY')) {
+          throw new Error(BitcoinHTLCErrors.INVALID_PUBKEY);
+        } else if (err.message.includes('BIP')) {
+          throw new Error(BitcoinHTLCErrors.ORDER_NOT_EXPIRED);
+        }
+        throw new Error(err.message);
       }
-      throw new Error(err.message);
+      throw new Error(String(err));
     }
   }
 }

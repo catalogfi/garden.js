@@ -1,6 +1,7 @@
 import { Network, script, payments } from 'bitcoinjs-lib';
 import { AtomicSwapConfig } from './ASConfig';
 import { address as bitcoinjsAddress } from 'bitcoinjs-lib';
+import { isErrorWithMessage } from '../utils';
 
 export const getHTLCScript = (
   swapConfig: AtomicSwapConfig,
@@ -11,14 +12,16 @@ export const getHTLCScript = (
     try {
       address = bitcoinjsAddress.fromBech32(address).data.toString('hex');
     } catch (err) {
-      if (
-        err.message.includes('Mixed-case string') ||
-        err.message.includes('too short')
-      ) {
-        address = bitcoinjsAddress
-          .fromBase58Check(address)
-          .hash.toString('hex');
-      } else throw new Error(err);
+      if (isErrorWithMessage(err)) {
+        if (
+          err.message.includes('Mixed-case string') ||
+          err.message.includes('too short')
+        ) {
+          address = bitcoinjsAddress
+            .fromBase58Check(address)
+            .hash.toString('hex');
+        }
+      } else throw new Error(String(err));
     }
     return address;
   };

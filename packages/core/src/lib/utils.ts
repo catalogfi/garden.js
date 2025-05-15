@@ -11,9 +11,7 @@ import { ApiConfig } from './garden/garden.types';
 import { IBaseWallet } from './bitcoin/baseWallet';
 import { BitcoinNetwork } from './bitcoin/provider.interface';
 
-export function resolveApiConfig(
-  env: ApiConfig,
-): {
+export function resolveApiConfig(env: ApiConfig): {
   api: Api;
   environment: Environment;
 } {
@@ -209,4 +207,13 @@ export const formatStarknetSignature = (sig: Signature) => {
 
 export function reversify(val: string): Buffer {
   return Buffer.from(val, 'hex').reverse();
+}
+
+export function isErrorWithMessage(err: unknown): err is { message: string } {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'message' in err &&
+    typeof (err as any).message === 'string'
+  );
 }
