@@ -1,5 +1,5 @@
-import { IHTLCWallet } from '../htlc.interface';
-import { AtomicSwapConfig } from './ASConfig';
+import { IHTLCWallet } from '../../htlc.interface';
+import { AtomicSwapConfig } from '../ASConfig';
 
 export enum WalletChain {
   Bitcoin,

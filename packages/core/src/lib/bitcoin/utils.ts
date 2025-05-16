@@ -1,5 +1,5 @@
 import { networks } from 'bitcoinjs-lib';
-import { BitcoinNetwork } from './provider.interface';
+import { BitcoinNetwork } from './provider/provider.interface';
 import { validateMnemonic, mnemonicToSeedSync } from 'bip39';
 import { BitcoinPaths } from './paths';
 import { BIP32Factory, BIP32Interface } from 'bip32';

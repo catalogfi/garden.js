@@ -1,4 +1,4 @@
-import { BitcoinNetwork } from './provider.interface';
+import { BitcoinNetwork } from './provider/provider.interface';
 
 //TODO: do we need to verify the APIs?
 export const verifyAPIs = (APIs: string[]): string[] => {

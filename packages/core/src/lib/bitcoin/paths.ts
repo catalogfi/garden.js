@@ -1,4 +1,4 @@
-import { BitcoinNetwork } from './provider.interface';
+import { BitcoinNetwork } from './provider/provider.interface';
 
 const path = (
   purpose: string,

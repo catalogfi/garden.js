@@ -8,7 +8,7 @@ import { createWalletClient, http, WalletClient } from 'viem';
 import { Quote } from '@gardenfi/core';
 import { StarknetRelay } from '../../starknet/relay/starknetRelay';
 import { BitcoinProvider } from '../../bitcoin/provider';
-import { BitcoinNetwork } from '../../bitcoin/provider.interface';
+import { BitcoinNetwork } from '../../bitcoin/provider/provider.interface';
 import { BitcoinWallet } from '../../bitcoin/wallet';
 // import axios from 'axios';
 // import { promisify } from 'util';

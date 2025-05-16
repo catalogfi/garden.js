@@ -14,7 +14,7 @@ import {
 import { BlockNumberFetcher, Quote } from '@gardenfi/core';
 import { StarknetRelay } from '../relay/starknetRelay';
 import { BitcoinProvider } from '../../bitcoin/provider';
-import { BitcoinNetwork } from '../../bitcoin/provider.interface';
+import { BitcoinNetwork } from '../../bitcoin/provider/provider.interface';
 import { BitcoinWallet } from '../../bitcoin/wallet';
 
 describe('starknetHtlcTests', () => {

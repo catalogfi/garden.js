@@ -1,11 +1,11 @@
 import { Network, payments } from 'bitcoinjs-lib';
+import { IBaseWallet } from './baseWallet';
 import {
   BitcoinNetwork,
   IBitcoinProvider,
   Urgency,
-} from './provider.interface';
-import { AddSignature, SigHashType } from './sig';
-import { IBaseWallet } from './baseWallet';
+} from '../provider/provider.interface';
+import { AddSignature, SigHashType } from '../sig';
 /**
  * @interface IBitcoinWallet
  */

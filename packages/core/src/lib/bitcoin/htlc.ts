@@ -6,10 +6,10 @@ import { serializeTaprootSignature } from 'bitcoinjs-lib/src/psbt/bip371';
 import { assert, xOnlyPubkey } from '../utils';
 import { serializeScript, sortLeaves } from '../utils';
 import { htlcErrors } from '../errors';
-import {BitcoinUTXO} from "./provider.interface";
-import {IBitcoinWallet} from "./wallet.interface";
-import { Urgency } from './provider.interface';
+import {BitcoinUTXO} from "./provider/provider.interface";
+import { Urgency } from './provider/provider.interface';
 import { IHTLCWallet } from '../htlc.interface';
+import { IBitcoinWallet } from './wallet/wallet.interface';
 
 export enum Leaf {
   REFUND,

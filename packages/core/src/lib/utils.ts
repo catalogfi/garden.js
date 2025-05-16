@@ -8,10 +8,12 @@ import * as ecc from 'tiny-secp256k1';
 import { Signature } from 'starknet';
 import { API, Api } from './constants';
 import { ApiConfig } from './garden/garden.types';
-import { IBaseWallet } from './bitcoin/baseWallet';
-import { BitcoinNetwork } from './bitcoin/provider.interface';
+import { BitcoinNetwork } from './bitcoin/provider/provider.interface';
+import { IBaseWallet } from './bitcoin/wallet/baseWallet';
 
-export function resolveApiConfig(env: ApiConfig): {
+export function resolveApiConfig(
+  env: ApiConfig,
+): {
   api: Api;
   environment: Environment;
 } {

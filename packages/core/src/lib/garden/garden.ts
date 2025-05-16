@@ -66,9 +66,9 @@ import { IEVMHTLC } from '../evm/htlc.types';
 import { EvmRelay } from '../evm/relay/evmRelay';
 import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { StarknetRelay } from '../starknet/relay/starknetRelay';
-import { IBitcoinWallet } from '../bitcoin/wallet.interface';
-import { BitcoinProvider } from '../bitcoin/provider';
-import { BitcoinWallet } from '../bitcoin/wallet';
+import { IBitcoinWallet } from '../bitcoin/wallet/wallet.interface';
+import { BitcoinProvider } from '../bitcoin/provider/provider';
+import { BitcoinWallet } from '../bitcoin/wallet/wallet';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment = Environment.TESTNET;
@@ -604,9 +604,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       !Number(order.destination_swap.redeem_block_number)
     ) {
       try {
-        const tx = await (
-          await wallet.getProvider()
-        ).getTransaction(order.destination_swap.redeem_tx_hash);
+        const tx = await (await wallet.getProvider()).getTransaction(
+          order.destination_swap.redeem_tx_hash,
+        );
 
         let isValidRedeem = false;
         for (const input of tx.vin) {

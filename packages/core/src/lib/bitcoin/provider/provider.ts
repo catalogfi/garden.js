@@ -1,4 +1,4 @@
-import { getAPIs, verifyAPIs } from './API';
+import { Fetcher } from '@gardenfi/utils';
 import {
   BitcoinNetwork,
   BitcoinTx,
@@ -9,8 +9,8 @@ import {
   Urgency,
   UrgencyToFeeRateKey,
 } from './provider.interface';
-import { BWErrors } from './errors';
-import { Fetcher } from '@gardenfi/utils';
+import { getAPIs, verifyAPIs } from '../API';
+import { BWErrors } from '../errors';
 
 type Vout = {
   vout: { scriptpubkey_address: string }[];

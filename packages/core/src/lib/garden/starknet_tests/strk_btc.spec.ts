@@ -9,7 +9,7 @@ import { Quote } from '@gardenfi/core';
 import { StarknetRelay } from '../../starknet/relay/starknetRelay';
 import { BitcoinWallet } from '../../bitcoin/wallet';
 import { BitcoinProvider } from '../../bitcoin/provider';
-import { BitcoinNetwork } from '../../bitcoin/provider.interface';
+import { BitcoinNetwork } from '../../bitcoin/provider/provider.interface';
 // import { promisify } from 'util';
 // import { exec } from 'child_process';
 

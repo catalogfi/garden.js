@@ -1,16 +1,16 @@
 import { initEccLib, networks, payments, Transaction, script as bitcoinjsScript, Psbt, } from "bitcoinjs-lib";
-import { IBitcoinProvider, Urgency } from "./provider.interface";
-import { AddressType } from "./interface";
 import * as ecc from 'tiny-secp256k1';
+import { IBitcoinProvider, Urgency } from "../provider/provider.interface";
+import { AddressType } from "../interface";
 import { AbstractBitcoinWallet } from "./abstractWallet";
-import { ECPairFactory, ECPairInterface } from 'ecpair';
-import { getBitcoinNetwork, mnemonicToPrivateKey } from "./utils";
-import { BitcoinPaths } from "./paths";
+import ECPairFactory, { ECPairInterface } from "ecpair";
+import { getBitcoinNetwork, mnemonicToPrivateKey } from "../utils";
+import { BitcoinPaths } from "../paths";
 import { BitcoinWalletConfig } from "./wallet.interface";
-import { AddSignature } from "./sig";
-import { BWErrors } from "./errors";
-import { ScriptType } from "./script";
-import { reversify } from "../utils";
+import { AddSignature } from "../sig";
+import { BWErrors } from "../errors";
+import { ScriptType } from "../script";
+import { reversify } from "../../../lib/utils";
 
 
 export type BitcoinWalletOpts = {

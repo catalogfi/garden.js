@@ -16,7 +16,7 @@ import { DigestKey } from '@gardenfi/utils';
 import { AccountInterface } from 'starknet';
 import { WalletClient } from 'viem';
 import { Api } from '../constants';
-import { IBitcoinWallet } from '../bitcoin/wallet.interface';
+import { IBitcoinWallet } from '../bitcoin/wallet/wallet.interface';
 
 export type SwapParams = {
   /**

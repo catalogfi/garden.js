@@ -6,17 +6,21 @@ import {
   address,
   script,
 } from 'bitcoinjs-lib';
-import { BitcoinUTXO, IBitcoinProvider, Urgency } from './provider.interface';
-import { BitcoinWalletConfig, IBitcoinWallet } from './wallet.interface';
-import { AddSignature, SigHashType } from './sig';
-import { WalletChain } from './baseWallet';
-import { AtomicSwapConfig } from './ASConfig';
-import { IHTLCWallet } from '../htlc.interface';
-import { BitcoinHTLCErrors } from './errors';
-import { getHTLCScript } from './htlcScript';
-import { isErrorWithMessage, reversify } from '../utils';
-import { ScriptType } from './script';
+import {
+  BitcoinUTXO,
+  IBitcoinProvider,
+  Urgency,
+} from '../provider/provider.interface';
+import { AddSignature, SigHashType } from '../sig';
+import { AtomicSwapConfig } from '../ASConfig';
+import { IHTLCWallet } from '../../htlc.interface';
+import { BitcoinHTLCErrors } from '../errors';
+import { getHTLCScript } from '../htlcScript';
+import { isErrorWithMessage, reversify } from '../../utils';
+import { ScriptType } from '../script';
 import { trim0x } from '@gardenfi/utils';
+import { BitcoinWalletConfig, IBitcoinWallet } from './wallet.interface';
+import { WalletChain } from './baseWallet';
 
 export abstract class AbstractBitcoinWallet implements IBitcoinWallet {
   abstract getAddress(): Promise<string>;
