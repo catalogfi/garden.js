@@ -17,7 +17,7 @@ export enum BlockchainType {
   Bitcoin = 'Bitcoin',
   EVM = 'EVM',
   Solana = 'Solana',
-  Starknet = 'Starknet'
+  Starknet = 'Starknet',
 }
 
 export enum NetworkType {
@@ -67,7 +67,13 @@ export type Chain = keyof typeof Chains;
 
 export type EvmChain = keyof Omit<
   typeof Chains,
-  'bitcoin' | 'bitcoin_testnet' | 'bitcoin_regtest' | 'solana' | 'solana_testnet' | 'solana_localnet' | 'starknet'
+  | 'bitcoin'
+  | 'bitcoin_testnet'
+  | 'bitcoin_regtest'
+  | 'solana'
+  | 'solana_testnet'
+  | 'solana_localnet'
+  | 'starknet'
   | 'starknet_devnet'
   | 'starknet_sepolia'
 >;
@@ -121,9 +127,11 @@ export const isEVM = (chain: Chain) => {
 
 export const isSolana = (chain: Chain) => {
   return (
-    chain === Chains.solana || chain === Chains.solana_testnet || chain === Chains.solana_localnet
-  )
-}
+    chain === Chains.solana ||
+    chain === Chains.solana_testnet ||
+    chain === Chains.solana_localnet
+  );
+};
 
 export const isStarknet = (chain: Chain) => {
   return (
@@ -179,4 +187,8 @@ export const isEvmNativeToken = (chain: Chain, tokenAddress: string) => {
     isEVM(chain) &&
     tokenAddress.toLowerCase() === NativeTokenAddress.toLowerCase()
   );
+};
+
+export const isSolanaNativeToken = (chain: Chain, tokenAddress: string) => {
+  return isSolana(chain) && tokenAddress.toLowerCase() === 'primary';
 };
