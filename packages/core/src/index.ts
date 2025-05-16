@@ -23,6 +23,10 @@ export { StarknetRelay } from './lib/starknet/relay/starknetRelay';
 export type { IStarknetHTLC } from './lib/starknet/starknetHTLC.types';
 export { StarknetHTLC } from './lib/starknet/htlc/starknetHTLC';
 
+export { SolanaRelay } from './lib/solana/relayer/solanaRelay';
+export type { ISolanaHTLC } from './lib/solana/htlc/ISolanaHTLC';
+export type { SolanaHTLC } from './lib/solana/htlc/solanaHTLC';
+
 export { BlockNumberFetcher } from './lib/blockNumberFetcher/blockNumber';
 export type { IBlockNumberFetcher } from './lib/blockNumberFetcher/blockNumber';
 
