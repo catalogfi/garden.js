@@ -49,7 +49,7 @@ export class OKXProvider implements IInjectedBitcoinProvider {
 
   async requestAccounts(): AsyncResult<string[], string> {
     const connectResult = await this.connect();
-    if (connectResult.error) {
+    if (!connectResult.ok) {
       return Err(connectResult.error);
     }
     return Ok([connectResult.val.address]);

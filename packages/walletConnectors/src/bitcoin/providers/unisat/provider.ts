@@ -88,7 +88,7 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
       await this.#unisatProvider.switchChain(toNetwork);
 
       const newNetwork = await this.getNetwork();
-      if (newNetwork.error) {
+      if (!newNetwork.ok) {
         return Err('Failed to verify network switch');
       }
 

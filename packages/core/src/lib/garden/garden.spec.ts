@@ -170,7 +170,7 @@ describe('swap and execute using garden', () => {
     };
 
     const result = await garden.swap(orderObj);
-    if (result.error) {
+    if (!result.ok) {
       console.log('error while creating order ❌ :', result.error);
       throw new Error(result.error);
     }
@@ -197,7 +197,7 @@ describe('swap and execute using garden', () => {
 
     const res = await garden.evmHTLC.initiate(order);
     console.log('initiated ✅ :', res.val);
-    if (res.error) console.log('init error ❌ :', res.error);
+    if (!res.ok) console.log('init error ❌ :', res.error);
     expect(res.ok).toBeTruthy();
   }, 20000);
 
@@ -308,7 +308,7 @@ describe('switch network with http transport', () => {
         },
       };
       const order = await garden.swap(swapData);
-      if (order.error) {
+      if (!order.ok) {
         const errorMsg = `Error while creating order: ${order.error}`;
         console.log('❌', errorMsg);
         continue;
@@ -334,7 +334,7 @@ describe('switch network with http transport', () => {
       const res = await switchOrAddNetwork('citrea_testnet', client);
       expect(res.ok).toBeTruthy();
       expect(
-        res.val.walletClient.chain?.name === 'Citrea Testnet',
+        res.val?.walletClient.chain?.name === 'Citrea Testnet',
       ).toBeTruthy();
     } catch (error) {
       console.error('Network switch test failed:', error);

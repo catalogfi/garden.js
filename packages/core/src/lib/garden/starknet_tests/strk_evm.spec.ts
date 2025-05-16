@@ -182,7 +182,7 @@ describe('StarkNet Integration Tests', () => {
         },
       };
       const result = await garden.swap(order);
-      if (result.error) {
+      if (!result.ok) {
         console.log('Error while creating order ❌:', result.error);
         throw new Error(result.error);
       }
@@ -225,7 +225,7 @@ describe('StarkNet Integration Tests', () => {
       };
 
       const result = await garden.swap(order);
-      if (result.error) {
+      if (!result.ok) {
         console.log('Error while creating order ❌:', result.error);
         throw new Error(result.error);
       }
@@ -248,7 +248,7 @@ describe('StarkNet Integration Tests', () => {
 
       const res = await garden.evmHTLC.initiate(matchedOrder);
       console.log('initiated ✅ :', res.val);
-      if (res.error) console.log('init error ❌ :', res.error);
+      if (!res.ok) console.log('init error ❌ :', res.error);
       // expect(res.ok).toBeTruthy();
       expect(res.ok).toBeTruthy();
     }, 20000);
@@ -275,7 +275,7 @@ describe('StarkNet Integration Tests', () => {
       };
 
       const result = await garden.swap(order);
-      if (result.error) {
+      if (!result.ok) {
         console.log('Error while creating order ❌:', result.error);
         throw new Error(result.error);
       }
@@ -318,7 +318,7 @@ describe('StarkNet Integration Tests', () => {
       };
 
       const result = await garden.swap(order);
-      if (result.error) {
+      if (!result.ok) {
         console.log('Error while creating order ❌:', result.error);
         throw new Error(result.error);
       }

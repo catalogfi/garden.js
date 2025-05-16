@@ -7,9 +7,9 @@ import { privateKeyToAccount } from 'viem/accounts';
 // import axios from 'axios';
 import { Quote } from '@gardenfi/core';
 import { StarknetRelay } from '../../starknet/relay/starknetRelay';
-import { BitcoinWallet } from '../../bitcoin/wallet';
-import { BitcoinProvider } from '../../bitcoin/provider';
 import { BitcoinNetwork } from '../../bitcoin/provider/provider.interface';
+import { BitcoinWallet } from '../../bitcoin/wallet/wallet';
+import { BitcoinProvider } from '../../bitcoin/provider/provider';
 // import { promisify } from 'util';
 // import { exec } from 'child_process';
 
@@ -191,7 +191,7 @@ describe('StarkNet Integration Tests - STRK -> BTC', () => {
     };
 
     const result = await garden.swap(order);
-    if (result.error) {
+    if (!result.ok) {
       console.log('Error while creating order ❌:', result.error);
       throw new Error(result.error);
     }
@@ -224,7 +224,7 @@ describe('StarkNet Integration Tests - STRK -> BTC', () => {
   it('Initiate the swap', async () => {
     const res = await garden.starknetHTLC?.initiate(matchedorder);
     console.log('initiated ✅ :', res?.val);
-    if (res?.error) console.log('init error ❌ :', res.error);
+    if (res?.ok) console.log('init error ❌ :', res.error);
     // expect(res.ok).toBeTruthy();
     expect(res?.ok).toBeTruthy();
   }, 20000);

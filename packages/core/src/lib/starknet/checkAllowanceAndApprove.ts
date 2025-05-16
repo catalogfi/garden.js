@@ -23,7 +23,7 @@ export const checkAllowanceAndApprove = async (
       htlcAddress,
       starknetProvider,
     );
-    if (allowance.error) return Err(allowance.error);
+    if (!allowance.ok) return Err(allowance.error);
 
     const maxUint256 = cairo.uint256(BigInt(uint256.UINT_256_MAX));
 
@@ -54,7 +54,7 @@ export const checkAllowanceAndApprove = async (
           htlcAddress,
           starknetProvider,
         );
-        if (_allowance.error) return Err(_allowance.error);
+        if (!_allowance.ok) return Err(_allowance.error);
         allowance = _allowance.val;
         if (allowance >= amount) {
           break;
@@ -119,7 +119,7 @@ export const isAllowanceSufficient = async (
     htlcAddress,
     starknetProvider,
   );
-  if (allowance.error) return Err(allowance.error);
+  if (!allowance.ok) return Err(allowance.error);
 
   return Ok(allowance.val >= amount);
 };

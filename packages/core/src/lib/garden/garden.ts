@@ -205,13 +205,13 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   async swap(params: SwapParams): AsyncResult<MatchedOrder, string> {
     const validate = await this.validateAndFillParams(params);
-    if (validate.error) return Err(validate.error);
+    if (!validate.ok) return Err(validate.error);
 
     const { sendAddress, receiveAddress, timelock } = validate.val;
 
     const nonce = Date.now().toString();
     const secrets = await this._secretManager.generateSecret(nonce);
-    if (secrets.error) return Err(secrets.error);
+    if (!secrets.ok) return Err(secrets.error);
 
     const { strategyId, btcAddress } = params.additionalData;
     const additionalData = {
@@ -240,16 +240,16 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     };
 
     const quoteRes = await this._quote.getAttestedQuote(order);
-    if (quoteRes.error) return Err(quoteRes.error);
+    if (!quoteRes.ok) return Err(quoteRes.error);
 
     const createOrderRes = await this._orderbook.createOrder(
       quoteRes.val,
       this.auth,
     );
-    if (createOrderRes.error) return Err(createOrderRes.error);
+    if (!createOrderRes.ok) return Err(createOrderRes.error);
 
     const orderRes = await this.pollOrder(createOrderRes.val);
-    if (orderRes.error) return Err(orderRes.error);
+    if (!orderRes.ok) return Err(orderRes.error);
 
     return Ok(orderRes.val);
   }
@@ -286,10 +286,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       );
 
     const inputAmount = this.validateAmount(params.sendAmount);
-    if (inputAmount.error) return Err(inputAmount.error);
+    if (!inputAmount.ok) return Err(inputAmount.error);
 
     const outputAmount = this.validateAmount(params.receiveAmount);
-    if (outputAmount.error) return Err(outputAmount.error);
+    if (!outputAmount.ok) return Err(outputAmount.error);
 
     if (inputAmount < outputAmount)
       return Err('Send amount should be greater than receive amount');
@@ -305,10 +305,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     }
 
     const sendAddress = await this.getAddresses(params.fromAsset.chain);
-    if (sendAddress.error) return Err(sendAddress.error);
+    if (!sendAddress.ok) return Err(sendAddress.error);
 
     const receiveAddress = await this.getAddresses(params.toAsset.chain);
-    if (receiveAddress.error) return Err(receiveAddress.error);
+    if (!receiveAddress.ok) return Err(receiveAddress.error);
 
     return Ok({
       sendAddress: sendAddress.val,
@@ -362,7 +362,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       await sleep(1000);
       attempts++;
 
-      if (orderRes.error) {
+      if (!orderRes.ok) {
         if (!orderRes.error.includes('result is undefined')) {
           return Err(orderRes.error);
         }
@@ -389,7 +389,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         const ordersWithStatus = await this.filterExpiredAndAssignStatus(
           pendingOrders.data,
         );
-        if (ordersWithStatus.error) return;
+        if (!ordersWithStatus.ok) return;
 
         this.emit('onPendingOrdersChanged', ordersWithStatus.val);
         if (pendingOrders.data.length === 0) return;
@@ -417,7 +417,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
               const secrets = await this._secretManager.generateSecret(
                 order.create_order.nonce,
               );
-              if (secrets.error) {
+              if (!secrets.ok) {
                 this.emit('error', order, secrets.error);
                 return;
               }
@@ -513,7 +513,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
     const res = await this._evmHTLC.redeem(order, secret);
 
-    if (!res.ok && res.error) {
+    if (!res.ok) {
       this.emit('error', order, res.error);
       if (res.error.includes('Order already redeemed')) {
         this.orderExecutorCache.set(
@@ -542,7 +542,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     }
 
     const res = await this._starknetHTLC.redeem(order, secret);
-    if (res.error) {
+    if (!res.ok) {
       this.emit('error', order, res.error);
       if (res.error.includes('Order already redeemed')) {
         this.orderExecutorCache.set(
@@ -669,7 +669,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         redeemHex,
         order.create_order.create_id,
       );
-      if (res.error || !res.val) {
+      if (!res.ok) {
         this.emit('error', order, res.error || 'Failed to broadcast redeem tx');
         return;
       }
@@ -767,7 +767,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     if (orders.length === 0) return Ok([]);
 
     const blockNumbers = await this._blockNumberFetcher?.fetchBlockNumbers();
-    if (blockNumbers.error) return Err(blockNumbers.error);
+    if (!blockNumbers.ok) return Err(blockNumbers.error);
 
     const orderWithStatuses: OrderWithStatus[] = [];
 

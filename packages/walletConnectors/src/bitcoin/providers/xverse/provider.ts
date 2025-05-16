@@ -41,7 +41,7 @@ export class XverseProvider implements IInjectedBitcoinProvider {
       this.#xverseProvider = provider.provider;
 
       const network = await this.getNetwork();
-      if (network.error) return Err('Could not get network', network.error);
+      if (!network.ok) return Err('Could not get network', network.error);
 
       return Ok({
         address: this.address,

@@ -68,7 +68,7 @@ export const BTCWalletProvider = ({
   const connect = async (bitcoinWallet: IInjectedBitcoinProvider) => {
     setIsConnecting(true);
     const res = await bitcoinWallet.connect(network);
-    if (res.error) {
+    if (!res.ok) {
       setIsConnecting(false);
       return Err(res.error);
     }
@@ -102,7 +102,7 @@ export const BTCWalletProvider = ({
     if (!provider) return;
 
     const accounts = await provider.getAccounts();
-    if (accounts.error) {
+    if (!accounts.ok) {
       console.error('Error getting accounts:', accounts.error);
       return;
     }
@@ -168,7 +168,7 @@ export const BTCWalletProvider = ({
       const _provider = availableWallets[isAlreadyConnected.id];
       if (_provider) {
         const addresses = await _provider.getAccounts();
-        if (addresses.error || !addresses.val[0]) return;
+        if (!addresses.ok || !addresses.val[0]) return;
 
         const currentNetwork = await _provider.getNetwork();
         if (currentNetwork.error) return;

@@ -56,7 +56,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     if (!garden) return Err('Garden not initialized');
 
     const order = await garden.swap(params);
-    if (order.error && !order.val) return Err(order.error);
+    if (!order.val) return Err(order.error);
 
     if (isBitcoin(order.val.source_swap.chain)) return Ok(order.val);
 
@@ -67,9 +67,8 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         if (!garden.evmHTLC)
           return Err('EVM HTLC not initialized: Please provide evmHTLC');
 
-        // not null assertion
         const initRes = await garden.evmHTLC.initiate(order.val);
-        if (!initRes.ok && initRes.error) return Err(initRes.error);
+        if (!initRes.ok) return Err(initRes.error);
         init_tx_hash = initRes.val;
         break;
       }
@@ -80,8 +79,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
           );
 
         const starknetInitRes = await garden.starknetHTLC.initiate(order.val);
-        if (starknetInitRes.error && !starknetInitRes.val)
-          return Err(starknetInitRes.error);
+        if (!starknetInitRes.val) return Err(starknetInitRes.error!);
         init_tx_hash = starknetInitRes.val;
         break;
       }

@@ -79,6 +79,9 @@ export class XdefiProvider implements IInjectedBitcoinProvider {
           : Network.MAINNET;
       await this.#xdefiProvider.changeNetwork(newNetwork);
       const accounts = await this.getAccounts();
+      if (!accounts.ok) {
+        return Err(`Failed to get Xdefi accounts: ${accounts.error}`);
+      }
       this.address = accounts.val[0];
       return Ok(newNetwork);
     } catch (error) {
@@ -93,7 +96,7 @@ export class XdefiProvider implements IInjectedBitcoinProvider {
   async getBalance() {
     const network = await this.getNetwork();
     const res = await getBalance(this.address, network.val);
-    if (res.error) return Err(res.error);
+    if (!res.ok) return Err(res.error);
     return Ok(res.val);
   }
 

@@ -1,4 +1,4 @@
-import { AsyncResult, Err, Ok, Result } from './result';
+import { AsyncResult, Err, Ok } from './result';
 
 /**
  * A wrapper function to execute a function with try catch block.
@@ -10,7 +10,7 @@ export async function executeWithTryCatch<T>(
 ): AsyncResult<T, string> {
   try {
     const result = await tryFunction();
-    if (result instanceof Result) {
+    if (typeof result == 'object' && result !== null && 'ok' in result) {
       return result;
     }
     return Ok(result);

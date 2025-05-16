@@ -92,7 +92,7 @@ export class SecretManager extends EventBroker<SecretManagerEvents>
 
   async generateSecret(nonce: string) {
     const signature = await this.signMessage(nonce);
-    if (signature.error) return Err(signature.error);
+    if (!signature.ok) return Err(signature.error);
 
     const secret = sha256(with0x(signature.val));
     const secretHash = sha256(secret);
@@ -102,7 +102,7 @@ export class SecretManager extends EventBroker<SecretManagerEvents>
   private async signMessage(nonce: string) {
     if (!this.digestKey) {
       const digestKey = await this.getDigestKey();
-      if (digestKey.error) return Err(digestKey.error);
+      if (!digestKey.ok) return Err(digestKey.error);
 
       this.digestKey = digestKey.val;
     }
