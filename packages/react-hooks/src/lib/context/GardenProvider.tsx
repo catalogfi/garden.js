@@ -79,7 +79,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
           );
 
         const starknetInitRes = await garden.starknetHTLC.initiate(order.val);
-        if (!starknetInitRes.val) return Err(starknetInitRes.error!);
+        if (!starknetInitRes.ok) return Err(starknetInitRes.error);
         init_tx_hash = starknetInitRes.val;
         break;
       }
