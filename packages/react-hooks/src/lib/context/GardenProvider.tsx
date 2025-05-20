@@ -16,7 +16,6 @@ import {
 } from '@gardenfi/orderbook';
 import { constructOrderpair } from '../utils';
 import { useDigestKey } from '../hooks/useDigestKey';
-import { hasAnyValidValue } from '../utils';
 
 export const GardenContext = createContext<GardenContextType>({
   pendingOrders: [],
@@ -107,20 +106,12 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     if (!('wallets' in config) && !('htlc' in config)) return;
 
     let garden: Garden;
-    if (
-      'wallets' in config &&
-      Object.keys(config.wallets).length > 0 &&
-      hasAnyValidValue(config.wallets)
-    ) {
+    if ('wallets' in config) {
       garden = Garden.fromWallets({
         ...config,
         digestKey: digestKey,
       });
-    } else if (
-      'htlc' in config &&
-      Object.keys(config.htlc).length > 0 &&
-      hasAnyValidValue(config.htlc)
-    ) {
+    } else if ('htlc' in config) {
       garden = new Garden({
         ...config,
         digestKey: digestKey,
