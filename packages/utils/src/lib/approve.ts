@@ -17,6 +17,11 @@ export const checkAllowanceAndApprove = async (
 ): AsyncResult<string, string> => {
   if (!walletClient.account) return Err('No account found');
 
+  console.log(
+    'walletClient.chain.id in checkAllowanceAndApprove',
+    await walletClient.getChainId(),
+  );
+
   const erc20Contract = getContract({
     address: with0x(tokenAddress),
     abi: erc20Abi,

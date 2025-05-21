@@ -153,7 +153,10 @@ export class EvmRelay implements IEVMHTLC {
         client: this.wallet,
       });
 
-      console.log('wallet Id in _initiateOnErc20HTLC', this.wallet.chain?.id);
+      console.log(
+        'wallet Id in _initiateOnErc20HTLC',
+        await this.wallet.getChainId(),
+      );
 
       const approval = await checkAllowanceAndApprove(
         Number(amount),
@@ -161,6 +164,7 @@ export class EvmRelay implements IEVMHTLC {
         asset,
         this.wallet,
       );
+      console.log('approval.error :', approval.error);
       if (approval.error) return Err(approval.error);
 
       const domain = await atomicSwap.read.eip712Domain();
