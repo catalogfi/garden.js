@@ -153,6 +153,8 @@ export class EvmRelay implements IEVMHTLC {
         client: this.wallet,
       });
 
+      console.log('wallet Id in _initiateOnErc20HTLC', this.wallet.chain?.id);
+
       const approval = await checkAllowanceAndApprove(
         Number(amount),
         tokenAddress,
