@@ -26,6 +26,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
+    "@gardenfi/core": "workspace:*",
     "@types/ws": "^8.5.7",
     "dotenv": "^16.3.1",
     "typescript": "^5.2.2",
