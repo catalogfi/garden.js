@@ -1,4 +1,4 @@
-[![NPM Version](https://img.shields.io/npm/v/%40gardenfi%2Fcore?style=for-the-badge&logo=npm&label=core&color=B1D8B7)](https://www.npmjs.com/package/@gardenfi/core) [![NPM Version](https://img.shields.io/npm/v/%40gardenfi%2Forderbook?style=for-the-badge&logo=npm&label=orderbook&color=B1D8B7)](https://www.npmjs.com/package/@gardenfi/orderbook)
+[![NPM Version](https://img.shields.io/npm/v/%40gardenfi%2Fcore?style=for-the-badge&logo=npm&label=core&color=B1D8B7)](https://www.npmjs.com/package/@gardenfi/core) [![NPM Version](https://img.shields.io/npm/v/%40gardenfi%2Forderbook?style=for-the-badge&logo=npm&label=orderbook&color=B1D8B7)](https://www.npmjs.com/package/@gardenfi/orderbook) [![NPM Version](https://img.shields.io/npm/v/%40gardenfi%2Freact-hooks?style=for-the-badge&logo=npm&label=react-hooks&color=B1D8B7)](https://www.npmjs.com/package/@gardenfi/react-hooks) [![NPM Version](https://img.shields.io/npm/v/%40gardenfi%2Futils?style=for-the-badge&logo=npm&label=utils&color=B1D8B7)](https://www.npmjs.com/package/@gardenfi/utils) [![NPM Version](https://img.shields.io/npm/v/%40gardenfi%2Fwallet-connectors?style=for-the-badge&logo=npm&label=wallet-connectors&color=B1D8B7)](https://www.npmjs.com/package/@gardenfi/wallet-connectors)
 
 # Garden SDK
 
@@ -6,33 +6,81 @@ The Garden SDK is a set of typescript packages that allow you to bridge Bitcoin 
 
 ## Packages
 
-- [@gardenfi/orderbook](./packages/orderbook/README.md): Allows you to create orders and listen to them.
-- [@gardenfi/core](./packages/core/README.md): Allows you to interact with orders once you setup your wallets.
+- [`@gardenfi/utils`](./packages/utils/README.md) : Provides shared utility functions.
+- [`@gardenfi/wallet-connectors`](./packages/wallet-connectors/README.md) : Provides wallet adapters for Bitcoin wallet connectivity.
+- [`@gardenfi/orderbook`](./packages/orderbook/README.md) : Allows you to create orders and listen to them.
+- [`@gardenfi/core`](./packages/core/README.md) : Allows you to interact with orders once you setup your wallets.
+- [`@gardenfi/react-hooks`](./packages/react-hooks/README.md) :React context and hooks for integrating Garden SDK with your UI.
 
 ## Docs
 
-Check out our [docs](https://docs.garden.finance/developers/sdk) to learn more about Garden and how to build on it. 
+Check out our [docs](https://docs.garden.finance/developers/sdk) to learn more about Garden and how to build on it.
+
+## Dependency Graph
+
+```
+@gardenfi/utils
+   └── @gardenfi/wallet-connectors
+         └── @gardenfi/orderbook
+               └── @gardenfi/core
+                     └── @gardenfi/react-hooks
+```
+
+## Getting Started
+
+This repository utilizes a Yarn workspace. To begin setting up the environment, follow these steps:
+
+```bash
+# fork and clone the repository
+git clone https://github.com/your-username/garden.js.git
+cd garden.js
+
+# install dependencies
+yarn
+
+#build the project
+yarn build
+
+#build a specific package
+yarn workspace @gardenfi/<package_name> build
+
+#start development server
+yarn dev
+```
+## Usage
+To integrate the Garden SDK packages into your project based on your requirement, use the following command:
+
+```bash
+yarn add @gardenfi/<package_name>
+```
 
 ## Contributing
 
-### Setup
+### Make a contribution
 
-This project uses yarn workspaces. Run `yarn` in the directory to install all dependencies.
+- Follow a consistent branch naming convention:
 
-To build a package, use:
+    | Type | Purpose | Example |
+    |------|---------|---------|
+    | `feat/` | Introducing a new feature | feat/add-wallet-modal |
+    | `fix/` | Bug fix or patch | fix/order-expiry-bug |
+    | `chore/` | Minor update, refactor, or cleanup | chore/update-readme |
 
-```bash
-yarn workspace @gardenfi/<package_name> build
-```
+    Test your updates locally to ensure everything works as expected.
 
-To run the development server while building all packages as you develop, use:
+- Commit and push changes
 
-```bash
-yarn dev
-```
+    ```bash
+    git add .
+    git commit -m "<COMMIT_MSG>"
+    git push origin "<YOUR_BRANCH_NAME>"
+    ```
 
-To run the development server for the documentation, use:
+- open a Pull Request to the `main` branch and fill in a clear description of your changes.
 
-```bash
-yarn start:docs
-```
+### Contribution Tips
+
+- Keep PRs small and focused.
+- Follow existing code style and conventions.
+- Add meaningful commit messages and PR titles.
+- Include screenshots or demos if applicable.
