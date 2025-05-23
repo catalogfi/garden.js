@@ -4,7 +4,6 @@ import {
   Contract,
   RpcProvider,
   TransactionExecutionStatus,
-  uint256,
 } from 'starknet';
 import { AsyncResult, Err, Ok, with0x } from '@catalogfi/utils';
 import { TokenABI } from './abi/starknetTokenABI';
@@ -26,50 +25,46 @@ export const checkAllowanceAndApprove = async (
     );
     if (allowance.error) return Err(allowance.error);
 
-    const maxUint256 = cairo.uint256(BigInt(uint256.UINT_256_MAX));
+    const currentAllowance = allowance.val;
 
-    if (allowance.val < amount) {
-      const approveResponse = await account.execute([
-        {
-          contractAddress: with0x(tokenAddress),
-          entrypoint: 'approve',
-          calldata: [htlcAddress, maxUint256.low, maxUint256.high],
-        },
-      ]);
+    if (currentAllowance >= amount) {
+      return Ok('Allowance already approved');
+    }
+    const amountUint256 = cairo.uint256(BigInt(amount));
+    const approveResponse = await account.execute([
+      {
+        contractAddress: with0x(tokenAddress),
+        entrypoint: 'approve',
+        calldata: [with0x(htlcAddress), amountUint256.low, amountUint256.high],
+      },
+    ]);
 
-      await starknetProvider.waitForTransaction(
-        approveResponse.transaction_hash,
-        {
-          retryInterval: 3000,
-          successStates: [TransactionExecutionStatus.SUCCEEDED],
-        },
+    await starknetProvider.waitForTransaction(
+      approveResponse.transaction_hash,
+      {
+        retryInterval: 3000,
+        successStates: [TransactionExecutionStatus.SUCCEEDED],
+      },
+    );
+
+    await sleep(2000);
+
+    // Verify allowance updated correctly (retry for up to 40 seconds)
+    for (let i = 0; i < 20; i++) {
+      const _allowance = await checkAllowance(
+        account.address,
+        tokenAddress,
+        htlcAddress,
+        starknetProvider,
       );
+      if (_allowance.error) return Err(_allowance.error);
+      if (_allowance.val >= amount) {
+        return Ok(approveResponse.transaction_hash);
+      }
       await sleep(2000);
-
-      // in a loop check if the allowance is approved for every 2 sec until 40sec and exit
-      let allowance = 0n;
-      for (let i = 0; i < 20; i++) {
-        const _allowance = await checkAllowance(
-          account.address,
-          tokenAddress,
-          htlcAddress,
-          starknetProvider,
-        );
-        if (_allowance.error) return Err(_allowance.error);
-        allowance = _allowance.val;
-        if (allowance >= amount) {
-          break;
-        }
-        await sleep(2000);
-      }
-      if (allowance < amount) {
-        return Err('Allowance not approved');
-      }
-
-      return Ok(approveResponse.transaction_hash);
     }
 
-    return Ok('Allowance already approved');
+    return Err('Allowance not approved after transaction.');
   } catch (error) {
     return Err(
       `Failed to check or approve allowance: ${

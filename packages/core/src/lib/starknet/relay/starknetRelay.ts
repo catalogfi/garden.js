@@ -10,7 +10,6 @@ import {
   cairo,
   num,
   shortString,
-  uint256,
 } from 'starknet';
 import { MatchedOrder } from '@gardenfi/orderbook';
 import { AsyncResult, Err, Ok, Fetcher, with0x } from '@catalogfi/utils';
@@ -111,11 +110,11 @@ export class StarknetRelay implements IStarknetHTLC {
     const contractAddress = source_swap.asset;
 
     try {
-      const maxUint256 = cairo.uint256(BigInt(uint256.UINT_256_MAX));
+      const amountUint256 = cairo.uint256(BigInt(amount));
       const approvalCall: Call = {
         contractAddress: with0x(tokenAddress),
         entrypoint: 'approve',
-        calldata: [contractAddress, maxUint256.low, maxUint256.high],
+        calldata: [contractAddress, amountUint256.low, amountUint256.high],
       };
 
       const _amount = cairo.uint256(amount);
