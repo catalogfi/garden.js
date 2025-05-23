@@ -1,7 +1,6 @@
 import { createPublicClient, WalletClient, http, Chain } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
 import { AsyncResult, Err, Ok } from '../result';
-import { IBitcoinProvider } from '@gardenfi/core';
 
 type L2ChainId = 42161 | 421614;
 const L2_CHAINS: Record<L2ChainId, Chain> = {
@@ -39,21 +38,5 @@ export const _fetchEVMBlockNumber = async (chain: Chain) => {
     return Ok(Number(blockNumber));
   } catch (error) {
     return Err('Failed to fetch evm block number', error);
-  }
-};
-
-/**
- * Fetches the latest block number of Bitcoin chain
- * @param btcProvider Bitcoin provider
- * @returns bitcoin latest block number
- */
-export const fetchBitcoinBlockNumber = async (
-  btcProvider: IBitcoinProvider,
-): AsyncResult<number, string> => {
-  try {
-    const blockNumber = await btcProvider.getLatestTip();
-    return Ok(blockNumber);
-  } catch (error) {
-    return Err('Failed to fetch bitcoin block number', error);
   }
 };

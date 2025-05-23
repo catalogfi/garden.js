@@ -36,6 +36,7 @@
   },
   "sideEffects": false,
   "dependencies": {
+    "@gardenfi/core": "workspace:*",
     "@gardenfi/utils": "workspace:*",
     "axios": "^1.7.9",
     "bitcoinjs-lib": "^7.0.0-rc.0",

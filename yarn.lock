@@ -683,6 +683,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@gardenfi/wallet-connectors@workspace:packages/walletConnectors"
   dependencies:
+    "@gardenfi/core": "workspace:*"
     "@gardenfi/utils": "workspace:*"
     "@types/react": "npm:^18"
     "@types/ws": "npm:^8.5.7"
