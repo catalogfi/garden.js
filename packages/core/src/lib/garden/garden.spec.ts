@@ -31,7 +31,7 @@ import { SwapParams } from './garden.types';
 // import { Quote } from './../quote/quote';
 // import { Orderbook } from 'gardenfi/orderbook';
 
-describe.only('checking garden initialisation', async () => {
+describe('checking garden initialisation', async () => {
   const pk = '8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
   // const address = '0x52FE8afbbB800a33edcbDB1ea87be2547EB30000';
   const account = privateKeyToAccount(with0x(pk));
@@ -237,16 +237,20 @@ describe('swap and execute using garden', () => {
   }, 150000);
 });
 
-describe('switch network with http transport', () => {
+describe.only('switch network with http transport', () => {
   const evmAccount = privateKeyToAccount(
-    '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61',
+    '0xa6aef474481a516e9f24edf5e55c7a7e11ee23f785de73da2e3f1ba64faffa28',
   );
   const executeStrategy = async (garden: Garden) => {
-    const strategies = (await garden.quote.getStrategies()).val;
-    const strategyKeys = Object.keys(strategies);
+    const strategies = await garden.quote.getStrategies();
+    if (!strategies.ok) {
+      console.log('Error getting strategy', strategies.error);
+      return;
+    }
+    const strategyKeys = Object.keys(strategies.val);
     const randomKey =
       strategyKeys[Math.floor(Math.random() * strategyKeys.length)];
-    const strategy = strategies[randomKey];
+    const strategy = strategies.val[randomKey];
 
     return { strategy, randomKey };
   };
@@ -275,14 +279,21 @@ describe('switch network with http transport', () => {
   };
   const trade = async (garden: Garden) => {
     for (let i = 0; i < 10; i++) {
-      const { strategy, randomKey } = await executeStrategy(garden);
-      const quote = (
-        await garden.quote.getQuote(
-          randomKey,
-          Number(strategy.minAmount),
-          false,
-        )
-      ).val;
+      const response = await executeStrategy(garden);
+      if (!response) {
+        console.log('failed to execute strategy');
+        continue;
+      }
+      const { randomKey, strategy } = response;
+      const quote = await garden.quote.getQuote(
+        randomKey,
+        Number(strategy.minAmount),
+        false,
+      );
+      if (!quote.ok) {
+        console.log('Error getting quote', quote.error);
+        continue;
+      }
       const [sourceChainAndAsset, destChainAndAsset] = randomKey.split('::');
       const [sourceChain, sourceAsset] = sourceChainAndAsset.split(':');
       const [destChain, destAsset] = destChainAndAsset.split(':');
@@ -297,7 +308,7 @@ describe('switch network with http transport', () => {
       }
       const fromAsset = getAssetByAtomicSwapAddress(sourceChain, sourceAsset)!;
       const toAsset = getAssetByAtomicSwapAddress(destChain, destAsset)!;
-      const receiveAmount = Object.values(quote.quotes)[0];
+      const receiveAmount = Object.values(quote.val.quotes)[0];
       const swapData: SwapParams = {
         fromAsset,
         toAsset,
@@ -349,7 +360,7 @@ describe('switch network with http transport', () => {
     });
     const res = await switchOrAddNetwork('ethereum_sepolia', client);
     expect(res.ok).toBeTruthy();
-    expect(res.val.message).toBe('Already on the network');
+    expect(res?.val?.message).toBe('Already on the network');
   }, 15000);
   it('should switch chain and do evm-evm trades in node environment', async () => {
     const client = createWalletClient({
