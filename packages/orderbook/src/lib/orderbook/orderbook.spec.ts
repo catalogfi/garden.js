@@ -17,7 +17,7 @@ import {
 // import { Asset, Chains } from '../asset';
 
 describe('orders provider', async () => {
-  const orderbookApi = 'https://orderbook-stage.hashira.io';
+  const orderbookApi = 'https://testnet.api.garden.finance';
   const address = '0x52FE8afbbB800a33edcbDB1ea87be2547EB30000';
   const id = 'c519b735bcef0a6bd6a54ac7d46449087b2146cae75541c2ddde686cf8fba294';
 
@@ -33,7 +33,7 @@ describe('orders provider', async () => {
   });
 
   test('should get orders of a address', async () => {
-    const orders = await orderbook.getMatchedOrders(address, false);
+    const orders = await orderbook.getMatchedOrders(address, "all");
     expect(orders.error).toBeUndefined();
     expect(orders.val.data.length).toBeGreaterThan(0);
     expectTypeOf(orders.val.data).toEqualTypeOf<MatchedOrder[]>();

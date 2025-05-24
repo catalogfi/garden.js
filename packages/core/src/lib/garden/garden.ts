@@ -47,6 +47,7 @@ import {
   BitcoinWallet,
   IBitcoinWallet,
 } from '@catalogfi/wallets';
+import { API as configAPI } from '@gardenfi/utils';
 import {
   isOrderExpired,
   parseActionFromStatus,
@@ -117,8 +118,8 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       config.blockNumberFetcher ??
       new BlockNumberFetcher(this._api.info, this.environment);
 
-    const provider = new BitcoinProvider(getBitcoinNetwork(this.environment));
-    this._btcWallet = BitcoinWallet.fromPrivateKey(
+    const provider = this.environment === Environment.LOCALNET ? new BitcoinProvider(getBitcoinNetwork(this.environment), configAPI.localnet.bitcoin) : new BitcoinProvider(getBitcoinNetwork(this.environment));
+    this._btcWallet = config.btcWallet ?? BitcoinWallet.fromPrivateKey(
       this._digestKey.digestKey,
       provider,
     );
@@ -154,7 +155,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
             config.wallets.starknet,
             config.environment === Environment.MAINNET
               ? Network.MAINNET
-              : Network.TESTNET,
+              : config.environment === Environment.TESTNET
+              ? Network.TESTNET
+              : Network.LOCALNET,
           )
         : undefined,
     };
@@ -240,10 +243,19 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     const quoteRes = await this._quote.getAttestedQuote(order);
     if (quoteRes.error) return Err(quoteRes.error);
 
-    const createOrderRes = await this._orderbook.createOrder(
-      quoteRes.val,
-      this.auth,
-    );
+    let createOrderRes;
+    if (this.environment === Environment.LOCALNET) {
+      createOrderRes = await this._orderbook.createOrder(
+        quoteRes.val,
+        this.auth
+      );
+    } else {
+      createOrderRes = await this._orderbook.createOrder(
+        quoteRes.val,
+        this.auth
+      );
+    }
+
     if (createOrderRes.error) return Err(createOrderRes.error);
 
     const orderRes = await this.pollOrder(createOrderRes.val);

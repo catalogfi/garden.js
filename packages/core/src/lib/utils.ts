@@ -20,7 +20,7 @@ export function resolveApiConfig(env: ApiConfig): {
   const baseApi =
     environment === Environment.MAINNET
       ? API.mainnet
-      : Environment.TESTNET
+      : environment === Environment.TESTNET
       ? API.testnet
       : API.localnet;
 
@@ -173,6 +173,8 @@ export const getBitcoinNetwork = (network: Environment): BitcoinNetwork => {
       return BitcoinNetwork.Mainnet;
     case Environment.TESTNET:
       return BitcoinNetwork.Testnet;
+    case Environment.LOCALNET:
+      return BitcoinNetwork.Regtest;
     default:
       throw new Error(`Invalid bitcoin network ${network}`);
   }

@@ -14,7 +14,7 @@ export const Details = () => {
   const chainId = useChainId();
   const { address: EvmAddress } = useAccount();
   const { account, provider } = useBitcoinWallet();
-  const { account: starknetAccount } = useWalletStore();
+  const { account: starknetaccount  } = useWalletStore();
 
   provider?.on('accountsChanged', async () => {
     const networkName = await provider?.getNetwork();
@@ -31,10 +31,11 @@ export const Details = () => {
       setBalance(balanceBTC!.val.total * 10 ** -8);
     };
     fetchInitialData();
+
   }, [provider]);
 
   return (
-    (EvmAddress || account) && (
+    (EvmAddress || account || starknetaccount) && (
       <div className="flex flex-col items-start justify-start gap-2">
         {EvmAddress && (
           <div className="grid grid-cols-2 gap-2 w-full">
@@ -74,18 +75,18 @@ export const Details = () => {
             <span className="text-lg">{EvmAddress}</span>
           </div>
         )}
-        {starknetAccount && (
-          <div className="flex gap-3 items-center justify-between">
-            <span className="text-sm font-bold opacity-60">
-              Starknet Account:
-            </span>
-            <span className="text-lg">{starknetAccount}</span>
-          </div>
-        )}
         {account && (
           <div className="flex gap-3 items-center justify-between">
             <span className="text-sm font-bold opacity-60">BTC Account: </span>
             <span className="text-lg">{account}</span>
+          </div>
+        )}
+        {starknetaccount && (
+          <div className="flex gap-3 items-center justify-between">
+            <span className="text-sm font-bold opacity-60">
+              Starknet Account:{' '}
+            </span>
+            <span className="text-lg">{starknetaccount}</span>
           </div>
         )}
       </div>

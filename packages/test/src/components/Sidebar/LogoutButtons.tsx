@@ -3,16 +3,12 @@ import { useAccount } from 'wagmi';
 import { useDisconnect } from 'wagmi';
 import { useBitcoinWallet } from '@gardenfi/wallet-connectors';
 import { useWalletStore } from '../../store/useWalletStore';
-import {
-  useAccount as StarknetAccount,
-  useDisconnect as starknetDisconnect,
-} from '@starknet-react/core';
 
 export const LogoutButtons = () => {
   const { address: EvmAddress } = useAccount();
   const { disconnect: disconnectWallet } = useDisconnect();
   const { disconnect: disconnectBTWWallet, account } = useBitcoinWallet();
-  const { account: starknetAccount } = StarknetAccount();
+  const { disconnect: disconnectStarknetWallet, account: starknetaccount } = useWalletStore();
 
   const EVMdisconnect = () => {
     disconnectWallet();
@@ -22,8 +18,8 @@ export const LogoutButtons = () => {
     disconnectBTWWallet();
   };
 
-  const StarknetDisconnect = async () => {
-    starknetDisconnect();
+  const StarknetDisconnect = () => {
+    disconnectStarknetWallet();
   };
 
   return (
@@ -34,11 +30,7 @@ export const LogoutButtons = () => {
       <Button secondary disabled={!account} onClick={BTCDisconnect}>
         BTC Logout
       </Button>
-      <Button
-        secondary
-        disabled={!starknetAccount}
-        onClick={StarknetDisconnect}
-      >
+      <Button secondary disabled={!starknetaccount} onClick={StarknetDisconnect}>
         Starknet Logout
       </Button>
     </div>
