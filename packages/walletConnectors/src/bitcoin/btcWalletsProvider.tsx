@@ -13,9 +13,11 @@ import { UnisatBitcoinProvider } from './providers/unisat/unisat.types';
 import { XVerseBitcoinProvider } from './providers/xverse/xverse.types';
 import { XdefiBitcoinProvider } from './providers/xdefi/xdefi.types';
 import { PhantomBitcoinProvider } from './providers/phantom/phantom.types';
+import { KeplrBitcoinProvider } from './providers/keplr/keplr.types';
 import { UnisatProvider } from './providers/unisat/provider';
-// import { PhantomProvider } from './providers/phantom/provider';
-// import { XverseProvider } from './providers/xverse/provider';
+import { PhantomProvider } from './providers/phantom/provider';
+import { XverseProvider } from './providers/xverse/provider';
+import { KeplrProvider } from './providers/keplr/provider';
 // import { XdefiProvider } from './providers/xdefi/provider';
 import {
   AvailableWallets,
@@ -40,6 +42,9 @@ declare global {
     phantom?: {
       bitcoin: PhantomBitcoinProvider;
     };
+    keplr?: {
+      bitcoin: KeplrBitcoinProvider;
+    }
   }
 }
 
@@ -127,32 +132,37 @@ export const BTCWalletProvider = ({
   const updateWalletList = async () => {
     if (
       window.okxwallet &&
-      network === Network.MAINNET &&
-      window.okxwallet.bitcoin
+      window.okxwallet.bitcoin && window.okxwallet.bitcoinTestnet
     ) {
-      const okxProvider = new OKXProvider(window.okxwallet.bitcoin, network);
+      const okxProvider = new OKXProvider(network === Network.MAINNET ? window.okxwallet.bitcoin : window.okxwallet.bitcoinTestnet, network);
       addToWalletList(okxProvider);
     }
-    // if (
-    //   network === Network.MAINNET &&
-    //   window.phantom &&
-    //   window.phantom.bitcoin
-    // ) {
-    //   const phantomProvider = new PhantomProvider(window.phantom.bitcoin);
-    //   addToWalletList(walletIDs.Phantom, phantomProvider);
-    // }
+    if (
+      network === Network.MAINNET &&
+      window.phantom &&
+      window.phantom.bitcoin
+    ) {
+      const phantomProvider = new PhantomProvider(window.phantom.bitcoin);
+      addToWalletList(phantomProvider);
+    }
     if (window.unisat) {
-      const uniProvider = new UnisatProvider(window.unisat);
+      const uniProvider = new UnisatProvider(window.unisat, network);
       addToWalletList(uniProvider);
     }
-    // if (window.XverseProviders && window.XverseProviders.BitcoinProvider) {
-    //   const xverseProvider = new XverseProvider(
-    //     window.XverseProviders.BitcoinProvider,
-    //   );
-    //   addToWalletList(BitcoinWallets.XVERSE, xverseProvider);
-    //   const res = await xverseProvider.getAccounts();
-    //   setAccount(res.val[0]);
-    // }
+    if (window.XverseProviders && window.XverseProviders.BitcoinProvider) {
+      const xverseProvider = new XverseProvider(
+        window.XverseProviders.BitcoinProvider,
+      );
+      addToWalletList(xverseProvider)
+    }
+    if (
+      network === Network.MAINNET &&
+      window.keplr &&
+      window.keplr.bitcoin
+    ) {
+      const keplrProvider = new KeplrProvider(window.keplr.bitcoin);
+      addToWalletList(keplrProvider);
+    }
     // if (window.xfi && window.xfi.bitcoin) {
     //   const xdefiProvider = new XdefiProvider(window.xfi.bitcoin);
     //   addToWalletList(BitcoinWallets.XDEFI, xdefiProvider);

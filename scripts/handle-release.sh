@@ -12,6 +12,9 @@ if [[ "$GITHUB_EVENT_NAME" == "issue_comment" ]]; then
   IS_PR=true
 fi
 
+ROOT_VERSION=$(git tag --list 'v*' --sort=-v:refname | head -n 1 | sed 's/^v//')
+echo "Current root version: $ROOT_VERSION"
+
 if [[ $1 == "beta" ]]; then
   VERSION_BUMP="prerelease"
   PRERELEASE_SUFFIX="beta"
@@ -180,10 +183,11 @@ else
   git checkout main
 fi
 
-ROOT_VERSION=$(jq -r .version package.json)
-
 yarn install
-yarn workspaces foreach --all --topological --no-private run build
+if ! yarn workspaces foreach --all --topological --no-private run build; then
+  echo "Build failed. Exiting."
+  exit 1
+fi
 
 if [[ "$VERSION_BUMP" == "prerelease" ]]; then
   if [[ "$ROOT_VERSION" =~ -beta\.[0-9]+$ ]]; then
@@ -203,11 +207,6 @@ else
   else
     NEW_ROOT_VERSION=$(increment_version "$ROOT_VERSION" "$VERSION_BUMP")
   fi
-fi
-
-if [[ "$VERSION_BUMP" != "prerelease" ]]; then
-  git tag "v$NEW_ROOT_VERSION"
-  git push https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git HEAD:main --tags
 fi
 
 echo "Publishing in order: ${PUBLISH_ORDER[@]}"
@@ -233,13 +232,14 @@ for PKG in "${PUBLISH_ORDER[@]}"; do
         echo "No beta version found. Creating the first beta version."
         NEW_VERSION="${LATEST_STABLE_VERSION}-beta.1"
     fi
+    jq --arg new_version "$NEW_VERSION" '.version = $new_version' package.json > package.tmp.json && mv package.tmp.json package.json
   else
     NEW_VERSION=$(increment_version "$LATEST_STABLE_VERSION" "$VERSION_BUMP")
+    jq --arg new_version "$NEW_VERSION" '.version = $new_version' package.json > package.tmp.json && mv package.tmp.json package.json
+    git add package.json
   fi
 
   echo "Bumping $PACKAGE_NAME to $NEW_VERSION"
-  jq --arg new_version "$NEW_VERSION" '.version = $new_version' package.json > package.tmp.json && mv package.tmp.json package.json
-  git add package.json
 
   if [[ "$VERSION_BUMP" == "prerelease" ]]; then
     yarn npm publish --tag beta --access public
@@ -250,24 +250,20 @@ for PKG in "${PUBLISH_ORDER[@]}"; do
   cd - > /dev/null
 done
 
-jq --arg new_version "$NEW_ROOT_VERSION" '.version = $new_version' package.json > package.tmp.json && mv package.tmp.json package.json
+if [[ "$VERSION_BUMP" != "prerelease" ]]; then
+  git tag "v$NEW_ROOT_VERSION"
+  git push https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git HEAD:main --tags
+fi
 
-git add package.json
-  git -c user.email="$COMMIT_EMAIL" \
-      -c user.name="$COMMIT_NAME" \
-      commit -m "V$NEW_ROOT_VERSION"
+if [[ "$IS_PR" != "true" ]]; then
+  jq --arg new_version "$NEW_ROOT_VERSION" '.version = $new_version' package.json > package.tmp.json && mv package.tmp.json package.json
 
-yarn config unset yarnPath
-jq 'del(.packageManager)' package.json > temp.json && mv temp.json package.json
-
-if [[ "$IS_PR" != "true" && -n $(git status --porcelain) ]]; then
-  git add .
-  git -c user.email="$COMMIT_EMAIL" \
-      -c user.name="$COMMIT_NAME" \
-      commit -m "commit release script and config changes"
+  git add package.json
+    git -c user.email="$COMMIT_EMAIL" \
+        -c user.name="$COMMIT_NAME" \
+        commit -m "v$NEW_ROOT_VERSION"
   git push https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git HEAD:main
 fi
 
-if [[ "$IS_PR" == "true" && -n "$PR_BRANCH" ]]; then
-  git push https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git HEAD:$PR_BRANCH
-fi
+yarn config unset yarnPath
+jq 'del(.packageManager)' package.json > temp.json && mv temp.json package.json

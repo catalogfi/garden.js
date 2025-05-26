@@ -12,6 +12,7 @@ export interface UnisatBitcoinProvider {
     total: number;
   }>;
   getChain: () => Promise<UnisatChain>;
+  getNetwork: () => Promise<UnisatNetworkEnum>;
   switchChain: (chain: UnisatChainEnum) => Promise<UnisatChain>;
   getPublicKey(): Promise<string>;
   on: (event: string, callback: (data: any) => void) => void;
@@ -27,7 +28,13 @@ export type UnisatChain = {
 
 export enum UnisatChainEnum {
   BITCOIN_MAINNET = 'BITCOIN_MAINNET',
+  BITCOIN_TESTNET = 'BITCOIN_TESTNET',
   BITCOIN_TESTNET4 = 'BITCOIN_TESTNET4',
 }
 
 export type UnisatNetwork = 'livenet' | 'testnet';
+
+export enum UnisatNetworkEnum {
+  LIVENET = 'livenet',
+  TESTNET = 'testnet',
+}
