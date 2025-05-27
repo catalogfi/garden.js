@@ -1,15 +1,15 @@
-import { Url } from 'src/lib/url';
+import { Url } from '../../url';
 import {
   ConditionalLoginChallenge,
   PasskeyToken,
   RegisterChallenge,
 } from './passkey.types';
-import { APIResponse } from 'src/lib/apiResponse.types';
+import { APIResponse } from '../../apiResponse.types';
 import {
   startAuthentication,
   startRegistration,
 } from '@simplewebauthn/browser';
-import { IStore } from 'src/lib/store';
+import { IStore } from '../../store';
 import { AsyncResult, Err, Ok, Result } from '../../result';
 import { Fetcher } from '../../fetcher';
 

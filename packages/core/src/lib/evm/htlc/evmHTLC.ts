@@ -16,7 +16,7 @@ import {
   WalletClient,
 } from 'viem';
 import { AtomicSwapABI } from '../abi/atomicSwap';
-import { IHTLCWallet } from 'src/lib/htlc.interface';
+import { IHTLCWallet } from '../../htlc.interface';
 
 export class EVMHTLC implements IHTLCWallet {
   private swap: Required<AtomicSwapConfig>;

@@ -1,4 +1,4 @@
-import { Connect, IInjectedBitcoinProvider } from 'src/bitcoin/bitcoin.types';
+import { Connect, IInjectedBitcoinProvider } from '../../bitcoin.types';
 import { KeplrBitcoinChainType, KeplrBitcoinProvider } from './keplr.types';
 import { WALLET_CONFIG } from '../../constants';
 import {

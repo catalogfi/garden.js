@@ -1,5 +1,5 @@
 import { MarkRequired } from '@gardenfi/utils';
-import { OnChainIdentifier } from 'src/lib/identifier';
+import { OnChainIdentifier } from '../../identifier';
 import { Address } from 'viem';
 
 export type AtomicSwapConfig = {
