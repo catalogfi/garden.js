@@ -50,12 +50,7 @@ export type {
   Strategies,
 } from './lib/quote/quote.types';
 
-export {
-  constructOrderPair,
-  validateBTCAddress,
-  toXOnly,
-  resolveApiConfig,
-} from './lib/utils';
+export { constructOrderPair, validateBTCAddress, toXOnly } from './lib/utils';
 
 export {
   evmToViemChainMap,
