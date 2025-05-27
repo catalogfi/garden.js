@@ -24,7 +24,7 @@ export class ApiKey implements IAuth {
     if (data.error) {
       return Err(data.error);
     }
-    // get this clarified - not null assertion usage
+
     const { expiryTimestamp } = data.val!;
     if (expiryTimestamp < new Date()) return Err('Token expired');
 

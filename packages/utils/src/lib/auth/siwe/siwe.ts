@@ -184,7 +184,7 @@ export class Siwe implements IAuth {
   async getAuthHeaders(): AsyncResult<AuthHeader, string> {
     const token = await this.getToken();
     if (token.error) return Err(token.error);
-    // usage of not null assertions
+
     return Ok({ Authorization: Authorization(token.val!) });
   }
 }
