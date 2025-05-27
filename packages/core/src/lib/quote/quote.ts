@@ -1,4 +1,3 @@
-import { AsyncResult, Err, Fetcher, Ok, Request } from '@catalogfi/utils';
 import {
   IQuote,
   QuoteResponse,
@@ -10,7 +9,14 @@ import {
   CreateOrderRequestWithAdditionalData,
   CreateOrderReqWithStrategyId,
 } from '@gardenfi/orderbook';
-import { APIResponse, Url } from '@gardenfi/utils';
+import {
+  APIResponse,
+  AsyncResult,
+  Err,
+  Fetcher,
+  Ok,
+  Url,
+} from '@gardenfi/utils';
 import { constructOrderPair } from '../utils';
 
 export class Quote implements IQuote {

@@ -1,4 +1,4 @@
-import { SelectedAccount } from 'src/bitcoin/bitcoin.types';
+import { SelectedAccount } from '../../bitcoin.types';
 import { Network } from '@gardenfi/utils';
 
 export interface OKXBitcoinProvider {

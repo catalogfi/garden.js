@@ -1,4 +1,3 @@
-import { AsyncResult } from '@catalogfi/utils';
 import {
   AffiliateFeeOptionalChainAsset,
   Asset,
@@ -6,17 +5,18 @@ import {
   MatchedOrder,
 } from '@gardenfi/orderbook';
 import { OrderStatus } from '../orderStatus/status';
-import { Environment, EventBroker, IAuth } from '@gardenfi/utils';
+import { AsyncResult, Environment, EventBroker, IAuth } from '@gardenfi/utils';
 import { ISecretManager } from '../secretManager/secretManager.types';
 import { IQuote } from '../quote/quote.types';
 import { IBlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
-import { IBitcoinWallet } from '@catalogfi/wallets';
+
 import { IEVMHTLC } from '../evm/htlc.types';
 import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { DigestKey } from '@gardenfi/utils';
 import { AccountInterface } from 'starknet';
 import { WalletClient } from 'viem';
 import { Api } from '../constants';
+import { IBitcoinWallet } from '../bitcoin/wallet/wallet.interface';
 
 export type SwapParams = {
   /**

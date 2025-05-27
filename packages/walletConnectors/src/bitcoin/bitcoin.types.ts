@@ -1,5 +1,4 @@
-import { AsyncResult } from '@catalogfi/utils';
-import { Network } from '@gardenfi/utils';
+import { AsyncResult, Network } from '@gardenfi/utils';
 import { WALLET_CONFIG } from './constants';
 
 export type Balance = {

@@ -1,5 +1,5 @@
-import { MarkRequired } from '@catalogfi/utils';
-import { OnChainIdentifier } from '@catalogfi/wallets';
+import { MarkRequired } from '@gardenfi/utils';
+import { OnChainIdentifier } from '../../identifier';
 import { Address } from 'viem';
 
 export type AtomicSwapConfig = {

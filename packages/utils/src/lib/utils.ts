@@ -66,3 +66,8 @@ export function hexToU32Array(
 
   return result;
 }
+
+export function trim0x(str: string){
+  if (str.startsWith('0x')) return str.slice(2);
+  return str;
+};

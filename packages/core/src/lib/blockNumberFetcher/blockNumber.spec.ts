@@ -11,7 +11,7 @@ describe('blockNumber', () => {
     const res = await fetcher.fetchBlockNumbers();
 
     console.log('res :', res.val);
-    if (res.error) {
+    if (!res.ok) {
       console.log('error while fetching block number ❌ :', res.error);
       throw new Error(res.error);
     }

@@ -1,5 +1,4 @@
-import { Err, Ok, Result } from '@catalogfi/utils';
-import { AsyncResult } from '@catalogfi/utils';
+import { AsyncResult, Err, Ok, Result } from '../../result';
 import { AuthHeaderEnum, AuthHeader, IAuth } from '../auth.types';
 
 export class ApiKey implements IAuth {
@@ -26,7 +25,7 @@ export class ApiKey implements IAuth {
       return Err(data.error);
     }
 
-    const { expiryTimestamp } = data.val;
+    const { expiryTimestamp } = data.val!;
     if (expiryTimestamp < new Date()) return Err('Token expired');
 
     return Ok(true);

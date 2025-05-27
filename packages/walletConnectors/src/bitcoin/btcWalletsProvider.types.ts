@@ -1,6 +1,5 @@
-import { AsyncResult, Result } from '@catalogfi/utils';
 import { IInjectedBitcoinProvider } from './bitcoin.types';
-import { IStore, Network } from '@gardenfi/utils';
+import { AsyncResult, IStore, Network, Result } from '@gardenfi/utils';
 
 export type AvailableWallets = {
   [key: string]: IInjectedBitcoinProvider;

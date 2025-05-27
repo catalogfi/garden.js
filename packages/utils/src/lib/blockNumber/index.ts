@@ -1,1 +1,1 @@
-export { fetchBitcoinBlockNumber, fetchEVMBlockNumber } from './blockNumber';
+export { fetchEVMBlockNumber } from './blockNumber';
