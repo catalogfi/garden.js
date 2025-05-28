@@ -14,7 +14,7 @@
   },
   "files": [],
   "include": ["src/**/*.ts"],
-  "exclude": ["src/**/*.spec.ts", "src/lib/testUtils.ts"],
+  "exclude": ["src/**/*.spec.ts"],
   "references": [
     {
       "path": "./tsconfig.lib.json"

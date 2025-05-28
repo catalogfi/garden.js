@@ -181,6 +181,7 @@ export type GardenCoreConfig = {
   orderbook?: IOrderbook;
   quote?: IQuote;
   blockNumberFetcher?: IBlockNumberFetcher;
+  btcWallet?: IBitcoinWallet;
 };
 
 export type GardenHTLCModules = {
