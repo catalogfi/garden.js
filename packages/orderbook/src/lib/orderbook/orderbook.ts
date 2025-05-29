@@ -142,7 +142,8 @@ export class Orderbook implements IOrderbook {
     const endPoint = matched ? '/matched' : '/unmatched';
     const params: Record<string, any> = {};
     if (paginationConfig) {
-      params['paginationConfig'] = paginationConfig;
+      params['page'] = paginationConfig.page;
+      params['per_page'] = paginationConfig.per_page;
     }
     if (address) {
       params['address'] = address;
