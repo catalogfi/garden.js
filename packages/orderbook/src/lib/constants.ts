@@ -343,7 +343,7 @@ export const SupportedAssets = {
       decimals: 18,
       symbol: 'BTCN',
       chain: Chains.corn,
-      logo: 'https://garden-finance.imgix.net/chain-images/corn.jpg',
+      logo: 'https://garden-finance.imgix.net/token-images/bitcorn.jpg',
       tokenAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
       atomicSwapAddress: '0xeaE7721d779276eb0f5837e2fE260118724a2Ba4',
     },
