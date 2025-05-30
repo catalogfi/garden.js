@@ -338,5 +338,14 @@ export const SupportedAssets = {
       tokenAddress: '0x078D782b760474a361dDA0AF3839290b0EF57AD6',
       atomicSwapAddress: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
     },
+    corn_BTCN: {
+      name: 'Bitcoin',
+      decimals: 18,
+      symbol: 'BTCN',
+      chain: Chains.corn,
+      logo: 'https://garden-finance.imgix.net/chain-images/corn.jpg',
+      tokenAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+      atomicSwapAddress: '0xeaE7721d779276eb0f5837e2fE260118724a2Ba4',
+    },
   },
 } as const;
