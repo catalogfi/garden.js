@@ -339,7 +339,7 @@ export const SupportedAssets = {
       atomicSwapAddress: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
     },
     corn_BTCN: {
-      name: 'Bitcoin',
+      name: 'Bitcorn',
       decimals: 18,
       symbol: 'BTCN',
       chain: Chains.corn,
