@@ -1,29 +1,36 @@
 import { GardenProvider } from '@gardenfi/react-hooks';
-import { Environment } from '@gardenfi/utils';
 import { useWalletClient } from 'wagmi';
 import { Swap } from './components/Swap';
-import { useAccount } from '@starknet-react/core';
+import { useEnvironmentStore } from './store/useEnvironmentStore';
+import { useSwapStore } from './store/swapStore';
+import { BTCWalletProvider } from '@gardenfi/wallet-connectors';
+import { Network } from '@gardenfi/utils';
 
 function App() {
   const { data: walletClient } = useWalletClient();
-  const { account: starknetAccount } = useAccount();
+  const environment = useEnvironmentStore((state) => state.environment);
+  const btcWallet = useSwapStore((state) => state.btcWallet);
 
   return (
-    <GardenProvider
-      config={{
-        environment: {
-          environment: Environment.TESTNET,
-          orderbook: 'https://testnet.api.hashira.io',
-        },
-        wallets: {
-          evm: walletClient,
-          starknet: starknetAccount,
-        },
-      }}
+    <BTCWalletProvider
+      network={environment === 'testnet' ? Network.TESTNET : environment === 'mainnet' ? Network.MAINNET : Network.LOCALNET}
+      store={localStorage}
+      key={environment}
     >
-      <Swap />
-    </GardenProvider>
+      <GardenProvider
+        key={environment}
+        config={{
+          environment,
+          wallets: {
+            evm: walletClient,
+          },
+          btcWallet,
+        }}
+      >
+        <Swap />
+      </GardenProvider>
+    </BTCWalletProvider>
   );
-}
+};
 
 export default App;

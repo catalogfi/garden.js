@@ -3,10 +3,10 @@ import { arbitrumSepolia, sepolia } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 import { createWalletClient, http } from 'viem';
 import { describe, expect, it } from 'vitest';
+import { API } from '@gardenfi/utils';
 
 describe('secret manager', () => {
-  const pk =
-    '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
+  const pk = API.pk;
   const account = privateKeyToAccount(pk as `0x${string}`);
   console.log('account :', account.address);
 
@@ -15,18 +15,18 @@ describe('secret manager', () => {
     chain: sepolia,
     transport: http(),
   });
-  const walletClient2 = createWalletClient({
+  const arbitrumwalletClient = createWalletClient({
     account,
     chain: arbitrumSepolia,
     transport: http(),
   });
 
   const secretManager = SecretManager.fromWalletClient(walletClient);
-  const secretManager2 = SecretManager.fromWalletClient(walletClient2);
+  const arbsecretManager = SecretManager.fromWalletClient(arbitrumwalletClient);
 
   it('should return master private key', async () => {
     const pk = await secretManager.getDigestKey();
-    const pk2 = await secretManager2.getDigestKey();
+    const pk2 = await arbsecretManager.getDigestKey();
     console.log('pk :', pk);
     console.log('pk :', pk2);
     expect(pk).toEqual(pk2);

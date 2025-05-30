@@ -1,6 +1,6 @@
 import { Garden } from '../garden';
 import { EthereumLocalnet, SupportedAssets } from '@gardenfi/orderbook';
-import { Environment, with0x } from '@gardenfi/utils';
+import { Environment, with0x, API, Network } from '@gardenfi/utils';
 import { RpcProvider, Account } from 'starknet';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -62,10 +62,10 @@ describe('Bitcoin to StarkNet Integration Tests', () => {
   // const API_KEY =
   //   'AAAAAGghjwU6Os1DVFgmUXj0GcNt5jTJPbBmXKw7xRARW-qivNy4nfpKVgMNebmmxig2o3v-6M4l_ZmCgLp3vKywfVXDYBcL3M4c';
 
-  const RELAYER_URL = 'https://orderbook-stage.hashira.io';
+  // const RELAYER_URL = 'https://orderbook-stage.hashira.io';
   const STARKNET_NODE_URL = 'https://starknet-mainnet.public.blastapi.io';
   const QUOTE_SERVER_URL = 'https://quote-staging.hashira.io';
-  const STARKNET_RELAY_URL = 'https://starknet-relayer.hashira.io';
+  const STARKNET_RELAY_URL = API.testnet.starknetRelay;
   //   const API_KEY =
   //     'AAAAAGnCHgI6OtNjaHxlzdsgXaIseznp7jFo1eU7QKEYhopsgu1EAVZOPgAHGNJJSYdVclaWkOhORmKpS14PqjyFu1-5sdtTmMob';
 
@@ -119,7 +119,7 @@ describe('Bitcoin to StarkNet Integration Tests', () => {
     // );
     const bitcoinProvider = new BitcoinProvider(
       BitcoinNetwork.Testnet,
-      'https://48.217.250.147:18443',
+      // 'https://48.217.250.147:18443',
     );
     btcWallet = BitcoinWallet.fromPrivateKey(
       'af530c3d2212740a8428193fce82bfddcf7e83bee29a2b9b2f25b5331bae1bf5',
@@ -141,7 +141,6 @@ describe('Bitcoin to StarkNet Integration Tests', () => {
     //   btcWallet,
     // });
     garden = new Garden({
-      api: RELAYER_URL,
       environment: Environment.TESTNET,
       digestKey:
         '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
@@ -150,7 +149,8 @@ describe('Bitcoin to StarkNet Integration Tests', () => {
         starknet: new StarknetRelay(
           STARKNET_RELAY_URL,
           starknetWallet,
-          'http://localhost:8547/rpc',
+          Network.TESTNET,
+          // 'http://localhost:8547/rpc',
         ),
       },
     });
@@ -193,11 +193,11 @@ describe('Bitcoin to StarkNet Integration Tests', () => {
     console.log('\n------ CREATING SWAP ORDER ------');
     const order = {
       fromAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
-      toAsset: SupportedAssets.testnet.starknet_testnet_ETH,
+      toAsset: SupportedAssets.testnet.starknet_testnet_WBTC,
       sendAmount: '10000',
-      receiveAmount: '23380000000000',
+      receiveAmount: '9970',
       additionalData: {
-        strategyId: 'btyrssab',
+        strategyId: 'btyrsa30',
         btcAddress: btcAddress,
       },
       minDestinationConfirmations: 1,
