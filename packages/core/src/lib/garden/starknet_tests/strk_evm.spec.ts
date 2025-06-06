@@ -96,16 +96,16 @@ describe('StarkNet Integration Tests', () => {
 
   describe.only('strk-evm swap', async () => {
     it('should create and execute a StarkNet-ETH swap', async () => {
-      const quoteRes = await garden.quote.getQuote(
-        'ethereum_sepolia:0x29C9C37D0Fec7E64AFab0f806c8049d9e2f9B0b6::arbitrum_sepolia:0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
-        100000,
-        false,
-        {
-          affiliateFee: 30,
-        },
-      );
-      console.log('Quote :', quoteRes.val);
-      console.log('Quote :', quoteRes.error);
+      // const quoteRes = await garden.quote.getQuote(
+      //   'ethereum_sepolia:0x29C9C37D0Fec7E64AFab0f806c8049d9e2f9B0b6::arbitrum_sepolia:0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
+      //   100000,
+      //   false,
+      //   {
+      //     affiliateFee: 30,
+      //   },
+      // );
+      // console.log('Quote :', quoteRes.val);
+      // console.log('Quote :', quoteRes.error);
       // console.log('now running attested quote');
       // const attId: CreateOrderReqWithStrategyId = {
       //   source_chain: 'arbitrum_sepolia',
@@ -152,28 +152,28 @@ describe('StarkNet Integration Tests', () => {
       // console.log('Order created :', createRes.val);
       // console.log('Order created :', createRes.error);
       const order: SwapParams = {
-        toAsset: {
+        fromAsset: {
           name: 'Starknet ETH',
           decimals: 8,
           symbol: 'WBTC',
           chain: Chains.ethereum_sepolia,
           logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
-          tokenAddress: '0x29C9C37D0Fec7E64AFab0f806c8049d9e2f9B0b6',
-          atomicSwapAddress: '0x29C9C37D0Fec7E64AFab0f806c8049d9e2f9B0b6',
+          tokenAddress: '0x4D68da063577F98C55166c7AF6955cF58a97b20A',
+          atomicSwapAddress: '0x3C6a17b8cD92976D1D91E491c93c98cd81998265',
         },
-        fromAsset: {
+        toAsset: {
           name: 'Wrapped Bitcoin',
           decimals: 8,
           symbol: 'WBTC',
           logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
           chain: Chains.arbitrum_sepolia,
-          tokenAddress: '0xD8a6E3FCA403d79b6AD6216b60527F51cc967D39',
-          atomicSwapAddress: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
+          tokenAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
+          atomicSwapAddress: '0xE918A5a47b8e0AFAC2382bC5D1e981613e63fB07',
         },
         sendAmount: '100000',
         receiveAmount: '99200',
         additionalData: {
-          strategyId: 'asaces4b',
+          strategyId: 'ea56aa70',
         },
       };
       const result = await garden.swap(order);
