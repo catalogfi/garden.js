@@ -17,6 +17,7 @@ import { DigestKey } from '@gardenfi/utils';
 import { AccountInterface } from 'starknet';
 import { WalletClient } from 'viem';
 import { Api } from '../constants';
+import { SmartAccountClient } from 'permissionless';
 
 export type SwapParams = {
   /**
@@ -192,7 +193,7 @@ export type GardenHTLCModules = {
 
 export type GardenWalletModules = {
   wallets: {
-    evm?: WalletClient;
+    evm?: WalletClient | SmartAccountClient;
     starknet?: AccountInterface;
   };
 };

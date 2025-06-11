@@ -30,8 +30,11 @@
     "vite-plugin-eslint": "^1.8.1",
     "vitest": "^1.6.0"
   },
+  "resolutions": {
+    "viem": "2.30.6"
+  },
   "dependencies": {
     "@catalogfi/utils": "^0.1.12",
-    "viem": "^2.28.0"
+    "viem": "^2.30.6"
   }
 }
