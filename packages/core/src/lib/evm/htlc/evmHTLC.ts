@@ -17,6 +17,8 @@ import {
   WalletClient,
 } from 'viem';
 import { AtomicSwapABI } from '../abi/atomicSwap';
+import { getCapabilities } from 'src/lib/utils';
+import { MatchedOrder } from '@gardenfi/orderbook';
 
 export class EVMHTLC implements IHTLCWallet {
   private swap: Required<AtomicSwapConfig>;
@@ -25,7 +27,7 @@ export class EVMHTLC implements IHTLCWallet {
   /**
    * @constructor
    * @param {EVMSwapConfig} swap - Atomic swap config, chain must be provided
-   * @param {IEVMWallet} wallet
+   * @param {WalletClient} wallet
    */
   constructor(swap: EVMSwapConfig, wallet: WalletClient) {
     this.swap = {
@@ -38,6 +40,26 @@ export class EVMHTLC implements IHTLCWallet {
       throw new Error(EVMHTLCErrors.INVALID_SECRET_HASH);
 
     this.wallet = wallet;
+  }
+
+  /**
+   * Check if the wallet supports batching transactions (Pectra EIP-7702)
+   */
+  private async supportsBatching(): Promise<boolean> {
+    try {
+      const chainId = this.wallet?.chain?.id;
+      if (!chainId) return false;
+
+      const capabilities = await getCapabilities(this.wallet);
+
+      const supportsBatching =
+        capabilities[chainId].atomic?.status === 'supported' ||
+        capabilities[chainId].atomic?.status === 'ready';
+
+      return supportsBatching;
+    } catch {
+      return false;
+    }
   }
 
   async getHTLCContract() {
@@ -67,21 +89,42 @@ export class EVMHTLC implements IHTLCWallet {
   }
 
   /**
-   * Initiates the HTLC
+   * Initiates the HTLC with optional batching support
    *
    * @returns {Promise<string>} Transaction ID
    */
-  async init(): Promise<string> {
+  async init(order: MatchedOrder): Promise<string> {
     const account = this.wallet.account;
     if (!account) {
       throw new Error('Account not found');
     }
+
+    const supportsBatch = await this.supportsBatching();
+
+    if (supportsBatch) {
+      return this._initWithBatch(order);
+    } else {
+      return this._initTraditional(order);
+    }
+  }
+
+  /**
+   * Traditional initialization (approve + initiate separately)
+   */
+  private async _initTraditional(order: MatchedOrder): Promise<string> {
+    const account = this.wallet.account;
+    if (!account) {
+      throw new Error('Account not found');
+    }
+
     const initiatorAddress = account.address;
     const erc20 = await this.getERC20Contract();
     const allowance = await erc20.read.allowance([
       initiatorAddress,
       this.swap.contractAddress,
     ]);
+
+    // Approve if needed
     if (allowance < this.swap.amount) {
       await erc20.write.approve([this.swap.contractAddress, maxUint256], {
         account,
@@ -89,6 +132,7 @@ export class EVMHTLC implements IHTLCWallet {
       });
     }
 
+    // Initiate the swap
     return (await this.getHTLCContract()).write.initiate(
       [
         this.swap.recipientAddress.unwrap_evm(),
@@ -101,6 +145,58 @@ export class EVMHTLC implements IHTLCWallet {
         chain: this.wallet.chain,
       },
     );
+  }
+
+  /**
+   * Batch initialization using Pectra capabilities (approve + initiate in one transaction)
+   */
+  private async _initWithBatch(order: MatchedOrder): Promise<string> {
+    const account = this.wallet.account;
+    if (!account) {
+      throw new Error('Account not found');
+    }
+
+    try {
+      const erc20Contract = await this.getERC20Contract();
+      const htlcContract = await this.getHTLCContract();
+
+      // Simulate both transactions
+      const approveTx = await erc20Contract.simulate.approve(
+        [with0x(order.source_swap.asset), maxUint256],
+        {
+          account: account.address,
+          chain: this.wallet.chain,
+        },
+      );
+
+      const initiateTx = await htlcContract.simulate.initiate(
+        [
+          this.swap.recipientAddress.unwrap_evm(),
+          BigInt(this.swap.expiryBlocks),
+          this.swap.amount,
+          this.swap.secretHash as Hex,
+        ],
+        {
+          account: account.address,
+        },
+      );
+
+      // Execute batch transaction using sendCalls
+      const { id } = await this.wallet.sendCalls({
+        account,
+        chain: this.wallet.chain,
+        calls: [
+          { ...approveTx.request, to: approveTx.request.address },
+          { ...initiateTx.request, to: initiateTx.request.address },
+        ],
+      });
+
+      return id;
+    } catch (err: any) {
+      console.error('Batch initialization failed:', err);
+      // Fallback to traditional method
+      return this._initTraditional(order);
+    }
   }
 
   /**
