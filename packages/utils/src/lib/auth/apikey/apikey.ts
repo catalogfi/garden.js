@@ -21,11 +21,11 @@ export class ApiKey implements IAuth {
     const decodedBytes = this.decodeBase64UrlSafe(this.apiKey);
     const data = this.extractData(decodedBytes);
 
-    if (data.error) {
+    if (!data.ok) {
       return Err(data.error);
     }
 
-    const { expiryTimestamp } = data.val!;
+    const { expiryTimestamp } = data.val;
     if (expiryTimestamp < new Date()) return Err('Token expired');
 
     return Ok(true);

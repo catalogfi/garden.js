@@ -39,7 +39,7 @@ export const checkAllowanceAndApprove = async (
       );
 
       const receipt = await waitForTransactionReceipt(walletClient, res);
-      if (receipt.error) return Err(receipt.error);
+      if (!receipt.ok) return Err(receipt.error);
       if (!receipt.val || receipt.val.status !== 'success')
         return Err('Failed to approve');
 
