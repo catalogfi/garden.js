@@ -1,7 +1,13 @@
 import { BitcoinNetwork, IBaseWallet } from '@catalogfi/wallets';
 import { Environment, Err, Ok, with0x } from '@gardenfi/utils';
 import { Chain } from '@gardenfi/orderbook';
-import { sha256 } from 'viem';
+import {
+  Client,
+  GetCapabilitiesReturnType,
+  numberToHex,
+  sha256,
+  Transport,
+} from 'viem';
 import * as varuint from 'varuint-bitcoin';
 import { trim0x } from '@catalogfi/utils';
 import * as secp256k1 from 'tiny-secp256k1';
@@ -204,3 +210,36 @@ export const formatStarknetSignature = (sig: Signature) => {
 
   return Err('Invalid signature format');
 };
+
+export async function getCapabilities<
+  chainId extends number | undefined = undefined,
+>(
+  client: Client<Transport>,
+  parameters: { account?: { address: `0x${string}` }; chainId?: chainId } = {},
+): Promise<GetCapabilitiesReturnType> {
+  const { account = client.account, chainId } = parameters;
+  const account_ = account;
+
+  const params = chainId
+    ? ([account_?.address, [numberToHex(chainId)]] as const)
+    : ([account_?.address] as const);
+
+  const capabilities_raw = await client.request({
+    method: 'wallet_getCapabilities',
+    params,
+  });
+
+  const capabilities = {} as GetCapabilitiesReturnType;
+
+  for (const [chainIdStr, capabilities_] of Object.entries(capabilities_raw)) {
+    const chainId = Number(chainIdStr);
+    capabilities[chainId] = {};
+    for (const [keyOrig, value] of Object.entries(capabilities_)) {
+      let key = keyOrig;
+      if (key === 'addSubAccount') key = 'unstable_addSubAccount';
+      capabilities[chainId][key] = value;
+    }
+  }
+
+  return capabilities;
+}

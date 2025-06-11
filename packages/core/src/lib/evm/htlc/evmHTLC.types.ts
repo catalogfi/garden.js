@@ -1,6 +1,17 @@
 import { MarkRequired } from '@catalogfi/utils';
 import { OnChainIdentifier } from '@catalogfi/wallets';
 import { Address } from 'viem';
+import { MatchedOrder } from '@gardenfi/orderbook';
+
+export interface IHTLCWallet {
+  init(order: MatchedOrder): Promise<string>;
+  redeem(
+    order: MatchedOrder,
+    secret: string,
+    receiver?: string,
+  ): Promise<string>;
+  refund(order: MatchedOrder, receiver?: string): Promise<string>;
+}
 
 export type AtomicSwapConfig = {
   secretHash: string;
