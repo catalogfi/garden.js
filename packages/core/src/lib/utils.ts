@@ -234,7 +234,8 @@ export async function getCapabilities<
   for (const [chainIdStr, capabilities_] of Object.entries(capabilities_raw)) {
     const chainId = Number(chainIdStr);
     capabilities[chainId] = {};
-    for (let [key, value] of Object.entries(capabilities_)) {
+    for (const [keyOrig, value] of Object.entries(capabilities_)) {
+      let key = keyOrig;
       if (key === 'addSubAccount') key = 'unstable_addSubAccount';
       capabilities[chainId][key] = value;
     }

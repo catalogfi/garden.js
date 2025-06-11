@@ -1,10 +1,4 @@
-import { IHTLCWallet } from '@catalogfi/wallets';
-import {
-  AtomicSwapConfig,
-  EVMHTLCErrors,
-  EVMSwapConfig,
-} from './evmHTLC.types';
-import { with0x } from '@gardenfi/utils';
+import { AsyncResult, Ok, with0x } from '@gardenfi/utils';
 import {
   Address,
   encodeAbiParameters,
@@ -19,9 +13,10 @@ import {
 import { AtomicSwapABI } from '../abi/atomicSwap';
 import { getCapabilities } from 'src/lib/utils';
 import { MatchedOrder } from '@gardenfi/orderbook';
+import { IEVMHTLC } from '../htlc.types';
 
-export class EVMHTLC implements IHTLCWallet {
-  private swap: Required<AtomicSwapConfig>;
+export class EVMHTLC implements IEVMHTLC {
+  // private swap: Required<AtomicSwapConfig>;
   private readonly wallet: WalletClient;
 
   /**
@@ -29,16 +24,7 @@ export class EVMHTLC implements IHTLCWallet {
    * @param {EVMSwapConfig} swap - Atomic swap config, chain must be provided
    * @param {WalletClient} wallet
    */
-  constructor(swap: EVMSwapConfig, wallet: WalletClient) {
-    this.swap = {
-      ...swap,
-      contractAddress: swap.contractAddress,
-    };
-    this.swap.secretHash = with0x(this.swap.secretHash);
-
-    if (this.swap.secretHash.length !== 66)
-      throw new Error(EVMHTLCErrors.INVALID_SECRET_HASH);
-
+  constructor(wallet: WalletClient) {
     this.wallet = wallet;
   }
 
@@ -62,16 +48,21 @@ export class EVMHTLC implements IHTLCWallet {
     }
   }
 
-  async getHTLCContract() {
+  async getHTLCContract(tokenAddress: string) {
     return getContract({
-      address: this.swap.contractAddress,
+      address: with0x(tokenAddress),
       abi: AtomicSwapABI,
       client: this.wallet,
     });
   }
 
-  async getERC20Contract() {
-    const token = await (await this.getHTLCContract()).read.token();
+  get htlcActorAddress(): string {
+    if (!this.wallet.account) throw new Error('No account found');
+    return this.wallet.account.address;
+  }
+
+  async getERC20Contract(tokenAddress: string) {
+    const token = await (await this.getHTLCContract(tokenAddress)).read.token();
     return getContract({
       address: token,
       abi: erc20Abi,
@@ -80,27 +71,20 @@ export class EVMHTLC implements IHTLCWallet {
   }
 
   /**
-   * The atomic swap contract address associated with the passed chain
-   *
-   * @returns {string} The contract address
-   */
-  id(): string {
-    return this.swap.contractAddress;
-  }
-
-  /**
    * Initiates the HTLC with optional batching support
    *
    * @returns {Promise<string>} Transaction ID
    */
-  async init(order: MatchedOrder): Promise<string> {
+  async initiate(order: MatchedOrder): AsyncResult<string, string> {
     const account = this.wallet.account;
     if (!account) {
       throw new Error('Account not found');
     }
 
     const supportsBatch = await this.supportsBatching();
-
+    console.log(
+      supportsBatch ? 'Supports batching' : 'Does not support batching',
+    );
     if (supportsBatch) {
       return this._initWithBatch(order);
     } else {
@@ -111,54 +95,58 @@ export class EVMHTLC implements IHTLCWallet {
   /**
    * Traditional initialization (approve + initiate separately)
    */
-  private async _initTraditional(order: MatchedOrder): Promise<string> {
+  private async _initTraditional(
+    order: MatchedOrder,
+  ): AsyncResult<string, string> {
     const account = this.wallet.account;
     if (!account) {
       throw new Error('Account not found');
     }
-
     const initiatorAddress = account.address;
-    const erc20 = await this.getERC20Contract();
+    const erc20 = await this.getERC20Contract(order.source_swap.asset);
     const allowance = await erc20.read.allowance([
       initiatorAddress,
-      this.swap.contractAddress,
+      with0x(order.source_swap.asset),
     ]);
-
     // Approve if needed
-    if (allowance < this.swap.amount) {
-      await erc20.write.approve([this.swap.contractAddress, maxUint256], {
+    if (allowance < BigInt(order.source_swap.amount)) {
+      await erc20.write.approve([with0x(order.source_swap.asset), maxUint256], {
         account,
         chain: this.wallet.chain,
       });
     }
-
+    const htlcContract = await this.getHTLCContract(order.source_swap.asset);
     // Initiate the swap
-    return (await this.getHTLCContract()).write.initiate(
+    const response = await htlcContract.write.initiate(
       [
-        this.swap.recipientAddress.unwrap_evm(),
-        BigInt(this.swap.expiryBlocks),
-        this.swap.amount,
-        this.swap.secretHash as Hex,
+        with0x(order.source_swap.redeemer),
+        BigInt(order.create_order.timelock),
+        BigInt(order.source_swap.amount),
+        with0x(order.create_order.secret_hash),
       ],
       {
         account,
         chain: this.wallet.chain,
       },
     );
+    return Ok(response);
   }
 
   /**
    * Batch initialization using Pectra capabilities (approve + initiate in one transaction)
    */
-  private async _initWithBatch(order: MatchedOrder): Promise<string> {
+  private async _initWithBatch(
+    order: MatchedOrder,
+  ): AsyncResult<string, string> {
     const account = this.wallet.account;
     if (!account) {
       throw new Error('Account not found');
     }
-
     try {
-      const erc20Contract = await this.getERC20Contract();
-      const htlcContract = await this.getHTLCContract();
+      const erc20Contract = await this.getERC20Contract(
+        order.source_swap.asset,
+      );
+      const htlcContract = await this.getHTLCContract(order.source_swap.asset);
 
       // Simulate both transactions
       const approveTx = await erc20Contract.simulate.approve(
@@ -168,19 +156,17 @@ export class EVMHTLC implements IHTLCWallet {
           chain: this.wallet.chain,
         },
       );
-
       const initiateTx = await htlcContract.simulate.initiate(
         [
-          this.swap.recipientAddress.unwrap_evm(),
-          BigInt(this.swap.expiryBlocks),
-          this.swap.amount,
-          this.swap.secretHash as Hex,
+          with0x(order.source_swap.redeemer),
+          BigInt(order.create_order.timelock),
+          BigInt(order.source_swap.amount),
+          order.create_order.secret_hash as Hex,
         ],
         {
           account: account.address,
         },
       );
-
       // Execute batch transaction using sendCalls
       const { id } = await this.wallet.sendCalls({
         account,
@@ -190,8 +176,7 @@ export class EVMHTLC implements IHTLCWallet {
           { ...initiateTx.request, to: initiateTx.request.address },
         ],
       });
-
-      return id;
+      return Ok(id);
     } catch (err: any) {
       console.error('Batch initialization failed:', err);
       // Fallback to traditional method
@@ -204,23 +189,26 @@ export class EVMHTLC implements IHTLCWallet {
    *
    * @returns {Promise<string>} Transaction ID
    */
-  async redeem(secret: string): Promise<string> {
+  async redeem(
+    order: MatchedOrder,
+    secret: string,
+  ): AsyncResult<string, string> {
     secret = with0x(secret);
     const account = this.wallet.account;
     if (!account) {
       throw new Error('Account not found');
     }
     const sh = sha256(secret as Hex);
-    const initiatorAddress = this.swap.initiatorAddress;
+    const initiatorAddress = with0x(order.source_swap.initiator);
 
-    const orderId = this.getOrderId(sh, initiatorAddress.unwrap_evm());
-    return (await this.getHTLCContract()).write.redeem(
-      [orderId, secret as Hex],
-      {
-        account,
-        chain: undefined,
-      },
-    );
+    const orderId = this.getOrderId(sh, initiatorAddress);
+    const response = await (
+      await this.getHTLCContract(order.source_swap.asset)
+    ).write.redeem([orderId, secret as Hex], {
+      account,
+      chain: undefined,
+    });
+    return Ok(response);
   }
 
   private getOrderId(sh: Hex, addr: Address) {
@@ -237,16 +225,20 @@ export class EVMHTLC implements IHTLCWallet {
    *
    * @returns {Promise<string>} Transaction ID
    */
-  async refund(): Promise<string> {
-    const initiatorAddress = this.swap.initiatorAddress;
+  async refund(order: MatchedOrder): AsyncResult<string, string> {
+    const initiatorAddress = order.source_swap.initiator;
     const orderId = this.getOrderId(
-      with0x(this.swap.secretHash) as Hex,
-      initiatorAddress.unwrap_evm(),
+      with0x(order.create_order.secret_hash) as Hex,
+      with0x(initiatorAddress),
     );
 
-    return (await this.getHTLCContract()).write.refund([orderId], {
-      account: initiatorAddress.unwrap_evm(),
+    const response = await (
+      await this.getHTLCContract(order.source_swap.asset)
+    ).write.refund([orderId], {
+      account: with0x(initiatorAddress),
       chain: undefined,
     });
+
+    return Ok(response);
   }
 }

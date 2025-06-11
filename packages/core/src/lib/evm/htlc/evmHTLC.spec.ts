@@ -28,18 +28,11 @@ describe('StarkNet Integration Tests', async () => {
     transport: http(),
   });
   console.log('EVM Account Address:', evmWallet.account.address);
-  //   const garden = new Garden({
-  //     environment: Environment.TESTNET,
-  //     digestKey: DIGEST_KEY!,
-  //     htlc: {
-  //       evm: new EVMHTLC(),
-  //     },
-  //   });
-  const garden = Garden.fromWallets({
+  const garden = new Garden({
     environment: Environment.TESTNET,
     digestKey: DIGEST_KEY!,
-    wallets: {
-      evm: evmWallet,
+    htlc: {
+      evm: new EVMHTLC(evmWallet),
     },
   });
 
