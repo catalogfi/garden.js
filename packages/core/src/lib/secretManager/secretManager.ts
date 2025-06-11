@@ -1,5 +1,5 @@
 import { sha256, WalletClient } from 'viem';
-import ECPairFactory from 'ecpair';
+import { ECPairFactory } from 'ecpair';
 import * as ecc from 'tiny-secp256k1';
 import { Err, EventBroker, Ok, trim0x, with0x } from '@gardenfi/utils';
 import { ISecretManager, SecretManagerEvents } from './secretManager.types';

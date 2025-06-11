@@ -3,7 +3,7 @@ import * as ecc from 'tiny-secp256k1';
 import { IBitcoinProvider, Urgency } from "../provider/provider.interface";
 import { AddressType } from "../interface";
 import { AbstractBitcoinWallet } from "./abstractWallet";
-import ECPairFactory, { ECPairInterface } from "ecpair";
+import {ECPairFactory, ECPairInterface } from "ecpair";
 import { getBitcoinNetwork, mnemonicToPrivateKey } from "../utils";
 import { BitcoinPaths } from "../paths";
 import { BitcoinWalletConfig } from "./wallet.interface";
@@ -37,7 +37,9 @@ export class BitcoinWallet extends AbstractBitcoinWallet {
      * @param {number} opts.pkIndex - The address_index as per BIP44
      */
     constructor({ privateKey, provider, pkPath, pkType }: BitcoinWalletOpts) {
+      console.log("Getting in here");
       const ECPair = ECPairFactory(ecc);
+      console.log("Failed getting here!");
       const network = getBitcoinNetwork(provider.getNetwork());
       const buf = Buffer.from(privateKey, 'hex');
       if (buf.length === 0) {
