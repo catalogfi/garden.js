@@ -32,7 +32,7 @@ export const SwapComponent = () => {
 
       try {
         if (!getQuote) return;
-        console.log('swapParams', swapParams);
+        // console.log('swapParams', swapParams);
         const quote = await getQuote({
           fromAsset: swapParams.inputToken,
           toAsset: swapParams.outputToken,

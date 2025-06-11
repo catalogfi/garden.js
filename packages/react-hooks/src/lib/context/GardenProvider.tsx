@@ -16,6 +16,7 @@ import {
 } from '@gardenfi/orderbook';
 import { constructOrderpair, hasAnyValidValue } from '../utils';
 import { useDigestKey } from '../hooks/useDigestKey';
+import { ServiceWorkerManager } from '../workers/serviceWorkerManager';
 
 export const GardenContext = createContext<GardenContextType>({
   pendingOrders: [],
@@ -26,6 +27,9 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   config,
 }) => {
   const [garden, setGarden] = useState<IGardenJS>();
+  const [serviceWorkerManager] = useState(() =>
+    ServiceWorkerManager.getInstance(),
+  );
 
   const { digestKey } = useDigestKey();
   const { pendingOrders } = useOrderbook(garden);
@@ -103,7 +107,21 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     return Ok(updatedOrder);
   };
 
-  // Initialize Garden
+  useEffect(() => {
+    const initServiceWorker = async () => {
+      try {
+        await serviceWorkerManager.registerServiceWorker();
+        console.log('Service Worker registration completed');
+      } catch (error) {
+        console.error('Service Worker registration failed:', error);
+      }
+    };
+
+    initServiceWorker();
+
+    return () => {};
+  }, [serviceWorkerManager]);
+
   useEffect(() => {
     if (!window || !digestKey) return;
     if (!('wallets' in config) && !('htlc' in config)) return;
@@ -133,7 +151,11 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     }
 
     setGarden(garden);
-  }, [config, digestKey]);
+
+    // Notify service worker that Garden has been initialized
+    console.log('Garden initialized, notifying Service Worker...');
+    serviceWorkerManager.notifyGardenInitialized(garden);
+  }, [config, digestKey, serviceWorkerManager]);
 
   return (
     <GardenContext.Provider

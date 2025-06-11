@@ -7,4 +7,18 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react(), wasm(), nodePolyfills(), topLevelAwait()],
+  publicDir: 'public',
+  build: {
+    rollupOptions: {
+      input: {
+        main: './index.html',
+        sw: './public/garden-service-worker.js',
+      },
+    },
+  },
+  server: {
+    fs: {
+      allow: ['..'],
+    },
+  },
 });

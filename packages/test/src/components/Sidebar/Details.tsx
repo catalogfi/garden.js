@@ -27,8 +27,8 @@ export const Details = () => {
     const fetchInitialData = async () => {
       const networkName = await provider?.getNetwork();
       const balanceBTC = await provider?.getBalance();
-      setNetwork(networkName!.val);
-      setBalance(balanceBTC!.val.total * 10 ** -8);
+      // setNetwork(networkName!.val);
+      // setBalance(balanceBTC!.val.total * 10 ** -8);
     };
     fetchInitialData();
   }, [provider]);
@@ -79,7 +79,7 @@ export const Details = () => {
             <span className="text-sm font-bold opacity-60">
               Starknet Account:
             </span>
-            <span className="text-lg">{starknetAccount}</span>
+            {/* <span className="text-lg">{starknetAccount}</span> */}
           </div>
         )}
         {account && (

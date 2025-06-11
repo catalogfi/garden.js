@@ -16,7 +16,7 @@ export const StarknetWallets = () => {
   const { address, chainId, account } = useAccount();
   const { disconnect } = useDisconnect();
   const { isConnected, setWalletDetails, resetWallet } = useWalletStore();
-  console.log('account', account);
+  // console.log('account', account);
 
   useEffect(() => {
     if (address) {
