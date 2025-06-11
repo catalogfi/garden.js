@@ -1,6 +1,7 @@
 import { AsyncResult, Ok, Err } from '@gardenfi/utils';
 import {
   createPublicClient,
+  encodeFunctionData,
   erc20Abi,
   getContract,
   http,
@@ -173,23 +174,77 @@ export class SmartAccountRelay implements IEVMHTLC {
     tokenAddress: string,
   ): AsyncResult<string, string> {
     try {
-      // Step 1: Handle ERC20 approval first
-      console.log('Handling ERC20 approval for token:', tokenAddress);
-      const approval = await this.handleApproval(amount, tokenAddress, asset);
-      if (!approval.ok) return Err(approval.error);
+      if (!this.smartAccountClient.account) {
+        return Err('No account found in smart account client');
+      }
 
-      // Step 2: Call the initiate function on the contract
-      const txHash = await this.executeTransaction(async () => {
-        return await this.smartAccountClient.writeContract({
-          address: with0x(asset),
-          abi: AtomicSwapABI,
-          functionName: 'initiate',
-          args: [redeemer, timelock, amount, secretHash],
-          account: this.smartAccountClient.account!,
-          chain: this.smartAccountClient.chain,
-          // No value needed for ERC20 tokens as they're transferred via the contract
-        });
+      const erc20Contract = getContract({
+        address: with0x(tokenAddress),
+        abi: erc20Abi,
+        client: this.publicClient,
       });
+
+      const currentAllowance = await erc20Contract.read.allowance([
+        this.smartAccountClient.account.address,
+        with0x(asset),
+      ]);
+
+      console.log('Current allowance:', currentAllowance.toString());
+
+      let txHash: `0x${string}`;
+
+      if (currentAllowance < amount) {
+        console.log(
+          'Insufficient allowance, creating batch transaction for approval + initiate',
+        );
+
+        txHash = await this.executeTransaction(async () => {
+          return await this.smartAccountClient.sendUserOperation({
+            calls: [
+              // First call: Approve token spend
+              {
+                to: with0x(tokenAddress),
+                data: encodeFunctionData({
+                  abi: erc20Abi,
+                  functionName: 'approve',
+                  args: [with0x(asset), maxUint256],
+                }),
+                value: BigInt(0),
+              },
+              // Second call: Initiate HTLC
+              {
+                to: with0x(asset),
+                data: encodeFunctionData({
+                  abi: AtomicSwapABI,
+                  functionName: 'initiate',
+                  args: [redeemer, timelock, amount, secretHash],
+                }),
+                value: BigInt(0),
+              },
+            ],
+            account: this.smartAccountClient.account!,
+          });
+        });
+
+        console.log('Batch transaction (approval + initiate) hash:', txHash);
+      } else {
+        console.log(
+          'Sufficient allowance exists, executing only initiate transaction',
+        );
+
+        txHash = await this.executeTransaction(async () => {
+          return await this.smartAccountClient.writeContract({
+            address: with0x(asset),
+            abi: AtomicSwapABI,
+            functionName: 'initiate',
+            args: [redeemer, timelock, amount, secretHash],
+            account: this.smartAccountClient.account!,
+            chain: this.smartAccountClient.chain,
+          });
+        });
+
+        console.log('Initiate transaction hash:', txHash);
+      }
 
       return Ok(txHash);
     } catch (error) {
@@ -283,63 +338,63 @@ export class SmartAccountRelay implements IEVMHTLC {
   //   }
   // }
 
-  private async handleApproval(
-    amount: bigint,
-    tokenAddress: string,
-    spender: string,
-  ): AsyncResult<void, string> {
-    try {
-      if (!this.smartAccountClient.account) {
-        return Err('No account found in smart account client');
-      }
-      const erc20Contract = getContract({
-        address: with0x(tokenAddress),
-        abi: erc20Abi,
-        client: this.publicClient,
-      });
+  // private async handleApproval(
+  //   amount: bigint,
+  //   tokenAddress: string,
+  //   spender: string,
+  // ): AsyncResult<void, string> {
+  //   try {
+  //     if (!this.smartAccountClient.account) {
+  //       return Err('No account found in smart account client');
+  //     }
+  //     const erc20Contract = getContract({
+  //       address: with0x(tokenAddress),
+  //       abi: erc20Abi,
+  //       client: this.publicClient,
+  //     });
 
-      console.log(
-        'Checking allowance for smart account approval',
-        this.smartAccountClient.account.address,
-        'tokenaddress:',
-        tokenAddress,
-        'spender:',
-        spender,
-        'amount:',
-        amount.toString(),
-      );
+  //     console.log(
+  //       'Checking allowance for smart account approval',
+  //       this.smartAccountClient.account.address,
+  //       'tokenaddress:',
+  //       tokenAddress,
+  //       'spender:',
+  //       spender,
+  //       'amount:',
+  //       amount.toString(),
+  //     );
 
-      const currentAllowance = await erc20Contract.read.allowance([
-        this.smartAccountClient.account.address,
-        with0x(spender),
-      ]);
+  //     const currentAllowance = await erc20Contract.read.allowance([
+  //       this.smartAccountClient.account.address,
+  //       with0x(spender),
+  //     ]);
 
-      console.log('Current allowance:', currentAllowance.toString());
+  //     console.log('Current allowance:', currentAllowance.toString());
 
-      if (currentAllowance < amount) {
-        console.log('Approving token spend...');
+  //     if (currentAllowance < amount) {
+  //       console.log('Approving token spend...');
 
-        const approveTxHash = await this.executeTransaction(async () => {
-          return await this.smartAccountClient.writeContract({
-            address: with0x(tokenAddress),
-            abi: erc20Abi,
-            functionName: 'approve',
-            args: [with0x(spender), maxUint256],
-            account: this.smartAccountClient.account!,
-            chain: this.smartAccountClient.chain,
-          });
-        });
+  //       const approveTxHash = await this.executeTransaction(async () => {
+  //         return await this.smartAccountClient.writeContract({
+  //           address: with0x(tokenAddress),
+  //           abi: erc20Abi,
+  //           functionName: 'approve',
+  //           args: [with0x(spender), maxUint256],
+  //           account: this.smartAccountClient.account!,
+  //           chain: this.smartAccountClient.chain,
+  //         });
+  //       });
 
-        console.log('Approval transaction hash:', approveTxHash);
-      } else {
-        console.log('Sufficient allowance already exists');
-      }
+  //       console.log('Approval transaction hash:', approveTxHash);
+  //     } else {
+  //       console.log('Sufficient allowance already exists');
+  //     }
 
-      return Ok(undefined);
-    } catch (error) {
-      return Err('Failed to handle smart account approval: ' + String(error));
-    }
-  }
+  //     return Ok(undefined);
+  //   } catch (error) {
+  //     return Err('Failed to handle smart account approval: ' + String(error));
+  //   }
+  // }
 
   async redeem(
     order: MatchedOrder,
