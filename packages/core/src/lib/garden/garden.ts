@@ -38,6 +38,7 @@ import {
 import { IQuote } from '../quote/quote.types';
 import {
   getBitcoinNetwork,
+  isSmartAccountClient,
   isValidBitcoinPubKey,
   resolveApiConfig,
   toXOnly,
@@ -67,6 +68,7 @@ import { IEVMHTLC } from '../evm/htlc.types';
 import { EvmRelay } from '../evm/relay/evmRelay';
 import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { StarknetRelay } from '../starknet/relay/starknetRelay';
+import { SmartAccountRelay } from '../evm/smartAccount/smartEvmRelay';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment = Environment.TESTNET;
@@ -140,14 +142,20 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         'API not found, invalid environment ' + config.environment,
       );
 
+    let evmHTLC: IEVMHTLC | undefined;
+
+    if (config.wallets.evm) {
+      const auth = Siwe.fromDigestKey(new Url(api.auth), digestKey);
+
+      if (isSmartAccountClient(config.wallets.evm)) {
+        evmHTLC = new SmartAccountRelay(api.evmRelay, config.wallets.evm, auth);
+      } else {
+        evmHTLC = new EvmRelay(api.evmRelay, config.wallets.evm, auth);
+      }
+    }
+
     const htlc = {
-      evm: config.wallets.evm
-        ? new EvmRelay(
-            api.evmRelay,
-            config.wallets.evm,
-            Siwe.fromDigestKey(new Url(api.auth), digestKey),
-          )
-        : undefined,
+      evm: evmHTLC,
       starknet: config.wallets.starknet
         ? new StarknetRelay(
             api.starknetRelay,

@@ -1,7 +1,7 @@
 import { BitcoinNetwork, IBaseWallet } from '@catalogfi/wallets';
 import { Environment, Err, Ok, with0x } from '@gardenfi/utils';
 import { Chain } from '@gardenfi/orderbook';
-import { sha256 } from 'viem';
+import { sha256, WalletClient } from 'viem';
 import * as varuint from 'varuint-bitcoin';
 import { trim0x } from '@catalogfi/utils';
 import * as secp256k1 from 'tiny-secp256k1';
@@ -10,6 +10,7 @@ import * as ecc from 'tiny-secp256k1';
 import { Signature } from 'starknet';
 import { API, Api } from './constants';
 import { ApiConfig } from './garden/garden.types';
+import { SmartAccountClient } from 'permissionless';
 
 export function resolveApiConfig(env: ApiConfig): {
   api: Api;
@@ -203,4 +204,14 @@ export const formatStarknetSignature = (sig: Signature) => {
   }
 
   return Err('Invalid signature format');
+};
+
+export const isSmartAccountClient = (
+  wallet: WalletClient | SmartAccountClient,
+): wallet is SmartAccountClient => {
+  return (
+    'account' in wallet &&
+    'sendUserOperation' in wallet &&
+    wallet.account?.type === 'smart'
+  );
 };
