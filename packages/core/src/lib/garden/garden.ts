@@ -68,6 +68,33 @@ import { EvmRelay } from '../evm/relay/evmRelay';
 import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { StarknetRelay } from '../starknet/relay/starknetRelay';
 
+interface AssetConfig {
+  name: string;
+  decimals: number;
+  symbol: string;
+  logo: string;
+  tokenAddress: string;
+  atomicSwapAddress: string;
+  min_amount: string;
+  max_amount: string;
+  disabled: boolean;
+}
+
+interface NetworkConfig {
+  chainId: string;
+  networkLogo: string;
+  explorer: string;
+  networkType: string;
+  name: string;
+  assetConfig: AssetConfig[];
+  identifier: string;
+  disabled: boolean;
+}
+
+export interface SupportedAssetsResponse {
+  [key: string]: NetworkConfig;
+}
+
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment = Environment.TESTNET;
   private _secretManager: ISecretManager;
@@ -827,6 +854,29 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       return Err(resJson.error);
     } catch (error) {
       return Err('Failed to broadcast redeem tx: ' + error);
+    }
+  }
+
+  async supportedAssets(): Promise<SupportedAssetsResponse> {
+    const api = this._api?.info;
+    const endpoint = new Url(api!)
+      .endpoint('assets')
+      .endpoint(
+        this.environment === Environment.MAINNET ? 'mainnet' : 'testnet',
+      );
+    // console.log('Fetching supported assets from:', endpoint);
+    try {
+      const res = await Fetcher.get<APIResponse<SupportedAssetsResponse>>(
+        endpoint,
+      );
+      console.log('Supported Assets Response:', res);
+      if (res.status === 'Ok') {
+        return res.result ?? {};
+      }
+      return {};
+    } catch (error) {
+      console.error('Error fetching supported assets:', error);
+      return {};
     }
   }
 }
