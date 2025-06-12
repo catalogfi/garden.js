@@ -186,7 +186,7 @@ export class SolanaRelay implements ISolanaHTLC {
    */
   async initiate(order: MatchedOrder): AsyncResult<string, string> {
     const { redeemer, secretHash, amount, expiresIn } = SwapConfig.from(order);
-    // const pdaSeeds = [Buffer.from('swap_account'), Buffer.from(secretHash)];
+
     const pdaSeeds = [
       Buffer.from('swap_account'),
       Buffer.from(this.provider.publicKey.toBase58()),
@@ -198,17 +198,19 @@ export class SolanaRelay implements ISolanaHTLC {
       this.program.programId,
     )[0];
 
-    const tx = await this.program.methods
-      .initiate(amount, expiresIn, redeemer, secretHash)
-      .accounts({ initiator: this.provider.publicKey })
-      .transaction();
+    try {
+      const tx = await this.program.methods
+        .initiate(amount, expiresIn, redeemer, secretHash)
+        .accounts({ initiator: this.provider.publicKey })
+        .transaction();
 
-    if (
-      !isSolanaNativeToken(order.source_swap.chain, order.source_swap.asset)
-    ) {
-      return this.sendViaRelayer(tx, true, order.create_order.create_id);
-    } else {
-      return this.initiateViaHTLC(tx, order);
+      if (
+        !isSolanaNativeToken(order.source_swap.chain, order.source_swap.asset)
+      )
+        return this.sendViaRelayer(tx, true, order.create_order.create_id);
+      else return this.initiateViaHTLC(tx, order);
+    } catch (e) {
+      return Err('Error initiating swap: ', e);
     }
   }
 
@@ -232,15 +234,21 @@ export class SolanaRelay implements ISolanaHTLC {
       this.program.programId,
     )[0];
 
-    const tx = await this.program.methods
-      .redeem(validateSecret(secret))
-      .accounts({
-        swapAccount: this.swapAccount,
-        redeemer: redeemer,
-      })
-      .transaction();
+    try {
+      const _secret = validateSecret(secret);
 
-    return this.sendViaRelayer(tx, false, order.create_order.create_id);
+      const tx = await this.program.methods
+        .redeem(_secret)
+        .accounts({
+          swapAccount: this.swapAccount,
+          redeemer: redeemer,
+        })
+        .transaction();
+
+      return this.sendViaRelayer(tx, false, order.create_order.create_id);
+    } catch (e) {
+      return Err('Error redeeming: ', e);
+    }
   }
 
   /**
@@ -250,10 +258,7 @@ export class SolanaRelay implements ISolanaHTLC {
    * @returns {AsyncResult<string, string>} Always returns an error message
    * @deprecated This function should never be called directly
    */
-  async refund(order: MatchedOrder): AsyncResult<string, string> {
-    console.log('Refund erroneously called for :: ', order.source_swap.swap_id);
-    return Err(
-      'DO NOT CALL THIS FUNCTION. Refund is automatically handled by the relayer.',
-    );
+  async refund(): AsyncResult<string, string> {
+    return Err('Refund is automatically handled by the relayer.');
   }
 }

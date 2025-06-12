@@ -20,7 +20,6 @@ import { Api } from '../constants';
 import { ISolanaHTLC } from '../solana/htlc/ISolanaHTLC';
 import { AnchorProvider } from '@coral-xyz/anchor';
 
-
 export type SwapParams = {
   /**
    * Asset to be sent.
@@ -69,12 +68,6 @@ export type SwapParams = {
   affiliateFee?: AffiliateFeeOptionalChainAsset[];
 };
 
-export enum TimeLocks {
-  evm = 14400,
-  btc = 288,
-  sol = 432000,
-}
-
 export type OrderWithStatus = MatchedOrder & {
   status: OrderStatus;
 };
@@ -117,7 +110,6 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
    * @readonly
    */
   get starknetHTLC(): IStarknetHTLC | undefined;
-
 
   /**
    * The current quote.
