@@ -1022,8 +1022,8 @@ __metadata:
     "@catalogfi/utils": "npm:^0.1.6"
     "@catalogfi/wallets": "npm:^0.2.59"
     "@coral-xyz/anchor": "npm:^0.30.1"
-    "@gardenfi/orderbook": "workspace:^"
-    "@gardenfi/utils": "workspace:^"
+    "@gardenfi/orderbook": "workspace:*"
+    "@gardenfi/utils": "workspace:*"
     bignumber.js: "npm:^9.1.2"
     bitcoinjs-lib: "npm:^6.1.6"
     dotenv: "npm:^16.3.1"
@@ -1056,12 +1056,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gardenfi/orderbook@workspace:*, @gardenfi/orderbook@workspace:^, @gardenfi/orderbook@workspace:packages/orderbook":
+"@gardenfi/orderbook@workspace:*, @gardenfi/orderbook@workspace:packages/orderbook":
   version: 0.0.0-use.local
   resolution: "@gardenfi/orderbook@workspace:packages/orderbook"
   dependencies:
     "@coral-xyz/anchor": "npm:^0.30.1"
-    "@gardenfi/utils": "workspace:^"
+    "@gardenfi/utils": "workspace:*"
     "@types/ws": "npm:^8.5.7"
     bufferutil: "npm:^4.0.8"
     dotenv: "npm:^16.3.1"
@@ -1149,7 +1149,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@gardenfi/utils@workspace:*, @gardenfi/utils@workspace:^, @gardenfi/utils@workspace:packages/utils":
+"@gardenfi/utils@workspace:*, @gardenfi/utils@workspace:packages/utils":
   version: 0.0.0-use.local
   resolution: "@gardenfi/utils@workspace:packages/utils"
   dependencies:
