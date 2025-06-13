@@ -55,7 +55,11 @@ export class SolanaHTLC implements ISolanaHTLC {
         SwapConfig.from(order);
 
       // Initializing the data on blockchain
-      const pdaSeeds = [Buffer.from('swap_account'), Buffer.from(secretHash)];
+      const pdaSeeds = [
+        Buffer.from('swap_account'),
+        this.provider.publicKey.toBuffer(),
+        Buffer.from(secretHash),
+      ];
       this.swapAccount = web3.PublicKey.findProgramAddressSync(
         pdaSeeds,
         this.program.programId,
@@ -93,7 +97,11 @@ export class SolanaHTLC implements ISolanaHTLC {
     if (!secret) return Err('Secret is required');
     const { secretHash } = SwapConfig.from(order);
 
-    const pdaSeeds = [Buffer.from('swap_account'), Buffer.from(secretHash)];
+    const pdaSeeds = [
+      Buffer.from('swap_account'),
+      this.provider.publicKey.toBuffer(),
+      Buffer.from(secretHash),
+    ];
     this.swapAccount = web3.PublicKey.findProgramAddressSync(
       pdaSeeds,
       this.program.programId,
@@ -110,6 +118,7 @@ export class SolanaHTLC implements ISolanaHTLC {
         .redeem(validateSecret(secret))
         .accounts({
           swapAccount: this.swapAccount,
+          initiator: this.provider.publicKey,
           redeemer: redeemer,
         })
         .transaction();
@@ -153,7 +162,7 @@ export class SolanaHTLC implements ISolanaHTLC {
         .refund()
         .accounts({
           swapAccount: this.swapAccount,
-          refundee: this.provider.publicKey,
+          initiator: this.provider.publicKey,
         })
         .transaction();
 
