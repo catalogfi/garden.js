@@ -112,6 +112,12 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
   get starknetHTLC(): IStarknetHTLC | undefined;
 
   /**
+   * The Solana relay.
+   * @readonly
+   */
+  get solanaHTLC(): ISolanaHTLC | undefined;
+
+  /**
    * The current quote.
    * @readonly
    */
