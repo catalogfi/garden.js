@@ -189,7 +189,7 @@ export class SolanaRelay implements ISolanaHTLC {
 
     const pdaSeeds = [
       Buffer.from('swap_account'),
-      Buffer.from(this.provider.publicKey.toBase58()),
+      this.provider.publicKey.toBuffer(),
       Buffer.from(secretHash),
     ];
 
@@ -227,7 +227,11 @@ export class SolanaRelay implements ISolanaHTLC {
     secret: string,
   ): AsyncResult<string, string> {
     const { secretHash, redeemer } = SwapConfig.from(order);
-    const pdaSeeds = [Buffer.from('swap_account'), Buffer.from(secretHash)];
+    const pdaSeeds = [
+      Buffer.from('swap_account'),
+      this.provider.publicKey.toBuffer(),
+      Buffer.from(secretHash),
+    ];
 
     this.swapAccount = web3.PublicKey.findProgramAddressSync(
       pdaSeeds,
@@ -241,6 +245,7 @@ export class SolanaRelay implements ISolanaHTLC {
         .redeem(_secret)
         .accounts({
           swapAccount: this.swapAccount,
+          initiator: this.provider.publicKey,
           redeemer: redeemer,
         })
         .transaction();
