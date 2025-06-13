@@ -79,8 +79,6 @@ export class SolanaRelay implements ISolanaHTLC {
       ).blockhash;
       transaction.feePayer = this.relayer;
 
-      console.log('Transaction to be sent:: ', transaction);
-
       // For initiate transactions - properly await the signed transaction
       if (isInitiate) {
         const signedTransaction = await this.provider.wallet.signTransaction(
@@ -95,7 +93,7 @@ export class SolanaRelay implements ISolanaHTLC {
         const relayRequest = {
           orderId: orderId,
           serializedTx: encodedTx,
-          perform_on: 'source',
+          performOn: 'source',
         };
 
         console.log('Relay Requets:: ', relayRequest);
@@ -226,7 +224,7 @@ export class SolanaRelay implements ISolanaHTLC {
     order: MatchedOrder,
     secret: string,
   ): AsyncResult<string, string> {
-    const { secretHash, redeemer } = SwapConfig.from(order);
+    const { secretHash } = SwapConfig.from(order);
     const pdaSeeds = [
       Buffer.from('swap_account'),
       this.provider.publicKey.toBuffer(),
@@ -241,16 +239,25 @@ export class SolanaRelay implements ISolanaHTLC {
     try {
       const _secret = validateSecret(secret);
 
-      const tx = await this.program.methods
-        .redeem(_secret)
-        .accounts({
-          swapAccount: this.swapAccount,
-          initiator: this.provider.publicKey,
-          redeemer: redeemer,
-        })
-        .transaction();
+      const relayRequest = {
+        orderId: order.create_order.create_id,
+        secret: _secret,
+        performOn: 'destination',
+      };
 
-      return this.sendViaRelayer(tx, false, order.create_order.create_id);
+      const res: APIResponse<string> = await Fetcher.post(
+        this.url.endpoint('redeem'),
+        {
+          body: JSON.stringify(relayRequest),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+      if (res.error) {
+        return Err(`Error from Relayer: ${res.error}`);
+      }
+      return res.result ? Ok(res.result) : Err('Redeem: No result found');
     } catch (e) {
       return Err('Error redeeming: ', e);
     }
