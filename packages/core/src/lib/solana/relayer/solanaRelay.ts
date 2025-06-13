@@ -241,7 +241,7 @@ export class SolanaRelay implements ISolanaHTLC {
 
       const relayRequest = {
         orderId: order.create_order.create_id,
-        secret: _secret,
+        secret: Buffer.from(Uint8Array.from(_secret)),
         performOn: 'destination',
       };
 
