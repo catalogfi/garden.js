@@ -15,6 +15,7 @@ import {
   AffiliateFeeOptionalChainAsset,
   BlockchainType,
   Chain,
+  Chains,
   CreateOrderReqWithStrategyId,
   getBlockchainType,
   getTimeLock,
@@ -67,6 +68,7 @@ import { IEVMHTLC } from '../evm/htlc.types';
 import { EvmRelay } from '../evm/relay/evmRelay';
 import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { StarknetRelay } from '../starknet/relay/starknetRelay';
+// import { type Network as NetworkChain,  } from '@gardenfi/orderbook';
 
 interface AssetConfig {
   name: string;
@@ -91,8 +93,153 @@ interface NetworkConfig {
   disabled: boolean;
 }
 
-export interface SupportedAssetsResponse {
-  [key: string]: NetworkConfig;
+export type SupportedAssetsResponse = {
+  [key in Chain]: NetworkConfig;
+};
+
+export type FlattenedAssets = {
+  [K in Chain]?: {
+    [tokenAddress: string]: AssetConfig;
+  };
+};
+type ExtractSymbolsFromAssets<T extends Record<string, AssetConfig>> = {
+  [K in T[keyof T]['symbol']]: Extract<T[keyof T], { symbol: K }>;
+};
+
+// Enhanced chain wrapper with IntelliSense support
+class EnhancedChainAssets<T extends Record<string, AssetConfig>> {
+  private tokensBySymbol: ExtractSymbolsFromAssets<T>;
+  private originalTokensByAddress: T;
+
+  constructor(tokens: T) {
+    this.originalTokensByAddress = tokens;
+
+    // Build symbol-based lookup for IntelliSense
+    this.tokensBySymbol = Object.values(tokens).reduce((acc, token) => {
+      (acc as any)[token.symbol] = token;
+      return acc;
+    }, {} as ExtractSymbolsFromAssets<T>);
+  }
+
+  // Symbol-based access with full IntelliSense
+  get symbols(): ExtractSymbolsFromAssets<T> {
+    return this.tokensBySymbol;
+  }
+
+  // Address-based access (your original flattened structure)
+  get byAddress(): T {
+    return this.originalTokensByAddress;
+  }
+
+  // Convenience method for case-insensitive address lookup
+  getByAddress(address: string): AssetConfig | undefined {
+    return this.originalTokensByAddress[address.toLowerCase()];
+  }
+
+  // Get token by symbol
+  getBySymbol(symbol: string): AssetConfig | undefined {
+    return (this.tokensBySymbol as any)[symbol];
+  }
+
+  // Get all tokens as array
+  get all(): AssetConfig[] {
+    return Object.values(this.originalTokensByAddress);
+  }
+
+  // Search functionality
+  search(query: string): AssetConfig[] {
+    const lowerQuery = query.toLowerCase();
+    return this.all.filter(
+      (token) =>
+        token.symbol.toLowerCase().includes(lowerQuery) ||
+        token.name.toLowerCase().includes(lowerQuery) ||
+        token.tokenAddress.toLowerCase().includes(lowerQuery),
+    );
+  }
+
+  // Check if symbol exists
+  hasSymbol(symbol: string): boolean {
+    return symbol in this.tokensBySymbol;
+  }
+
+  // Check if address exists
+  hasAddress(address: string): boolean {
+    return address.toLowerCase() in this.originalTokensByAddress;
+  }
+}
+
+type EnhancedAssetsWrapper<TData extends FlattenedAssets> = {
+  [K in keyof TData]: TData[K] extends Record<string, AssetConfig>
+    ? EnhancedChainAssets<TData[K]>
+    : never;
+} & {
+  // Utility methods
+  getChain<K extends keyof TData>(
+    chainId: K,
+  ): TData[K] extends Record<string, AssetConfig>
+    ? EnhancedChainAssets<TData[K]>
+    : never;
+  getAllChains(): (keyof TData)[];
+  findTokenAcrossChains(symbolOrAddress: string): Array<{
+    chain: keyof TData;
+    token: AssetConfig;
+  }>;
+  // Your original flattened structure for backward compatibility
+  raw: TData;
+};
+
+function createEnhancedAssetsWrapper<TData extends FlattenedAssets>(
+  data: TData,
+): EnhancedAssetsWrapper<TData> {
+  const chains = {} as any;
+
+  // Create EnhancedChainAssets for each chain
+  for (const [chainId, tokens] of Object.entries(data)) {
+    if (tokens) {
+      chains[chainId] = new EnhancedChainAssets(tokens);
+    }
+  }
+
+  chains.findTokenAcrossChains = function (symbolOrAddress: string): Array<{
+    chain: keyof TData;
+    token: AssetConfig;
+  }> {
+    const results: Array<{ chain: keyof TData; token: AssetConfig }> = [];
+    const isAddress =
+      symbolOrAddress.startsWith('0x') || symbolOrAddress.length > 10;
+
+    for (const [chainId, chainAssets] of Object.entries(chains)) {
+      // Type guard to ensure chainAssets is EnhancedChainAssets
+      if (
+        typeof chainAssets !== 'object' ||
+        typeof (chainAssets as EnhancedChainAssets<any>).getByAddress !==
+          'function'
+      )
+        continue;
+
+      let token: AssetConfig | undefined;
+      if (isAddress) {
+        token = (chainAssets as EnhancedChainAssets<any>).getByAddress(
+          symbolOrAddress,
+        );
+      } else {
+        token = (chainAssets as EnhancedChainAssets<any>).getBySymbol(
+          symbolOrAddress,
+        );
+      }
+
+      if (token) {
+        results.push({ chain: chainId as keyof TData, token });
+      }
+    }
+
+    return results;
+  };
+
+  // Keep raw data for backward compatibility
+  chains.raw = data;
+
+  return chains;
 }
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
@@ -857,26 +1004,74 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     }
   }
 
-  async supportedAssets(): Promise<SupportedAssetsResponse> {
+  private isChain(value: string): value is Chain {
+    return value in Chains;
+  }
+
+  private flattenSupportedAssets(
+    assets: Partial<SupportedAssetsResponse>,
+  ): FlattenedAssets {
+    const flattened: FlattenedAssets = {};
+
+    for (const [networkId, network] of Object.entries(assets)) {
+      if (!this.isChain(networkId) || !network) continue;
+
+      const tokenMap: Record<string, AssetConfig> = {};
+
+      for (const asset of network.assetConfig) {
+        tokenMap[asset.tokenAddress.toLowerCase()] = asset;
+      }
+
+      flattened[networkId] = tokenMap;
+    }
+
+    return flattened;
+  }
+
+  async supportedAssets(
+    network?: any,
+  ): Promise<EnhancedAssetsWrapper<FlattenedAssets>> {
     const api = this._api?.info;
-    const endpoint = new Url(api!)
+    const endpoint = new (URL as any)(api!)
       .endpoint('assets')
       .endpoint(
-        this.environment === Environment.MAINNET ? 'mainnet' : 'testnet',
+        network
+          ? network === 'MAINNET'
+            ? 'mainnet'
+            : 'testnet'
+          : this.environment === Environment.MAINNET
+          ? 'mainnet'
+          : 'testnet',
       );
-    // console.log('Fetching supported assets from:', endpoint);
+
     try {
-      const res = await Fetcher.get<APIResponse<SupportedAssetsResponse>>(
-        endpoint,
-      );
-      console.log('Supported Assets Response:', res);
-      if (res.status === 'Ok') {
-        return res.result ?? {};
+      // Simulated fetch - replace with your actual Fetcher.get
+      const res = await Fetcher.get<SupportedAssetsResponse>(endpoint);
+
+      const filtered: Partial<SupportedAssetsResponse> = {};
+
+      for (const [key, network] of Object.entries(res)) {
+        if (network.disabled || !this.isChain(key)) continue;
+
+        const enabledAssets = Array.isArray(network.assetConfig)
+          ? network.assetConfig.filter((asset) => !asset.disabled)
+          : [];
+
+        if (enabledAssets.length > 0) {
+          filtered[key as Chain] = {
+            ...network,
+            assetConfig: enabledAssets,
+          };
+        }
       }
-      return {};
+
+      const flattened = this.flattenSupportedAssets(filtered);
+      const enhanced = createEnhancedAssetsWrapper(flattened);
+
+      return enhanced;
     } catch (error) {
       console.error('Error fetching supported assets:', error);
-      return {};
+      return createEnhancedAssetsWrapper({});
     }
   }
 }

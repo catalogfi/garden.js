@@ -5,6 +5,7 @@ export type AssetCommon = {
   chain: Chain;
   logo?: string;
   atomicSwapAddress: string;
+  disabled?: string;
 };
 
 export type AssetToken = AssetCommon & {

@@ -1,4 +1,4 @@
-import { Garden, SupportedAssetsResponse } from './garden';
+import { Garden } from './garden';
 import { Environment, with0x, DigestKey } from '@gardenfi/utils';
 import { describe } from 'vitest';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -28,9 +28,7 @@ describe('StarkNet Integration Tests', async () => {
       evm: evmWallet,
     },
   });
-
-  const supportedAssets: SupportedAssetsResponse =
-    await garden.supportedAssets();
-
-  console.log('Supported Assets:', supportedAssets);
+  const toolkit = await garden.supportedAssets();
+  const requiredAsset = toolkit.arbitrum;
+  console.log('Required Asset:', requiredAsset);
 });

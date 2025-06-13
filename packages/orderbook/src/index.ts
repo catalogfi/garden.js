@@ -1,6 +1,6 @@
 export { Orderbook } from './lib/orderbook/orderbook';
 export type * from './lib/orderbook/orderbook.types';
-export type { Chain, EvmChain, Asset } from './lib/asset';
+export type { Chain, EvmChain, Asset, Network } from './lib/asset';
 export {
   Chains,
   BlockchainType,
