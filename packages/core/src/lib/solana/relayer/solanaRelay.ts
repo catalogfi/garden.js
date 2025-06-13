@@ -4,7 +4,7 @@ import { SolanaNativeSwaps } from '../idl/solana_native_swaps';
 import { SwapConfig, validateSecret } from '../solanaTypes';
 import { AsyncResult, Err, Fetcher, Ok } from '@catalogfi/utils';
 import { bs58, hex } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
-import { APIResponse, sleep, Url } from '@gardenfi/utils';
+import { APIResponse, Url } from '@gardenfi/utils';
 import { ISolanaHTLC } from '../htlc/ISolanaHTLC';
 import { isSolanaNativeToken, MatchedOrder } from '@gardenfi/orderbook';
 
