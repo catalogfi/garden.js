@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/solana_native_swaps.json`.
  */
 export type SolanaNativeSwaps = {
-  address: '6eksgdCnSjUaGQWZ6iYvauv1qzvYPF33RTGTM1ZuyENx';
+  address: '2bag6xpshpvPe7SJ9nSDLHpxqhEAoHPGpEkjNSv7gxoF';
   metadata: {
     name: 'solanaNativeSwaps';
     version: '0.3.0';
