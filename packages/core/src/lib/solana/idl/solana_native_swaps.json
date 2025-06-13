@@ -1,0 +1,293 @@
+{
+  "address": "2bag6xpshpvPe7SJ9nSDLHpxqhEAoHPGpEkjNSv7gxoF",
+  "metadata": {
+    "name": "solana_native_swaps",
+    "version": "0.3.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "initiate",
+      "discriminator": [5, 63, 123, 113, 153, 75, 148, 14],
+      "accounts": [
+        {
+          "name": "swap_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [115, 119, 97, 112, 95, 97, 99, 99, 111, 117, 110, 116]
+              },
+              {
+                "kind": "account",
+                "path": "initiator"
+              },
+              {
+                "kind": "arg",
+                "path": "secret_hash"
+              }
+            ]
+          }
+        },
+        {
+          "name": "initiator",
+          "docs": ["Initiator must sign this transaction"],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount_lamports",
+          "type": "u64"
+        },
+        {
+          "name": "expires_in_slots",
+          "type": "u64"
+        },
+        {
+          "name": "redeemer",
+          "type": "pubkey"
+        },
+        {
+          "name": "secret_hash",
+          "type": {
+            "array": ["u8", 32]
+          }
+        }
+      ]
+    },
+    {
+      "name": "instant_refund",
+      "discriminator": [211, 202, 103, 41, 183, 147, 59, 251],
+      "accounts": [
+        {
+          "name": "swap_account",
+          "writable": true
+        },
+        {
+          "name": "initiator",
+          "writable": true
+        },
+        {
+          "name": "redeemer",
+          "docs": ["Redeemer must sign this transaction"],
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "redeem",
+      "discriminator": [184, 12, 86, 149, 70, 196, 97, 225],
+      "accounts": [
+        {
+          "name": "swap_account",
+          "writable": true
+        },
+        {
+          "name": "initiator",
+          "docs": [
+            "This is included here for the PDA rent refund using the `close` attribute above"
+          ],
+          "writable": true
+        },
+        {
+          "name": "redeemer",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "secret",
+          "type": {
+            "array": ["u8", 32]
+          }
+        }
+      ]
+    },
+    {
+      "name": "refund",
+      "discriminator": [2, 96, 183, 251, 63, 208, 46, 46],
+      "accounts": [
+        {
+          "name": "swap_account",
+          "writable": true
+        },
+        {
+          "name": "initiator",
+          "writable": true
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "SwapAccount",
+      "discriminator": [53, 126, 9, 14, 14, 197, 105, 182]
+    }
+  ],
+  "events": [
+    {
+      "name": "Initiated",
+      "discriminator": [6, 108, 212, 91, 67, 60, 207, 221]
+    },
+    {
+      "name": "InstantRefunded",
+      "discriminator": [220, 50, 18, 207, 183, 232, 218, 25]
+    },
+    {
+      "name": "Redeemed",
+      "discriminator": [14, 29, 183, 71, 31, 165, 107, 38]
+    },
+    {
+      "name": "Refunded",
+      "discriminator": [35, 103, 149, 246, 196, 123, 221, 99]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidInitiator",
+      "msg": "The provided initiator is not the original initiator of this swap account"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidRedeemer",
+      "msg": "The provided redeemer is not the original redeemer of this swap amount"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidSecret",
+      "msg": "The provided secret does not correspond to the secret hash in the swap account"
+    },
+    {
+      "code": 6003,
+      "name": "RefundBeforeExpiry",
+      "msg": "Attempt to perform a refund before expiry time"
+    }
+  ],
+  "types": [
+    {
+      "name": "Initiated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "amount_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "expires_in_slots",
+            "type": "u64"
+          },
+          {
+            "name": "initiator",
+            "type": "pubkey"
+          },
+          {
+            "name": "redeemer",
+            "type": "pubkey"
+          },
+          {
+            "name": "secret_hash",
+            "type": {
+              "array": ["u8", 32]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "InstantRefunded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "initiator",
+            "type": "pubkey"
+          },
+          {
+            "name": "secret_hash",
+            "type": {
+              "array": ["u8", 32]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Redeemed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "initiator",
+            "type": "pubkey"
+          },
+          {
+            "name": "secret",
+            "type": {
+              "array": ["u8", 32]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Refunded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "initiator",
+            "type": "pubkey"
+          },
+          {
+            "name": "secret_hash",
+            "type": {
+              "array": ["u8", 32]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "SwapAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "amount_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "expiry_slot",
+            "type": "u64"
+          },
+          {
+            "name": "initiator",
+            "type": "pubkey"
+          },
+          {
+            "name": "redeemer",
+            "type": "pubkey"
+          },
+          {
+            "name": "secret_hash",
+            "type": {
+              "array": ["u8", 32]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

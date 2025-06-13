@@ -128,7 +128,7 @@ export const isValidBitcoinPubKey = (pubKey: string): boolean => {
   try {
     const pubKeyBuffer = Buffer.from(pubKey, 'hex');
     return secp256k1.isPoint(pubKeyBuffer);
-  } catch (e) {
+  } catch {
     return false;
   }
 };
@@ -153,15 +153,15 @@ export function validateBTCAddress(address: string, networkType: Environment) {
     networkType === Environment.MAINNET
       ? bitcoin.networks.bitcoin
       : networkType === Environment.TESTNET
-      ? bitcoin.networks.testnet
-      : bitcoin.networks.regtest;
+        ? bitcoin.networks.testnet
+        : bitcoin.networks.regtest;
 
   if (!network) return false;
   bitcoin.initEccLib(ecc);
   try {
     bitcoin.address.toOutputScript(address, network);
     return true;
-  } catch (e) {
+  } catch {
     // console.error(e);
     return false;
   }
@@ -173,6 +173,8 @@ export const getBitcoinNetwork = (network: Environment): BitcoinNetwork => {
       return BitcoinNetwork.Mainnet;
     case Environment.TESTNET:
       return BitcoinNetwork.Testnet;
+    case Environment.LOCALNET:
+      return BitcoinNetwork.Regtest;
     default:
       throw new Error(`Invalid bitcoin network ${network}`);
   }
