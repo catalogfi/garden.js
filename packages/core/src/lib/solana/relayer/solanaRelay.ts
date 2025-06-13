@@ -3,8 +3,8 @@ import idl from '../idl/solana_native_swaps.json';
 import { SolanaNativeSwaps } from '../idl/solana_native_swaps';
 import { SwapConfig, validateSecret } from '../solanaTypes';
 import { AsyncResult, Err, Fetcher, Ok } from '@catalogfi/utils';
-import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
-import { APIResponse, Url } from '@gardenfi/utils';
+import { bs58, hex } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
+import { APIResponse, sleep, Url } from '@gardenfi/utils';
 import { ISolanaHTLC } from '../htlc/ISolanaHTLC';
 import { isSolanaNativeToken, MatchedOrder } from '@gardenfi/orderbook';
 
@@ -241,7 +241,7 @@ export class SolanaRelay implements ISolanaHTLC {
 
       const relayRequest = {
         orderId: order.create_order.create_id,
-        secret: Buffer.from(Uint8Array.from(_secret)),
+        secret: hex.encode(Buffer.from(_secret)).replace(/^0x/, ''),
         performOn: 'destination',
       };
 
