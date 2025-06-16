@@ -93,8 +93,6 @@ export class SolanaRelay implements ISolanaHTLC {
         performOn: 'source',
       };
 
-      console.log('Relay Requets:: ', relayRequest);
-
       // Send to relayer
       const res: APIResponse<string> = await Fetcher.post(
         this.url.endpoint('/relay'),

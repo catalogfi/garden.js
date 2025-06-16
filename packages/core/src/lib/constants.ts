@@ -17,7 +17,7 @@ export const API: Record<Environment, Api> = {
     quote: 'https://api.garden.finance/quote',
     info: 'https://api.garden.finance/info',
     evmRelay: 'https://api.garden.finance/relayer',
-    solanaRelay: 'https://solana-relayer-staging.hashira.io',
+    solanaRelay: '',
     starknetRelay: 'https://api.garden.finance/starknet',
   },
   testnet: {
