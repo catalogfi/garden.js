@@ -70,7 +70,6 @@ export class SolanaRelay implements ISolanaHTLC {
    */
   private async sendViaRelayer(
     transaction: web3.Transaction,
-    isInitiate: boolean = false,
     orderId: string,
   ): AsyncResult<string, string> {
     try {
@@ -79,73 +78,41 @@ export class SolanaRelay implements ISolanaHTLC {
       ).blockhash;
       transaction.feePayer = this.relayer;
 
-      // For initiate transactions - properly await the signed transaction
-      if (isInitiate) {
-        const signedTransaction = await this.provider.wallet.signTransaction(
-          transaction,
-        );
+      const signedTransaction = await this.provider.wallet.signTransaction(
+        transaction,
+      );
 
-        // Use the signed transaction (with compute budget instructions) for encoding
-        const encodedTx = bs58.encode(
-          signedTransaction.serialize({ requireAllSignatures: false }),
-        );
+      // Use the signed transaction (with compute budget instructions) for encoding
+      const encodedTx = bs58.encode(
+        signedTransaction.serialize({ requireAllSignatures: false }),
+      );
 
-        const relayRequest = {
-          orderId: orderId,
-          serializedTx: encodedTx,
-          performOn: 'source',
-        };
+      const relayRequest = {
+        orderId: orderId,
+        serializedTx: encodedTx,
+        performOn: 'source',
+      };
 
-        console.log('Relay Requets:: ', relayRequest);
+      console.log('Relay Requets:: ', relayRequest);
 
-        // Send to relayer
-        const res: APIResponse<string> = await Fetcher.post(
-          this.url.endpoint('/relay'),
-          {
-            body: JSON.stringify(relayRequest),
-            headers: {
-              'Content-Type': 'application/json',
-            },
+      // Send to relayer
+      const res: APIResponse<string> = await Fetcher.post(
+        this.url.endpoint('/relay'),
+        {
+          body: JSON.stringify(relayRequest),
+          headers: {
+            'Content-Type': 'application/json',
           },
-        );
+        },
+      );
 
-        if (res.error) {
-          return Err(`Error from Relayer: ${res.error}`);
-        }
-
-        return res.result
-          ? Ok(res.result)
-          : Err('No result returned from relayer');
-      } else {
-        // Non-initiate transactions continue as before
-        const encodedTx = bs58.encode(
-          transaction.serialize({ requireAllSignatures: false }),
-        );
-
-        const relayRequest = {
-          orderId: orderId,
-          serializedTx: encodedTx,
-          perform_on: 'destination',
-        };
-
-        const res: APIResponse<string> = await Fetcher.post(
-          this.url.endpoint('redeem'),
-          {
-            body: JSON.stringify(relayRequest),
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          },
-        );
-
-        if (res.error) {
-          return Err(`Error from Relayer: ${res.error}`);
-        }
-
-        return res.result
-          ? Ok(res.result)
-          : Err('No result returned from relayer');
+      if (res.error) {
+        return Err(`Error from Relayer: ${res.error}`);
       }
+
+      return res.result
+        ? Ok(res.result)
+        : Err('No result returned from relayer');
     } catch (error) {
       console.error('Error in sendViaRelayer:', error);
       return Err(
@@ -205,7 +172,7 @@ export class SolanaRelay implements ISolanaHTLC {
       if (
         !isSolanaNativeToken(order.source_swap.chain, order.source_swap.asset)
       )
-        return this.sendViaRelayer(tx, true, order.create_order.create_id);
+        return this.sendViaRelayer(tx, order.create_order.create_id);
       else return this.initiateViaHTLC(tx, order);
     } catch (e) {
       return Err('Error initiating swap: ', e);
