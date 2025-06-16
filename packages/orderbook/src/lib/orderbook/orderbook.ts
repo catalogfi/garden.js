@@ -35,8 +35,9 @@ export class Orderbook implements IOrderbook {
     auth: IAuth,
   ): AsyncResult<string, string> {
     const headers = await auth.getAuthHeaders();
-    if (headers.error) return Err(headers.error);
-
+    if (headers.error) {
+      return Err(headers.error);
+    }
     try {
       const res = await Fetcher.post<CreateOrderResponse>(
         this.Url.endpoint('/relayer').endpoint('create-order'),
@@ -48,12 +49,14 @@ export class Orderbook implements IOrderbook {
           },
         },
       );
-      if (res.error) return Err(res.error);
+      if (res.error) {
+        return Err(res.error);
+      }
       return res.result
         ? Ok(res.result)
         : Err('CreateOrder: Unexpected error, result is undefined');
     } catch (error) {
-      return Err('CreateOrder:', String(error));
+      return Err('CreateOrder Err:', String(error));
     }
   }
 
