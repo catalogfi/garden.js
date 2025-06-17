@@ -9,8 +9,8 @@ import SwapOutput from './SwapOutput';
 export const SwapComponent = () => {
   const [loading, setLoading] = useState(false);
   const [swapParams, setSwapParams] = useState({
-    inputToken: chainToAsset.arbitrum_sepolia_WBTC,
-    outputToken: chainToAsset.starknet_sepolia_ETH,
+    inputToken: chainToAsset.base_sepolia_WBTC,
+    outputToken: chainToAsset.bitcoin_testnet_BTC,
     inputAmount: 0.001,
     outputAmount: 0.0009,
     btcAddress: '',

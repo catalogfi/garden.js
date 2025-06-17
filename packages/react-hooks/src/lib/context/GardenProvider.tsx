@@ -16,7 +16,7 @@ import {
 } from '@gardenfi/orderbook';
 import { constructOrderpair, hasAnyValidValue } from '../utils';
 import { useDigestKey } from '../hooks/useDigestKey';
-import { ServiceWorkerManager } from '../workers/serviceWorkerManager';
+import { initServiceWorker } from '../workers/serviceWorkerManager';
 
 export const GardenContext = createContext<GardenContextType>({
   pendingOrders: [],
@@ -27,9 +27,6 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   config,
 }) => {
   const [garden, setGarden] = useState<IGardenJS>();
-  const [serviceWorkerManager] = useState(() =>
-    ServiceWorkerManager.getInstance(),
-  );
 
   const { digestKey } = useDigestKey();
   const { pendingOrders } = useOrderbook(garden);
@@ -108,21 +105,6 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   };
 
   useEffect(() => {
-    const initServiceWorker = async () => {
-      try {
-        await serviceWorkerManager.registerServiceWorker();
-        console.log('Service Worker registration completed');
-      } catch (error) {
-        console.error('Service Worker registration failed:', error);
-      }
-    };
-
-    initServiceWorker();
-
-    return () => {};
-  }, [serviceWorkerManager]);
-
-  useEffect(() => {
     if (!window || !digestKey) return;
     if (!('wallets' in config) && !('htlc' in config)) return;
 
@@ -154,8 +136,20 @@ export const GardenProvider: FC<GardenProviderProps> = ({
 
     // Notify service worker that Garden has been initialized
     console.log('Garden initialized, notifying Service Worker...');
-    serviceWorkerManager.notifyGardenInitialized(garden);
-  }, [config, digestKey, serviceWorkerManager]);
+    const init = async () => {
+      const sw = await initServiceWorker({
+        swPath: '/sw.js',
+        scope: '/',
+      });
+      if (sw) {
+        console.log('Service Worker initialized successfully');
+      }
+    };
+
+    init().catch((error) => {
+      console.error('Error initializing Service Worker:', error);
+    });
+  }, [config, digestKey]);
 
   return (
     <GardenContext.Provider

@@ -12,13 +12,16 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: './index.html',
-        sw: './public/garden-service-worker.js',
+        // sw: './public/garden-service-worker.js',
       },
     },
   },
   server: {
     fs: {
       allow: ['..'],
+    },
+    proxy: {
+      '/sw.js': 'http://localhost:3000',
     },
   },
 });
