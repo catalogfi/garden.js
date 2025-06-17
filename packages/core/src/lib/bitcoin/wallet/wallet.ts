@@ -37,9 +37,7 @@ export class BitcoinWallet extends AbstractBitcoinWallet {
      * @param {number} opts.pkIndex - The address_index as per BIP44
      */
     constructor({ privateKey, provider, pkPath, pkType }: BitcoinWalletOpts) {
-      console.log("Getting in here");
       const ECPair = ECPairFactory(ecc);
-      console.log("Failed getting here!");
       const network = getBitcoinNetwork(provider.getNetwork());
       const buf = Buffer.from(privateKey, 'hex');
       if (buf.length === 0) {
