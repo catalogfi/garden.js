@@ -15,6 +15,7 @@ import {
   AffiliateFeeOptionalChainAsset,
   BlockchainType,
   Chain,
+  Chains,
   CreateOrderReqWithStrategyId,
   getBlockchainType,
   getTimeLock,
@@ -67,6 +68,39 @@ import { IEVMHTLC } from '../evm/htlc.types';
 import { EvmRelay } from '../evm/relay/evmRelay';
 import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { StarknetRelay } from '../starknet/relay/starknetRelay';
+
+export interface AssetConfig {
+  name: string;
+  decimals: number;
+  symbol: string;
+  logo: string;
+  tokenAddress: string;
+  atomicSwapAddress: string;
+  min_amount: string;
+  max_amount: string;
+  disabled: boolean;
+}
+
+interface NetworkConfig {
+  chainId: string;
+  networkLogo: string;
+  explorer: string;
+  networkType: string;
+  name: string;
+  assetConfig: AssetConfig[];
+  identifier: string;
+  disabled: boolean;
+}
+
+export type SupportedAssetsResponse = {
+  [key in Chain]: NetworkConfig;
+};
+
+export type NetworkGroupedAssets = {
+  [networkIdentifier in Chain]?: {
+    [symbol: string]: AssetConfig;
+  };
+};
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment = Environment.TESTNET;
@@ -143,19 +177,19 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     const htlc = {
       evm: config.wallets.evm
         ? new EvmRelay(
-            api.evmRelay,
-            config.wallets.evm,
-            Siwe.fromDigestKey(new Url(api.auth), digestKey),
-          )
+          api.evmRelay,
+          config.wallets.evm,
+          Siwe.fromDigestKey(new Url(api.auth), digestKey),
+        )
         : undefined,
       starknet: config.wallets.starknet
         ? new StarknetRelay(
-            api.starknetRelay,
-            config.wallets.starknet,
-            config.environment === Environment.MAINNET
-              ? Network.MAINNET
-              : Network.TESTNET,
-          )
+          api.starknetRelay,
+          config.wallets.starknet,
+          config.environment === Environment.MAINNET
+            ? Network.MAINNET
+            : Network.TESTNET,
+        )
         : undefined,
     };
 
@@ -367,7 +401,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       } else if (
         orderRes.val &&
         orderRes.val.create_order.create_id.toLowerCase() ===
-          createOrderID.toLowerCase()
+        createOrderID.toLowerCase()
       ) {
         return Ok(orderRes.val);
       }
@@ -827,6 +861,51 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       return Err(resJson.error);
     } catch (error) {
       return Err('Failed to broadcast redeem tx: ' + error);
+    }
+  }
+
+  private isChain(value: string): value is Chain {
+    return value in Chains;
+  }
+
+  async supportedAssets(network?: Network): Promise<NetworkGroupedAssets> {
+    const api = this._api?.info;
+    const endpoint = new Url(api!).endpoint('assets').endpoint(
+      network
+        ? network === Network.MAINNET
+          ? 'mainnet'
+          : 'testnet'
+        : this.environment === Environment.MAINNET
+          ? 'mainnet'
+          : 'testnet',);
+
+    try {
+      const res = await Fetcher.get<SupportedAssetsResponse>(endpoint);
+
+      const assets: Partial<NetworkGroupedAssets> = {};
+
+      for (const [key, networkConfig] of Object.entries(res)) {
+        if (networkConfig.disabled || !this.isChain(key)) continue;
+
+        const enabledAssets = Array.isArray(networkConfig.assetConfig)
+          ? networkConfig.assetConfig.filter((asset) => !asset.disabled)
+          : [];
+
+        if (enabledAssets.length === 0) continue;
+
+        const identifier = networkConfig.identifier as Chain;
+
+        assets[identifier] ??= {};
+
+        for (const asset of enabledAssets) {
+          assets[identifier][asset.symbol] = asset;
+        }
+      }
+
+      return assets as NetworkGroupedAssets;
+    } catch (error) {
+      console.error('Error fetching grouped assets:', error);
+      return {};
     }
   }
 }
