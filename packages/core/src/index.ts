@@ -42,6 +42,7 @@ export type {
   ISecretManager,
   Secret,
 } from './lib/secretManager/secretManager.types';
+export { checkAllowanceAndApprove as checkStarknetAllowanceApproval } from './lib/starknet/checkAllowanceAndApprove';
 
 export { Quote } from './lib/quote/quote';
 export type {
