@@ -88,7 +88,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   }>();
   private _digestKey: DigestKey;
   private _api: Api | undefined;
-  private isSecretManagementEnabled: boolean;
+  private isSecretManagementEnabled: boolean = false;
 
   constructor(config: GardenConfigWithHTLCs) {
     super();
@@ -123,7 +123,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       this._digestKey.digestKey,
       provider,
     );
-    this.isSecretManagementEnabled = config.enableSecretManagement ?? false;
+  }
+  setSecretManagement(enabled: boolean): this {
+    this.isSecretManagementEnabled = enabled;
+    return this;
   }
 
   static fromWallets(config: GardenConfigWithWallets) {
@@ -224,7 +227,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     const isDestBitcoin = isBitcoin(params.toAsset.chain);
     const isAnyChainBitcoin = isSourceBitcoin || isDestBitcoin;
 
-    if (this.isSecretManagementEnabled && isAnyChainBitcoin && !btcAddress) {
+    if (!this.isSecretManagementEnabled && isAnyChainBitcoin && !btcAddress) {
       return Err(
         'Bitcoin optional recipient is mandatory when secret management is enabled and any chain is Bitcoin',
       );
@@ -242,11 +245,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       destination_chain: params.toAsset.chain,
       source_asset: params.fromAsset.atomicSwapAddress,
       destination_asset: params.toAsset.atomicSwapAddress,
-      ...(this.isSecretManagementEnabled && isSourceBitcoin
+      ...(!this.isSecretManagementEnabled && isSourceBitcoin
         ? {}
         : { initiator_source_address: sendAddress }),
 
-      ...(this.isSecretManagementEnabled && isDestBitcoin
+      ...(!this.isSecretManagementEnabled && isDestBitcoin
         ? {}
         : { initiator_destination_address: receiveAddress }),
       source_amount: params.sendAmount,
@@ -254,7 +257,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       fee: '1',
       nonce: nonce,
       timelock: timelock,
-      ...(!this.isSecretManagementEnabled && secretHash
+      ...(this.isSecretManagementEnabled && secretHash
         ? { secret_hash: trim0x(secretHash) }
         : {}),
       min_destination_confirmations: params.minDestinationConfirmations ?? 0,
@@ -398,14 +401,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   }
 
   async execute(interval: number = 5000): Promise<() => void> {
-    if (this.isSecretManagementEnabled) {
-      return await this.executeWithoutRedeems(interval);
-    } else {
-      return await this.executeWithRedeems(interval);
-    }
-  }
-
-  private async executeWithRedeems(interval: number): Promise<() => void> {
     return await this._orderbook.subscribeOrders(
       this._digestKey.userId,
       true,
@@ -419,12 +414,31 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         this.emit('onPendingOrdersChanged', ordersWithStatus.val);
         if (pendingOrders.data.length === 0) return;
 
-        //initialize swappers and execute orders
-        for (let i = 0; i < ordersWithStatus.val.length; i++) {
-          const order = ordersWithStatus.val[i];
+        for (const order of ordersWithStatus.val) {
+          if (!this.isSecretManagementEnabled) {
+            switch (order.status) {
+              case OrderStatus.Completed:
+              case OrderStatus.Redeemed:
+              case OrderStatus.CounterPartyRedeemed: {
+                this.orderExecutorCache.set(
+                  order,
+                  OrderActions.Redeem,
+                  order.destination_swap.redeem_tx_hash,
+                );
+                this.emit(
+                  'success',
+                  order,
+                  OrderActions.Redeem,
+                  order.destination_swap.redeem_tx_hash,
+                );
+                break;
+              }
+            }
+            continue;
+          }
+
           const orderAction = parseActionFromStatus(order.status);
 
-          //post refund sacp for bitcoin orders
           if (
             isBitcoin(order.source_swap.chain) &&
             order.status === OrderStatus.InitiateDetected
@@ -444,28 +458,25 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
               );
               if (secrets.error) {
                 this.emit('error', order, secrets.error);
-                return;
+                continue;
               }
 
+              const secret = secrets.val.secret;
               switch (getBlockchainType(order.destination_swap.chain)) {
-                case BlockchainType.EVM: {
-                  await this.evmRedeem(order, secrets.val.secret);
+                case BlockchainType.EVM:
+                  await this.evmRedeem(order, secret);
                   break;
-                }
-                case BlockchainType.Bitcoin: {
+                case BlockchainType.Bitcoin:
                   const destWallet = this.btcWallet;
                   if (!destWallet) {
                     this.emit('error', order, 'BTC wallet not found');
-                    return;
+                    continue;
                   }
-
-                  await this.btcRedeem(destWallet, order, secrets.val.secret);
+                  await this.btcRedeem(destWallet, order, secret);
                   break;
-                }
-                case BlockchainType.Starknet: {
-                  await this.starknetRedeem(order, secrets.val.secret);
+                case BlockchainType.Starknet:
+                  await this.starknetRedeem(order, secret);
                   break;
-                }
                 default:
                   this.emit(
                     'error',
@@ -475,34 +486,31 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
               }
               break;
             }
+
             case OrderActions.Refund: {
               switch (getBlockchainType(order.source_swap.chain)) {
-                case BlockchainType.EVM: {
+                case BlockchainType.EVM:
                   this.emit(
                     'error',
                     order,
                     'EVM refund is automatically done by relay service',
                   );
                   break;
-                }
-                case BlockchainType.Bitcoin: {
+                case BlockchainType.Bitcoin:
                   const sourceWallet = this.btcWallet;
                   if (!sourceWallet) {
                     this.emit('error', order, 'BTC wallet not found');
-                    return;
+                    continue;
                   }
-
                   await this.btcRefund(sourceWallet, order);
                   break;
-                }
-                case BlockchainType.Starknet: {
+                case BlockchainType.Starknet:
                   this.emit(
                     'error',
                     order,
                     'Starknet refund is automatically done by relay service',
                   );
                   break;
-                }
                 default:
                   this.emit(
                     'error',
@@ -514,56 +522,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
             }
           }
         }
-        return;
       },
       'pending',
-      {
-        per_page: 500,
-      },
-    );
-  }
-
-  async executeWithoutRedeems(interval: number): Promise<() => void> {
-    return await this._orderbook.subscribeOrders(
-      this._digestKey.userId,
-      true,
-      interval,
-      async (pendingOrders) => {
-        const ordersWithStatus = await this.filterExpiredAndAssignStatus(
-          pendingOrders.data,
-        );
-        if (ordersWithStatus.error) return;
-
-        this.emit('onPendingOrdersChanged', ordersWithStatus.val);
-        if (pendingOrders.data.length === 0) return;
-
-        for (let i = 0; i < ordersWithStatus.val.length; i++) {
-          const order = ordersWithStatus.val[i];
-
-          switch (order.status) {
-            case OrderStatus.Completed:
-            case OrderStatus.Redeemed:
-            case OrderStatus.CounterPartyRedeemed: {
-              this.orderExecutorCache.set(
-                order,
-                OrderActions.Redeem,
-                order.destination_swap.redeem_tx_hash,
-              );
-              this.emit(
-                'success',
-                order,
-                OrderActions.Redeem,
-                order.destination_swap.redeem_tx_hash,
-              );
-            }
-          }
-        }
-        return;
-      },
-      'pending',
-      {
-        per_page: 500,
-      },
+      { per_page: 500 },
     );
   }
 

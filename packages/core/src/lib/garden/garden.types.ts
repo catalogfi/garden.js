@@ -181,7 +181,6 @@ export type GardenCoreConfig = {
   orderbook?: IOrderbook;
   quote?: IQuote;
   blockNumberFetcher?: IBlockNumberFetcher;
-  enableSecretManagement?: boolean;
 };
 
 export type GardenHTLCModules = {
