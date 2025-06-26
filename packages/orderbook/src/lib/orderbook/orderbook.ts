@@ -1,7 +1,7 @@
 import { AsyncResult, Fetcher, Ok, Err } from '@catalogfi/utils';
 import {
   CreateOrder,
-  CreateOrderRequestWithAdditionalData,
+  CreateOrderReqWithStrategyId,
   CreateOrderResponse,
   IOrderbook,
   MatchedOrder,
@@ -31,7 +31,7 @@ export class Orderbook implements IOrderbook {
    * @returns {string} The create order ID.
    */
   async createOrder(
-    order: CreateOrderRequestWithAdditionalData,
+    order: CreateOrderReqWithStrategyId,
     auth: IAuth,
   ): AsyncResult<string, string> {
     const headers = await auth.getAuthHeaders();

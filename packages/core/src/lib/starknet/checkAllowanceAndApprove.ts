@@ -4,7 +4,7 @@ import {
   Contract,
   RpcProvider,
   TransactionExecutionStatus,
-  uint256,
+  UINT_256_MAX,
 } from 'starknet';
 import { AsyncResult, Err, Ok, with0x } from '@catalogfi/utils';
 import { TokenABI } from './abi/starknetTokenABI';
@@ -26,7 +26,7 @@ export const checkAllowanceAndApprove = async (
     );
     if (allowance.error) return Err(allowance.error);
 
-    const maxUint256 = cairo.uint256(BigInt(uint256.UINT_256_MAX));
+    const maxUint256 = cairo.uint256(BigInt(UINT_256_MAX));
 
     if (allowance.val < amount) {
       const approveResponse = await account.execute([

@@ -93,7 +93,7 @@ export interface IOrderbook {
    * @returns {number} The create order ID.
    */
   createOrder(
-    order: CreateOrderRequestWithAdditionalData,
+    order: CreateOrderReqWithStrategyId,
     auth: IAuth,
   ): AsyncResult<string, string>;
 
@@ -246,15 +246,15 @@ export type CreateOrderRequest = {
   destination_chain: string;
   source_asset: string;
   destination_asset: string;
-  initiator_source_address: string;
-  initiator_destination_address: string;
+  initiator_source_address?: string;
+  initiator_destination_address?: string;
   source_amount: string; // BigDecimal as string
   destination_amount: string; // BigDecimal as string
   fee: string; // BigDecimal as string
   nonce: string; // BigDecimal as string
   min_destination_confirmations: number;
   timelock: number;
-  secret_hash: string;
+  secret_hash?: string;
 };
 
 export type CreateOrderRequestWithAdditionalData = CreateOrderRequest &
