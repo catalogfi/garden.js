@@ -48,7 +48,7 @@ describe('StarkNet Integration Tests', () => {
       evm: evmWallet,
       starknet: starknetWallet,
     },
-  }).setSecretManagement(true);
+  }).handleSecretManagement(true);
 
   const setupEventListeners = (garden: IGardenJS) => {
     garden.on('error', (order, error) => {

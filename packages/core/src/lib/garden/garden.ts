@@ -124,7 +124,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       provider,
     );
   }
-  setSecretManagement(enabled: boolean): this {
+  handleSecretManagement(enabled: boolean): this {
     this.isSecretManagementEnabled = enabled;
     return this;
   }
