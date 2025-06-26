@@ -240,11 +240,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       }),
     };
 
-    const order: CreateOrderReqWithStrategyId = {
-      source_chain: params.fromAsset.chain,
-      destination_chain: params.toAsset.chain,
-      source_asset: params.fromAsset.atomicSwapAddress,
-      destination_asset: params.toAsset.atomicSwapAddress,
+    const initiatorAndDestinationAddress = {
       ...(!this.isSecretManagementEnabled && isSourceBitcoin
         ? {}
         : { initiator_source_address: sendAddress }),
@@ -252,14 +248,22 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       ...(!this.isSecretManagementEnabled && isDestBitcoin
         ? {}
         : { initiator_destination_address: receiveAddress }),
+      ...(this.isSecretManagementEnabled && secretHash
+        ? { secret_hash: trim0x(secretHash) }
+        : {}),
+    };
+
+    const order: CreateOrderReqWithStrategyId = {
+      source_chain: params.fromAsset.chain,
+      destination_chain: params.toAsset.chain,
+      source_asset: params.fromAsset.atomicSwapAddress,
+      destination_asset: params.toAsset.atomicSwapAddress,
       source_amount: params.sendAmount,
       destination_amount: params.receiveAmount,
       fee: '1',
       nonce: nonce,
       timelock: timelock,
-      ...(this.isSecretManagementEnabled && secretHash
-        ? { secret_hash: trim0x(secretHash) }
-        : {}),
+      ...initiatorAndDestinationAddress,
       min_destination_confirmations: params.minDestinationConfirmations ?? 0,
       additional_data: additionalData,
       affiliate_fees: this.withDefaultAffiliateFees(params.affiliateFee),
@@ -458,7 +462,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
               );
               if (secrets.error) {
                 this.emit('error', order, secrets.error);
-                continue;
+                return;
               }
 
               const secret = secrets.val.secret;
@@ -466,14 +470,15 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                 case BlockchainType.EVM:
                   await this.evmRedeem(order, secret);
                   break;
-                case BlockchainType.Bitcoin:
+                case BlockchainType.Bitcoin: {
                   const destWallet = this.btcWallet;
                   if (!destWallet) {
                     this.emit('error', order, 'BTC wallet not found');
-                    continue;
+                    return;
                   }
                   await this.btcRedeem(destWallet, order, secret);
                   break;
+                }
                 case BlockchainType.Starknet:
                   await this.starknetRedeem(order, secret);
                   break;
@@ -496,7 +501,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                     'EVM refund is automatically done by relay service',
                   );
                   break;
-                case BlockchainType.Bitcoin:
+                case BlockchainType.Bitcoin: {
                   const sourceWallet = this.btcWallet;
                   if (!sourceWallet) {
                     this.emit('error', order, 'BTC wallet not found');
@@ -504,6 +509,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                   }
                   await this.btcRefund(sourceWallet, order);
                   break;
+                }
                 case BlockchainType.Starknet:
                   this.emit(
                     'error',
@@ -522,6 +528,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
             }
           }
         }
+        return;
       },
       'pending',
       { per_page: 500 },
