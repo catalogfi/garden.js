@@ -1,22 +1,6 @@
 import * as config from '../../../../config.json';
 
 const defaultConfig = {
-  mainnet: {
-    orderbook: "",
-    auth: "",
-    quote: "",
-    info: "",
-    evmRelay: "",
-    starknetRelay: "",
-  },
-  testnet: {
-    orderbook: "",
-    auth: "",
-    quote: "",
-    info: "",
-    evmRelay: "",
-    starknetRelay: "",
-  },
   localnet: {
     orderbook: "",
     auth: "",
@@ -25,7 +9,6 @@ const defaultConfig = {
     bitcoin: "",
     ethereum: "",
     arbitrum: "",
-    btcnode: "",
     starknet: "",
     evmRelay: "",
     starknetRelay: ""
@@ -34,8 +17,6 @@ const defaultConfig = {
 };
 
 const API = {
-  mainnet: config.MAINNET || defaultConfig.mainnet,
-  testnet: config.TESTNET || defaultConfig.testnet,
   localnet: config.LOCALNET || defaultConfig.localnet,
   pk: config.PK || defaultConfig.PK
 };
