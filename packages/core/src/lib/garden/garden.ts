@@ -88,6 +88,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   }>();
   private _digestKey: DigestKey;
   private _api: Api | undefined;
+  private isSecretManagementEnabled: boolean;
 
   constructor(config: GardenConfigWithHTLCs) {
     super();
@@ -122,6 +123,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       this._digestKey.digestKey,
       provider,
     );
+    this.isSecretManagementEnabled = config.enableSecretManagement ?? false;
   }
 
   static fromWallets(config: GardenConfigWithWallets) {
@@ -208,10 +210,26 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     const { sendAddress, receiveAddress, timelock } = validate.val;
 
     const nonce = Date.now().toString();
-    const secrets = await this._secretManager.generateSecret(nonce);
-    if (secrets.error) return Err(secrets.error);
+    let secretHash: string | undefined;
+
+    if (this.isSecretManagementEnabled) {
+      const secrets = await this._secretManager.generateSecret(nonce);
+      if (secrets.error) return Err(secrets.error);
+      secretHash = secrets.val.secretHash;
+    }
 
     const { strategyId, btcAddress } = params.additionalData;
+
+    const isSourceBitcoin = isBitcoin(params.fromAsset.chain);
+    const isDestBitcoin = isBitcoin(params.toAsset.chain);
+    const isAnyChainBitcoin = isSourceBitcoin || isDestBitcoin;
+
+    if (this.isSecretManagementEnabled && isAnyChainBitcoin && !btcAddress) {
+      return Err(
+        'Bitcoin optional recipient is mandatory when secret management is enabled and any chain is Bitcoin',
+      );
+    }
+
     const additionalData = {
       strategy_id: strategyId,
       ...(btcAddress && {
@@ -224,26 +242,27 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       destination_chain: params.toAsset.chain,
       source_asset: params.fromAsset.atomicSwapAddress,
       destination_asset: params.toAsset.atomicSwapAddress,
-      initiator_source_address: sendAddress,
-      initiator_destination_address: receiveAddress,
+      ...(this.isSecretManagementEnabled && isSourceBitcoin
+        ? {}
+        : { initiator_source_address: sendAddress }),
+
+      ...(this.isSecretManagementEnabled && isDestBitcoin
+        ? {}
+        : { initiator_destination_address: receiveAddress }),
       source_amount: params.sendAmount,
       destination_amount: params.receiveAmount,
       fee: '1',
       nonce: nonce,
       timelock: timelock,
-      secret_hash: trim0x(secrets.val.secretHash),
+      ...(!this.isSecretManagementEnabled && secretHash
+        ? { secret_hash: trim0x(secretHash) }
+        : {}),
       min_destination_confirmations: params.minDestinationConfirmations ?? 0,
       additional_data: additionalData,
       affiliate_fees: this.withDefaultAffiliateFees(params.affiliateFee),
     };
-
-    const quoteRes = await this._quote.getAttestedQuote(order);
-    if (quoteRes.error) return Err(quoteRes.error);
-
-    const createOrderRes = await this._orderbook.createOrder(
-      quoteRes.val,
-      this.auth,
-    );
+    console.log('Creating order', order);
+    const createOrderRes = await this._orderbook.createOrder(order, this.auth);
     if (createOrderRes.error) return Err(createOrderRes.error);
 
     const orderRes = await this.pollOrder(createOrderRes.val);
@@ -379,6 +398,14 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   }
 
   async execute(interval: number = 5000): Promise<() => void> {
+    if (this.isSecretManagementEnabled) {
+      return await this.executeWithoutRedeems(interval);
+    } else {
+      return await this.executeWithRedeems(interval);
+    }
+  }
+
+  private async executeWithRedeems(interval: number): Promise<() => void> {
     return await this._orderbook.subscribeOrders(
       this._digestKey.userId,
       true,
@@ -484,6 +511,50 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                   );
               }
               break;
+            }
+          }
+        }
+        return;
+      },
+      'pending',
+      {
+        per_page: 500,
+      },
+    );
+  }
+
+  async executeWithoutRedeems(interval: number): Promise<() => void> {
+    return await this._orderbook.subscribeOrders(
+      this._digestKey.userId,
+      true,
+      interval,
+      async (pendingOrders) => {
+        const ordersWithStatus = await this.filterExpiredAndAssignStatus(
+          pendingOrders.data,
+        );
+        if (ordersWithStatus.error) return;
+
+        this.emit('onPendingOrdersChanged', ordersWithStatus.val);
+        if (pendingOrders.data.length === 0) return;
+
+        for (let i = 0; i < ordersWithStatus.val.length; i++) {
+          const order = ordersWithStatus.val[i];
+
+          switch (order.status) {
+            case OrderStatus.Completed:
+            case OrderStatus.Redeemed:
+            case OrderStatus.CounterPartyRedeemed: {
+              this.orderExecutorCache.set(
+                order,
+                OrderActions.Redeem,
+                order.destination_swap.redeem_tx_hash,
+              );
+              this.emit(
+                'success',
+                order,
+                OrderActions.Redeem,
+                order.destination_swap.redeem_tx_hash,
+              );
             }
           }
         }
@@ -653,7 +724,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       const bitcoinExecutor = await GardenHTLC.from(
         wallet as IBitcoinWallet,
         Number(order.destination_swap.amount),
-        order.create_order.secret_hash,
+        order.create_order?.secret_hash || '',
         toXOnly(order.destination_swap.initiator),
         toXOnly(order.destination_swap.redeemer),
         order.destination_swap.timelock,
@@ -702,7 +773,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       const bitcoinExecutor = await GardenHTLC.from(
         wallet as IBitcoinWallet,
         Number(order.source_swap.amount),
-        order.create_order.secret_hash,
+        order.create_order?.secret_hash || '',
         toXOnly(order.source_swap.initiator),
         toXOnly(order.source_swap.redeemer),
         order.source_swap.timelock,
@@ -724,7 +795,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     const bitcoinExecutor = await GardenHTLC.from(
       wallet,
       Number(order.source_swap.amount),
-      order.create_order.secret_hash,
+      order.create_order?.secret_hash || '',
       toXOnly(order.source_swap.initiator),
       toXOnly(order.source_swap.redeemer),
       order.source_swap.timelock,
