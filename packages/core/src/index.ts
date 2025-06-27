@@ -65,3 +65,4 @@ export {
 } from './lib/switchOrAddNetwork';
 
 export { API, STARKNET_CONFIG } from './lib/constants';
+export { mineBtcBlocks } from './lib/testUtils';

@@ -1,54 +1,64 @@
-import { AccountInterface } from 'starknet';
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { connect, disconnect } from "starknetkit";
+import { InjectedConnector } from "starknetkit/injected";
 
 interface WalletState {
-  wallet: any;
-  account: AccountInterface | undefined;
+  wallet: any | null;
+  account: string | undefined;
   isConnected: boolean;
   chainId: bigint | undefined;
-  setWalletDetails: (details: {
-    wallet: any;
-    account: AccountInterface | undefined;
-    chainId: string | undefined;
-  }) => void;
-  resetWallet: () => void;
+  connect: () => Promise<{ wallet: any; connectorData: any } | void>;
+  disconnect: () => Promise<void>;
 }
 
-export const useWalletStore = create<WalletState>()(
-  persist(
-    (set) => ({
-      wallet: null,
-      account: undefined,
-      isConnected: false,
-      chainId: undefined,
+export const useWalletStore = create<WalletState>((set) => ({
+  wallet: null,
+  account: undefined,
+  isConnected: false,
+  chainId: undefined,
 
-      setWalletDetails: (details) => {
+  connect: async () => {
+    try {
+      const { wallet, connectorData } = await connect({
+        connectors: [new InjectedConnector({ options: { id: "braavos" } })],
+      });
+
+      if (wallet && connectorData) {
         set({
-          wallet: details.wallet,
-          account: details.account,
+          wallet,
+          account: connectorData.account,
           isConnected: true,
-          chainId: details.chainId ? BigInt(details.chainId) : undefined,
+          chainId: connectorData.chainId ? BigInt(connectorData.chainId) : undefined,
         });
-      },
 
-      resetWallet: () => {
-        set({
-          wallet: null,
-          account: undefined,
-          isConnected: false,
-          chainId: undefined,
+        wallet?.on("accountsChanged", (accounts?: string[]) => {
+          console.log("Account changed:", accounts);
+          set({ account: accounts?.[0] });
         });
-      },
-    }),
-    {
-      name: 'starknet-wallet-storage',
-      partialize: (state) => ({
-        account: state.account,
-        isConnected: state.isConnected,
-        chainId: state.chainId?.toString(),
-      }),
-      version: 1,
-    },
-  ),
-);
+
+        wallet?.on("networkChanged", (chainId?: string) => {
+          console.log("Network changed:", chainId);
+          set({ chainId: chainId ? BigInt(chainId) : undefined });
+        });
+
+        return { wallet, connectorData };
+      }
+    } catch (error) {
+      console.error("Error connecting to wallet:", error);
+    }
+  },
+
+  disconnect: async () => {
+    try {
+      await disconnect();
+      set({
+        wallet: null,
+        account: undefined,
+        isConnected: false,
+        chainId: undefined,
+      });
+    } catch (error) {
+      console.error("Error disconnecting wallet:", error);
+    }
+  },
+}));
