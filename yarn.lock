@@ -715,7 +715,7 @@ __metadata:
     postcss: "npm:^8.4.49"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
-    starknet: "npm:^6.23.1"
+    starknet: "npm:6.23.1"
     starknetkit: "npm:2.6.1"
     tailwindcss: "npm:^3.4.17"
     typescript: "npm:^5.5.3"
@@ -9133,25 +9133,6 @@ __metadata:
     starknet-types-07: "npm:@starknet-io/types-js@^0.7.10"
     ts-mixer: "npm:^6.0.3"
   checksum: 10c0/2d904e5448ca466ff2fbf9aa7993df6bf3ad45d4aaef906bb381c5e7a7d562ffeff615b3345ddabb7cf1cfc750e93ff006ac3d5073a52eefdee33fb9a4746d9a
-  languageName: node
-  linkType: hard
-
-"starknet@npm:^6.23.1":
-  version: 6.24.1
-  resolution: "starknet@npm:6.24.1"
-  dependencies:
-    "@noble/curves": "npm:1.7.0"
-    "@noble/hashes": "npm:1.6.0"
-    "@scure/base": "npm:1.2.1"
-    "@scure/starknet": "npm:1.1.0"
-    abi-wan-kanabi: "npm:^2.2.3"
-    fetch-cookie: "npm:~3.0.0"
-    isomorphic-fetch: "npm:~3.0.0"
-    lossless-json: "npm:^4.0.1"
-    pako: "npm:^2.0.4"
-    starknet-types-07: "npm:@starknet-io/types-js@^0.7.10"
-    ts-mixer: "npm:^6.0.3"
-  checksum: 10c0/9d7074d10adf6fd560826459b2e20b3f41cf8a0ccbc03591af4fa1f43b75884bd26a4060e131bb0402853b87b13913a35a599d45b8cfa2cd09a095f2133b8252
   languageName: node
   linkType: hard
 

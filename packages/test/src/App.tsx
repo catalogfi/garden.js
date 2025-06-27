@@ -3,13 +3,15 @@ import { useWalletClient } from 'wagmi';
 import { Swap } from './components/Swap';
 import { useEnvironmentStore } from './store/useEnvironmentStore';
 import { useSwapStore } from './store/swapStore';
+import { useAccount } from "@starknet-react/core";
 import { BTCWalletProvider } from '@gardenfi/wallet-connectors';
 import { Network } from '@gardenfi/utils';
 
 function App() {
   const { data: walletClient } = useWalletClient();
-  const environment = useEnvironmentStore((state) => state.environment);
+  const { account: starknetWallet } = useAccount();
   const btcWallet = useSwapStore((state) => state.btcWallet);
+  const environment = useEnvironmentStore((state) => state.environment);
 
   return (
     <BTCWalletProvider
@@ -20,9 +22,18 @@ function App() {
       <GardenProvider
         key={environment}
         config={{
-          environment,
+          environment: {
+            environment,
+            orderbook: 'http://api.localhost',
+            auth: 'http://api.localhost/auth',
+            quote: 'http://api.localhost/quote',
+            info: 'http://api.localhost/info',
+            evmRelay: 'http://api.localhost/relayer',
+            starknetRelay: 'http://api.localhost/starknet',
+          },
           wallets: {
             evm: walletClient,
+            starknet: starknetWallet
           },
           btcWallet,
         }}

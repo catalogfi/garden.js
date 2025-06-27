@@ -79,9 +79,9 @@ export const STRKStarknetLocalnetAsset: Asset = {
   symbol: 'STRK',
   chain: Chains.starknet_devnet,
   atomicSwapAddress:
-    '0x15cf8b127aa850c97ed10de6f8b300cabc4f09232a57e63667af02fdef8a55a',
+    '0x76f1c2d4fe41e381f368130ef47fa9d8791b3badd5b4a844d06154e99ae56c5',
   tokenAddress:
-    '0x51aa025f1c9948790113e4ebea826dee24542bc50902076c05892774210e8d2',
+    'primary',
 };
 export const ETHStarknetLocalnetAsset: Asset = {
   name: 'ETH Starknet Localnet',
@@ -89,9 +89,9 @@ export const ETHStarknetLocalnetAsset: Asset = {
   symbol: 'ETH',
   chain: Chains.starknet_devnet,
   atomicSwapAddress:
-    '0x1890470168440bbb9df50988748924a74ea22de10d22a081e458737b9574e75',
+    '0x37b703339cd490399064ec5203301bfe73b57c96007cec23b406ad22bf61045',
   tokenAddress:
-    '0x51aa025f1c9948790113e4ebea826dee24542bc50902076c05892774210e8d2',
+    '0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7',
 };
 
 export const SupportedAssets = {

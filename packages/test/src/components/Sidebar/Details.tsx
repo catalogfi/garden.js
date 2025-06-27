@@ -1,7 +1,7 @@
 import { useAccount, useChainId, useChains } from 'wagmi';
 import { useBitcoinWallet } from '@gardenfi/wallet-connectors';
 import { useEffect, useState } from 'react';
-import { useWalletStore } from '../../store/useWalletStore';
+import { useStarknetWallet } from '../hooks/useStarknetWallet';
 
 export const Details = () => {
   const [network, setNetwork] = useState<string | null>(null);
@@ -14,7 +14,7 @@ export const Details = () => {
   const chainId = useChainId();
   const { address: EvmAddress } = useAccount();
   const { account, provider } = useBitcoinWallet();
-  const { account: starknetaccount  } = useWalletStore();
+  const { starknetAccount } = useStarknetWallet();
 
   provider?.on('accountsChanged', async () => {
     const networkName = await provider?.getNetwork();
@@ -36,7 +36,7 @@ export const Details = () => {
   }, [provider]);
 
   return (
-    (EvmAddress || account || starknetaccount) && (
+    (EvmAddress || account || starknetAccount) && (
       <div className="flex flex-col items-start justify-start gap-2">
         {EvmAddress && (
           <div className="grid grid-cols-2 gap-2 w-full">
@@ -82,12 +82,12 @@ export const Details = () => {
             <span className="text-lg">{account}</span>
           </div>
         )}
-        {starknetaccount && (
+        {starknetAccount && (
           <div className="flex gap-3 items-center justify-between">
             <span className="text-sm font-bold opacity-60">
               Starknet Account:{' '}
             </span>
-            <span className="text-lg">{starknetaccount}</span>
+            <span className="text-lg">{starknetAccount.address}</span>
           </div>
         )}
       </div>

@@ -51,8 +51,8 @@ export const STARKNET_CONFIG: Record<
     nodeUrl: 'https://starknet-sepolia.public.blastapi.io/rpc/v0_8',
   },
   [Network.LOCALNET]: {
-    chainId: '0x534e5f4c4f43414c',
-    nodeUrl: 'http://starknet-devnet:5050/rpc',
+    chainId: '0x534e5f5345504f4c4941',
+    nodeUrl: 'http://localhost:5050/rpc',
   },
 };
 
