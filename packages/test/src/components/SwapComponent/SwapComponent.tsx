@@ -5,7 +5,7 @@ import { Button } from '../common/Button';
 import SwapInput from './SwapInput';
 import SwapOutput from './SwapOutput';
 import { useSwapStore } from '../../store/swapStore';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import BigNumber from 'bignumber.js';
 import { isBitcoin } from '@gardenfi/orderbook';
 import { useBitcoinWallet } from '@gardenfi/wallet-connectors';
@@ -24,6 +24,13 @@ export const SwapComponent = () => {
   const [funding, setFunding] = useState(false);
   const environment = useEnvironmentStore((state) => state.environment);
   const localnetBtcWallet = getLocalnetBTCWallet();
+
+  useEffect(() => {
+    if (environment === Environment.LOCALNET) {
+      setBtcWallet(localnetBtcWallet);
+    }
+  }, [setBtcWallet]);
+  
   const handleFund = async () => {
     if (!swapParams.fromAsset || !swapParams.toAsset) return;
     if (environment !== 'localnet') return;
@@ -77,7 +84,6 @@ export const SwapComponent = () => {
 
     if (environment === Environment.LOCALNET) {
       btcAddress = await localnetBtcWallet.getAddress();
-      setBtcWallet(localnetBtcWallet);
     }
     else {
       btcAddress = account ?? "";
