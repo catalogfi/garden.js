@@ -347,5 +347,14 @@ export const SupportedAssets = {
       tokenAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
       atomicSwapAddress: '0xeaE7721d779276eb0f5837e2fE260118724a2Ba4',
     },
+    botanix_BOTX: {
+      name: 'Botanix',
+      decimals: 18,
+      symbol: 'BOTX',
+      chain: Chains.botanix,
+      logo: 'https://garden-finance.imgix.net/chain_images/BotanixLogo.svg',
+      tokenAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+      atomicSwapAddress: '0x39f3294352208905fc6ebf033954E6c6455CdB4C',
+    },
   },
 } as const;
