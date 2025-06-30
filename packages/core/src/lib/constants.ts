@@ -52,7 +52,7 @@ export const STARKNET_CONFIG: Record<
   },
   [Network.LOCALNET]: {
     chainId: '0x534e5f5345504f4c4941',
-    nodeUrl: 'http://localhost:5050/rpc',
+    nodeUrl: 'http://localhost:8547/rpc',
   },
 };
 
