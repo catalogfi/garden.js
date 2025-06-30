@@ -350,7 +350,7 @@ export const SupportedAssets = {
     botanix_BOTX: {
       name: 'Botanix',
       decimals: 18,
-      symbol: 'BOTX',
+      symbol: 'BTC',
       chain: Chains.botanix,
       logo: 'https://garden-finance.imgix.net/chain_images/BotanixLogo.svg',
       tokenAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
