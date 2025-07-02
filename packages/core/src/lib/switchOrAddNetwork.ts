@@ -38,6 +38,27 @@ const updatedSepolia = {
   },
 };
 
+export const botanixMainnet: viemChain = {
+  id: 3637,
+  name: 'Botanix',
+  nativeCurrency: {
+    name: 'Botanix',
+    symbol: 'BOTX',
+    decimals: 18,
+  },
+  blockExplorers: {
+    default: {
+      name: 'Botanix Explorer',
+      url: 'https://botanixscan.io/',
+    },
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://rpc.botanixlabs.com/'],
+    },
+  },
+};
+
 export const hyperliquidTestnet: viemChain = {
   id: 998,
   name: 'Hyperliquid EVM Testnet',
@@ -97,6 +118,7 @@ export const evmToViemChainMap: Record<EvmChain, viemChain> = {
   hyperliquid: hyperliquid,
   unichain: unichain,
   corn: corn,
+  botanix: botanixMainnet,
 };
 
 /**
