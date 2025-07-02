@@ -1,7 +1,6 @@
-import { Err, Ok, Result } from '@catalogfi/utils';
-import { AsyncResult } from '@catalogfi/utils';
 import { AuthHeaderEnum, AuthHeader, IAuth } from '../auth.types';
 import { parseJwt } from '../../utils';
+import { AsyncResult, Err, Ok, Result } from '../../result';
 
 export class Passkey implements IAuth {
   private token: string | undefined;

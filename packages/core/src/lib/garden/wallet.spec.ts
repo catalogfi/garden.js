@@ -1,7 +1,8 @@
-import { BitcoinProvider, BitcoinWallet } from '@catalogfi/wallets';
 import { Environment } from '@gardenfi/utils';
 import { describe, it } from 'vitest';
 import { getBitcoinNetwork } from '../utils';
+import { BitcoinWallet } from '../bitcoin/wallet';
+import { BitcoinProvider } from '../bitcoin/provider';
 
 describe('Bitcoin Wallet', () => {
   it('should create a bitcoin wallet from a private key', async () => {

@@ -1,5 +1,5 @@
 import { MatchedOrder } from '@gardenfi/orderbook';
-import { AsyncResult } from '@catalogfi/utils';
+import { AsyncResult } from '@gardenfi/utils';
 
 export interface IStarknetHTLC {
   /**

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { generateInternalkey } from './internalKey';
 import { GardenHTLC } from './htlc';
-import { IBitcoinWallet } from '@catalogfi/wallets';
+import { IBitcoinWallet } from './wallet/wallet.interface';
 
 describe('htlc', () => {
   it('log internal pubKey', () => {

@@ -1,11 +1,10 @@
-import { AsyncResult, Request } from '@catalogfi/utils';
 import {
   Asset,
   Chain,
   CreateOrderRequestWithAdditionalData,
   CreateOrderReqWithStrategyId,
 } from '@gardenfi/orderbook';
-import { APIResponse } from '@gardenfi/utils';
+import { APIResponse, AsyncResult } from '@gardenfi/utils';
 
 export interface IQuote {
   /**

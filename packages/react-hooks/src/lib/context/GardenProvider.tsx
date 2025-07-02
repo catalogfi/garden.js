@@ -7,7 +7,6 @@ import type {
   GardenProviderProps,
   QuoteParams,
 } from './gardenProvider.types';
-import { Err, Ok } from '@catalogfi/utils';
 import {
   BlockchainType,
   getBlockchainType,
@@ -16,6 +15,7 @@ import {
 } from '@gardenfi/orderbook';
 import { constructOrderpair, hasAnyValidValue } from '../utils';
 import { useDigestKey } from '../hooks/useDigestKey';
+import { Err, Ok } from '@gardenfi/utils';
 
 export const GardenContext = createContext<GardenContextType>({
   pendingOrders: [],
@@ -36,22 +36,21 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   }, [config.environment, config.quote]);
 
   const getQuote = useMemo(
-    () =>
-      async ({
-        fromAsset,
-        toAsset,
+    () => async ({
+      fromAsset,
+      toAsset,
+      amount,
+      isExactOut = false,
+      options,
+    }: QuoteParams) => {
+      const _quote = garden ? garden.quote : quote;
+      return await _quote.getQuote(
+        constructOrderpair(fromAsset, toAsset),
         amount,
-        isExactOut = false,
+        isExactOut,
         options,
-      }: QuoteParams) => {
-        const _quote = garden ? garden.quote : quote;
-        return await _quote.getQuote(
-          constructOrderpair(fromAsset, toAsset),
-          amount,
-          isExactOut,
-          options,
-        );
-      },
+      );
+    },
     [garden, quote],
   );
 
@@ -59,11 +58,12 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     if (!garden) return Err('Garden not initialized');
 
     const order = await garden.swap(params);
-    if (order.error) return Err(order.error);
+    if (!order.val) return Err(order.error);
 
     if (isBitcoin(order.val.source_swap.chain)) return Ok(order.val);
 
     let init_tx_hash: string;
+
     switch (getBlockchainType(order.val.source_swap.chain)) {
       case BlockchainType.EVM: {
         if (!garden.evmHTLC)
@@ -81,7 +81,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
           );
 
         const starknetInitRes = await garden.starknetHTLC.initiate(order.val);
-        if (starknetInitRes.error) return Err(starknetInitRes.error);
+        if (!starknetInitRes.ok) return Err(starknetInitRes.error);
         init_tx_hash = starknetInitRes.val;
         break;
       }

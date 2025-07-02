@@ -26,7 +26,6 @@
     "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
-    "@catalogfi/wallets": "^0.2.59",
     "@gardenfi/core": "workspace:*",
     "@gardenfi/orderbook": "workspace:*",
     "@gardenfi/utils": "workspace:*",

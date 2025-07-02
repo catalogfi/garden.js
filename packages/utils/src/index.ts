@@ -8,3 +8,6 @@ export * from './lib/blockNumber';
 export * from './lib/eventBroker';
 export * from './lib/result';
 export * from './lib/digestKey/digestKey';
+export * from './lib/fetcher';
+export * from './lib/types';
+export * from './lib/tryCatch';

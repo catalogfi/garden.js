@@ -66,3 +66,7 @@ export {
 } from './lib/switchOrAddNetwork';
 
 export { API, STARKNET_CONFIG } from './lib/constants';
+export { BitcoinNetwork } from './lib/bitcoin/provider/provider.interface';
+export { BitcoinProvider } from './lib/bitcoin/provider/provider';
+export { BitcoinWallet } from './lib/bitcoin/wallet/wallet';
+export type { IBitcoinProvider } from './lib/bitcoin/provider/provider.interface';

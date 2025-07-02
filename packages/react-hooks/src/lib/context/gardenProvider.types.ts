@@ -1,8 +1,8 @@
 import { OrderWithStatus } from '@gardenfi/core';
-import { AsyncResult, Request, Result } from '@catalogfi/utils';
 import { IGardenJS, QuoteResponse, SwapParams } from '@gardenfi/core';
 import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
 import { GardenConfigWithHTLCs, GardenConfigWithWallets } from '@gardenfi/core';
+import { AsyncResult, Result } from '@gardenfi/utils';
 
 export type GardenContextType = {
   /**

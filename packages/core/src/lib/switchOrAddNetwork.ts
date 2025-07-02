@@ -19,7 +19,7 @@ import {
   EvmChain,
 } from '@gardenfi/orderbook';
 import { createWalletClient, custom, http, WalletClient } from 'viem';
-import { AsyncResult, Err, Ok } from '@catalogfi/utils';
+import { AsyncResult, Err, Ok } from '@gardenfi/utils';
 
 type ViemError = {
   code?: number;
