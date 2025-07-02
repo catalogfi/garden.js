@@ -95,7 +95,7 @@ export interface IOrderbook {
   createOrder(
     order: CreateOrderReqWithStrategyId,
     auth: IAuth,
-  ): AsyncResult<string, string>;
+  ): AsyncResult<MatchedOrder, string>;
 
   /**
    * Get the order from orderbook based on provided Id and match status.
@@ -309,7 +309,7 @@ export type PaginatedData<T> = {
   per_page: number;
 };
 
-export type CreateOrderResponse = APIResponse<string>;
+export type CreateOrderResponse = APIResponse<MatchedOrder>;
 
 export type PaginationConfig = {
   page?: number;

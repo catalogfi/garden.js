@@ -29,7 +29,6 @@ import {
   EventBroker,
   IAuth,
   Siwe,
-  sleep,
   Url,
   DigestKey,
   Network,
@@ -268,10 +267,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     const createOrderRes = await this._orderbook.createOrder(order, this.auth);
     if (createOrderRes.error) return Err(createOrderRes.error);
 
-    const orderRes = await this.pollOrder(createOrderRes.val);
-    if (orderRes.error) return Err(orderRes.error);
-
-    return Ok(orderRes.val);
+    return Ok(createOrderRes.val);
   }
 
   private withDefaultAffiliateFees(
@@ -368,32 +364,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     )
       return Err('Invalid amount ', amount);
     return Ok(amountBigInt);
-  }
-
-  private async pollOrder(createOrderID: string) {
-    let orderRes = await this._orderbook.getOrder(createOrderID, true);
-    let attempts = 0;
-
-    while (attempts < this.getOrderThreshold) {
-      await sleep(1000);
-      attempts++;
-
-      if (orderRes.error) {
-        if (!orderRes.error.includes('result is undefined')) {
-          return Err(orderRes.error);
-        }
-      } else if (
-        orderRes.val &&
-        orderRes.val.create_order.create_id.toLowerCase() ===
-          createOrderID.toLowerCase()
-      ) {
-        return Ok(orderRes.val);
-      }
-
-      orderRes = await this._orderbook.getOrder(createOrderID, true);
-    }
-
-    return Err(`Order not found, createOrder id: ${createOrderID}`);
   }
 
   async execute(interval: number = 5000): Promise<() => void> {

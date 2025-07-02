@@ -33,7 +33,7 @@ export class Orderbook implements IOrderbook {
   async createOrder(
     order: CreateOrderReqWithStrategyId,
     auth: IAuth,
-  ): AsyncResult<string, string> {
+  ): AsyncResult<MatchedOrder, string> {
     const headers = await auth.getAuthHeaders();
     if (headers.error) return Err(headers.error);
 
