@@ -59,6 +59,7 @@ export const Chains = {
   hyperliquid: 'hyperliquid',
   unichain: 'unichain',
   corn: 'corn',
+  botanix: 'botanix',
 } as const;
 
 export type Chain = keyof typeof Chains;
@@ -116,7 +117,8 @@ export const isEVM = (chain: Chain) => {
     chain === Chains.hyperliquid_testnet ||
     chain === Chains.hyperliquid ||
     chain === Chains.unichain ||
-    chain === Chains.corn
+    chain === Chains.corn ||
+    chain === Chains.botanix
   );
 };
 
