@@ -1,12 +1,11 @@
-import { web3, AnchorProvider, Program } from '@coral-xyz/anchor';
-import idl from '../idl/solana_native_swaps.json';
-import { SolanaNativeSwaps } from '../idl/solana_native_swaps';
-import { SwapConfig, validateSecret } from '../solanaTypes';
-import { AsyncResult, Err, Fetcher, Ok } from '@catalogfi/utils';
-import { bs58, hex } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
-import { APIResponse, Url } from '@gardenfi/utils';
-import { ISolanaHTLC } from '../htlc/ISolanaHTLC';
-import { isSolanaNativeToken, MatchedOrder } from '@gardenfi/orderbook';
+import { web3, AnchorProvider, Program } from "@coral-xyz/anchor";
+import idl from "../idl/solana_native_swaps.json";
+import { SolanaNativeSwaps } from "../idl/solana_native_swaps";
+import { SwapConfig, validateSecret } from "../solanaTypes";
+import { AsyncResult, Err, Fetcher, Ok } from "@catalogfi/utils";
+import { APIResponse, Url } from "@gardenfi/utils";
+import { ISolanaHTLC } from "../htlc/ISolanaHTLC";
+import { isSolanaNativeToken, MatchedOrder } from "@gardenfi/orderbook";
 
 /**
  * A Relay is an endpoint that submits the transaction on-chain on one's behalf, paying any fees.
@@ -34,9 +33,9 @@ export class SolanaRelay implements ISolanaHTLC {
     private url: Url,
     relayer: string,
   ) {
-    if (!provider) throw new Error('Provider is required');
-    if (!url) throw new Error('Endpoint URL is required');
-    if (!relayer) throw new Error('Relayer address is required');
+    if (!provider) throw new Error("Provider is required");
+    if (!url) throw new Error("Endpoint URL is required");
+    if (!relayer) throw new Error("Relayer address is required");
 
     this.provider = provider;
     this.program = new Program(idl as SolanaNativeSwaps, provider);
@@ -44,7 +43,7 @@ export class SolanaRelay implements ISolanaHTLC {
       this.relayer = new web3.PublicKey(relayer);
     } catch (cause) {
       throw new Error(
-        'Error decoding relayer publickey. Ensure it is a base58 encoded string',
+        "Error decoding relayer publickey. Ensure it is a base58 encoded string",
         { cause },
       );
     }
@@ -56,7 +55,7 @@ export class SolanaRelay implements ISolanaHTLC {
    * @throws {Error} If no program ID is found
    */
   get htlcActorAddress(): string {
-    if (!this.program.programId) throw new Error('No program found');
+    if (!this.program.programId) throw new Error("No program found");
     return this.provider.publicKey.toBase58();
   }
 
@@ -78,28 +77,27 @@ export class SolanaRelay implements ISolanaHTLC {
       ).blockhash;
       transaction.feePayer = this.relayer;
 
-      const signedTransaction = await this.provider.wallet.signTransaction(
-        transaction,
-      );
+      const signedTransaction =
+        await this.provider.wallet.signTransaction(transaction);
 
       // Use the signed transaction (with compute budget instructions) for encoding
-      const encodedTx = bs58.encode(
-        signedTransaction.serialize({ requireAllSignatures: false }),
-      );
+      const encodedTx = signedTransaction
+        .serialize({ requireAllSignatures: false })
+        .toString("base64");
 
       const relayRequest = {
-        orderId: orderId,
-        serializedTx: encodedTx,
-        performOn: 'source',
+        order_id: orderId,
+        serialized_tx: encodedTx,
+        perform_on: "source",
       };
 
       // Send to relayer
       const res: APIResponse<string> = await Fetcher.post(
-        this.url.endpoint('/relay'),
+        this.url.endpoint("/spl-initiate"),
         {
           body: JSON.stringify(relayRequest),
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         },
       );
@@ -110,9 +108,9 @@ export class SolanaRelay implements ISolanaHTLC {
 
       return res.result
         ? Ok(res.result)
-        : Err('No result returned from relayer');
+        : Err("No result returned from relayer");
     } catch (error) {
-      console.error('Error in sendViaRelayer:', error);
+      console.error("Error in sendViaRelayer:", error);
       return Err(
         `Failed to send transaction: ${
           error instanceof Error ? error.message : String(error)
@@ -125,12 +123,12 @@ export class SolanaRelay implements ISolanaHTLC {
     transaction: web3.Transaction,
     order: MatchedOrder,
   ): AsyncResult<string, string> {
-    if (!order) return Err('Order is required');
+    if (!order) return Err("Order is required");
 
     try {
       const txHex = await this.provider.sendAndConfirm(transaction);
 
-      return txHex ? Ok(txHex) : Err('Failed to initiate HTLC transaction');
+      return txHex ? Ok(txHex) : Err("Failed to initiate HTLC transaction");
     } catch (error) {
       return Err(
         `Error initiating swap: ${
@@ -151,7 +149,7 @@ export class SolanaRelay implements ISolanaHTLC {
     const { redeemer, secretHash, amount, expiresIn } = SwapConfig.from(order);
 
     const pdaSeeds = [
-      Buffer.from('swap_account'),
+      Buffer.from("swap_account"),
       this.provider.publicKey.toBuffer(),
       Buffer.from(secretHash),
     ];
@@ -173,7 +171,7 @@ export class SolanaRelay implements ISolanaHTLC {
         return this.sendViaRelayer(tx, order.create_order.create_id);
       else return this.initiateViaHTLC(tx, order);
     } catch (e) {
-      return Err('Error initiating swap: ', e);
+      return Err("Error initiating swap: ", e);
     }
   }
 
@@ -191,7 +189,7 @@ export class SolanaRelay implements ISolanaHTLC {
   ): AsyncResult<string, string> {
     const { secretHash } = SwapConfig.from(order);
     const pdaSeeds = [
-      Buffer.from('swap_account'),
+      Buffer.from("swap_account"),
       this.provider.publicKey.toBuffer(),
       Buffer.from(secretHash),
     ];
@@ -205,26 +203,26 @@ export class SolanaRelay implements ISolanaHTLC {
       const _secret = validateSecret(secret);
 
       const relayRequest = {
-        orderId: order.create_order.create_id,
-        secret: hex.encode(Buffer.from(_secret)).replace(/^0x/, ''),
-        performOn: 'destination',
+        order_id: order.create_order.create_id,
+        secret: Buffer.from(_secret).toString("hex"),
+        perform_on: "destination",
       };
 
       const res: APIResponse<string> = await Fetcher.post(
-        this.url.endpoint('redeem'),
+        this.url.endpoint("redeem"),
         {
           body: JSON.stringify(relayRequest),
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         },
       );
       if (res.error) {
         return Err(`Error from Relayer: ${res.error}`);
       }
-      return res.result ? Ok(res.result) : Err('Redeem: No result found');
+      return res.result ? Ok(res.result) : Err("Redeem: No result found");
     } catch (e) {
-      return Err('Error redeeming: ', e);
+      return Err("Error redeeming: ", e);
     }
   }
 
@@ -236,6 +234,6 @@ export class SolanaRelay implements ISolanaHTLC {
    * @deprecated This function should never be called directly
    */
   async refund(): AsyncResult<string, string> {
-    return Err('Refund is automatically handled by the relayer.');
+    return Err("Refund is automatically handled by the relayer.");
   }
 }

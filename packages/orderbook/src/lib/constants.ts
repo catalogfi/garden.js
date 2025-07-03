@@ -118,6 +118,7 @@ export const SupportedAssets = {
       decimals: 9,
       symbol: 'SOL',
       chain: Chains.solana_testnet,
+      logo: 'https://garden-finance.imgix.net/chain_images/solana.png',
       atomicSwapAddress: 'primary',
       tokenAddress: 'primary',
     },
@@ -367,5 +368,14 @@ export const SupportedAssets = {
       tokenAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
       atomicSwapAddress: '0xeaE7721d779276eb0f5837e2fE260118724a2Ba4',
     },
+    solana_SOL: {
+      name: 'Solana ',
+      decimals: 9,
+      symbol: 'SOL',
+      chain: Chains.solana,
+      logo: 'https://garden-finance.imgix.net/chain_images/solana.png',
+      tokenAddress: 'primary',
+      atomicSwapAddress: '2bag6xpshpvPe7SJ9nSDLHpxqhEAoHPGpEkjNSv7gxoF',
+    }
   },
 } as const;
