@@ -190,6 +190,7 @@ export type GardenCoreConfig = {
   quote?: IQuote;
   blockNumberFetcher?: IBlockNumberFetcher;
   btcWallet?: BitcoinWallet;
+  solanaProgramAddress?: string;
 };
 
 export type GardenHTLCModules = {

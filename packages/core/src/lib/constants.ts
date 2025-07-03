@@ -17,7 +17,7 @@ export const API: Record<Environment, Api> = {
     quote: 'https://api.garden.finance/quote',
     info: 'https://api.garden.finance/info',
     evmRelay: 'https://api.garden.finance/relayer',
-    solanaRelay: '',
+    solanaRelay: 'https://solana-relayer.garden.finance/',
     starknetRelay: 'https://api.garden.finance/starknet',
   },
   testnet: {
@@ -62,10 +62,15 @@ export const STARKNET_CONFIG: Record<
 };
 
 export const SolanaRelayerAddress: Record<Network, string> = {
-  [Network.MAINNET]: '',
+  [Network.MAINNET]: '9cBuPNiHXiMNg3Fin8xLCGJQBTXjYQTFtyaFQv2uiM1H',
   [Network.TESTNET]: 'ANUVKxeqaec3bf4DVPqLTnG1PT3Fng56wPcE7LXAb46Q',
   [Network.LOCALNET]: 'AKnL4NNf3DGWZJS6cPknBuEGnVsV4A4m5tgebLHaRSZ9',
 } as const;
+
+export const solanaProgramAddress = {
+  mainnet: '2bag6xpshpvPe7SJ9nSDLHpxqhEAoHPGpEkjNSv7gxoF',
+  staging: '6eksgdCnSjUaGQWZ6iYvauv1qzvYPF33RTGTM1ZuyENx',
+};
 
 export const DEFAULT_AFFILIATE_ASSET = {
   chain: SupportedAssets.mainnet.base_cbBTC.chain,

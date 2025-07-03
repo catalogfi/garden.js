@@ -39,6 +39,11 @@ const PRIV = [
 const EXECUTE_TIMEOUT = 90000;
 const CREATE_ORDER_TIMEOUT = 30000;
 
+// const solanaProgramAddressTestnet =
+//   '2bag6xpshpvPe7SJ9nSDLHpxqhEAoHPGpEkjNSv7gxoF';
+// const solanaProgramAddressStaging =
+//   '6eksgdCnSjUaGQWZ6iYvauv1qzvYPF33RTGTM1ZuyENx';
+
 /**
  * Helper function to setup garden instance
  */
@@ -60,6 +65,7 @@ function setupGarden(
         solanaProvider,
         new Url(TEST_SOLANA_RELAY),
         'ANUVKxeqaec3bf4DVPqLTnG1PT3Fng56wPcE7LXAb46Q',
+        '6eksgdCnSjUaGQWZ6iYvauv1qzvYPF33RTGTM1ZuyENx',
       ),
       evm: new EvmRelay(TEST_STAGE_EVM_RELAY, evmClient, auth),
     },
@@ -173,7 +179,7 @@ describe('Swap Tests', () => {
     console.log('EVM Account:', account.address);
   });
 
-  describe('SOL -> wBTC Swap', () => {
+  describe.only('SOL -> wBTC Swap', () => {
     let garden: Garden;
     let order: MatchedOrder;
     let arbitrumWalletClient: WalletClient;
@@ -195,7 +201,7 @@ describe('Swap Tests', () => {
       async () => {
         // 1. Create order
         const orderObj: SwapParams = {
-          fromAsset: {
+          toAsset: {
             name: 'Wrapped Bitcoin',
             decimals: 8,
             symbol: 'WBTC',
@@ -204,7 +210,7 @@ describe('Swap Tests', () => {
             atomicSwapAddress: '0xE918A5a47b8e0AFAC2382bC5D1e981613e63fB07',
             chain: 'arbitrum_sepolia',
           },
-          toAsset: {
+          fromAsset: {
             name: 'primary',
             decimals: 9,
             symbol: 'SOL',
@@ -213,9 +219,9 @@ describe('Swap Tests', () => {
             atomicSwapAddress: 'primary',
             chain: 'solana_testnet',
           },
-          sendAmount: '100000000',
-          receiveAmount: '13786',
-          additionalData: { strategyId: 'aa70styr' },
+          receiveAmount: '141',
+          sendAmount: '1000000',
+          additionalData: { strategyId: 'styraa70' },
           minDestinationConfirmations: 1,
         };
         console.log('Creating order...', orderObj);
@@ -231,11 +237,13 @@ describe('Swap Tests', () => {
 
         order = result.val;
         console.log('✅ Order created:', order.create_order.create_id);
-        if (!garden.evmHTLC) {
+        if (!garden.solanaHTLC) {
           return Err('EVM Wallet not provided!');
         }
-        const initResult = await garden.evmHTLC.initiate(order);
+        const initResult = await garden.solanaHTLC.initiate(order);
         console.log('initRes Err:', initResult.error);
+        console.log('initRes Val:', initResult.val);
+        console.log('Order initiated ✅', initResult.ok);
 
         // 2. Execute order with proper timeout handling
         await executeWithTimeout(garden, order.create_order.create_id);

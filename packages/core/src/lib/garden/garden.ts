@@ -63,6 +63,7 @@ import { OrderStatus } from '../orderStatus/status';
 import {
   Api,
   DEFAULT_AFFILIATE_ASSET,
+  solanaProgramAddress,
   SolanaRelayerAddress,
 } from '../constants';
 import { Quote } from '../quote/quote';
@@ -172,6 +173,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
             config.environment === Environment.MAINNET
               ? SolanaRelayerAddress.mainnet
               : SolanaRelayerAddress.testnet,
+            config.solanaProgramAddress
+              ? config.solanaProgramAddress
+              : solanaProgramAddress.mainnet,
           )
         : undefined,
     };
