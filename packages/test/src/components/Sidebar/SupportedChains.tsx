@@ -3,7 +3,7 @@ import { Chains } from "@gardenfi/orderbook";
 export const SupportedChains = () => {
     return (
         <div className='flex flex-col items-start justify-start gap-2'>
-            <h2 className='text-sm opacity-60'>Supported Wallets</h2>
+            <h2 className='text-sm opacity-60'>Supported Chains</h2>
             <div className="grid grid-cols-2 gap-2 w-full">
                 {Object.values(Chains).map((chain) => {
                     if (chain.includes('bitcoin')) return null;

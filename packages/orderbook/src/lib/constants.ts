@@ -1,5 +1,6 @@
 import { Chain } from 'viem';
 import { Asset, Chains } from './asset';
+import { API } from '@gardenfi/utils';
 
 export const StarknetLocalnet: Chain = {
   id: 1001,
@@ -11,7 +12,7 @@ export const StarknetLocalnet: Chain = {
   },
   rpcUrls: {
     default: {
-      http: ['http://127.0.0.1:8547/'],
+      http: [API.localnet.starknet],
     },
   },
   testnet: true,
@@ -27,7 +28,7 @@ export const ArbitrumLocalnet: Chain = {
   },
   rpcUrls: {
     default: {
-      http: ['http://localhost:8546/'],
+      http: [API.localnet.arbitrum],
     },
   },
   testnet: true,
@@ -42,7 +43,7 @@ export const EthereumLocalnet: Chain = {
   },
   rpcUrls: {
     default: {
-      http: ['http://localhost:8545/'],
+      http: [API.localnet.ethereum],
     },
   },
   testnet: true,
@@ -61,16 +62,16 @@ export const WBTCArbitrumLocalnetAsset: Asset = {
   decimals: 8,
   symbol: 'WBTC',
   chain: Chains.arbitrum_localnet,
-  atomicSwapAddress: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9',
-  tokenAddress: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
+  atomicSwapAddress: '0x0165878A594ca255338adfa4d48449f69242Eb8F',
+  tokenAddress: '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0',
 };
 export const WBTCEthereumLocalnetAsset: Asset = {
   name: 'WBTC Ethereum Localnet',
   decimals: 8,
   symbol: 'WBTC',
   chain: Chains.ethereum_localnet,
-  atomicSwapAddress: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
-  tokenAddress: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+  atomicSwapAddress: '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0',
+  tokenAddress: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
 };
 export const STRKStarknetLocalnetAsset: Asset = {
   name: 'STRK Starknet Localnet',
@@ -78,9 +79,9 @@ export const STRKStarknetLocalnetAsset: Asset = {
   symbol: 'STRK',
   chain: Chains.starknet_devnet,
   atomicSwapAddress:
-    '0x15cf8b127aa850c97ed10de6f8b300cabc4f09232a57e63667af02fdef8a55a',
+    '0x76f1c2d4fe41e381f368130ef47fa9d8791b3badd5b4a844d06154e99ae56c5',
   tokenAddress:
-    '0x51aa025f1c9948790113e4ebea826dee24542bc50902076c05892774210e8d2',
+    'primary',
 };
 export const ETHStarknetLocalnetAsset: Asset = {
   name: 'ETH Starknet Localnet',
@@ -88,9 +89,9 @@ export const ETHStarknetLocalnetAsset: Asset = {
   symbol: 'ETH',
   chain: Chains.starknet_devnet,
   atomicSwapAddress:
-    '0x1890470168440bbb9df50988748924a74ea22de10d22a081e458737b9574e75',
+    '0x37b703339cd490399064ec5203301bfe73b57c96007cec23b406ad22bf61045',
   tokenAddress:
-    '0x51aa025f1c9948790113e4ebea826dee24542bc50902076c05892774210e8d2',
+    '0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7',
 };
 
 export const SupportedAssets = {
@@ -99,6 +100,7 @@ export const SupportedAssets = {
     ethereum_localnet_WBTC: WBTCEthereumLocalnetAsset,
     starknet_localnet_STRK: STRKStarknetLocalnetAsset,
     starknet_localnet_ETH: ETHStarknetLocalnetAsset,
+    bitcoin_regtest_BTC: bitcoinRegtestAsset,
   },
   testnet: {
     bitcoin_testnet_BTC: {
