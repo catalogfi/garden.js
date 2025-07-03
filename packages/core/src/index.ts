@@ -69,4 +69,9 @@ export {
   botanixMainnet as botanix,
 } from './lib/switchOrAddNetwork';
 
-export { API, STARKNET_CONFIG } from './lib/constants';
+export {
+  API,
+  STARKNET_CONFIG,
+  SolanaRelayerAddress,
+  solanaProgramAddress,
+} from './lib/constants';
