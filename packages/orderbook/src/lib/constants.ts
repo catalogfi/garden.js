@@ -145,8 +145,8 @@ export const SupportedAssets = {
       symbol: 'WBTC',
       logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
       chain: Chains.arbitrum_sepolia,
-      tokenAddress: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
-      atomicSwapAddress: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
+      tokenAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
+      atomicSwapAddress: '0xE918A5a47b8e0AFAC2382bC5D1e981613e63fB07',
     },
     arbitrum_sepolia_SEED: {
       name: 'Seed',
@@ -155,7 +155,7 @@ export const SupportedAssets = {
       chain: Chains.arbitrum_sepolia,
       logo: 'https://garden-finance.imgix.net/token-images/seed.svg',
       tokenAddress: '0x13DCec0762EcC5E666c207ab44Dc768e5e33070F',
-      atomicSwapAddress: '0xD5FeDb4ceCB0F1D32788a190d9EB47D94D23eE4e',
+      atomicSwapAddress: '0xB47716a220C319b25a532594511D63EC68702CEf',
     },
     arbitrum_sepolia_iBTC: {
       name: 'iBTC',
@@ -163,8 +163,8 @@ export const SupportedAssets = {
       symbol: 'iBTC',
       chain: Chains.arbitrum_sepolia,
       logo: 'https://garden-finance.imgix.net/token-images/dlcBTCIcon.svg',
-      tokenAddress: '0x8219B871534F29ff7434519287131a875e0D8eCa',
-      atomicSwapAddress: '0xdfe6d9363ee96152d39391009a6723819d9e25eb',
+      tokenAddress: '0x685437f025c5f33A94818408C286bc1F023201Fc',
+      atomicSwapAddress: '0x88e1032252c712681A3659986F452E910D2134D8',
     },
     base_sepolia_WBTC: {
       name: 'Wrapped Bitcoin',
@@ -376,6 +376,15 @@ export const SupportedAssets = {
       logo: 'https://garden-finance.imgix.net/chain_images/solana.png',
       tokenAddress: 'primary',
       atomicSwapAddress: '2bag6xpshpvPe7SJ9nSDLHpxqhEAoHPGpEkjNSv7gxoF',
-    }
+    },
+    botanix_BOTX: {
+      name: 'Botanix',
+      decimals: 18,
+      symbol: 'BTC',
+      chain: Chains.botanix,
+      logo: 'https://garden-finance.imgix.net/chain_images/BotanixLogo.svg',
+      tokenAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+      atomicSwapAddress: '0x39f3294352208905fc6ebf033954E6c6455CdB4C',
+    },
   },
 } as const;
