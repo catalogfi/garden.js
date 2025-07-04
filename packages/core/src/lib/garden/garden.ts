@@ -67,8 +67,6 @@ import { IEVMHTLC } from '../evm/htlc.types';
 import { EvmRelay } from '../evm/relay/evmRelay';
 import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { StarknetRelay } from '../starknet/relay/starknetRelay';
-import { createPublicClient, http } from 'viem';
-import { evmToViemChainMap } from '../switchOrAddNetwork';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment = Environment.TESTNET;
@@ -511,58 +509,22 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       return;
     }
 
-    try {
-      const res = await this._evmHTLC.redeem(order, secret);
+    const res = await this._evmHTLC.redeem(order, secret);
 
-      if (!res.ok) {
-        this.emit('error', order, res.error);
-        if (res.error.includes('Order already redeemed')) {
-          this.orderExecutorCache.set(
-            order,
-            OrderActions.Redeem,
-            order.destination_swap.redeem_tx_hash,
-          );
-        }
-        return;
-      }
-
-      const txHash = res.val;
-      this.emit(
-        'log',
-        order.create_order.create_id,
-        `Received tx hash: ${txHash}, waiting for confirmation...`,
-      );
-
-      const viemChain =
-        evmToViemChainMap[
-          order.destination_swap.chain as keyof typeof evmToViemChainMap
-        ];
-
-      const evmProvider = createPublicClient({
-        chain: viemChain,
-        transport: http(),
-      });
-
-      const receipt = await evmProvider.waitForTransactionReceipt({
-        hash: txHash as `0x${string}`,
-        confirmations: 1,
-        timeout: 30000,
-      });
-
-      if (receipt && receipt.status === 'success') {
-        this.orderExecutorCache.set(order, OrderActions.Redeem, txHash);
-        this.emit('success', order, OrderActions.Redeem, txHash);
-        this.emit(
-          'log',
-          order.create_order.create_id,
-          'Transaction confirmed on blockchain',
+    if (!res.ok) {
+      this.emit('error', order, res.error);
+      if (res.error.includes('Order already redeemed')) {
+        this.orderExecutorCache.set(
+          order,
+          OrderActions.Redeem,
+          order.destination_swap.redeem_tx_hash,
         );
-      } else {
-        this.emit('error', order, `Transaction ${txHash} failed or reverted`);
       }
-    } catch (error) {
-      this.emit('error', order, `Redeem operation failed: ${error}`);
+      return;
     }
+
+    this.orderExecutorCache.set(order, OrderActions.Redeem, res.val);
+    this.emit('success', order, OrderActions.Redeem, res.val);
   }
 
   private async starknetRedeem(order: MatchedOrder, secret: string) {
