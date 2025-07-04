@@ -261,7 +261,7 @@ export class EvmRelay implements IEVMHTLC {
       const receipt = await evmProvider.waitForTransactionReceipt({
         hash: res.result as `0x${string}`,
         confirmations: 1,
-        timeout: 30000,
+        timeout: 300000,
       });
       if (receipt && receipt.status === 'success') {
         return Ok(res.result ? res.result : 'Redeem hash not found');
