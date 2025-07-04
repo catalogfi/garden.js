@@ -85,6 +85,15 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         init_tx_hash = starknetInitRes.val;
         break;
       }
+      case BlockchainType.Solana: {
+        if (!garden.solanaHTLC)
+          return Err('Solana HTLC not initialized: Please provide solanaHTLC');
+
+        const solanaInitRes = await garden.solanaHTLC.initiate(order.val);
+        if (solanaInitRes.error) return Err(solanaInitRes.error);
+        init_tx_hash = solanaInitRes.val;
+        break;
+      }
       case BlockchainType.Bitcoin:
         init_tx_hash = order.val.source_swap.initiate_tx_hash;
         break;
