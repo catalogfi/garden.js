@@ -136,17 +136,25 @@ export class Orderbook implements IOrderbook {
   async getOrders<T extends boolean>(
     matched: T,
     paginationConfig?: PaginationConfig,
+    address?: string,
+    tx_hash?: string,
   ): AsyncResult<
     PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
     string
   > {
     const endPoint = matched ? '/matched' : '/unmatched';
-    const url = ConstructUrl(
-      this.Url.endpoint('orders'),
-      endPoint,
-      paginationConfig,
-    );
-
+    const params: Record<string, any> = {};
+    if (paginationConfig) {
+      params['page'] = paginationConfig.page;
+      params['per_page'] = paginationConfig.per_page;
+    }
+    if (address) {
+      params['address'] = address;
+    }
+    if (tx_hash) {
+      params['tx_hash'] = tx_hash;
+    }
+    const url = ConstructUrl(this.Url.endpoint('orders'), endPoint, params);
     try {
       const res = await Fetcher.get<
         APIResponse<PaginatedData<T extends true ? MatchedOrder : CreateOrder>>
