@@ -1,19 +1,19 @@
-import { exec } from 'child_process';
+// import { exec } from 'child_process';
 import { Asset, Chains, Chain as Network } from '@gardenfi/orderbook';
-
-import { Fetcher } from '@catalogfi/utils';
+import { API } from '@gardenfi/utils';
 import { Chain } from 'viem';
 import { SwapParams } from './garden/garden.types';
+import { Fetcher } from '@catalogfi/utils';
 
-export const fund = async (address: string) => {
-  exec(`merry faucet --to ${address}`);
+// export const fund = async (address: string) => {
+//   exec(`merry faucet --to ${address}`);
 
-  await new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(true);
-    }, 5000);
-  });
-};
+//   await new Promise((resolve) => {
+//     setTimeout(() => {
+//       resolve(true);
+//     }, 5000);
+//   });
+// };
 
 export const mineBtcBlocks = async (blocks: number, address: string) => {
   const body = {
@@ -25,16 +25,21 @@ export const mineBtcBlocks = async (blocks: number, address: string) => {
 
   const headers = new Headers({
     Authorization: `Basic ${btoa('admin1:123')}`,
+    'Content-Type': 'application/json',
   });
 
-  const response = await Fetcher.post('http://localhost:18443/', {
+  const response = await fetch('http://bitcoin.localhost/rpc', {
+    method: 'POST',
     headers,
     body: JSON.stringify(body),
   });
 
+  if (!response.ok) {
+    throw new Error(`Bitcoin RPC error: ${response.statusText}`);
+  }
+
   return response;
 };
-
 // export const mineEvmBlocks = async (
 //   provider: JSOnP,
 //   blocks: number,
@@ -54,7 +59,7 @@ export const ArbitrumLocalnet: Chain = {
   },
   rpcUrls: {
     default: {
-      http: ['http://localhost:8546/'],
+      http: [API.localnet.arbitrum],
     },
   },
   testnet: true,
@@ -69,7 +74,7 @@ export const EthereumLocalnet: Chain = {
   },
   rpcUrls: {
     default: {
-      http: ['http://localhost:8545/'],
+      http: [API.localnet.ethereum],
     },
   },
   testnet: true,

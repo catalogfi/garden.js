@@ -47,6 +47,7 @@ import {
   BitcoinWallet,
   IBitcoinWallet,
 } from '@catalogfi/wallets';
+import { API as configAPI } from '@gardenfi/utils';
 import {
   isOrderExpired,
   parseActionFromStatus,
@@ -116,11 +117,17 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this._blockNumberFetcher =
       config.blockNumberFetcher ??
       new BlockNumberFetcher(this._api.info, this.environment);
-
-    const provider = new BitcoinProvider(getBitcoinNetwork(this.environment));
-    this._btcWallet = BitcoinWallet.fromPrivateKey(
+     
+    let provider: BitcoinProvider | undefined;
+    if (!config.btcWallet) {
+      provider =
+        this.environment === Environment.LOCALNET
+          ? new BitcoinProvider(getBitcoinNetwork(this.environment), configAPI.localnet.bitcoin)
+          : new BitcoinProvider(getBitcoinNetwork(this.environment));
+    }
+    this._btcWallet = config.btcWallet ?? BitcoinWallet.fromPrivateKey(
       this._digestKey.digestKey,
-      provider,
+      provider!,
     );
   }
 
@@ -143,19 +150,21 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     const htlc = {
       evm: config.wallets.evm
         ? new EvmRelay(
-            api.evmRelay,
-            config.wallets.evm,
-            Siwe.fromDigestKey(new Url(api.auth), digestKey),
-          )
+          api.evmRelay,
+          config.wallets.evm,
+          Siwe.fromDigestKey(new Url(api.auth), digestKey),
+        )
         : undefined,
       starknet: config.wallets.starknet
         ? new StarknetRelay(
-            api.starknetRelay,
-            config.wallets.starknet,
-            config.environment === Environment.MAINNET
-              ? Network.MAINNET
-              : Network.TESTNET,
-          )
+          api.starknetRelay,
+          config.wallets.starknet,
+          config.environment === Environment.MAINNET
+            ? Network.MAINNET
+            : config.environment === Environment.TESTNET
+              ? Network.TESTNET
+              : Network.LOCALNET,
+        )
         : undefined,
     };
 
@@ -240,10 +249,19 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     const quoteRes = await this._quote.getAttestedQuote(order);
     if (quoteRes.error) return Err(quoteRes.error);
 
-    const createOrderRes = await this._orderbook.createOrder(
-      quoteRes.val,
-      this.auth,
-    );
+    let createOrderRes;
+    if (this.environment === Environment.LOCALNET) {
+      createOrderRes = await this._orderbook.createOrder(
+        quoteRes.val,
+        this.auth
+      );
+    } else {
+      createOrderRes = await this._orderbook.createOrder(
+        quoteRes.val,
+        this.auth
+      );
+    }
+
     if (createOrderRes.error) return Err(createOrderRes.error);
 
     const orderRes = await this.pollOrder(createOrderRes.val);
@@ -367,7 +385,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       } else if (
         orderRes.val &&
         orderRes.val.create_order.create_id.toLowerCase() ===
-          createOrderID.toLowerCase()
+        createOrderID.toLowerCase()
       ) {
         return Ok(orderRes.val);
       }

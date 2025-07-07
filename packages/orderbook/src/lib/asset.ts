@@ -133,7 +133,7 @@ export const isStarknet = (chain: Chain) => {
 export const TimeLocks: Record<Chain, number> = {
   [Chains.bitcoin]: 144,
   [Chains.bitcoin_testnet]: 144,
-  [Chains.bitcoin_regtest]: 144,
+  [Chains.bitcoin_regtest]: 7200,
   [Chains.ethereum]: 7200,
   [Chains.arbitrum]: 7200,
   [Chains.ethereum_sepolia]: 7200,
