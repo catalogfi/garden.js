@@ -6,6 +6,7 @@ import { AsyncResult, Err, Fetcher, Ok } from '@catalogfi/utils';
 import { APIResponse, Url } from '@gardenfi/utils';
 import { ISolanaHTLC } from '../htlc/ISolanaHTLC';
 import { isSolanaNativeToken, MatchedOrder } from '@gardenfi/orderbook';
+import { waitForSolanaTxConfirmation } from 'src/lib/utils';
 
 /**
  * A Relay is an endpoint that submits the transaction on-chain on one's behalf, paying any fees.
@@ -144,8 +145,17 @@ export class SolanaRelay implements ISolanaHTLC {
     if (!order) return Err('Order is required');
 
     try {
-      const txHex = await this.provider.sendAndConfirm(transaction);
-      return txHex ? Ok(txHex) : Err('Failed to initiate HTLC transaction');
+      const txHash = await this.provider.sendAndConfirm(transaction);
+
+      if (!txHash) return Err('Failed to initiate HTLC transaction');
+      const isConfirmed = await waitForSolanaTxConfirmation(
+        this.provider.connection,
+        txHash,
+      );
+
+      return isConfirmed
+        ? Ok(txHash)
+        : Err('HTLC: Failed to Initiate swap, confirmation timed out');
     } catch (error) {
       return Err(
         `Error initiating swap: ${
@@ -235,14 +245,30 @@ export class SolanaRelay implements ISolanaHTLC {
         },
       );
       if (res.error) {
-        return Err(`Error from Relayer: ${res.error}`);
+        return Err(`Redeem: Error from relayer: ${res.error}`);
       }
-      return res.result ? Ok(res.result) : Err('Redeem: No result found');
+
+      if (!res.result) {
+        return Err('Redeem: No transaction hash returned from relayer');
+      }
+
+      const txHash = res.result;
+
+      const isConfirmed = await waitForSolanaTxConfirmation(
+        this.provider.connection,
+        txHash,
+      );
+
+      return isConfirmed
+        ? Ok(txHash)
+        : Err('Redeem: Timed out waiting for confirmation');
     } catch (e) {
-      return Err('Error redeeming: ', e);
+      console.error('Redeem: Caught exception:', e);
+      return Err(
+        `Error redeeming: ${e instanceof Error ? e.message : String(e)}`,
+      );
     }
   }
-
   /**
    * DO NOT CALL THIS FUNCTION. Refund is automatically taken care of by the relayer!
    * This method exists only to satisfy the ISolanaHTLC interface but is not intended for direct use.

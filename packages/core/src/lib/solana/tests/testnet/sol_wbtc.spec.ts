@@ -207,7 +207,7 @@ describe('Swap Tests', () => {
             symbol: 'WBTC',
             logo: 'https://garden.imgix.net/token-images/wbtc.svg',
             tokenAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
-            atomicSwapAddress: '0xE918A5a47b8e0AFAC2382bC5D1e981613e63fB07',
+            atomicSwapAddress: '0x34ac1D7e13Cc993f76E63e265dcfB31dFE9CF9a4',
             chain: 'arbitrum_sepolia',
           },
           fromAsset: {
@@ -219,9 +219,9 @@ describe('Swap Tests', () => {
             atomicSwapAddress: 'primary',
             chain: 'solana_testnet',
           },
-          receiveAmount: '141',
-          sendAmount: '1000000',
-          additionalData: { strategyId: 'styraa70' },
+          receiveAmount: '1373',
+          sendAmount: '10000000',
+          additionalData: { strategyId: 'styraa4a' }, //styraa4a //aa4astyr
           minDestinationConfirmations: 1,
         };
         console.log('Creating order...', orderObj);
