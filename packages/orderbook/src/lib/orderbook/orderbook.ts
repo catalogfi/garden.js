@@ -11,6 +11,7 @@ import {
 } from './orderbook.types';
 import { APIResponse, ApiStatus, IAuth, Url } from '@gardenfi/utils';
 import { ConstructUrl } from '../utils';
+import { Chain } from '../asset';
 
 /**
  * A class that allows you to create and manage orders with the orderbook url.
@@ -138,6 +139,8 @@ export class Orderbook implements IOrderbook {
     paginationConfig?: PaginationConfig,
     address?: string,
     tx_hash?: string,
+    fromChain?: Chain,
+    toChain?: Chain,
   ): AsyncResult<
     PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
     string
@@ -153,6 +156,12 @@ export class Orderbook implements IOrderbook {
     }
     if (tx_hash) {
       params['tx_hash'] = tx_hash;
+    }
+    if (fromChain) {
+      params['from_chain'] = fromChain;
+    }
+    if (toChain) {
+      params['to_chain'] = toChain;
     }
     const url = ConstructUrl(this.Url.endpoint('orders'), endPoint, params);
     try {
