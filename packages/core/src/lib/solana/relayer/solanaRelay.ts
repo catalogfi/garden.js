@@ -6,7 +6,7 @@ import { AsyncResult, Err, Fetcher, Ok } from '@catalogfi/utils';
 import { APIResponse, Url } from '@gardenfi/utils';
 import { ISolanaHTLC } from '../htlc/ISolanaHTLC';
 import { isSolanaNativeToken, MatchedOrder } from '@gardenfi/orderbook';
-import { waitForSolanaTxConfirmation } from 'src/lib/utils';
+import { waitForSolanaTxConfirmation } from '../../utils';
 
 /**
  * A Relay is an endpoint that submits the transaction on-chain on one's behalf, paying any fees.

@@ -11,7 +11,7 @@ import {
   BitcoinProvider,
   BitcoinWallet,
 } from '@catalogfi/wallets';
-import { getBalance } from 'src/bitcoin/utils';
+import { getBalance } from '../../utils';
 
 initEccLib(ecc);
 
