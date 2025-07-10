@@ -11,6 +11,7 @@ import {
   BitcoinProvider,
   BitcoinWallet,
 } from '@catalogfi/wallets';
+import { getBalance } from '../../utils';
 
 initEccLib(ecc);
 
@@ -77,7 +78,11 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
     string
   > {
     return await executeWithTryCatch(async () => {
-      return await this.#phantomProvider.getBalance();
+      const balance = await getBalance(this.address, Network.MAINNET);
+      if (balance.ok && balance.val) {
+        return balance.val;
+      }
+      throw new Error(balance.error);
     }, 'Error while getting balance from Phantom wallet');
   }
 
@@ -114,7 +119,7 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
         const signedPsbt = bitcoin.Psbt.fromBuffer(
           Buffer.from(signedPsbtBytes),
         );
-        
+
         const tx = signedPsbt.extractTransaction();
         const txId = tx.getId();
 
