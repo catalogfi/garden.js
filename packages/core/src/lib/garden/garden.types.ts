@@ -17,6 +17,8 @@ import { AccountInterface } from 'starknet';
 import { WalletClient } from 'viem';
 import { Api } from '../constants';
 import { IBitcoinWallet } from '../bitcoin/wallet/wallet.interface';
+import { ISolanaHTLC } from '../solana/htlc/ISolanaHTLC';
+import { AnchorProvider } from '@coral-xyz/anchor';
 
 export type SwapParams = {
   /**
@@ -110,6 +112,12 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
   get starknetHTLC(): IStarknetHTLC | undefined;
 
   /**
+   * The Solana relay.
+   * @readonly
+   */
+  get solanaHTLC(): ISolanaHTLC | undefined;
+
+  /**
    * The current quote.
    * @readonly
    */
@@ -181,12 +189,15 @@ export type GardenCoreConfig = {
   orderbook?: IOrderbook;
   quote?: IQuote;
   blockNumberFetcher?: IBlockNumberFetcher;
+  btcWallet?: IBitcoinWallet;
+  solanaProgramAddress?: string;
 };
 
 export type GardenHTLCModules = {
   htlc: {
     evm?: IEVMHTLC;
     starknet?: IStarknetHTLC;
+    solana?: ISolanaHTLC;
   };
 };
 
@@ -194,6 +205,7 @@ export type GardenWalletModules = {
   wallets: {
     evm?: WalletClient;
     starknet?: AccountInterface;
+    solana?: AnchorProvider;
   };
 };
 

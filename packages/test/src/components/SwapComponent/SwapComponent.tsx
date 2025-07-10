@@ -1,23 +1,28 @@
 import { useGarden } from '@gardenfi/react-hooks';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { Button } from '../common/Button';
 import { chainToAsset } from '../../constants/constants';
 import SwapInput from './SwapInput';
 import SwapOutput from './SwapOutput';
+import { useAppKitAccount, useAppKitProvider } from '@reown/appkit/react';
+import {
+  Provider,
+  useAppKitConnection,
+} from '@reown/appkit-adapter-solana/react';
 
 export const SwapComponent = () => {
   const [loading, setLoading] = useState(false);
   const [swapParams, setSwapParams] = useState({
-    inputToken: chainToAsset.arbitrum_sepolia_WBTC,
-    outputToken: chainToAsset.starknet_sepolia_ETH,
+    inputToken: chainToAsset.ethereum_localnet,
+    outputToken: chainToAsset.arbitrum_localnet,
     inputAmount: 0.001,
     outputAmount: 0.0009,
     btcAddress: '',
-    strategyId: '',
   });
 
   const { garden } = useGarden();
+
   const { address: EvmAddress } = useAccount();
   const { swapAndInitiate, getQuote } = useGarden();
 
@@ -76,6 +81,15 @@ export const SwapComponent = () => {
       !swapParams.outputAmount
     )
       return;
+    console.log({
+      sendAddress: EvmAddress,
+      receiveAddress: EvmAddress,
+      fromAsset: swapParams.inputToken,
+      toAsset: swapParams.outputToken,
+      sendAmount: sendAmount.toFixed(),
+      receiveAmount: receiveAmount.toFixed(),
+      minDestinationConfirmations: 3,
+    });
 
     setLoading(true);
     const res = await swapAndInitiate({
@@ -86,7 +100,7 @@ export const SwapComponent = () => {
       minDestinationConfirmations: 3,
       additionalData: {
         btcAddress: swapParams.btcAddress,
-        strategyId: swapParams.strategyId,
+        strategyId: '1',
       },
     });
     setLoading(false);
@@ -102,12 +116,6 @@ export const SwapComponent = () => {
   const handleInitialize = async () => {
     if (!garden) return;
     await garden.secretManager.initialize();
-    const matchedorder = await garden.orderbook.getOrder(
-      '5de42b739c21207ab94a6f619d6710cce4b2eb86cd8683d2992804b8af9b5cd3',
-      true,
-    );
-    const res = await garden.starknetHTLC?.initiate(matchedorder.val);
-    console.log('res', res?.val);
   };
 
   return (

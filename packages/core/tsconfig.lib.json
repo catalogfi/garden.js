@@ -6,6 +6,6 @@
     "declaration": true,
     "types": ["node", "vite/client", "chrome"]
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.json"],
   "exclude": ["src/**/*.spec.ts", "src/**/*.test.ts"]
 }
