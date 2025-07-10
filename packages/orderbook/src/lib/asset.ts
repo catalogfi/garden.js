@@ -16,6 +16,7 @@ export type Asset = AssetToken;
 export enum BlockchainType {
   Bitcoin = 'Bitcoin',
   EVM = 'EVM',
+  Solana = 'Solana',
   Starknet = 'Starknet',
 }
 
@@ -48,6 +49,9 @@ export const Chains = {
   arbitrum_sepolia: 'arbitrum_sepolia',
   ethereum_localnet: 'ethereum_localnet',
   base_sepolia: 'base_sepolia',
+  solana: 'solana',
+  solana_testnet: 'solana_testnet',
+  solana_localnet: 'solana_localnet',
   bera_testnet: 'bera_testnet',
   citrea_testnet: 'citrea_testnet',
   bera: 'bera',
@@ -69,6 +73,9 @@ export type EvmChain = keyof Omit<
   | 'bitcoin'
   | 'bitcoin_testnet'
   | 'bitcoin_regtest'
+  | 'solana'
+  | 'solana_testnet'
+  | 'solana_localnet'
   | 'starknet'
   | 'starknet_devnet'
   | 'starknet_sepolia'
@@ -83,6 +90,8 @@ export const isMainnet = (chain: Chain) => {
     chain === Chains.ethereum_localnet ||
     chain === Chains.arbitrum_sepolia ||
     chain === Chains.base_sepolia ||
+    chain === Chains.solana_testnet ||
+    chain === Chains.solana_localnet ||
     chain === Chains.bera_testnet ||
     chain === Chains.citrea_testnet ||
     chain === Chains.monad_testnet ||
@@ -122,6 +131,14 @@ export const isEVM = (chain: Chain) => {
   );
 };
 
+export const isSolana = (chain: Chain) => {
+  return (
+    chain === Chains.solana ||
+    chain === Chains.solana_testnet ||
+    chain === Chains.solana_localnet
+  );
+};
+
 export const isStarknet = (chain: Chain) => {
   return (
     chain === Chains.starknet ||
@@ -133,7 +150,7 @@ export const isStarknet = (chain: Chain) => {
 export const TimeLocks: Record<Chain, number> = {
   [Chains.bitcoin]: 144,
   [Chains.bitcoin_testnet]: 144,
-  [Chains.bitcoin_regtest]: 144,
+  [Chains.bitcoin_regtest]: 200,
   [Chains.ethereum]: 7200,
   [Chains.arbitrum]: 7200,
   [Chains.ethereum_sepolia]: 7200,
@@ -146,6 +163,9 @@ export const TimeLocks: Record<Chain, number> = {
   [Chains.citrea_testnet]: 43200,
   [Chains.bera]: 43200,
   [Chains.monad_testnet]: 172800,
+  [Chains.solana]: 432000, //In solana timeslots exist in chunks of 0.4s so, 48 hrs in terms of that would be 48hrs => sec / 0.4
+  [Chains.solana_localnet]: 432000,
+  [Chains.solana_testnet]: 432000,
   [Chains.starknet]: 2880,
   [Chains.starknet_devnet]: 2880,
   [Chains.starknet_sepolia]: 2880,
@@ -159,6 +179,7 @@ export const TimeLocks: Record<Chain, number> = {
 export const getBlockchainType = (chain: Chain) => {
   if (isBitcoin(chain)) return BlockchainType.Bitcoin;
   if (isEVM(chain)) return BlockchainType.EVM;
+  if (isSolana(chain)) return BlockchainType.Solana;
   if (isStarknet(chain)) return BlockchainType.Starknet;
   throw new Error('Invalid or unsupported chain');
 };
@@ -175,4 +196,8 @@ export const isEvmNativeToken = (chain: Chain, tokenAddress: string) => {
     isEVM(chain) &&
     tokenAddress.toLowerCase() === NativeTokenAddress.toLowerCase()
   );
+};
+
+export const isSolanaNativeToken = (chain: Chain, tokenAddress: string) => {
+  return isSolana(chain) && tokenAddress.toLowerCase() === 'primary';
 };

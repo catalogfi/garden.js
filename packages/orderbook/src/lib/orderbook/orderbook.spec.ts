@@ -17,7 +17,7 @@ import {
 // import { Asset, Chains } from '../asset';
 
 describe('orders provider', async () => {
-  const orderbookApi = 'https://orderbook-stage.hashira.io';
+  const orderbookApi = 'https://orderbook-v2-staging.hashira.io';
   const address = '0x52FE8afbbB800a33edcbDB1ea87be2547EB30000';
   const id = 'c519b735bcef0a6bd6a54ac7d46449087b2146cae75541c2ddde686cf8fba294';
 

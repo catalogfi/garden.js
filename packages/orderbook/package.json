@@ -26,6 +26,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
     "@gardenfi/utils": "workspace:*",
     "bufferutil": "^4.0.8",
     "siwe": "^2.1.4",
