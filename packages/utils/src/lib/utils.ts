@@ -26,7 +26,6 @@ export const parseJwt = <T>(token: string): T | undefined => {
 export enum Network {
   MAINNET = 'mainnet',
   TESTNET = 'testnet',
-  LOCALNET = 'localnet'
 }
 
 export enum Environment {

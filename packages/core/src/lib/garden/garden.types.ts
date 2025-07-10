@@ -10,15 +10,13 @@ import { Environment, EventBroker, IAuth } from '@gardenfi/utils';
 import { ISecretManager } from '../secretManager/secretManager.types';
 import { IQuote } from '../quote/quote.types';
 import { IBlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
-import { BitcoinWallet, IBitcoinWallet } from '@catalogfi/wallets';
+import { IBitcoinWallet } from '@catalogfi/wallets';
 import { IEVMHTLC } from '../evm/htlc.types';
 import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { DigestKey } from '@gardenfi/utils';
 import { AccountInterface } from 'starknet';
 import { WalletClient } from 'viem';
 import { Api } from '../constants';
-import { ISolanaHTLC } from '../solana/htlc/ISolanaHTLC';
-import { AnchorProvider } from '@coral-xyz/anchor';
 
 export type SwapParams = {
   /**
@@ -112,12 +110,6 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
   get starknetHTLC(): IStarknetHTLC | undefined;
 
   /**
-   * The Solana relay.
-   * @readonly
-   */
-  get solanaHTLC(): ISolanaHTLC | undefined;
-
-  /**
    * The current quote.
    * @readonly
    */
@@ -189,15 +181,12 @@ export type GardenCoreConfig = {
   orderbook?: IOrderbook;
   quote?: IQuote;
   blockNumberFetcher?: IBlockNumberFetcher;
-  btcWallet?: BitcoinWallet;
-  solanaProgramAddress?: string;
 };
 
 export type GardenHTLCModules = {
   htlc: {
     evm?: IEVMHTLC;
     starknet?: IStarknetHTLC;
-    solana?: ISolanaHTLC;
   };
 };
 
@@ -205,7 +194,6 @@ export type GardenWalletModules = {
   wallets: {
     evm?: WalletClient;
     starknet?: AccountInterface;
-    solana?: AnchorProvider;
   };
 };
 
