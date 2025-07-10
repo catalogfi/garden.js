@@ -11,6 +11,7 @@ import {
 } from './orderbook.types';
 import { APIResponse, ApiStatus, IAuth, Url } from '@gardenfi/utils';
 import { ConstructUrl } from '../utils';
+import { Chain } from '../asset';
 
 /**
  * A class that allows you to create and manage orders with the orderbook url.
@@ -35,8 +36,9 @@ export class Orderbook implements IOrderbook {
     auth: IAuth,
   ): AsyncResult<string, string> {
     const headers = await auth.getAuthHeaders();
-    if (headers.error) return Err(headers.error);
-
+    if (headers.error) {
+      return Err(headers.error);
+    }
     try {
       const res = await Fetcher.post<CreateOrderResponse>(
         this.Url.endpoint('/relayer').endpoint('create-order'),
@@ -48,12 +50,14 @@ export class Orderbook implements IOrderbook {
           },
         },
       );
-      if (res.error) return Err(res.error);
+      if (res.error) {
+        return Err(res.error);
+      }
       return res.result
         ? Ok(res.result)
         : Err('CreateOrder: Unexpected error, result is undefined');
     } catch (error) {
-      return Err('CreateOrder:', String(error));
+      return Err('CreateOrder Err:', String(error));
     }
   }
 
@@ -133,17 +137,33 @@ export class Orderbook implements IOrderbook {
   async getOrders<T extends boolean>(
     matched: T,
     paginationConfig?: PaginationConfig,
+    address?: string,
+    tx_hash?: string,
+    fromChain?: Chain,
+    toChain?: Chain,
   ): AsyncResult<
     PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
     string
   > {
     const endPoint = matched ? '/matched' : '/unmatched';
-    const url = ConstructUrl(
-      this.Url.endpoint('orders'),
-      endPoint,
-      paginationConfig,
-    );
-
+    const params: Record<string, any> = {};
+    if (paginationConfig) {
+      params['page'] = paginationConfig.page;
+      params['per_page'] = paginationConfig.per_page;
+    }
+    if (address) {
+      params['address'] = address;
+    }
+    if (tx_hash) {
+      params['tx_hash'] = tx_hash;
+    }
+    if (fromChain) {
+      params['from_chain'] = fromChain;
+    }
+    if (toChain) {
+      params['to_chain'] = toChain;
+    }
+    const url = ConstructUrl(this.Url.endpoint('orders'), endPoint, params);
     try {
       const res = await Fetcher.get<
         APIResponse<PaginatedData<T extends true ? MatchedOrder : CreateOrder>>
