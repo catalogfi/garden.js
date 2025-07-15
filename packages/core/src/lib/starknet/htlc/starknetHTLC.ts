@@ -67,6 +67,10 @@ export class StarknetHTLC implements IStarknetHTLC {
       } catch (error) {
         return Err(`Allowance check failed: ${error}`);
       }
+      const { secret_hash } = order.create_order;
+      if (!secret_hash) {
+        return Err('Invalid order: secret_hash is undefined');
+      }
 
       const initiateResponse = await this.account.execute({
         contractAddress: order.source_swap.asset,
@@ -76,7 +80,7 @@ export class StarknetHTLC implements IStarknetHTLC {
           BigInt(order.source_swap.timelock),
           amountUint256.low,
           amountUint256.high,
-          ...hexToU32Array(order.create_order.secret_hash),
+          ...hexToU32Array(secret_hash),
         ],
       });
 

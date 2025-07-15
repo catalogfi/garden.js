@@ -1,15 +1,11 @@
-import { AsyncResult, Err, Fetcher, Ok, Request } from '@catalogfi/utils';
+import { Err, Fetcher, Ok, Request } from '@catalogfi/utils';
 import {
   IQuote,
   QuoteResponse,
   Strategies,
   StrategiesResponse,
 } from './quote.types';
-import {
-  Asset,
-  CreateOrderRequestWithAdditionalData,
-  CreateOrderReqWithStrategyId,
-} from '@gardenfi/orderbook';
+import { Asset } from '@gardenfi/orderbook';
 import { APIResponse, Url } from '@gardenfi/utils';
 import { constructOrderPair } from '../utils';
 
@@ -72,30 +68,6 @@ export class Quote implements IQuote {
       return Ok(res.result);
     } catch (error) {
       return Err('GetQuote:', String(error));
-    }
-  }
-
-  async getAttestedQuote(
-    order: CreateOrderReqWithStrategyId,
-  ): AsyncResult<CreateOrderRequestWithAdditionalData, string> {
-    try {
-      const res = await Fetcher.post<
-        APIResponse<CreateOrderRequestWithAdditionalData>
-      >(this.quoteUrl.endpoint('/attested').toString(), {
-        body: JSON.stringify(order),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (res.error) return Err(res.error);
-      if (!res.result)
-        return Err('GetAttestedQuote: Unexpected error, result is undefined');
-
-      return Ok(res.result);
-    } catch (error) {
-      console.log('error :', error);
-      return Err('GetAttestedQuote:', String(error));
     }
   }
 

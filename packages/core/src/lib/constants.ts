@@ -12,7 +12,7 @@ export type Api = {
 };
 export const API: Record<Environment, Api> = {
   mainnet: {
-    orderbook: 'https://api.garden.finance',
+    orderbook: 'https://api.garden.finance/orders',
     auth: 'https://api.garden.finance/auth',
     quote: 'https://api.garden.finance/quote',
     info: 'https://api.garden.finance/info',
@@ -21,7 +21,7 @@ export const API: Record<Environment, Api> = {
     starknetRelay: 'https://api.garden.finance/starknet',
   },
   testnet: {
-    orderbook: 'https://testnet.api.garden.finance',
+    orderbook: 'https://testnet.api.garden.finance/orders',
     auth: 'https://testnet.api.garden.finance/auth',
     quote: 'https://testnet.api.garden.finance/quote',
     info: 'https://testnet.api.garden.finance/info',
