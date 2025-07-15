@@ -11,7 +11,8 @@ import { add0x, Authorization, parseJwt } from '../../utils';
 import { privateKeyToAccount } from 'viem/accounts';
 import { mainnet } from 'viem/chains';
 import { DigestKey } from '../../digestKey/digestKey';
-import { AsyncResult, Err, Ok, Result } from '../../result';
+import { AsyncResult, Err, Ok, Result } from '../../result/result';
+
 export class Siwe implements IAuth {
   private readonly url: Url;
   private store: IStore;

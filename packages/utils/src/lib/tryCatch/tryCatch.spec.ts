@@ -1,5 +1,5 @@
-import { test, expect, describe, it } from 'vitest';
-import { Err, Ok } from './result';
+import { expect, describe, it } from 'vitest';
+import { Err, Ok } from '../result/result';
 import { executeWithTryCatch } from './tryCatch';
 
 describe.only('Should test executeWithTryCatch', () => {

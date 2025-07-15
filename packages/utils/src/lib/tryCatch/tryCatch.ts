@@ -1,4 +1,4 @@
-import { AsyncResult, Err, Ok } from './result';
+import { AsyncResult, Err, Ok } from '../result/result';
 
 /**
  * A wrapper function to execute a function with try catch block.

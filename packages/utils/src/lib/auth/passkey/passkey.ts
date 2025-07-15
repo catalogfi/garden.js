@@ -1,6 +1,6 @@
 import { AuthHeaderEnum, AuthHeader, IAuth } from '../auth.types';
 import { parseJwt } from '../../utils';
-import { AsyncResult, Err, Ok, Result } from '../../result';
+import { AsyncResult, Err, Ok, Result } from '../../result/result';
 
 export class Passkey implements IAuth {
   private token: string | undefined;

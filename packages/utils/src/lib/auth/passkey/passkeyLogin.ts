@@ -10,7 +10,7 @@ import {
   startRegistration,
 } from '@simplewebauthn/browser';
 import { IStore } from '../../store';
-import { AsyncResult, Err, Ok, Result } from '../../result';
+import { AsyncResult, Err, Ok, Result } from '../../result/result';
 import { Fetcher } from '../../fetcher';
 
 export class PasskeyLogin {

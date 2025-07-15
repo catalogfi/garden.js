@@ -1,4 +1,4 @@
-import { Retry } from './retry';
+import { Retry } from './../retry';
 import { safeParseJson } from './safeParseJson';
 
 export class Fetcher {

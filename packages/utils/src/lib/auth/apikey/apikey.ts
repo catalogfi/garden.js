@@ -1,4 +1,4 @@
-import { AsyncResult, Err, Ok, Result } from '../../result';
+import { AsyncResult, Err, Ok, Result } from '../../result/result';
 import { AuthHeaderEnum, AuthHeader, IAuth } from '../auth.types';
 
 export class ApiKey implements IAuth {

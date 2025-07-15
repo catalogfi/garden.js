@@ -7,7 +7,7 @@ import {
 } from 'viem';
 import { with0x } from './utils';
 import { getTransactionReceipt } from 'viem/actions';
-import { AsyncResult, Err, Ok } from './result';
+import { AsyncResult, Err, Ok } from './result/result';
 
 export const checkAllowanceAndApprove = async (
   amount: number,

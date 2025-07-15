@@ -1,4 +1,4 @@
-import { Err, Ok } from '../result';
+import { Err, Ok } from '../result/result';
 import { Crypto } from '@peculiar/webcrypto';
 import { privateKeyToAccount } from 'viem/accounts';
 import { trim0x } from '../utils';
