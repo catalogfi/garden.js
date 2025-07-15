@@ -20,10 +20,10 @@ Check out our [docs](https://docs.garden.finance/developers/sdk) to learn more a
 
 ```
 @gardenfi/utils
-   └── @gardenfi/wallet-connectors
-         └── @gardenfi/orderbook
-               └── @gardenfi/core
-                     └── @gardenfi/react-hooks
+|   └── @gardenfi/wallet-connectors
+└── @gardenfi/orderbook
+    └── @gardenfi/core
+            └── @gardenfi/react-hooks
 ```
 
 ## Getting Started
