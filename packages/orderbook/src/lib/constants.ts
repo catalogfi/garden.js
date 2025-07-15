@@ -48,6 +48,14 @@ export const EthereumLocalnet: Chain = {
   testnet: true,
 };
 
+export const SOLSolanaLocalnetAsset: Asset = {
+  name: 'SOL Solana Localnet',
+  decimals: 9,
+  symbol: 'SOL',
+  chain: Chains.solana_localnet,
+  atomicSwapAddress: 'primary',
+  tokenAddress: 'primary',
+};
 export const bitcoinRegtestAsset: Asset = {
   name: 'Bitcoin Regtest',
   decimals: 8,
@@ -61,7 +69,8 @@ export const WBTCArbitrumLocalnetAsset: Asset = {
   decimals: 8,
   symbol: 'WBTC',
   chain: Chains.arbitrum_localnet,
-  atomicSwapAddress: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9',
+  // atomicSwapAddress: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9',
+  atomicSwapAddress: '0x0165878A594ca255338adfa4d48449f69242Eb8F', //present on localnet
   tokenAddress: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
 };
 export const WBTCEthereumLocalnetAsset: Asset = {
@@ -69,7 +78,8 @@ export const WBTCEthereumLocalnetAsset: Asset = {
   decimals: 8,
   symbol: 'WBTC',
   chain: Chains.ethereum_localnet,
-  atomicSwapAddress: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
+  // atomicSwapAddress: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
+  atomicSwapAddress: '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0', //present on localnet
   tokenAddress: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
 };
 export const STRKStarknetLocalnetAsset: Asset = {
@@ -95,12 +105,23 @@ export const ETHStarknetLocalnetAsset: Asset = {
 
 export const SupportedAssets = {
   localnet: {
+    solana_localnet_SOL: SOLSolanaLocalnetAsset,
     arbitrum_localnet_WBTC: WBTCArbitrumLocalnetAsset,
     ethereum_localnet_WBTC: WBTCEthereumLocalnetAsset,
+    bitcoin_regtest_BTC: bitcoinRegtestAsset,
     starknet_localnet_STRK: STRKStarknetLocalnetAsset,
     starknet_localnet_ETH: ETHStarknetLocalnetAsset,
   },
   testnet: {
+    solana_testnet_SOL: {
+      name: 'SOL Solana Testnet',
+      decimals: 9,
+      symbol: 'SOL',
+      chain: Chains.solana_testnet,
+      logo: 'https://garden-finance.imgix.net/chain_images/solana.png',
+      atomicSwapAddress: 'primary',
+      tokenAddress: 'primary',
+    },
     bitcoin_testnet_BTC: {
       name: 'BTC',
       decimals: 8,
@@ -125,7 +146,7 @@ export const SupportedAssets = {
       logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
       chain: Chains.arbitrum_sepolia,
       tokenAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
-      atomicSwapAddress: '0x1cd0bBd55fD66B4C5F7dfE434eFD009C09e628d1',
+      atomicSwapAddress: '0xE918A5a47b8e0AFAC2382bC5D1e981613e63fB07',
     },
     arbitrum_sepolia_SEED: {
       name: 'Seed',
@@ -134,7 +155,7 @@ export const SupportedAssets = {
       chain: Chains.arbitrum_sepolia,
       logo: 'https://garden-finance.imgix.net/token-images/seed.svg',
       tokenAddress: '0x13DCec0762EcC5E666c207ab44Dc768e5e33070F',
-      atomicSwapAddress: '0xD5FeDb4ceCB0F1D32788a190d9EB47D94D23eE4e',
+      atomicSwapAddress: '0xB47716a220C319b25a532594511D63EC68702CEf',
     },
     arbitrum_sepolia_iBTC: {
       name: 'iBTC',
@@ -142,8 +163,8 @@ export const SupportedAssets = {
       symbol: 'iBTC',
       chain: Chains.arbitrum_sepolia,
       logo: 'https://garden-finance.imgix.net/token-images/dlcBTCIcon.svg',
-      tokenAddress: '0x8219B871534F29ff7434519287131a875e0D8eCa',
-      atomicSwapAddress: '0xdfe6d9363ee96152d39391009a6723819d9e25eb',
+      tokenAddress: '0x685437f025c5f33A94818408C286bc1F023201Fc',
+      atomicSwapAddress: '0x88e1032252c712681A3659986F452E910D2134D8',
     },
     base_sepolia_WBTC: {
       name: 'Wrapped Bitcoin',
@@ -346,6 +367,15 @@ export const SupportedAssets = {
       logo: 'https://garden-finance.imgix.net/token-images/bitcorn.jpg',
       tokenAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
       atomicSwapAddress: '0xeaE7721d779276eb0f5837e2fE260118724a2Ba4',
+    },
+    solana_SOL: {
+      name: 'Solana ',
+      decimals: 9,
+      symbol: 'SOL',
+      chain: Chains.solana,
+      logo: 'https://garden-finance.imgix.net/chain_images/solana.png',
+      tokenAddress: 'primary',
+      atomicSwapAddress: '2bag6xpshpvPe7SJ9nSDLHpxqhEAoHPGpEkjNSv7gxoF',
     },
     botanix_BOTX: {
       name: 'Botanix',

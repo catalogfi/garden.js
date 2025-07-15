@@ -3,14 +3,18 @@ import {
   checkAllowanceAndApprove,
   Ok,
   Err,
+  waitForTransactionReceipt,
 } from '@gardenfi/utils';
-import { WalletClient, getContract } from 'viem';
+import { WalletClient, createPublicClient, getContract, http } from 'viem';
 import { isEVM, isEvmNativeToken, MatchedOrder } from '@gardenfi/orderbook';
 import { Fetcher, trim0x } from '@catalogfi/utils';
 import { APIResponse, IAuth, Url, with0x } from '@gardenfi/utils';
 import { AtomicSwapABI } from '../abi/atomicSwap';
 import { IEVMHTLC } from '../htlc.types';
-import { switchOrAddNetwork } from './../../switchOrAddNetwork';
+import {
+  evmToViemChainMap,
+  switchOrAddNetwork,
+} from './../../switchOrAddNetwork';
 import { nativeHTLCAbi } from '../abi/nativeHTLC';
 
 export class EvmRelay implements IEVMHTLC {
@@ -205,7 +209,15 @@ export class EvmRelay implements IEVMHTLC {
         },
       );
       if (res.error) return Err(res.error);
-      return res.result ? Ok(res.result) : Err('Init: No result found');
+      const receipt = await waitForTransactionReceipt(
+        this.wallet,
+        res.result as `0x${string}`,
+      );
+      if (receipt.val && receipt.val.status === 'success') {
+        return Ok(res.result ? res.result : 'Initiate hash not found');
+      } else {
+        return Err('Init failed: Transaction receipt not successful');
+      }
     } catch (error) {
       console.log('init error :', error);
       return Err(String(error));
@@ -236,7 +248,26 @@ export class EvmRelay implements IEVMHTLC {
       );
 
       if (res.error) return Err(res.error);
-      return res.result ? Ok(res.result) : Err('Redeem: No result found');
+
+      const viemChain =
+        evmToViemChainMap[
+          order.destination_swap.chain as keyof typeof evmToViemChainMap
+        ];
+
+      const evmProvider = createPublicClient({
+        chain: viemChain,
+        transport: http(),
+      });
+      const receipt = await evmProvider.waitForTransactionReceipt({
+        hash: res.result as `0x${string}`,
+        confirmations: 1,
+        timeout: 300000,
+      });
+      if (receipt && receipt.status === 'success') {
+        return Ok(res.result ? res.result : 'Redeem hash not found');
+      } else {
+        return Err('Redeem failed: Transaction receipt not successful');
+      }
     } catch (error) {
       return Err(String(error));
     }

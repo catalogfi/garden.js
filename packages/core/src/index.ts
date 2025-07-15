@@ -23,6 +23,10 @@ export { StarknetRelay } from './lib/starknet/relay/starknetRelay';
 export type { IStarknetHTLC } from './lib/starknet/starknetHTLC.types';
 export { StarknetHTLC } from './lib/starknet/htlc/starknetHTLC';
 
+export { SolanaRelay } from './lib/solana/relayer/solanaRelay';
+export type { ISolanaHTLC } from './lib/solana/htlc/ISolanaHTLC';
+export { SolanaHTLC } from './lib/solana/htlc/solanaHTLC';
+
 export { BlockNumberFetcher } from './lib/blockNumberFetcher/blockNumber';
 export type { IBlockNumberFetcher } from './lib/blockNumberFetcher/blockNumber';
 
@@ -42,6 +46,11 @@ export type {
   ISecretManager,
   Secret,
 } from './lib/secretManager/secretManager.types';
+export {
+  checkAllowanceAndApprove as checkStarknetAllowanceAndApprove,
+  isAllowanceSufficient as isStarknetAllowanceSufficient,
+  checkAllowance as checkStarknetAlloance,
+} from './lib/starknet/checkAllowanceAndApprove';
 
 export { Quote } from './lib/quote/quote';
 export type {
@@ -65,4 +74,9 @@ export {
   botanixMainnet as botanix,
 } from './lib/switchOrAddNetwork';
 
-export { API, STARKNET_CONFIG } from './lib/constants';
+export {
+  API,
+  STARKNET_CONFIG,
+  SolanaRelayerAddress,
+  solanaProgramAddress,
+} from './lib/constants';

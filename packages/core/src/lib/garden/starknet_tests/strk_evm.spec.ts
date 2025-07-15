@@ -153,7 +153,7 @@ describe('StarkNet Integration Tests', () => {
       // console.log('Order created :', createRes.val);
       // console.log('Order created :', createRes.error);
       const order: SwapParams = {
-        toAsset: {
+        fromAsset: {
           name: 'Starknet ETH',
           decimals: 8,
           symbol: 'WBTC',
@@ -162,7 +162,7 @@ describe('StarkNet Integration Tests', () => {
           tokenAddress: 'primary',
           atomicSwapAddress: 'primary',
         },
-        fromAsset: {
+        toAsset: {
           name: 'Wrapped Bitcoin',
           decimals: 8,
           symbol: 'WBTC',

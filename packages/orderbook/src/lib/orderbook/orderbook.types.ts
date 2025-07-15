@@ -136,11 +136,17 @@ export interface IOrderbook {
    * Get all orders from the orderbook based on the match status.
    * @param matched - If true, returns matched orders, else returns unmatched orders.
    * @param paginationConfig - The configuration for the pagination.
+   * @param address - The address to get the orders for.
+   * @param tx_hash - The tx hash to get the orders for (initiate_tx_hash, redeem_tx_hash, refund_tx_hash).
+   * @param fromChain - The source chain to filter orders by.
+   * @param toChain - The destination chain to filter orders by.
    * @returns {AsyncResult<PaginatedData<T extends true ? MatchedOrder : CreateOrder>, string>} A promise that resolves to the orders.
    */
   getOrders<T extends boolean>(
     matched: T,
     paginationConfig?: PaginationConfig,
+    address?: string,
+    tx_hash?: string,
   ): AsyncResult<
     PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
     string

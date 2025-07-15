@@ -8,10 +8,12 @@ export {
   isBitcoin,
   isEVM,
   isStarknet,
+  isSolana,
   getBlockchainType,
   NetworkType,
   NativeTokenAddress,
   isEvmNativeToken,
+  isSolanaNativeToken,
 } from './lib/asset';
 
 export {
@@ -20,6 +22,7 @@ export {
   ArbitrumLocalnet,
   EthereumLocalnet,
   bitcoinRegtestAsset,
+  SOLSolanaLocalnetAsset,
   SupportedAssets,
   StarknetLocalnet,
   STRKStarknetLocalnetAsset,

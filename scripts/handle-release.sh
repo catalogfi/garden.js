@@ -21,13 +21,13 @@ if [[ $1 == "beta" ]]; then
 else
   LAST_COMMIT_MSG=$(git log -1 --pretty=%B)
 
-  if [[ $LAST_COMMIT_MSG == patch:* ]]; then
+  if [[ $LAST_COMMIT_MSG == patch:* || $LAST_COMMIT_MSG == patch:/* ]]; then
     VERSION_BUMP="patch"
-  elif [[ $LAST_COMMIT_MSG == chore:* ]]; then
+  elif [[ $LAST_COMMIT_MSG == chore:* || $LAST_COMMIT_MSG == chore/* ]]; then
     VERSION_BUMP="patch"
-  elif [[ $LAST_COMMIT_MSG == fix:* ]]; then
+  elif [[ $LAST_COMMIT_MSG == fix:* || $LAST_COMMIT_MSG == fix/* ]]; then
     VERSION_BUMP="minor"
-  elif [[ $LAST_COMMIT_MSG == feat:* ]]; then
+  elif [[ $LAST_COMMIT_MSG == feat:* || $LAST_COMMIT_MSG == feat:* ]]; then
     VERSION_BUMP="major"
   else
     echo "Commit message does not match patch, chore, fix, or feat. Skipping publishing."
