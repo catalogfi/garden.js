@@ -512,6 +512,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                     'EVM refund is automatically done by relay service',
                   );
                   break;
+                }
                 case BlockchainType.Bitcoin: {
                   const sourceWallet = this.btcWallet;
                   if (!sourceWallet) {
