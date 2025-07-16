@@ -16,15 +16,16 @@ import { SwapParams } from '../../../garden/garden.types';
 // import { SolanaRelayerAddress } from "../../constants";
 // import { skip } from 'node:test';
 import { SolanaRelay } from '../../relayer/solanaRelay';
+import { Asset } from 'gardenfi/orderbook';
 
 // Shared constants
 const TEST_RPC_URL = 'https://api.devnet.solana.com';
-const TEST_ORDERBOOK_STAGE = 'https://testnet.api.garden.finance';
-const TEST_STAGE_AUTH = 'https://testnet.api.garden.finance/auth';
+const TEST_ORDERBOOK_STAGE = 'https://testnet.api.hashira.io';
+const TEST_STAGE_AUTH = 'https://testnet.api.hashira.io/auth';
 // const TEST_BLOCKFETCHER_URL = 'https://info-stage.hashira.io';
-const TEST_STAGE_QUOTE = 'https://testnet.api.garden.finance/quote';
-const TEST_STAGE_EVM_RELAY = 'https://testnet.api.garden.finance/relayer';
-const TEST_SOLANA_RELAY = 'https://solana-relay.garden.finance';
+const TEST_STAGE_QUOTE = 'https://quote-staging.hashira.io/';
+const TEST_STAGE_EVM_RELAY = 'https://testnet.api.hashira.io/relayer';
+const TEST_SOLANA_RELAY = 'https://solana-relayer-staging.hashira.io/';
 
 const TEST_PRIVATE_KEY =
   '9c1508f9071bf5fefc69fbb71c98cd3150a323e953c6979ef8b508f1461dd2e1';
@@ -199,32 +200,45 @@ describe('Swap Tests', () => {
     it(
       'should create and execute a SOL->wBTC swap order',
       async () => {
-        // 1. Create order
+        const fromAsset : Asset =  {
+          name: 'Wrapped Bitcoin',
+          decimals: 9,
+          symbol: 'SOL',
+          logo: 'https://garden.imgix.net/token-images/wbtc.svg',
+          tokenAddress: 'primary',
+          atomicSwapAddress: '2bag6xpshpvPe7SJ9nSDLHpxqhEAoHPGpEkjNSv7gxoF',
+          chain: 'solana_testnet',
+        }
+
+        const toAsset : Asset =  {
+          name: 'primary',
+          decimals: 6,
+          symbol: 'USDC',
+          logo: 'https://garden-finance.imgix.net/chain_images/solana.png',
+          tokenAddress: '5JbWjyLdYKTuykpq2itWbdRcZkhK3hs6fiH62pkmLYZi',
+          atomicSwapAddress: '2WXpY8havGjfRxme9LUxtjFHTh1EfU3ur4v6wiK4KdNC',
+          chain: 'solana_testnet',
+        }
+
+
+
+        const quote = await garden.quote.getQuoteFromAssets(
+          fromAsset,
+          toAsset,
+          100000000,
+          false,
+        );
+        console.log(quote.val.quotes);
         const orderObj: SwapParams = {
-          toAsset: {
-            name: 'Wrapped Bitcoin',
-            decimals: 8,
-            symbol: 'WBTC',
-            logo: 'https://garden.imgix.net/token-images/wbtc.svg',
-            tokenAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
-            atomicSwapAddress: '0x34ac1D7e13Cc993f76E63e265dcfB31dFE9CF9a4',
-            chain: 'arbitrum_sepolia',
-          },
-          fromAsset: {
-            name: 'primary',
-            decimals: 9,
-            symbol: 'SOL',
-            logo: 'https://garden-finance.imgix.net/chain_images/solana.png',
-            tokenAddress: 'primary',
-            atomicSwapAddress: 'primary',
-            chain: 'solana_testnet',
-          },
-          receiveAmount: '1373',
-          sendAmount: '10000000',
-          additionalData: { strategyId: 'styraa4a' }, //styraa4a //aa4astyr
+          fromAsset: fromAsset,
+          toAsset: toAsset,
+          sendAmount: '100000000',
+          receiveAmount: quote.val.quotes[Object.keys(quote.val.quotes)[0]],
+          additionalData: { strategyId: Object.keys(quote.val.quotes)[0] },
           minDestinationConfirmations: 1,
         };
         console.log('Creating order...', orderObj);
+        console.log(garden.quote);
         const result = await garden.swap(orderObj);
         // const result = await garden.orderbook.getOrder(
         //   '1d6a7fdbd2e1a86e045deada8663f61d7d17ba0390c7c5c5c651b70c6f82f962',

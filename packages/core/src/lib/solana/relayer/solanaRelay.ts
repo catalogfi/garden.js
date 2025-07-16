@@ -7,6 +7,7 @@ import { APIResponse, Url } from '@gardenfi/utils';
 import { ISolanaHTLC } from '../htlc/ISolanaHTLC';
 import { isSolanaNativeToken, MatchedOrder } from '@gardenfi/orderbook';
 import { waitForSolanaTxConfirmation } from '../../utils';
+import * as Spl from "@solana/spl-token";
 
 /**
  * A Relay is an endpoint that submits the transaction on-chain on one's behalf, paying any fees.
@@ -106,16 +107,13 @@ export class SolanaRelay implements ISolanaHTLC {
         .serialize({ requireAllSignatures: false })
         .toString('base64');
 
-      const relayRequest = {
-        order_id: orderId,
-        serialized_tx: encodedTx,
-        perform_on: 'source',
-      };
-
       const res: APIResponse<string> = await Fetcher.post(
-        this.url.endpoint('/spl-initiate'),
+        this.url.endpoint('/initiate'),
         {
-          body: JSON.stringify(relayRequest),
+          body: JSON.stringify({
+            order_id: orderId,
+            serialized_tx: encodedTx,
+          }),
           headers: {
             'Content-Type': 'application/json',
           },
@@ -173,30 +171,56 @@ export class SolanaRelay implements ISolanaHTLC {
    *   - Err with an error message on failure
    */
   async initiate(order: MatchedOrder): AsyncResult<string, string> {
-    const { redeemer, secretHash, amount, expiresIn } = SwapConfig.from(order);
-
-    const pdaSeeds = [
-      Buffer.from('swap_account'),
-      this.provider.publicKey.toBuffer(),
-      Buffer.from(secretHash),
-    ];
-
-    this.swapAccount = web3.PublicKey.findProgramAddressSync(
-      pdaSeeds,
-      this.program.programId,
-    )[0];
-
     try {
-      const tx = await this.program.methods
-        .initiate(amount, expiresIn, redeemer, secretHash)
-        .accounts({ initiator: this.provider.publicKey })
-        .transaction();
+      const config = SwapConfig.from(order);
+      const { redeemer, secretHash } = config;
+      const amount = config.amount;
+      const expiresIn = config.expiresIn;
 
-      if (
-        !isSolanaNativeToken(order.source_swap.chain, order.source_swap.asset)
-      )
-        return this.sendViaRelayer(tx, order.create_order.create_id);
-      else return this.initiateViaHTLC(tx, order);
+      const pdaSeeds = [
+        Buffer.from('swap_account'),
+        this.provider.publicKey.toBuffer(),
+        Buffer.from(secretHash),
+      ];
+
+      this.swapAccount = web3.PublicKey.findProgramAddressSync(
+        pdaSeeds,
+        this.program.programId,
+      )[0];
+
+      const txBuilder = this.program.methods.initiate(
+        amount,
+        expiresIn,
+        redeemer,
+        secretHash,
+      );
+
+      const mint = new web3.PublicKey(order.source_swap.asset);
+      const isSPL = isSolanaNativeToken(
+        order.source_swap.chain,
+        order.source_swap.asset,
+      );
+
+      const initiatorTokenAccount = isSPL
+        ? Spl.getAssociatedTokenAddressSync(mint, this.provider.publicKey)
+        : undefined;
+      console.log('isSPL', isSPL);
+      console.log('initiatorTokenAccount', initiatorTokenAccount);
+      const accounts = isSPL
+        ? {
+            initiator: this.provider.publicKey,
+            mint,
+            initiatorTokenAccount,
+          }
+        : {
+            initiator: this.provider.publicKey,
+          };
+      console.log('accounts', accounts);
+      const tx = await txBuilder.accounts(accounts).transaction();
+
+      return isSPL
+        ? this.sendViaRelayer(tx, order.create_order.create_id)
+        : this.initiateViaHTLC(tx, order);
     } catch (e) {
       return Err('Error initiating swap: ', e);
     }
@@ -232,7 +256,7 @@ export class SolanaRelay implements ISolanaHTLC {
       const relayRequest = {
         order_id: order.create_order.create_id,
         secret: Buffer.from(_secret).toString('hex'),
-        perform_on: 'destination',
+        // perform_on: 'destination',
       };
 
       const res: APIResponse<string> = await Fetcher.post(
