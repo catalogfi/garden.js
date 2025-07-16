@@ -16,6 +16,7 @@ import {
   Fetcher,
   Ok,
   Url,
+  Request as UtilsRequest,
 } from '@gardenfi/utils';
 import { constructOrderPair } from '../utils';
 
@@ -33,7 +34,7 @@ export class Quote implements IQuote {
     isExactOut = false,
     options?: {
       affiliateFee?: number;
-      request?: Request;
+      request?: UtilsRequest;
     },
   ) {
     const orderpair = constructOrderPair(
@@ -52,7 +53,7 @@ export class Quote implements IQuote {
     isExactOut = false,
     options?: {
       affiliateFee?: number;
-      request?: Request;
+      request?: UtilsRequest;
     },
   ) {
     try {
