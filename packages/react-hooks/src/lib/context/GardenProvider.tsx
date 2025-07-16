@@ -1,11 +1,16 @@
 import React, { createContext, FC, useEffect, useMemo, useState } from 'react';
 import { useOrderbook } from '../hooks/useOrderbook';
-import { Garden, IGardenJS, Quote, resolveApiConfig } from '@gardenfi/core';
+import {
+  Garden,
+  IGardenJS,
+  Quote,
+  QuoteParamsForAssets,
+  resolveApiConfig,
+} from '@gardenfi/core';
 import { SwapParams } from '@gardenfi/core';
 import type {
   GardenContextType,
   GardenProviderProps,
-  QuoteParams,
 } from './gardenProvider.types';
 import {
   BlockchainType,
@@ -13,7 +18,7 @@ import {
   isBitcoin,
   MatchedOrder,
 } from '@gardenfi/orderbook';
-import { constructOrderpair, hasAnyValidValue } from '../utils';
+import { hasAnyValidValue } from '../utils';
 import { useDigestKey } from '../hooks/useDigestKey';
 import { Err, Ok } from '@gardenfi/utils';
 
@@ -36,21 +41,23 @@ export const GardenProvider: FC<GardenProviderProps> = ({
   }, [config.environment, config.quote]);
 
   const getQuote = useMemo(
-    () => async ({
-      fromAsset,
-      toAsset,
-      amount,
-      isExactOut = false,
-      options,
-    }: QuoteParams) => {
-      const _quote = garden ? garden.quote : quote;
-      return await _quote.getQuote(
-        constructOrderpair(fromAsset, toAsset),
+    () =>
+      async ({
+        fromAsset,
+        toAsset,
         amount,
-        isExactOut,
+        isExactOut = false,
         options,
-      );
-    },
+      }: QuoteParamsForAssets) => {
+        const _quote = garden ? garden.quote : quote;
+        return await _quote.getQuoteFromAssets({
+          fromAsset,
+          toAsset,
+          amount,
+          isExactOut,
+          options,
+        });
+      },
     [garden, quote],
   );
 

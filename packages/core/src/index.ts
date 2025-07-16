@@ -57,6 +57,10 @@ export type {
   IQuote,
   QuoteResponse,
   Strategies,
+  QuoteParamsForAssets,
+  QuoteParamsForOrderPair,
+  QuoteOptions,
+  BaseQuoteParams,
 } from './lib/quote/quote.types';
 
 export {

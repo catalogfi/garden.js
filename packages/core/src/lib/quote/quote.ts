@@ -5,7 +5,6 @@ import {
   StrategiesResponse,
 } from './quote.types';
 import {
-  Asset,
   CreateOrderRequestWithAdditionalData,
   CreateOrderReqWithStrategyId,
 } from '@gardenfi/orderbook';
@@ -19,6 +18,7 @@ import {
   Request as UtilsRequest,
 } from '@gardenfi/utils';
 import { constructOrderPair } from '../utils';
+import { QuoteParamsForAssets } from './quote.types';
 
 export class Quote implements IQuote {
   private quoteUrl: Url;
@@ -27,16 +27,13 @@ export class Quote implements IQuote {
     this.quoteUrl = new Url(quoteUrl);
   }
 
-  async getQuoteFromAssets(
-    fromAsset: Asset,
-    toAsset: Asset,
-    amount: number,
+  async getQuoteFromAssets({
+    fromAsset,
+    toAsset,
+    amount,
     isExactOut = false,
-    options?: {
-      affiliateFee?: number;
-      request?: UtilsRequest;
-    },
-  ) {
+    options,
+  }: QuoteParamsForAssets) {
     const orderpair = constructOrderPair(
       fromAsset.chain,
       fromAsset.atomicSwapAddress,

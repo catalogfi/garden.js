@@ -4,7 +4,7 @@ import {
   CreateOrderRequestWithAdditionalData,
   CreateOrderReqWithStrategyId,
 } from '@gardenfi/orderbook';
-import { APIResponse, AsyncResult } from '@gardenfi/utils';
+import { APIResponse, AsyncResult, Request } from '@gardenfi/utils';
 
 export interface IQuote {
   /**
@@ -18,11 +18,7 @@ export interface IQuote {
    *
    */
   getQuoteFromAssets(
-    fromAsset: Asset,
-    toAsset: Asset,
-    amount: number,
-    isExactOut: boolean,
-    options?: { affiliateFee?: number; request?: Request },
+    params: QuoteParamsForAssets,
   ): AsyncResult<QuoteResponse, string>;
 
   /**
@@ -40,7 +36,7 @@ export interface IQuote {
     orderpair: string,
     amount: number,
     isExactOut: boolean,
-    options?: { affiliateFee?: number; request?: Request },
+    options?: QuoteOptions,
   ): AsyncResult<QuoteResponse, string>;
 
   /**
@@ -58,6 +54,26 @@ export interface IQuote {
    */
   getStrategies(): AsyncResult<Strategies, string>;
 }
+
+export type QuoteOptions = {
+  affiliateFee?: number;
+  request?: Request;
+};
+
+export type BaseQuoteParams = {
+  amount: number;
+  isExactOut?: boolean;
+  options?: QuoteOptions;
+};
+
+export type QuoteParamsForAssets = BaseQuoteParams & {
+  fromAsset: Asset;
+  toAsset: Asset;
+};
+
+export type QuoteParamsForOrderPair = BaseQuoteParams & {
+  orderpair: string;
+};
 
 export type QuoteResponse = {
   quotes: { [strategy_id: string]: string };
