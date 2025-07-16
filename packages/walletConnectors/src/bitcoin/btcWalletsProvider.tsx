@@ -9,7 +9,6 @@ import React, {
 import { Connect, IInjectedBitcoinProvider } from './bitcoin.types';
 import { OKXProvider } from './providers/okx/provider';
 import { OKXBitcoinProvider } from './providers/okx/okx.types';
-import { Err, Ok, Void } from '@catalogfi/utils';
 import { UnisatBitcoinProvider } from './providers/unisat/unisat.types';
 import { XVerseBitcoinProvider } from './providers/xverse/xverse.types';
 import { XdefiBitcoinProvider } from './providers/xdefi/xdefi.types';
@@ -25,7 +24,7 @@ import {
   BTCWalletProviderContextType,
   BTCWalletProviderProps,
 } from './btcWalletsProvider.types';
-import { Network } from '@gardenfi/utils';
+import { Err, Network, Ok, Void } from '@gardenfi/utils';
 
 declare global {
   interface Window {
@@ -65,16 +64,16 @@ export const BTCWalletProvider = ({
     {},
   );
 
-  const isConnected = useMemo(
-    () => !!provider && !!account,
-    [provider, account],
-  );
+  const isConnected = useMemo(() => !!provider && !!account, [
+    provider,
+    account,
+  ]);
 
   //connect to the specified wallet and set the provider and account
   const connect = async (bitcoinWallet: IInjectedBitcoinProvider) => {
     setIsConnecting(true);
     const res = await bitcoinWallet.connect(network);
-    if (res.error) {
+    if (!res.ok) {
       setIsConnecting(false);
       return Err(res.error);
     }
@@ -108,7 +107,7 @@ export const BTCWalletProvider = ({
     if (!provider) return;
 
     const accounts = await provider.getAccounts();
-    if (accounts.error) {
+    if (!accounts.ok) {
       console.error('Error getting accounts:', accounts.error);
       return;
     }
@@ -179,7 +178,7 @@ export const BTCWalletProvider = ({
       const _provider = availableWallets[isAlreadyConnected.id];
       if (_provider) {
         const addresses = await _provider.getAccounts();
-        if (addresses.error || !addresses.val[0]) return;
+        if (!addresses.ok || !addresses.val[0]) return;
 
         const currentNetwork = await _provider.getNetwork();
         if (currentNetwork.error) return;

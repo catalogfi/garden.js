@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@bitcoinerlab/secp256k1": "^1.2.0",
-    "@catalogfi/wallets": "^0.2.54",
     "@coral-xyz/anchor": "^0.31.0",
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@gardenfi/core": "workspace:*",

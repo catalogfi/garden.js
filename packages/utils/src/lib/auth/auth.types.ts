@@ -1,4 +1,4 @@
-import { AsyncResult, Result } from '@catalogfi/utils';
+import { AsyncResult, Result } from '../result/result';
 import { IStore } from '../store/store.interface';
 
 export type SiweOpts = {

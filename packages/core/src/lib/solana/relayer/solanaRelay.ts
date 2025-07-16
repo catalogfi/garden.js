@@ -2,8 +2,14 @@ import { web3, AnchorProvider, Program } from '@coral-xyz/anchor';
 import rawIdl from '../idl/solana_native_swaps.json';
 import { SolanaNativeSwaps } from '../idl/solana_native_swaps';
 import { SwapConfig, validateSecret } from '../solanaTypes';
-import { AsyncResult, Err, Fetcher, Ok } from '@catalogfi/utils';
-import { APIResponse, Url } from '@gardenfi/utils';
+import {
+  APIResponse,
+  AsyncResult,
+  Err,
+  Fetcher,
+  Ok,
+  Url,
+} from '@gardenfi/utils';
 import { ISolanaHTLC } from '../htlc/ISolanaHTLC';
 import { isSolanaNativeToken, MatchedOrder } from '@gardenfi/orderbook';
 import { waitForSolanaTxConfirmation } from '../../utils';
@@ -59,7 +65,7 @@ export class SolanaRelay implements ISolanaHTLC {
 
     try {
       this.program = new Program(
-        idlWithAddress as unknown as SolanaNativeSwaps,
+        (idlWithAddress as unknown) as SolanaNativeSwaps,
         this.provider,
       );
     } catch (cause) {

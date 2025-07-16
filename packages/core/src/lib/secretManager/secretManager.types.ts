@@ -1,5 +1,4 @@
-import { AsyncResult } from '@catalogfi/utils';
-import { EventBroker } from '@gardenfi/utils';
+import { AsyncResult, EventBroker } from '@gardenfi/utils';
 
 export type Secret = {
   secretHash: string;

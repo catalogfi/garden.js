@@ -5,14 +5,20 @@ import { useDisconnect, useAccount } from 'wagmi';
 import InputField from './InputField';
 import { swapStore } from '../../store/swapStore';
 import { LogoutIcon, ExchangeIcon } from '@gardenfi/garden-book';
-import {
-  MatchedOrder,
-  Orderbook,
-  SupportedAssets,
-} from '@gardenfi/orderbook';
+import { MatchedOrder, Orderbook, SupportedAssets } from '@gardenfi/orderbook';
 import * as anchor from '@coral-xyz/anchor';
 // import { web3 } from '@coral-xyz/anchor';
-import { API, BlockNumberFetcher, EvmRelay, Garden, Quote, SwapParams } from '@gardenfi/core';
+import {
+  API,
+  BitcoinNetwork,
+  BitcoinProvider,
+  BitcoinWallet,
+  BlockNumberFetcher,
+  EvmRelay,
+  Garden,
+  Quote,
+  SwapParams,
+} from '@gardenfi/core';
 import { DigestKey, Environment, Siwe, Url, with0x } from '@gardenfi/utils';
 import { privateKeyToAccount } from 'viem/accounts';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
@@ -22,20 +28,18 @@ import {
   useConnection,
   useWallet,
 } from '@solana/wallet-adapter-react';
-import {
-  BitcoinNetwork,
-  BitcoinProvider,
-  BitcoinWallet,
-} from '@catalogfi/wallets';
 
-import {SolanaHTLC} from "../../../../core/src/lib/solana/htlc/solanaHTLC";
-import {SolanaRelay} from "../../../../core/src/lib/solana/relayer/solanaRelay";
-import {SolanaRelayerAddress} from "../../../../core/src/lib/solana/constants";
+import { SolanaHTLC } from '../../../../core/src/lib/solana/htlc/solanaHTLC';
+import { SolanaRelay } from '../../../../core/src/lib/solana/relayer/solanaRelay';
+import { SolanaRelayerAddress } from '../../../../core/src/lib/solana/constants';
 import { Button } from '../common/Button';
 
-
 // EVM Part
-import { useAccount as useEvmAccount, useConnect, useWalletClient } from 'wagmi';
+import {
+  useAccount as useEvmAccount,
+  useConnect,
+  useWalletClient,
+} from 'wagmi';
 import { injected } from 'wagmi/connectors';
 import { createWalletClient, http, custom } from 'viem';
 import { arbitrumSepolia } from 'viem/chains';
@@ -43,18 +47,18 @@ import { Transaction } from '@solana/web3.js';
 
 const TokenSwap: React.FC = () => {
   const TEST_RPC_URL = 'https://api.devnet.solana.com';
-const TEST_ORDERBOOK_STAGE = "https://testnet.api.hashira.io";
+  const TEST_ORDERBOOK_STAGE = 'https://testnet.api.hashira.io';
   const TEST_PRIVATE_KEY =
     '9c1508f9071bf5fefc69fbb71c98cd3150a323e953c6979ef8b508f1461dd2e1';
   const TEST_RELAYER_ADDRESS = 'AKnL4NNf3DGWZJS6cPknBuEGnVsV4A4m5tgebLHaRSZ9';
-  const TEST_BLOCKFETCHER_URL = "https://info-stage.hashira.io/";
-  const TEST_STAGE_QUOTE = "https://testnet.api.hashira.io/quote";
-  const TEST_STAGE_AUTH = "https://testnet.api.hashira.io/auth";
-const TEST_STAGE_EVM_RELAY = "https://testnet.api.hashira.io/relayer"
+  const TEST_BLOCKFETCHER_URL = 'https://info-stage.hashira.io/';
+  const TEST_STAGE_QUOTE = 'https://testnet.api.hashira.io/quote';
+  const TEST_STAGE_AUTH = 'https://testnet.api.hashira.io/auth';
+  const TEST_STAGE_EVM_RELAY = 'https://testnet.api.hashira.io/relayer';
 
   const [btcAdd, setBtcAdd] = useState('');
   let BTC_ADDRESS: string;
-  
+
   const [orderDetails, setOrderDetails] = useState<MatchedOrder>();
   const [gardenObj, setGardenObj] = useState<Garden | null>(null);
   const [isSwapping, setIsSwapping] = useState(false);
@@ -72,7 +76,7 @@ const TEST_STAGE_EVM_RELAY = "https://testnet.api.hashira.io/relayer"
     }
   }, [wallet]);
 
-  const { address, isConnected:isEVMConnected } = useAccount();
+  const { address, isConnected: isEVMConnected } = useAccount();
   const { connect } = useConnect();
   const { data: walletClient } = useWalletClient();
   const [arbitrumWalletClient, setArbitrumWalletClient] = useState(null);
@@ -89,14 +93,12 @@ const TEST_STAGE_EVM_RELAY = "https://testnet.api.hashira.io/relayer"
         chain: arbitrumSepolia,
         transport: custom(walletClient.transport),
       });
-      
+
       setArbitrumWalletClient(newWalletClient);
       console.log('Connected to EVM wallet:', address);
       console.log('Arbitrum wallet client created');
     }
   }, [isEVMConnected, walletClient, address]);
-
-
 
   const initializeGarden = async () => {
     if (!connection) {
@@ -104,36 +106,35 @@ const TEST_STAGE_EVM_RELAY = "https://testnet.api.hashira.io/relayer"
       return null;
     }
 
-  // Check if EVM wallet is connected, if not prompt the user to connect
-  if (!isEVMConnected) {
-    console.log('EVM wallet not connected, prompting user to connect...');
-    try {
-      await connectToMetaMask();
-    } catch (error) {
-      console.error('Failed to connect to MetaMask:', error);
+    // Check if EVM wallet is connected, if not prompt the user to connect
+    if (!isEVMConnected) {
+      console.log('EVM wallet not connected, prompting user to connect...');
+      try {
+        await connectToMetaMask();
+      } catch (error) {
+        console.error('Failed to connect to MetaMask:', error);
+        // alert('Please connect your MetaMask wallet to continue');
+        return null;
+      }
+    }
+
+    // Check again after connection attempt
+    if (!isEVMConnected || !arbitrumWalletClient) {
+      console.error('EVM wallet still not connected');
       // alert('Please connect your MetaMask wallet to continue');
       return null;
     }
-  }
-
-  // Check again after connection attempt
-  if (!isEVMConnected || !arbitrumWalletClient) {
-    console.error('EVM wallet still not connected');
-    // alert('Please connect your MetaMask wallet to continue');
-    return null;
-  }
 
     const solanaProvider = new anchor.AnchorProvider(connection, wallet!, {
       commitment: 'confirmed',
-       skipPreflight: true,
-  preflightCommitment: 'confirmed',
+      skipPreflight: true,
+      preflightCommitment: 'confirmed',
     });
     console.log('solanaProvider:: ', solanaProvider);
-    setAncWallet(solanaProvider)
+    setAncWallet(solanaProvider);
 
     const account = privateKeyToAccount(with0x(TEST_PRIVATE_KEY));
     console.log('account :', account.address);
-
 
     const arbitrumWalletClientObj = createWalletClient({
       account,
@@ -146,13 +147,19 @@ const TEST_STAGE_EVM_RELAY = "https://testnet.api.hashira.io/relayer"
       BitcoinNetwork.Testnet,
       'https://mempool.space/testnet4/api/',
     );
-    let btcWalletx: BitcoinWallet = BitcoinWallet.fromPrivateKey("02438b87e7153f29c954b21d9019118fc40d88a51943a7b5e19e82a32a308206", bitcoinProvider);
+    let btcWalletx: BitcoinWallet = BitcoinWallet.fromPrivateKey(
+      '02438b87e7153f29c954b21d9019118fc40d88a51943a7b5e19e82a32a308206',
+      bitcoinProvider,
+    );
     BTC_ADDRESS = await btcWalletx.getAddress();
     console.log('Bitcoin wallet created!::', BTC_ADDRESS);
-    console.log("Setting bitcoin address")
-    setBtcAdd(BTC_ADDRESS)
+    console.log('Setting bitcoin address');
+    setBtcAdd(BTC_ADDRESS);
 
-    let digestKey = DigestKey.generateRandom()
+    let digestKey = DigestKey.generateRandom();
+    if (!digestKey.ok) {
+      return null;
+    }
     const auth = Siwe.fromDigestKey(new Url(TEST_STAGE_AUTH), digestKey.val);
 
     const garden = new Garden({
@@ -160,18 +167,21 @@ const TEST_STAGE_EVM_RELAY = "https://testnet.api.hashira.io/relayer"
       digestKey: digestKey.val,
       htlc: {
         // solana: new SolanaHTLC(solanaProvider),
-        solana: new SolanaRelay(solanaProvider, new Url(API.testnet.solanaRelay), SolanaRelayerAddress.testnet),
-        evm: new EvmRelay(
-          TEST_STAGE_EVM_RELAY,
-          arbitrumWalletClient,
-          auth
-        )
+        solana: new SolanaRelay(
+          solanaProvider,
+          new Url(API.testnet.solanaRelay),
+          SolanaRelayerAddress.testnet,
+        ),
+        evm: new EvmRelay(TEST_STAGE_EVM_RELAY, arbitrumWalletClient, auth),
       },
       btcWallet: btcWalletx as any,
-              blockNumberFetcher: new BlockNumberFetcher(TEST_BLOCKFETCHER_URL, Environment.TESTNET),
-     orderbook: new Orderbook(new Url(TEST_ORDERBOOK_STAGE)),
-       quote: new Quote(TEST_STAGE_QUOTE),
-         auth: auth
+      blockNumberFetcher: new BlockNumberFetcher(
+        TEST_BLOCKFETCHER_URL,
+        Environment.TESTNET,
+      ),
+      orderbook: new Orderbook(new Url(TEST_ORDERBOOK_STAGE)),
+      quote: new Quote(TEST_STAGE_QUOTE),
+      auth: auth,
     });
 
     console.log('Garden initialized...');
@@ -180,52 +190,52 @@ const TEST_STAGE_EVM_RELAY = "https://testnet.api.hashira.io/relayer"
   };
 
   // New method to connect to MetaMask and return a Promise
-const connectToMetaMask = async (): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    // Set up a listener to detect when connection completes
-    const connectionCheckInterval = setInterval(() => {
-      if (isEVMConnected && arbitrumWalletClient) {
+  const connectToMetaMask = async (): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      // Set up a listener to detect when connection completes
+      const connectionCheckInterval = setInterval(() => {
+        if (isEVMConnected && arbitrumWalletClient) {
+          clearInterval(connectionCheckInterval);
+          resolve();
+        }
+      }, 1000);
+
+      // Set a timeout to prevent infinite waiting
+      const connectionTimeout = setTimeout(() => {
         clearInterval(connectionCheckInterval);
-        resolve();
+        reject(new Error('Connection timeout'));
+      }, 30000); // 30 seconds timeout
+
+      // Attempt to connect
+      try {
+        connect({ connector: injected() });
+      } catch (error) {
+        clearInterval(connectionCheckInterval);
+        clearTimeout(connectionTimeout);
+        reject(error);
       }
-    }, 1000);
+    });
+  };
 
-    // Set a timeout to prevent infinite waiting
-    const connectionTimeout = setTimeout(() => {
-      clearInterval(connectionCheckInterval);
-      reject(new Error("Connection timeout"));
-    }, 30000); // 30 seconds timeout
-
-    // Attempt to connect
+  // Add a new button in the UI for the direct connection prompt
+  const promptConnectMetaMask = async () => {
     try {
-      connect({ connector: injected() });
+      await connectToMetaMask();
+      console.log('MetaMask connected successfully!');
+
+      // Initialize Garden after successful connection
+      if (wallet) {
+        initializeGarden();
+      } else {
+        alert('Please connect your Solana wallet as well');
+      }
     } catch (error) {
-      clearInterval(connectionCheckInterval);
-      clearTimeout(connectionTimeout);
-      reject(error);
+      console.error('Failed to connect to MetaMask:', error);
+      alert('Failed to connect to MetaMask. Please try again.');
     }
-  });
-};
+  };
 
-// Add a new button in the UI for the direct connection prompt
-const promptConnectMetaMask = async () => {
-  try {
-    await connectToMetaMask();
-    console.log("MetaMask connected successfully!");
-    
-    // Initialize Garden after successful connection
-    if (wallet) {
-      initializeGarden();
-    } else {
-      alert("Please connect your Solana wallet as well");
-    }
-  } catch (error) {
-    console.error("Failed to connect to MetaMask:", error);
-    alert("Failed to connect to MetaMask. Please try again.");
-  }
-};
-
-const swapSOLTowBTC = async () => {
+  const swapSOLTowBTC = async () => {
     if (!gardenObj) {
       console.error('Garden not initialized');
       alert('Garden not initialized. Please try again.');
@@ -238,14 +248,14 @@ const swapSOLTowBTC = async () => {
 
     try {
       // Create order and match
-            const orderObj: SwapParams = {
-                fromAsset: SupportedAssets.testnet.solana_testnet_SOL,
-                toAsset: SupportedAssets.testnet.arbitrum_sepolia_WBTC,
-                sendAmount: '100000',
-                receiveAmount: '10',
-                additionalData: { strategyId: 'stryasac' },
-                minDestinationConfirmations: 1,
-            };
+      const orderObj: SwapParams = {
+        fromAsset: SupportedAssets.testnet.solana_testnet_SOL,
+        toAsset: SupportedAssets.testnet.arbitrum_sepolia_WBTC,
+        sendAmount: '100000',
+        receiveAmount: '10',
+        additionalData: { strategyId: 'stryasac' },
+        minDestinationConfirmations: 1,
+      };
 
       console.log('Creating SOL to wBTC swap order...');
       const result = await gardenObj.swap(orderObj);
@@ -351,14 +361,14 @@ const swapSOLTowBTC = async () => {
 
     try {
       // Create order and match
-            const orderObj: SwapParams = {
-                fromAsset: SupportedAssets.testnet.arbitrum_sepolia_WBTC,
-                toAsset: SupportedAssets.testnet.solana_testnet_SOL,
-                sendAmount: '10000',
-                receiveAmount: '600000',
-                additionalData: { strategyId: 'asacstry' },
-                minDestinationConfirmations: 1,
-            };
+      const orderObj: SwapParams = {
+        fromAsset: SupportedAssets.testnet.arbitrum_sepolia_WBTC,
+        toAsset: SupportedAssets.testnet.solana_testnet_SOL,
+        sendAmount: '10000',
+        receiveAmount: '600000',
+        additionalData: { strategyId: 'asacstry' },
+        minDestinationConfirmations: 1,
+      };
 
       console.log('Creating wBTC to SOL swap order...');
       const result = await gardenObj.swap(orderObj);
@@ -372,10 +382,10 @@ const swapSOLTowBTC = async () => {
       console.log('Matched order created:', order);
       setOrderDetails(order);
 
-                  // 2. Initiate swap using evmHTLC
-            console.log("Initializing using evmHTLC")
-            const initResult = await gardenObj.evmHTLC.initiate(order);
-            console.log('Order initiated ✅', initResult.val);
+      // 2. Initiate swap using evmHTLC
+      console.log('Initializing using evmHTLC');
+      const initResult = await gardenObj.evmHTLC.initiate(order);
+      console.log('Order initiated ✅', initResult.val);
 
       // Set up event listeners for order execution
       const executePromise = new Promise<void>((resolve, reject) => {
@@ -471,16 +481,16 @@ const swapSOLTowBTC = async () => {
     try {
       // Create order and match
       const orderObj = {
-                fromAsset: SupportedAssets.testnet.solana_testnet_SOL,
-                toAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
-                sendAmount: "59337016",
-                receiveAmount: "8000",
-                additionalData: {
-                    strategyId: "strybtry",
-                    btcAddress: btcAdd,
-                },
-                minDestinationConfirmations: 1,
-            };
+        fromAsset: SupportedAssets.testnet.solana_testnet_SOL,
+        toAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
+        sendAmount: '59337016',
+        receiveAmount: '8000',
+        additionalData: {
+          strategyId: 'strybtry',
+          btcAddress: btcAdd,
+        },
+        minDestinationConfirmations: 1,
+      };
 
       console.log('Creating SOL to BTC swap order...', orderObj);
       const result = await gardenObj.swap(orderObj);
@@ -595,17 +605,17 @@ const swapSOLTowBTC = async () => {
 
     try {
       // Create order and match
-                  const orderObj = {
-                fromAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
-                toAsset: SupportedAssets.testnet.solana_testnet_SOL,
-                sendAmount: "10000",
-                receiveAmount: "10000",
-                additionalData: {
-                    strategyId: "btrystry",
-                    btcAddress: btcAdd,
-                },
-                minDestinationConfirmations: 1,
-            };
+      const orderObj = {
+        fromAsset: SupportedAssets.testnet.bitcoin_testnet_BTC,
+        toAsset: SupportedAssets.testnet.solana_testnet_SOL,
+        sendAmount: '10000',
+        receiveAmount: '10000',
+        additionalData: {
+          strategyId: 'btrystry',
+          btcAddress: btcAdd,
+        },
+        minDestinationConfirmations: 1,
+      };
 
       console.log('Creating BTC to SOL swap order...', orderObj);
       const result = await gardenObj.swap(orderObj);
@@ -619,7 +629,9 @@ const swapSOLTowBTC = async () => {
       console.log('Matched order created:', order.create_order.create_id);
       setOrderDetails(order);
 
-      alert(`Please send ${order.source_swap.amount}BTC to ${order.source_swap.swap_id} to proceed`);
+      alert(
+        `Please send ${order.source_swap.amount}BTC to ${order.source_swap.swap_id} to proceed`,
+      );
 
       // Set up event listeners for order execution
       const executePromise = new Promise<void>((resolve, reject) => {
@@ -887,9 +899,7 @@ const swapSOLTowBTC = async () => {
             <>
               <div className="bg-gray-700 rounded-full p-2 cursor-pointer hover:bg-gray-900">
                 <span
-                  onClick={() =>
-                    navigator.clipboard.writeText(address || '')
-                  }
+                  onClick={() => navigator.clipboard.writeText(address || '')}
                 >
                   {getTrimmedVal(address || '....', 6, 4)}
                 </span>
@@ -903,11 +913,7 @@ const swapSOLTowBTC = async () => {
             </>
           ) : (
             <>
-            <Button
-              onClick={promptConnectMetaMask}
-            >
-              Connect Metamask
-            </Button>
+              <Button onClick={promptConnectMetaMask}>Connect Metamask</Button>
             </>
           )}
           <WalletMultiButton />
@@ -977,7 +983,7 @@ const swapSOLTowBTC = async () => {
           </div>
         )}
 
-{/* <Button
+        {/* <Button
   onClick={async () => {
     try {
       if (!ancWallet || !ancWallet.wallet || !ancWallet.wallet.signTransaction) {

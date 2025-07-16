@@ -1,6 +1,5 @@
-import { AsyncResult } from '@catalogfi/utils';
 import { MatchedOrder } from '@gardenfi/orderbook';
-import { IStore } from '@gardenfi/utils';
+import { AsyncResult, IStore } from '@gardenfi/utils';
 import { WalletClient } from 'viem';
 
 export type EVMRelayOpts = {

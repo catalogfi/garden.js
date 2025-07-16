@@ -3,9 +3,14 @@ import {
   UnisatChainEnum,
   UnisatNetworkEnum,
 } from './unisat.types';
-import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
 import { Connect, IInjectedBitcoinProvider } from '../../bitcoin.types';
-import { Network } from '@gardenfi/utils';
+import {
+  AsyncResult,
+  Err,
+  executeWithTryCatch,
+  Network,
+  Ok,
+} from '@gardenfi/utils';
 import { WALLET_CONFIG } from './../../constants';
 
 export class UnisatProvider implements IInjectedBitcoinProvider {
@@ -97,7 +102,7 @@ export class UnisatProvider implements IInjectedBitcoinProvider {
       await this.#unisatProvider.switchChain(toNetwork);
 
       const newNetwork = await this.getNetwork();
-      if (newNetwork.error) {
+      if (!newNetwork.ok) {
         return Err('Failed to verify network switch');
       }
 

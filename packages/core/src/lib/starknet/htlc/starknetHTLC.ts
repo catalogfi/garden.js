@@ -1,8 +1,7 @@
 import { STARKNET_CONFIG } from './../../constants';
 import { MatchedOrder } from '@gardenfi/orderbook';
-import { AsyncResult, Err, Ok } from '@catalogfi/utils';
 import { Account, cairo, Contract, num, CallData, RpcProvider } from 'starknet';
-import { hexToU32Array, Network } from '@gardenfi/utils';
+import { AsyncResult, Err, hexToU32Array, Network, Ok } from '@gardenfi/utils';
 import { TokenABI } from '../abi/starknetTokenABI';
 import { IStarknetHTLC } from '../starknetHTLC.types';
 import { checkAllowanceAndApprove } from '../checkAllowanceAndApprove';

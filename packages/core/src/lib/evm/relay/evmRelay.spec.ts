@@ -7,7 +7,6 @@ import { citreaTestnet } from 'viem/chains';
 import { MatchedOrder } from '@gardenfi/orderbook';
 // import { MatchedOrder, Orderbook } from '@gardenfi/orderbook';
 // import { randomBytes } from 'crypto';
-// import { sleep } from '@catalogfi/utils';
 // import {
 //   ArbitrumLocalnet,
 //   // EthereumLocalnet,
@@ -271,7 +270,8 @@ describe('evmRelay', () => {
           strategy_id: 'ct61asca',
           input_token_price: 92577.86120245204,
           output_token_price: 92577.86120245204,
-          sig: 'a5258cca2855b6f0a52820699344f79dfc89cb4d830cad4e98c3b912a4a9903d074e39f462e366135dbc25b0d06f8ea651048e21308ed3c166a5f910f838f8531c',
+          sig:
+            'a5258cca2855b6f0a52820699344f79dfc89cb4d830cad4e98c3b912a4a9903d074e39f462e366135dbc25b0d06f8ea651048e21308ed3c166a5f910f838f8531c',
           deadline: 1745480095,
           tx_hash:
             '0xf6369fa9fe95f67ca095eaa8465dc607ef9bce47c45a792d06a9300651e70cc3',

@@ -18,7 +18,7 @@ describe('orderStatus', () => {
     );
     const blockNumbers = await blockNumberFetcher.fetchBlockNumbers();
     console.log('blockNumbers :', blockNumbers.val);
-    if (blockNumbers.error) {
+    if (!blockNumbers.ok) {
       throw new Error(blockNumbers.error);
     }
 
@@ -29,7 +29,7 @@ describe('orderStatus', () => {
       '0ae630a570f8dacca370ee267123846e17ccec7b3ca0f33ec23a17f8b56ed032',
       true,
     );
-    if (order.error) {
+    if (!order.ok) {
       throw new Error(order.error);
     }
 
