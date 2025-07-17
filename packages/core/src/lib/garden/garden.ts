@@ -175,9 +175,12 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
             config.environment === Environment.MAINNET
               ? SolanaRelayerAddress.mainnet
               : SolanaRelayerAddress.testnet,
-            config.solanaProgramAddress
-              ? config.solanaProgramAddress
-              : solanaProgramAddress.mainnet,
+            (config.solanaProgramAddress && config.solanaProgramAddress.native)
+              ? config.solanaProgramAddress.native
+              : solanaProgramAddress.mainnet.native,
+            (config.solanaProgramAddress && config.solanaProgramAddress.spl)
+              ? config.solanaProgramAddress.spl
+              : solanaProgramAddress.mainnet.spl,
           )
         : undefined,
     };
