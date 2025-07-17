@@ -138,6 +138,9 @@ export class BitcoinProvider implements IBitcoinProvider {
 
     const txs = await Fetcher.getWithFallback<BitcoinUTXO[]>(
       this.APIs.map((API) => `${API}/address/${address}/utxo`),
+      {
+        signal: AbortSignal.timeout(5000),
+      },
     );
 
     this.utxosCache.set(address, {
@@ -207,7 +210,9 @@ export class BitcoinProvider implements IBitcoinProvider {
     }
     const url = `https://mempool.space/${mempoolNetwork}api/v1/fees/recommended`;
     const fallbackUrl = `https://blockstream.info/${mempoolNetwork}api/fee-estimates`;
-    const response = await Fetcher.getWithFallback<any>([url, fallbackUrl]);
+    const response = await Fetcher.getWithFallback<any>([url, fallbackUrl], {
+      signal: AbortSignal.timeout(5000),
+    });
     // check if the response is from mempool.space
     if ('fastestFee' in response) {
       if (response.fastestFee === 1) {

@@ -120,15 +120,16 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
         const signedPsbt = bitcoin.Psbt.fromBuffer(
           Buffer.from(signedPsbtBytes),
         );
-
+        signedPsbt.finalizeAllInputs();
         const tx = signedPsbt.extractTransaction();
+        console.log('tx', tx);
         const txId = tx.getId();
 
         await provider.broadcast(tx.toHex());
 
         return txId;
       } catch (error) {
-        throw new Error('Failed to send bitcoin');
+        throw new Error(`Failed to send bitcoin: ${error}`);
       }
     }, 'Error while sending bitcoin from Phantom wallet');
   }
