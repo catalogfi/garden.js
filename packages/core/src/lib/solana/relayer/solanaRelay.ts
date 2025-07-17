@@ -165,7 +165,6 @@ export class SolanaRelay implements ISolanaHTLC {
         this.provider.connection,
         res.result,
       );
-      console.log("isConfirmed", isConfirmed, res.result)
       return isConfirmed
         ? Ok(res.result)
         : Err('Relayer: Failed to Initiate swap, confirmation timed out');
