@@ -120,7 +120,7 @@ export class PhantomProvider implements IInjectedBitcoinProvider {
         const signedPsbt = bitcoin.Psbt.fromBuffer(
           Buffer.from(signedPsbtBytes),
         );
-
+        signedPsbt.finalizeAllInputs();
         const tx = signedPsbt.extractTransaction();
         const txId = tx.getId();
 
