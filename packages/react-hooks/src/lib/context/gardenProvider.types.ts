@@ -1,8 +1,8 @@
-import { OrderWithStatus } from '@gardenfi/core';
-import { AsyncResult, Request, Result } from '@catalogfi/utils';
+import { OrderWithStatus, QuoteParamsForAssets } from '@gardenfi/core';
 import { IGardenJS, QuoteResponse, SwapParams } from '@gardenfi/core';
-import { Asset, IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
+import { IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
 import { GardenConfigWithHTLCs, GardenConfigWithWallets } from '@gardenfi/core';
+import { AsyncResult, Result } from '@gardenfi/utils';
 
 export type GardenContextType = {
   /**
@@ -28,7 +28,7 @@ export type GardenContextType = {
    * @returns
    */
   getQuote?: (
-    params: QuoteParams,
+    params: QuoteParamsForAssets,
   ) => Promise<Result<QuoteResponse, string> | undefined>;
   /**
    * The garden instance.
@@ -42,15 +42,4 @@ export type GardenProviderProps = {
   config:
     | Omit<GardenConfigWithHTLCs, 'digestKey'>
     | Omit<GardenConfigWithWallets, 'digestKey'>;
-};
-
-export type QuoteParams = {
-  fromAsset: Asset;
-  toAsset: Asset;
-  amount: number;
-  isExactOut?: boolean;
-  options?: {
-    affiliateFee?: number;
-    request?: Request;
-  };
 };

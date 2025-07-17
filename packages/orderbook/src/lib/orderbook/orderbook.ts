@@ -1,4 +1,3 @@
-import { AsyncResult, Fetcher, Ok, Err } from '@catalogfi/utils';
 import {
   CreateOrder,
   CreateOrderRequestWithAdditionalData,
@@ -9,7 +8,16 @@ import {
   PaginationConfig,
   Status,
 } from './orderbook.types';
-import { APIResponse, ApiStatus, IAuth, Url } from '@gardenfi/utils';
+import {
+  APIResponse,
+  ApiStatus,
+  AsyncResult,
+  Err,
+  Fetcher,
+  IAuth,
+  Ok,
+  Url,
+} from '@gardenfi/utils';
 import { ConstructUrl } from '../utils';
 import { Chain } from '../asset';
 

@@ -4,7 +4,7 @@ import { SolanaNativeSwaps } from '../idl/solana_native_swaps';
 import { SwapConfig, validateSecret } from '../solanaTypes';
 import { ISolanaHTLC } from './ISolanaHTLC';
 import { MatchedOrder } from '@gardenfi/orderbook';
-import { AsyncResult, Err, Ok } from '@catalogfi/utils';
+import { AsyncResult, Err, Ok } from '@gardenfi/utils';
 
 /**
  * SolanaHTLC is an implementation of ISolanaHTLC that performs atomic swaps directly on-chain.
@@ -51,8 +51,9 @@ export class SolanaHTLC implements ISolanaHTLC {
     if (!order) return Err('Order is required');
 
     try {
-      const { redeemer, secretHash, amount, expiresIn } =
-        SwapConfig.from(order);
+      const { redeemer, secretHash, amount, expiresIn } = SwapConfig.from(
+        order,
+      );
 
       // Initializing the data on blockchain
       const pdaSeeds = [

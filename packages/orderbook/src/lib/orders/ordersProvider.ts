@@ -1,4 +1,3 @@
-import { AsyncResult, Err, Fetcher, Ok } from '@catalogfi/utils';
 import { IOrderProvider } from './orders.types';
 import {
   CreateOrder,
@@ -6,7 +5,15 @@ import {
   PaginatedData,
   PaginationConfig,
 } from '../orderbook/orderbook.types';
-import { APIResponse, ApiStatus, Url } from '@gardenfi/utils';
+import {
+  APIResponse,
+  ApiStatus,
+  AsyncResult,
+  Err,
+  Fetcher,
+  Ok,
+  Url,
+} from '@gardenfi/utils';
 import { ConstructUrl } from '../utils';
 
 export class OrdersProvider implements IOrderProvider {

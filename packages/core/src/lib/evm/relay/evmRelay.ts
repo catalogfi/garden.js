@@ -3,11 +3,12 @@ import {
   checkAllowanceAndApprove,
   Ok,
   Err,
+  Fetcher,
+  trim0x,
   waitForTransactionReceipt,
 } from '@gardenfi/utils';
 import { WalletClient, createPublicClient, getContract, http } from 'viem';
 import { isEVM, isEvmNativeToken, MatchedOrder } from '@gardenfi/orderbook';
-import { Fetcher, trim0x } from '@catalogfi/utils';
 import { APIResponse, IAuth, Url, with0x } from '@gardenfi/utils';
 import { AtomicSwapABI } from '../abi/atomicSwap';
 import { IEVMHTLC } from '../htlc.types';
@@ -47,7 +48,7 @@ export class EvmRelay implements IEVMHTLC {
       order.source_swap.chain,
       this.wallet,
     );
-    if (_walletClient.error) return Err(_walletClient.error);
+    if (!_walletClient.ok) return Err(_walletClient.error);
     this.wallet = _walletClient.val.walletClient;
     if (!this.wallet.account) return Err('No account found');
 
@@ -67,7 +68,7 @@ export class EvmRelay implements IEVMHTLC {
     const amount = BigInt(source_swap.amount);
 
     const tokenAddress = await this.getTokenAddress(order.source_swap.asset);
-    if (!tokenAddress.ok) return Err(tokenAddress.error);
+    if (!tokenAddress.ok ) return Err(tokenAddress.error);
 
     if (isEvmNativeToken(order.source_swap.chain, tokenAddress.val)) {
       return this._initiateOnNativeHTLC(
@@ -149,7 +150,7 @@ export class EvmRelay implements IEVMHTLC {
 
     try {
       const auth = await this.auth.getAuthHeaders();
-      if (auth.error) return Err(auth.error);
+      if (!auth.ok) return Err(auth.error);
 
       const atomicSwap = getContract({
         address: with0x(asset),
@@ -163,7 +164,7 @@ export class EvmRelay implements IEVMHTLC {
         asset,
         this.wallet,
       );
-      if (approval.error) return Err(approval.error);
+      if (!approval.ok) return Err(approval.error);
 
       const domain = await atomicSwap.read.eip712Domain();
 
@@ -230,7 +231,7 @@ export class EvmRelay implements IEVMHTLC {
   ): AsyncResult<string, string> {
     try {
       const headers = await this.auth.getAuthHeaders();
-      if (headers.error) return Err(headers.error);
+      if (!headers.ok) return Err(headers.error);
 
       const res = await Fetcher.post<APIResponse<string>>(
         this.url.endpoint('redeem'),

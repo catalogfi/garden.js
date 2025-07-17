@@ -49,5 +49,6 @@
   "prettier.bracketSpacing": true,
   "prettier.bracketSameLine": false,
   "prettier.arrowParens": "always",
-  "editor.formatOnSave": true // Automatically format on save
+  "editor.formatOnSave": true,
+  "cmake.sourceDirectory": "/Users/svssathvik/Desktop/sathvik/projects/garden-js/node_modules/bare-os" // Automatically format on save
 }

@@ -1,12 +1,18 @@
 import * as anchor from '@coral-xyz/anchor';
 import { web3 } from '@coral-xyz/anchor';
 import { beforeAll, describe, expect, it, beforeEach } from 'vitest';
-import { DigestKey, Environment, Siwe, Url, with0x } from '@gardenfi/utils';
+import {
+  DigestKey,
+  Environment,
+  Siwe,
+  Url,
+  with0x,
+  Err,
+} from '@gardenfi/utils';
 import { MatchedOrder, Orderbook, SupportedAssets } from '@gardenfi/orderbook';
 import { privateKeyToAccount, PrivateKeyAccount } from 'viem/accounts';
 import { createWalletClient, http, WalletClient } from 'viem';
 import { arbitrumSepolia, Chain } from 'viem/chains';
-import { Err } from '@catalogfi/utils';
 import { Garden } from '../../../garden/garden';
 import { EvmRelay } from '../../../evm/relay/evmRelay';
 // import { BlockNumberFetcher } from '../../../blockNumberFetcher/blockNumber';
@@ -30,10 +36,70 @@ const TEST_SOLANA_RELAY = 'https://solana-relayer-staging.hashira.io/';
 const TEST_PRIVATE_KEY =
   '9c1508f9071bf5fefc69fbb71c98cd3150a323e953c6979ef8b508f1461dd2e1';
 const PRIV = [
-  73, 87, 221, 5, 63, 180, 104, 26, 64, 41, 225, 50, 165, 84, 157, 74, 187, 105,
-  53, 112, 214, 236, 175, 55, 86, 247, 214, 120, 101, 90, 62, 178, 103, 156,
-  200, 13, 24, 181, 121, 93, 15, 85, 202, 164, 4, 30, 165, 77, 244, 66, 207, 78,
-  179, 255, 45, 233, 17, 131, 203, 187, 120, 110, 176, 172,
+  73,
+  87,
+  221,
+  5,
+  63,
+  180,
+  104,
+  26,
+  64,
+  41,
+  225,
+  50,
+  165,
+  84,
+  157,
+  74,
+  187,
+  105,
+  53,
+  112,
+  214,
+  236,
+  175,
+  55,
+  86,
+  247,
+  214,
+  120,
+  101,
+  90,
+  62,
+  178,
+  103,
+  156,
+  200,
+  13,
+  24,
+  181,
+  121,
+  93,
+  15,
+  85,
+  202,
+  164,
+  4,
+  30,
+  165,
+  77,
+  244,
+  66,
+  207,
+  78,
+  179,
+  255,
+  45,
+  233,
+  17,
+  131,
+  203,
+  187,
+  120,
+  110,
+  176,
+  172,
 ];
 
 // Timeout constants

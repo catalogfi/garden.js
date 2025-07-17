@@ -1,12 +1,8 @@
 import { Network } from '@gardenfi/utils';
 import { getBalance } from './utils';
 import { describe, expect, test } from 'vitest';
-import {
-  BitcoinNetwork,
-  BitcoinProvider,
-  BitcoinWallet,
-} from '@catalogfi/wallets';
 import * as bitcoin from 'bitcoinjs-lib';
+import { BitcoinNetwork, BitcoinProvider, BitcoinWallet } from '@gardenfi/core';
 
 describe('getBalance', () => {
   test.skip('should return balance', async () => {

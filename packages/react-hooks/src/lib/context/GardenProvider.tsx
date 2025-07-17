@@ -1,21 +1,26 @@
 import React, { createContext, FC, useEffect, useMemo, useState } from 'react';
 import { useOrderbook } from '../hooks/useOrderbook';
-import { Garden, IGardenJS, Quote, resolveApiConfig } from '@gardenfi/core';
+import {
+  Garden,
+  IGardenJS,
+  Quote,
+  QuoteParamsForAssets,
+  resolveApiConfig,
+} from '@gardenfi/core';
 import { SwapParams } from '@gardenfi/core';
 import type {
   GardenContextType,
   GardenProviderProps,
-  QuoteParams,
 } from './gardenProvider.types';
-import { Err, Ok } from '@catalogfi/utils';
 import {
   BlockchainType,
   getBlockchainType,
   isBitcoin,
   MatchedOrder,
 } from '@gardenfi/orderbook';
-import { constructOrderpair, hasAnyValidValue } from '../utils';
+import { hasAnyValidValue } from '../utils';
 import { useDigestKey } from '../hooks/useDigestKey';
+import { Err, Ok } from '@gardenfi/utils';
 
 export const GardenContext = createContext<GardenContextType>({
   pendingOrders: [],
@@ -43,14 +48,15 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         amount,
         isExactOut = false,
         options,
-      }: QuoteParams) => {
+      }: QuoteParamsForAssets) => {
         const _quote = garden ? garden.quote : quote;
-        return await _quote.getQuote(
-          constructOrderpair(fromAsset, toAsset),
+        return await _quote.getQuoteFromAssets({
+          fromAsset,
+          toAsset,
           amount,
           isExactOut,
           options,
-        );
+        });
       },
     [garden, quote],
   );
@@ -59,11 +65,12 @@ export const GardenProvider: FC<GardenProviderProps> = ({
     if (!garden) return Err('Garden not initialized');
 
     const order = await garden.swap(params);
-    if (order.error) return Err(order.error);
+    if (!order.val) return Err(order.error);
 
     if (isBitcoin(order.val.source_swap.chain)) return Ok(order.val);
 
     let init_tx_hash: string;
+
     switch (getBlockchainType(order.val.source_swap.chain)) {
       case BlockchainType.EVM: {
         if (!garden.evmHTLC)
@@ -81,7 +88,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
           );
 
         const starknetInitRes = await garden.starknetHTLC.initiate(order.val);
-        if (starknetInitRes.error) return Err(starknetInitRes.error);
+        if (!starknetInitRes.ok) return Err(starknetInitRes.error);
         init_tx_hash = starknetInitRes.val;
         break;
       }
@@ -90,7 +97,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
           return Err('Solana HTLC not initialized: Please provide solanaHTLC');
 
         const solanaInitRes = await garden.solanaHTLC.initiate(order.val);
-        if (solanaInitRes.error) return Err(solanaInitRes.error);
+        if (!solanaInitRes.ok) return Err(solanaInitRes.error);
         init_tx_hash = solanaInitRes.val;
         break;
       }

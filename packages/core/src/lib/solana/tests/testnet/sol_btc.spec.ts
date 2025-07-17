@@ -3,11 +3,7 @@ import { DigestKey, Environment, Siwe, Url } from '@gardenfi/utils';
 import { beforeAll, describe, expect, it, beforeEach } from 'vitest';
 import { MatchedOrder, SupportedAssets } from '@gardenfi/orderbook';
 import { web3 } from '@coral-xyz/anchor';
-import {
-  BitcoinNetwork,
-  BitcoinProvider,
-  BitcoinWallet,
-} from '@catalogfi/wallets';
+import { BitcoinNetwork, BitcoinProvider, BitcoinWallet } from '@gardenfi/core';
 import { Orderbook } from '@gardenfi/orderbook';
 import { Garden } from '../../../garden/garden';
 import { BlockNumberFetcher } from '../../../blockNumberFetcher/blockNumber';
@@ -25,10 +21,70 @@ const TEST_BLOCKFETCHER_URL = 'https://info-stage.hashira.io';
 const TEST_STAGE_QUOTE = 'https://testnet.api.hashira.io/quote';
 
 const PRIV = [
-  73, 87, 221, 5, 63, 180, 104, 26, 64, 41, 225, 50, 165, 84, 157, 74, 187, 105,
-  53, 112, 214, 236, 175, 55, 86, 247, 214, 120, 101, 90, 62, 178, 103, 156,
-  200, 13, 24, 181, 121, 93, 15, 85, 202, 164, 4, 30, 165, 77, 244, 66, 207, 78,
-  179, 255, 45, 233, 17, 131, 203, 187, 120, 110, 176, 172,
+  73,
+  87,
+  221,
+  5,
+  63,
+  180,
+  104,
+  26,
+  64,
+  41,
+  225,
+  50,
+  165,
+  84,
+  157,
+  74,
+  187,
+  105,
+  53,
+  112,
+  214,
+  236,
+  175,
+  55,
+  86,
+  247,
+  214,
+  120,
+  101,
+  90,
+  62,
+  178,
+  103,
+  156,
+  200,
+  13,
+  24,
+  181,
+  121,
+  93,
+  15,
+  85,
+  202,
+  164,
+  4,
+  30,
+  165,
+  77,
+  244,
+  66,
+  207,
+  78,
+  179,
+  255,
+  45,
+  233,
+  17,
+  131,
+  203,
+  187,
+  120,
+  110,
+  176,
+  172,
 ];
 
 // Timeout constants
@@ -207,7 +263,7 @@ describe('==========SOL <--> BTC===========', () => {
         expect(result.error).toBeFalsy();
         expect(result.val).toBeTruthy();
 
-        order = result.val;
+        order = result.val!;
         console.log('✅ Order created:', order.create_order.create_id);
 
         // 2. Execute order
@@ -248,7 +304,7 @@ describe('==========SOL <--> BTC===========', () => {
         expect(result.error).toBeFalsy();
         expect(result.val).toBeTruthy();
 
-        order = result.val;
+        order = result.val!;
         console.log(
           'Order created successfully:: ',
           order.create_order.create_id,

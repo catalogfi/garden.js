@@ -1,6 +1,5 @@
-import { AsyncResult, Err, Fetcher, Ok } from '@catalogfi/utils';
 import { Balance } from './bitcoin.types';
-import { Network } from '@gardenfi/utils';
+import { AsyncResult, Err, Fetcher, Network, Ok } from '@gardenfi/utils';
 
 const BitcoinExplorers = {
   testnet: {

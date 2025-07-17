@@ -1,18 +1,20 @@
-import { BitcoinNetwork, IBaseWallet } from '@catalogfi/wallets';
-import { Environment, Err, Ok, with0x } from '@gardenfi/utils';
+import { Environment, Err, Ok, trim0x, with0x } from '@gardenfi/utils';
 import { Chain } from '@gardenfi/orderbook';
 import { sha256 } from 'viem';
 import * as varuint from 'varuint-bitcoin';
-import { trim0x } from '@catalogfi/utils';
 import * as secp256k1 from 'tiny-secp256k1';
 import * as bitcoin from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
 import { Signature } from 'starknet';
 import { API, Api } from './constants';
 import { ApiConfig } from './garden/garden.types';
+import { BitcoinNetwork } from './bitcoin/provider/provider.interface';
+import { IBaseWallet } from './bitcoin/wallet/baseWallet';
 import { web3 } from '@coral-xyz/anchor';
 
-export function resolveApiConfig(env: ApiConfig): {
+export function resolveApiConfig(
+  env: ApiConfig,
+): {
   api: Api;
   environment: Environment;
 } {
@@ -208,6 +210,18 @@ export const formatStarknetSignature = (sig: Signature) => {
   return Err('Invalid signature format');
 };
 
+export function reversify(val: string): Buffer {
+  return Buffer.from(val, 'hex').reverse();
+}
+
+export function isErrorWithMessage(err: unknown): err is { message: string } {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'message' in err &&
+    typeof (err as any).message === 'string'
+  );
+}
 export const waitForSolanaTxConfirmation = async (
   connection: web3.Connection,
   txHash: string,

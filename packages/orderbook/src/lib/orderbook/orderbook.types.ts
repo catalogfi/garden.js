@@ -1,5 +1,4 @@
-import { AsyncResult } from '@catalogfi/utils';
-import { APIResponse, IAuth, IStore } from '@gardenfi/utils';
+import { APIResponse, AsyncResult, IAuth, IStore } from '@gardenfi/utils';
 import { Asset, Chain } from '../asset';
 
 /**
@@ -236,10 +235,11 @@ export type AffiliateFeeWithAmount = AffiliateFee & {
   amount: string;
 };
 
-export type AffiliateFeeList<T extends AffiliateFee | AffiliateFeeWithAmount> =
-  {
-    affiliate_fees?: T[];
-  };
+export type AffiliateFeeList<
+  T extends AffiliateFee | AffiliateFeeWithAmount
+> = {
+  affiliate_fees?: T[];
+};
 
 export type AffiliateFeeOptionalChainAsset = Omit<
   AffiliateFee,

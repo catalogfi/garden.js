@@ -1,6 +1,6 @@
 {
   "name": "@gardenfi/wallet-connectors",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "type": "module",
   "scripts": {
     "build": "vite build",
@@ -36,8 +36,7 @@
   },
   "sideEffects": false,
   "dependencies": {
-    "@catalogfi/utils": "^0.1.11",
-    "@catalogfi/wallets": "^0.2.54",
+    "@gardenfi/core": "workspace:*",
     "@gardenfi/utils": "workspace:*",
     "axios": "^1.7.9",
     "bitcoinjs-lib": "^6.1.7",
