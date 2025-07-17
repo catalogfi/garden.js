@@ -133,6 +133,7 @@ function setupGarden(
         new Url(TEST_SOLANA_RELAY),
         'ANUVKxeqaec3bf4DVPqLTnG1PT3Fng56wPcE7LXAb46Q',
         '6eksgdCnSjUaGQWZ6iYvauv1qzvYPF33RTGTM1ZuyENx',
+        '2WXpY8havGjfRxme9LUxtjFHTh1EfU3ur4v6wiK4KdNC'
       ),
       evm: new EvmRelay(TEST_STAGE_EVM_RELAY, evmClient, auth),
     },
@@ -262,22 +263,22 @@ describe('Swap Tests', () => {
       // Setup Garden instance
       garden = setupGarden(arbitrumWalletClient, userProvider);
     });
-
+    console.log('done garden setup')
     it(
       'should create and execute a SOL->wBTC swap order',
       async () => {
         const fromAsset : Asset =  {
-          name: 'Wrapped Bitcoin',
+          name: 'primary',
           decimals: 9,
           symbol: 'SOL',
           logo: 'https://garden.imgix.net/token-images/wbtc.svg',
           tokenAddress: 'primary',
-          atomicSwapAddress: '2bag6xpshpvPe7SJ9nSDLHpxqhEAoHPGpEkjNSv7gxoF',
+          atomicSwapAddress: '6eksgdCnSjUaGQWZ6iYvauv1qzvYPF33RTGTM1ZuyENx',
           chain: 'solana_testnet',
         }
 
         const toAsset : Asset =  {
-          name: 'primary',
+          name: 'USD Coin',
           decimals: 6,
           symbol: 'USDC',
           logo: 'https://garden-finance.imgix.net/chain_images/solana.png',
@@ -286,25 +287,25 @@ describe('Swap Tests', () => {
           chain: 'solana_testnet',
         }
 
-
-
-        const quote = await garden.quote.getQuoteFromAssets(
-          fromAsset,
-          toAsset,
-          100000000,
-          false,
-        );
-        console.log(quote.val.quotes);
+        const quote = await garden.quote.getQuoteFromAssets({
+          fromAsset: toAsset,
+          toAsset: fromAsset,
+          amount: 100000000,
+        });
+        console.log('quote response', quote.val?.quotes);
+        console.log('quote error response', quote.error);
+        if (!quote.val) {
+          return Err('Quote response error found');
+        }
         const orderObj: SwapParams = {
-          fromAsset: fromAsset,
-          toAsset: toAsset,
+          fromAsset: toAsset,
+          toAsset: fromAsset,
           sendAmount: '100000000',
           receiveAmount: quote.val.quotes[Object.keys(quote.val.quotes)[0]],
           additionalData: { strategyId: Object.keys(quote.val.quotes)[0] },
           minDestinationConfirmations: 1,
         };
         console.log('Creating order...', orderObj);
-        console.log(garden.quote);
         const result = await garden.swap(orderObj);
         // const result = await garden.orderbook.getOrder(
         //   '1d6a7fdbd2e1a86e045deada8663f61d7d17ba0390c7c5c5c651b70c6f82f962',
@@ -315,8 +316,9 @@ describe('Swap Tests', () => {
         expect(result.error).toBeFalsy();
         expect(result.val).toBeTruthy();
 
-        order = result.val;
+        order = result.val!;
         console.log('✅ Order created:', order.create_order.create_id);
+        console.log(order)
         if (!garden.solanaHTLC) {
           return Err('EVM Wallet not provided!');
         }
@@ -366,7 +368,7 @@ describe('Swap Tests', () => {
         expect(createResult.error).toBeFalsy();
         expect(createResult.val).toBeTruthy();
 
-        order = createResult.val;
+        order = createResult.val!;
         console.log('✅ Order created:', order.create_order.create_id);
 
         if (!garden.evmHTLC) {
