@@ -47,7 +47,6 @@ import {
   toXOnly,
 } from '../utils';
 import {
-  isOrderExpired,
   parseActionFromStatus,
   ParseOrderStatus,
 } from '../orderStatus/orderStatusParser';
@@ -58,7 +57,6 @@ import {
   BlockNumberFetcher,
   IBlockNumberFetcher,
 } from '../blockNumberFetcher/blockNumber';
-import { OrderStatus } from '../orderStatus/status';
 import {
   Api,
   DEFAULT_AFFILIATE_ASSET,
@@ -422,7 +420,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       true,
       interval,
       async (pendingOrders) => {
-        const ordersWithStatus = await this.filterExpiredAndAssignStatus(
+        const ordersWithStatus = await this.filterAndAssignStatus(
           pendingOrders.data,
         );
         if (!ordersWithStatus.ok) return;
@@ -436,10 +434,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           const orderAction = parseActionFromStatus(order.status);
 
           //post refund sacp for bitcoin orders
-          if (
-            isBitcoin(order.source_swap.chain) &&
-            order.status === OrderStatus.InitiateDetected
-          ) {
+          if (isBitcoin(order.source_swap.chain)) {
             const wallet = this._btcWallet;
             if (!wallet) {
               this.emit('error', order, 'BTC wallet not found');
@@ -685,9 +680,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       !Number(order.destination_swap.redeem_block_number)
     ) {
       try {
-        const tx = await (await wallet.getProvider()).getTransaction(
-          order.destination_swap.redeem_tx_hash,
-        );
+        const tx = await (
+          await wallet.getProvider()
+        ).getTransaction(order.destination_swap.redeem_tx_hash);
 
         let isValidRedeem = false;
         for (const input of tx.vin) {
@@ -843,7 +838,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     }
   }
 
-  private async filterExpiredAndAssignStatus(orders: MatchedOrder[]) {
+  private async filterAndAssignStatus(orders: MatchedOrder[]) {
     if (orders.length === 0) return Ok([]);
 
     const blockNumbers = await this._blockNumberFetcher?.fetchBlockNumbers();
@@ -853,10 +848,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
     for (let i = 0; i < orders.length; i++) {
       const order = orders[i];
-
-      if (isOrderExpired(order)) {
-        continue;
-      }
 
       const sourceChain = order.source_swap.chain;
       const destinationChain = order.destination_swap.chain;
