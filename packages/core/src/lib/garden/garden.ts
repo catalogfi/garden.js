@@ -57,6 +57,7 @@ import {
   BlockNumberFetcher,
   IBlockNumberFetcher,
 } from '../blockNumberFetcher/blockNumber';
+import { OrderStatus } from '../orderStatus/status';
 import {
   Api,
   DEFAULT_AFFILIATE_ASSET,
@@ -420,9 +421,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       true,
       interval,
       async (pendingOrders) => {
-        const ordersWithStatus = await this.filterAndAssignStatus(
-          pendingOrders.data,
-        );
+        const ordersWithStatus = await this.assignStatus(pendingOrders.data);
         if (!ordersWithStatus.ok) return;
 
         this.emit('onPendingOrdersChanged', ordersWithStatus.val);
@@ -434,7 +433,19 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           const orderAction = parseActionFromStatus(order.status);
 
           //post refund sacp for bitcoin orders
-          if (isBitcoin(order.source_swap.chain)) {
+          if (
+            isBitcoin(order.source_swap.chain) &&
+            // post refund sacp for bitcoin orders only at relevent statuses
+            (order.status === OrderStatus.InitiateDetected ||
+              order.status === OrderStatus.Initiated ||
+              order.status === OrderStatus.CounterPartyInitiated ||
+              order.status === OrderStatus.CounterPartyInitiateDetected ||
+              order.status === OrderStatus.CounterPartyRefundDetected ||
+              order.status === OrderStatus.CounterPartyRefunded ||
+              order.status === OrderStatus.CounterPartySwapExpired ||
+              order.status === OrderStatus.Expired ||
+              order.status === OrderStatus.DeadLineExceeded)
+          ) {
             const wallet = this._btcWallet;
             if (!wallet) {
               this.emit('error', order, 'BTC wallet not found');
@@ -838,7 +849,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     }
   }
 
-  private async filterAndAssignStatus(orders: MatchedOrder[]) {
+  private async assignStatus(orders: MatchedOrder[]) {
     if (orders.length === 0) return Ok([]);
 
     const blockNumbers = await this._blockNumberFetcher?.fetchBlockNumbers();
