@@ -2,6 +2,7 @@ import {
   CreateOrderRequestWithAdditionalData,
   CreateOrderResponse,
   IOrderbook,
+  NewCreateOrderRequest,
   Order,
   PaginatedData,
   PaginationConfig,
@@ -38,7 +39,7 @@ export class Orderbook implements IOrderbook {
    * @returns {string} The create order ID.
    */
   async createOrder(
-    order: CreateOrderRequestWithAdditionalData,
+    order: NewCreateOrderRequest,
     auth: IAuth,
   ): AsyncResult<string, string> {
     const headers = await auth.getAuthHeaders();
@@ -47,7 +48,7 @@ export class Orderbook implements IOrderbook {
     }
     try {
       const res = await Fetcher.post<CreateOrderResponse>(
-        this.Url.endpoint('/relayer').endpoint('create-order'),
+        this.Url.endpoint('orders'),
         {
           body: JSON.stringify(order),
           headers: {

@@ -92,7 +92,7 @@ export interface IOrderbook {
    * @returns {number} The create order ID.
    */
   createOrder(
-    order: CreateOrderRequestWithAdditionalData,
+    order: NewCreateOrderRequest,
     auth: IAuth,
   ): AsyncResult<string, string>;
 
@@ -240,6 +240,25 @@ export type CreateOrder = CreateOrderRequestWithAdditionalData & {
   deleted_at: string | null;
   create_id: string;
   block_number: string;
+};
+
+export type NewCreateOrderRequest = {
+  source: {
+    asset: string;
+    owner: string;
+    delegate: string;
+    amount: string;
+  };
+  destination: {
+    asset: string;
+    owner: string;
+    delegate: string;
+    amount: string;
+  };
+  slippage: number;
+  secret_hash: string;
+  nonce: string;
+  affiliate_fees?: AffiliateFee[];
 };
 
 export type Swap = {
