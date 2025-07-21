@@ -70,13 +70,14 @@ export const SolanaRelayerAddress: Record<Network, string> = {
 export const solanaProgramAddress = {
   mainnet: {
     native: '2bag6xpshpvPe7SJ9nSDLHpxqhEAoHPGpEkjNSv7gxoF',
-    spl: '2bag6xpshpvPe7SJ9nSDLHpxqhEAoHPGpEkjNSv7gxoF',
+    spl: 'gdnvdMCHJgnidtU7SL8RkRshHPvDJU1pdfZEpoLvqdU',
   },
   staging: {
     native: '6eksgdCnSjUaGQWZ6iYvauv1qzvYPF33RTGTM1ZuyENx',
     spl: '2WXpY8havGjfRxme9LUxtjFHTh1EfU3ur4v6wiK4KdNC',
   },
-}
+};
+
 export const DEFAULT_AFFILIATE_ASSET = {
   chain: SupportedAssets.mainnet.base_cbBTC.chain,
   asset: SupportedAssets.mainnet.base_cbBTC.atomicSwapAddress,
