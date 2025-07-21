@@ -100,22 +100,22 @@ export interface IOrderbook {
    * Get the order from orderbook based on provided Id and match status.
    * @param id - The create Id of the order
    * @template T - If true, returns matched order, else returns create order (unmatched Order).
-   * @returns {AsyncResult<T extends true ? MatchedOrder : CreateOrder, string>} A promise that resolves to the order.
+   * @returns {AsyncResult<T extends true ? Order : CreateOrder, string>} A promise that resolves to the order.
    */
-  getOrder(id: string): AsyncResult<MatchedOrder, string>;
+  getOrder(id: string): AsyncResult<Order, string>;
 
   /**
    * Get orders by status
    * @param address - The address of the order
    * @param status - The status of the order
    * @param paginationConfig - The pagination configuration
-   * @returns {AsyncResult<PaginatedData<MatchedOrder>, string>} A promise that resolves to the orders.
+   * @returns {AsyncResult<PaginatedData<Order>, string>} A promise that resolves to the orders.
    */
   getOrdersByStatus(
     address: string,
     status: Status,
     paginationConfig?: PaginationConfig,
-  ): AsyncResult<PaginatedData<MatchedOrder>, string>;
+  ): AsyncResult<PaginatedData<Order>, string>;
 
   /**
    * Get all orders from the orderbook based on the match status.
@@ -125,13 +125,13 @@ export interface IOrderbook {
    * @param tx_hash - The tx hash to get the orders for (initiate_tx_hash, redeem_tx_hash, refund_tx_hash).
    * @param fromChain - The source chain to filter orders by.
    * @param toChain - The destination chain to filter orders by.
-   * @returns {AsyncResult<PaginatedData<T extends true ? MatchedOrder : CreateOrder>, string>} A promise that resolves to the orders.
+   * @returns {AsyncResult<PaginatedData<T extends true ? Order : CreateOrder>, string>} A promise that resolves to the orders.
    */
   getOrders(
     paginationConfig?: PaginationConfig,
     address?: string,
     tx_hash?: string,
-  ): AsyncResult<PaginatedData<MatchedOrder>, string>;
+  ): AsyncResult<PaginatedData<Order>, string>;
 
   /**
    * Polls for every provided interval and returns matched and unmatched orders associated on the account.
@@ -155,7 +155,7 @@ export interface IOrderbook {
   subscribeOrders(
     account: string,
     interval: number,
-    cb: (orders: PaginatedData<MatchedOrder>) => Promise<void>,
+    cb: (orders: PaginatedData<Order>) => Promise<void>,
     status?: Status,
     paginationConfig?: PaginationConfig,
   ): Promise<() => void>;
@@ -169,7 +169,7 @@ export type DecodedAuthToken = {
 
 export type Orders = {
   unmatched: PaginatedData<CreateOrder[]>;
-  matched: PaginatedData<MatchedOrder[]>;
+  matched: PaginatedData<Order[]>;
 };
 
 export type AdditionalData = {
@@ -281,7 +281,7 @@ export type Swap = {
 //   create_order: CreateOrder;
 // };
 
-export type MatchedOrder = {
+export type Order = {
   order_id: string;
   created_at: string;
   source_swap: Swap;

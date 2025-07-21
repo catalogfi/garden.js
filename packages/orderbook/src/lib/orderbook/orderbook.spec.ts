@@ -1,12 +1,12 @@
 import { describe, expect, expectTypeOf, test } from 'vitest';
 import { Url } from '@gardenfi/utils';
 import { Orderbook } from './orderbook';
-import { MatchedOrder } from './orderbook.types';
+import { Order } from './orderbook.types';
 // import {
 //   // CreateOrderConfig,
 //   // CreateOrderRequestWithAdditionalData,
-//   MatchedOrder,
-//   MatchedOrderResult,
+//   Order,
+//   OrderResult,
 // } from './orderbook.types';
 
 describe('orders provider', async () => {
@@ -23,7 +23,7 @@ describe('orders provider', async () => {
     expect(order.error).toBeUndefined();
     if (order.val) {
       expect(order.val.order_id).toEqual(id);
-      expectTypeOf(order.val).toEqualTypeOf<MatchedOrder>();
+      expectTypeOf(order.val).toEqualTypeOf<Order>();
     }
   });
 
@@ -34,7 +34,7 @@ describe('orders provider', async () => {
     expect(orders.error).toBeUndefined();
     if (orders.val) {
       expect(orders.val.data.length).toBeGreaterThan(0);
-      expectTypeOf(orders.val.data).toEqualTypeOf<MatchedOrder[]>();
+      expectTypeOf(orders.val.data).toEqualTypeOf<Order[]>();
     }
   });
 
@@ -45,7 +45,7 @@ describe('orders provider', async () => {
     console.log('orders.val.data :', orders.val?.data);
     if (orders.val) {
       expect(orders.val.data.length).toBeGreaterThan(0);
-      expectTypeOf(orders.val.data).toEqualTypeOf<MatchedOrder[]>();
+      expectTypeOf(orders.val.data).toEqualTypeOf<Order[]>();
     }
   });
 
@@ -56,7 +56,7 @@ describe('orders provider', async () => {
       async (orders) => {
         console.log('subscribe orders :', orders);
         expect(orders.data.length).toBeGreaterThan(0);
-        expectTypeOf(orders.data).toEqualTypeOf<MatchedOrder[]>();
+        expectTypeOf(orders.data).toEqualTypeOf<Order[]>();
       },
     );
     expectTypeOf(unsubscribe).toEqualTypeOf<() => void>();
@@ -172,7 +172,7 @@ describe('orders provider', async () => {
 //     await sleep(5000);
 //     const orderId = createOrderIds[0];
 //     const result = await orderbook.getOrder(orderId, true);
-//     expectTypeOf(result.val).toEqualTypeOf<MatchedOrder>();
+//     expectTypeOf(result.val).toEqualTypeOf<Order>();
 //     expect(result.ok).toBeTruthy();
 //     expect(result.val).toBeTruthy();
 //     expect(result.val.create_order.create_id).toEqual(orderId);

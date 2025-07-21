@@ -2,7 +2,7 @@ import {
   CreateOrderRequestWithAdditionalData,
   CreateOrderResponse,
   IOrderbook,
-  MatchedOrder,
+  Order,
   PaginatedData,
   PaginationConfig,
   Status,
@@ -70,12 +70,12 @@ export class Orderbook implements IOrderbook {
   /**
    * Get an order by its ID
    * @param id - The ID of the order
-   * @returns {AsyncResult<MatchedOrder, string>} A promise that resolves to the order.
+   * @returns {AsyncResult<Order, string>} A promise that resolves to the order.
    */
-  async getOrder(id: string): AsyncResult<MatchedOrder, string> {
+  async getOrder(id: string): AsyncResult<Order, string> {
     try {
       const url = this.Url.endpoint(`/v2/orders/${id}`);
-      const res = await Fetcher.get<APIResponse<MatchedOrder>>(url);
+      const res = await Fetcher.get<APIResponse<Order>>(url);
 
       if (res.error) return Err(res.error);
       if (!res.result)
@@ -93,13 +93,13 @@ export class Orderbook implements IOrderbook {
    * @param address - The address of the order
    * @param status - The status of the order
    * @param paginationConfig - The pagination configuration
-   * @returns {AsyncResult<PaginatedData<MatchedOrder>, string>} A promise that resolves to the orders.
+   * @returns {AsyncResult<PaginatedData<Order>, string>} A promise that resolves to the orders.
    */
   async getOrdersByStatus(
     address: string,
     status: Status,
     paginationConfig?: PaginationConfig,
-  ): AsyncResult<PaginatedData<MatchedOrder>, string> {
+  ): AsyncResult<PaginatedData<Order>, string> {
     try {
       const endpoint = '/v2/orders';
       const params = {
@@ -111,9 +111,7 @@ export class Orderbook implements IOrderbook {
         ...(status && { status }),
       };
       const url = ConstructUrl(this.Url, endpoint, params);
-      const res = await Fetcher.get<APIResponse<PaginatedData<MatchedOrder>>>(
-        url,
-      );
+      const res = await Fetcher.get<APIResponse<PaginatedData<Order>>>(url);
       if (res.error) return Err(res.error);
       if (!res.result)
         return Err('GetOrdersByStatus: Unexpected error, result is undefined');
@@ -134,7 +132,7 @@ export class Orderbook implements IOrderbook {
    * @param tx_hash - The transaction hash of the order
    * @param fromChain - The chain of the order
    * @param toChain - The chain of the order
-   * @returns {AsyncResult<PaginatedData<MatchedOrder>, string>} A promise that resolves to the orders.
+   * @returns {AsyncResult<PaginatedData<Order>, string>} A promise that resolves to the orders.
    */
   async getOrders(
     paginationConfig?: PaginationConfig,
@@ -142,7 +140,7 @@ export class Orderbook implements IOrderbook {
     tx_hash?: string,
     fromChain?: Chain,
     toChain?: Chain,
-  ): AsyncResult<PaginatedData<MatchedOrder>, string> {
+  ): AsyncResult<PaginatedData<Order>, string> {
     // ?per_page=500&status=pending
     const endpoint = '/v2/orders';
     const params = {
@@ -159,9 +157,7 @@ export class Orderbook implements IOrderbook {
     const url = ConstructUrl(this.Url, endpoint, params);
 
     try {
-      const res = await Fetcher.get<APIResponse<PaginatedData<MatchedOrder>>>(
-        url,
-      );
+      const res = await Fetcher.get<APIResponse<PaginatedData<Order>>>(url);
 
       if (res.error) return Err(res.error);
       if (!res.result)
@@ -188,12 +184,11 @@ export class Orderbook implements IOrderbook {
   async subscribeOrders(
     account: string,
     interval: number,
-    cb: (orders: PaginatedData<MatchedOrder>) => Promise<void>,
+    cb: (orders: PaginatedData<Order>) => Promise<void>,
     status: Status = 'all',
     paginationConfig?: PaginationConfig,
   ): Promise<() => void> {
     let isProcessing = false;
-    console.log('status', status);
     const fetchOrders = async () => {
       if (isProcessing) return;
       isProcessing = true;
