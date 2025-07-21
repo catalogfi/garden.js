@@ -17,8 +17,6 @@ export {
   isEvmNativeToken,
   isSolanaNativeToken,
 } from './lib/asset';
-export { OrdersProvider } from './lib/orders/ordersProvider';
-export type { IOrderProvider } from './lib/orders/orders.types';
 
 export {
   WBTCArbitrumLocalnetAsset,

@@ -102,34 +102,20 @@ export interface IOrderbook {
    * @template T - If true, returns matched order, else returns create order (unmatched Order).
    * @returns {AsyncResult<T extends true ? MatchedOrder : CreateOrder, string>} A promise that resolves to the order.
    */
-  getOrder<T extends boolean>(
-    id: string,
-    matched: T,
-  ): AsyncResult<T extends true ? MatchedOrder : CreateOrder, string>;
+  getOrder(id: string): AsyncResult<MatchedOrder, string>;
 
   /**
-   * Get all matched orders from the orderbook associated with the `address`.
-   * @param address The address to get the orders for.
-   * @param pending If true, returns pending orders, else returns all matched orders.
-   * @param paginationConfig - The configuration for the pagination.
+   * Get orders by status
+   * @param address - The address of the order
+   * @param status - The status of the order
+   * @param paginationConfig - The pagination configuration
    * @returns {AsyncResult<PaginatedData<MatchedOrder>, string>} A promise that resolves to the orders.
    */
-  getMatchedOrders(
+  getOrdersByStatus(
     address: string,
     status: Status,
     paginationConfig?: PaginationConfig,
   ): AsyncResult<PaginatedData<MatchedOrder>, string>;
-
-  /**
-   * Get all unmatched orders from the orderbook associated with the `address`.
-   * @param address The address to get the orders for.
-   * @param paginationConfig - The configuration for the pagination.
-   * @returns {AsyncResult<PaginatedData<CreateOrder>, string>} A promise that resolves to the orders.
-   */
-  getUnMatchedOrders(
-    address: string,
-    paginationConfig?: PaginationConfig,
-  ): AsyncResult<PaginatedData<CreateOrder>, string>;
 
   /**
    * Get all orders from the orderbook based on the match status.
@@ -141,15 +127,11 @@ export interface IOrderbook {
    * @param toChain - The destination chain to filter orders by.
    * @returns {AsyncResult<PaginatedData<T extends true ? MatchedOrder : CreateOrder>, string>} A promise that resolves to the orders.
    */
-  getOrders<T extends boolean>(
-    matched: T,
+  getOrders(
     paginationConfig?: PaginationConfig,
     address?: string,
     tx_hash?: string,
-  ): AsyncResult<
-    PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
-    string
-  >;
+  ): AsyncResult<PaginatedData<MatchedOrder>, string>;
 
   /**
    * Polls for every provided interval and returns matched and unmatched orders associated on the account.
@@ -170,23 +152,13 @@ export interface IOrderbook {
    * }, 20000);
    * ```
    */
-  subscribeOrders<T extends boolean>(
+  subscribeOrders(
     account: string,
-    matched: T,
     interval: number,
-    cb: (
-      orders: PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
-    ) => Promise<void>,
+    cb: (orders: PaginatedData<MatchedOrder>) => Promise<void>,
     status?: Status,
     paginationConfig?: PaginationConfig,
   ): Promise<() => void>;
-
-  /**
-   * Returns the current orders count associated with the provided address. Used to calculate nonce for secret generation.
-   * @param address The address to get the orders count for.
-   * @returns {AsyncResult<number, string>} A promise that resolves to the orders count.
-   */
-  getOrdersCount(address: string): AsyncResult<number, string>;
 }
 
 export type DecodedAuthToken = {
@@ -225,27 +197,22 @@ export type CreateOrderReqWithStrategyId = CreateOrderRequest &
   AffiliateFeeList<AffiliateFee>;
 
 export type AffiliateFee = {
-  fee: number; // fee in bps
   address: string;
-  chain: string;
   asset: string;
+  fee: number; // fee in bps
 };
 
 export type AffiliateFeeWithAmount = AffiliateFee & {
   amount: string;
 };
 
-export type AffiliateFeeList<
-  T extends AffiliateFee | AffiliateFeeWithAmount
-> = {
-  affiliate_fees?: T[];
-};
+export type AffiliateFeeList<T extends AffiliateFee | AffiliateFeeWithAmount> =
+  {
+    affiliate_fees?: T[];
+  };
 
-export type AffiliateFeeOptionalChainAsset = Omit<
-  AffiliateFee,
-  'chain' | 'asset'
-> &
-  Partial<Pick<AffiliateFee, 'chain' | 'asset'>>;
+export type AffiliateFeeOptionalAsset = Omit<AffiliateFee, 'asset'> &
+  Partial<Pick<AffiliateFee, 'asset'>>;
 
 export type CreateOrderRequest = {
   source_chain: string;
@@ -296,15 +263,34 @@ export type Swap = {
   redeem_block_number: string | null;
   refund_block_number: string | null;
   required_confirmations: number;
+  delegate: string;
+  asset_price: number;
+  instant_refund_tx: string;
+  initiate_timestamp: string;
+  redeem_timestamp: string;
+  refund_timestamp: string;
+  current_confirmations: number;
 };
 
+// export type MatchedOrder = {
+//   created_at: string;
+//   updated_at: string;
+//   deleted_at: string | null;
+//   source_swap: Swap;
+//   destination_swap: Swap;
+//   create_order: CreateOrder;
+// };
+
 export type MatchedOrder = {
+  order_id: string;
   created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
   source_swap: Swap;
   destination_swap: Swap;
-  create_order: CreateOrder;
+  slippage: number;
+  nonce: string;
+  affiliate_fees: AffiliateFee[];
+  integrator: string;
+  version: string;
 };
 
 export type PaginatedData<T> = {
