@@ -6,7 +6,7 @@ import { serializeTaprootSignature } from 'bitcoinjs-lib/src/psbt/bip371';
 import { assert, xOnlyPubkey } from '../utils';
 import { serializeScript, sortLeaves } from '../utils';
 import { htlcErrors } from '../errors';
-import {BitcoinUTXO} from "./provider/provider.interface";
+import { BitcoinUTXO } from './provider/provider.interface';
 import { Urgency } from './provider/provider.interface';
 import { IHTLCWallet } from '../htlc.interface';
 import { IBitcoinWallet } from './wallet/wallet.interface';
@@ -142,7 +142,13 @@ export class GardenHTLC implements IHTLCWallet {
     return this.address();
   }
 
-  private async _buildRawTx(receiver: string, fee?: number) {
+  private async _buildRawTx(
+    receiver: string,
+    options?: {
+      fee?: number;
+      vSize?: number;
+    },
+  ) {
     const tx = new bitcoin.Transaction();
     tx.version = 2;
 
@@ -168,6 +174,7 @@ export class GardenHTLC implements IHTLCWallet {
     } else {
       utxos = await provider.getUTXOs(address);
     }
+
     const balance = utxos.reduce((acc, utxo) => acc + utxo.value, 0);
     if (balance === 0) throw new Error(`${address} ${htlcErrors.notFunded}`);
 
@@ -175,73 +182,26 @@ export class GardenHTLC implements IHTLCWallet {
       tx.addInput(Buffer.from(utxos[i].txid, 'hex').reverse(), utxos[i].vout);
     }
 
-    fee ??= await provider.suggestFee(address, balance, Urgency.MEDIUM);
+    if (options?.vSize) {
+      // calculate fees based on vSize
+      const feeRate = await provider.getFeeRates();
+      const fees = Math.ceil(feeRate.hourFee * options.vSize);
+      const amountAfterFees = balance - fees;
+
+      // update the previously added output.
+      tx.outs[0].value = amountAfterFees;
+      return { tx, usedUtxos: utxos };
+    }
+
+    const fee =
+      options?.fee ??
+      (await provider.suggestFee(address, balance, Urgency.MEDIUM));
     tx.addOutput(
       bitcoin.address.toOutputScript(receiver, this.network),
       balance - fee,
     );
 
-    return { tx, usedUtxos: utxos };
-  }
-
-  private async _tempBuildRawTx(receiver: string, vSize?: number) {
-    const tx = new bitcoin.Transaction();
-    tx.version = 2;
-
-    const address = this.address();
-    const provider = await this.signer.getProvider();
-
-    let utxos: BitcoinUTXO[] = [];
-    if (this.utxoHashes && this.utxoHashes.length > 0) {
-      for (const utxoHash of this.utxoHashes) {
-        const tx = await provider.getTransaction(utxoHash);
-        for (let i = 0; i < tx.vout.length; i++) {
-          const vout = tx.vout[i];
-          if (vout.scriptpubkey_address === address) {
-            utxos.push({
-              txid: tx.txid,
-              vout: i,
-              value: vout.value,
-              status: { confirmed: false },
-            });
-          }
-        }
-      }
-    } else {
-      utxos = await provider.getUTXOs(address);
-    }
-    const balance = utxos.reduce((acc, utxo) => acc + utxo.value, 0);
-    if (balance === 0) throw new Error(`${address} ${htlcErrors.notFunded}`);
-
-    for (let i = 0; i < utxos.length; i++) {
-      tx.addInput(Buffer.from(utxos[i].txid, 'hex').reverse(), utxos[i].vout);
-    }
-
-    // add output without fees
-    tx.addOutput(
-      bitcoin.address.toOutputScript(receiver, this.network),
-      balance,
-    );
-
-    if (vSize) {
-      // calculate fees based on vSize
-      const feeRate = await provider.getFeeRates();
-      const fees = Math.ceil(feeRate.hourFee * vSize);
-      const amountAfterFees = balance - fees;
-
-      // update the previously added output.
-      tx.outs[0].value = amountAfterFees;
-    }
-
-    return { tx, usedUtxos: utxos };
-  }
-
-  /**
-   * Builds a raw unsigned transaction with utxos from gardenHTLC address
-   * and uses signer's address as the output address
-   */
-  private async buildRawTx(fee?: number) {
-    return await this._buildRawTx(await this.signer.getAddress(), fee);
+    return { tx, usedUtxos: utxos, fee, balance };
   }
 
   /**
@@ -264,7 +224,7 @@ export class GardenHTLC implements IHTLCWallet {
   }
 
   async generateRedeemSACP(secret: string, receiver: string, fee?: number) {
-    const { tx, usedUtxos } = await this._buildRawTx(receiver, fee);
+    const { tx, usedUtxos } = await this._buildRawTx(receiver, { fee });
     const output = this.getOutputScript();
 
     const hashType =
@@ -296,8 +256,23 @@ export class GardenHTLC implements IHTLCWallet {
   }
 
   async generateInstantRefundSACP(receiver: string, fee?: number) {
-    const { tx, usedUtxos } = await this._buildRawTx(receiver, fee);
-    const output = this.getOutputScript();
+    const outputAddress = this.getOutputScript();
+    const {
+      tx,
+      usedUtxos,
+      fee: txFee,
+    } = await this._buildRawTx(receiver, {
+      fee,
+    });
+    tx.outs = [];
+    const maxUtxoValue = Math.max(...usedUtxos.map((utxo) => utxo.value));
+
+    usedUtxos.forEach(({ value }) => {
+      tx.addOutput(
+        outputAddress,
+        value - (value === maxUtxoValue ? txFee ?? 0 : 0),
+      );
+    });
 
     const hashType =
       bitcoin.Transaction.SIGHASH_SINGLE |
@@ -305,7 +280,7 @@ export class GardenHTLC implements IHTLCWallet {
     const instantRefundLeafHash = this.leafHash(Leaf.INSTANT_REFUND);
 
     const values = usedUtxos.map((utxo) => utxo.value);
-    const outputs = generateOutputs(output, usedUtxos.length);
+    const outputs = generateOutputs(outputAddress, usedUtxos.length);
 
     for (let i = 0; i < tx.ins.length; i++) {
       const hash = tx.hashForWitnessV1(
@@ -327,6 +302,12 @@ export class GardenHTLC implements IHTLCWallet {
         this.generateControlBlockFor(Leaf.INSTANT_REFUND),
       ]);
     }
+
+    console.log('sacp :', tx.toHex());
+
+    const provider = await this.signer.getProvider();
+    const txHash = await provider.broadcast(tx.toHex());
+    console.log('txHash :', txHash);
     return tx.toHex();
   }
 
@@ -341,7 +322,10 @@ export class GardenHTLC implements IHTLCWallet {
   ) {
     assert(counterPartySigs.length > 0, htlcErrors.noCounterpartySigs);
 
-    const { tx, usedUtxos } = await this.buildRawTx(fee);
+    const { tx, usedUtxos } = await this._buildRawTx(
+      await this.signer.getAddress(),
+      { fee },
+    );
 
     for (const utxo of usedUtxos) {
       if (!counterPartySigs.find((sig) => sig.utxo === utxo.txid)) {
@@ -399,71 +383,11 @@ export class GardenHTLC implements IHTLCWallet {
    * Reveals the secret and redeems the HTLC
    */
   async redeem(secret: string, receiver?: string): Promise<string> {
-    assert(
-      bitcoin.crypto.sha256(Buffer.from(secret, 'hex')).toString('hex') ===
-        this.secretHash,
-      htlcErrors.secretMismatch,
-    );
-
-    const receiverAddress = receiver ?? (await this.signer.getAddress());
-
-    // First build and sign tx to calculate vSize
-    const { tx: tempTx, usedUtxos: utxos } = await this._tempBuildRawTx(
-      receiverAddress,
-    );
-
-    const redeemLeafHash = this.leafHash(Leaf.REDEEM);
-    const values = utxos.map((utxo) => utxo.value);
-    const outputs = generateOutputs(this.getOutputScript(), utxos.length);
-    const hashType = bitcoin.Transaction.SIGHASH_DEFAULT;
-
-    // Sign temp transaction to get accurate vSize
-    for (let i = 0; i < tempTx.ins.length; i++) {
-      const hash = tempTx.hashForWitnessV1(
-        i,
-        outputs,
-        values,
-        hashType,
-        redeemLeafHash,
-      );
-      const signature = await this.signer.signSchnorr(hash);
-
-      tempTx.setWitness(i, [
-        signature,
-        Buffer.from(secret, 'hex'),
-        this.redeemLeaf(),
-        this.generateControlBlockFor(Leaf.REDEEM),
-      ]);
-    }
-
-    // Build final tx with correct fees
-    const { tx } = await this._tempBuildRawTx(
-      receiverAddress,
-      tempTx.virtualSize(),
-    );
-
-    // Sign final transaction
-    for (let i = 0; i < tx.ins.length; i++) {
-      const hash = tx.hashForWitnessV1(
-        i,
-        outputs,
-        values,
-        hashType,
-        redeemLeafHash,
-      );
-      const signature = await this.signer.signSchnorr(hash);
-
-      tx.setWitness(i, [
-        signature,
-        Buffer.from(secret, 'hex'),
-        this.redeemLeaf(),
-        this.generateControlBlockFor(Leaf.REDEEM),
-      ]);
-    }
+    const redeemHex = await this.getRedeemHex(secret, receiver);
 
     // broadcast the transaction
     const provider = await this.signer.getProvider();
-    return await provider.broadcast(tx.toHex());
+    return await provider.broadcast(redeemHex);
   }
 
   async getRedeemHex(secret: string, receiver?: string): Promise<string> {
@@ -476,8 +400,9 @@ export class GardenHTLC implements IHTLCWallet {
     const receiverAddress = receiver ?? (await this.signer.getAddress());
 
     // First build and sign tx to calculate vSize
-    const { tx: tempTx, usedUtxos: utxos } = await this._tempBuildRawTx(
+    const { tx: tempTx, usedUtxos: utxos } = await this._buildRawTx(
       receiverAddress,
+      { fee: 0 },
     );
 
     const redeemLeafHash = this.leafHash(Leaf.REDEEM);
@@ -505,10 +430,9 @@ export class GardenHTLC implements IHTLCWallet {
     }
 
     // Build final tx with correct fees
-    const { tx } = await this._tempBuildRawTx(
-      receiverAddress,
-      tempTx.virtualSize(),
-    );
+    const { tx } = await this._buildRawTx(receiverAddress, {
+      vSize: tempTx.virtualSize(),
+    });
 
     // Sign final transaction
     for (let i = 0; i < tx.ins.length; i++) {
@@ -538,7 +462,7 @@ export class GardenHTLC implements IHTLCWallet {
   async refund(receiver?: string, fee?: number): Promise<string> {
     const { tx, usedUtxos } = await this._buildRawTx(
       receiver ?? (await this.signer.getAddress()),
-      fee,
+      { fee },
     );
 
     const [canRefund, needMoreBlocks] = await this.canRefund(usedUtxos);
