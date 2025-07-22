@@ -194,7 +194,7 @@ export class SolanaRelay implements ISolanaHTLC {
 
     try {
       const tx = await this.program.methods
-        .initiate(amount - 100, expiresIn, redeemer, secretHash)
+        .initiate(amount - BigInt(100), expiresIn, redeemer, secretHash)
         .accounts({ initiator: this.provider.publicKey })
         .transaction();
 
