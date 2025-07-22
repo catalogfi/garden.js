@@ -119,7 +119,7 @@ export const SupportedAssets = {
       symbol: 'SOL',
       chain: Chains.solana_testnet,
       logo: 'https://garden-finance.imgix.net/chain_images/solana.png',
-      atomicSwapAddress: 'primary',
+      atomicSwapAddress: '2bag6xpshpvPe7SJ9nSDLHpxqhEAoHPGpEkjNSv7gxoF',
       tokenAddress: 'primary',
     },
     solana_testnet_USDC: {
@@ -128,17 +128,8 @@ export const SupportedAssets = {
       symbol: 'USDC',
       chain: Chains.solana_testnet,
       logo: 'https://garden-finance.imgix.net/token-images/usdc.svg',
-      atomicSwapAddress: 'primary',
-      tokenAddress: 'primary',
-    },
-    solana_testnet_WBTC: {
-      name: 'Wrapped Bitcoin',
-      decimals: 8,
-      symbol: 'WBTC',
-      chain: Chains.solana_testnet,
-      logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
-      atomicSwapAddress: 'primary',
-      tokenAddress: 'primary',
+      atomicSwapAddress: 'gdnvdMCHJgnidtU7SL8RkRshHPvDJU1pdfZEpoLvqdU',
+      tokenAddress: '5JbWjyLdYKTuykpq2itWbdRcZkhK3hs6fiH62pkmLYZi',
     },
     bitcoin_testnet_BTC: {
       name: 'BTC',
