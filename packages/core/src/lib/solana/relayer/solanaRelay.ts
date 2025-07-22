@@ -65,7 +65,7 @@ export class SolanaRelay implements ISolanaHTLC {
 
     try {
       this.program = new Program(
-        (idlWithAddress as unknown) as SolanaNativeSwaps,
+        idlWithAddress as unknown as SolanaNativeSwaps,
         this.provider,
       );
     } catch (cause) {
@@ -194,7 +194,7 @@ export class SolanaRelay implements ISolanaHTLC {
 
     try {
       const tx = await this.program.methods
-        .initiate(amount, expiresIn, redeemer, secretHash)
+        .initiate(amount - 100, expiresIn, redeemer, secretHash)
         .accounts({ initiator: this.provider.publicKey })
         .transaction();
 
