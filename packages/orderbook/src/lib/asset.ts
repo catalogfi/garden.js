@@ -1,3 +1,8 @@
+import {
+  FormattedAssetString,
+  NewCreateOrderRequest,
+} from './orderbook/orderbook.types';
+
 export type AssetCommon = {
   name: string;
   decimals: number;
@@ -210,4 +215,40 @@ export const isNativeToken = (asset: Asset) => {
     // Starknet doesn't have a native token
     !isStarknet(asset.chain)
   );
+};
+
+export const toFormattedAssetString = (asset: Asset): FormattedAssetString => {
+  return `${asset.chain}:${asset.symbol.toLowerCase()}` as FormattedAssetString;
+};
+
+export const fromFormattedAssetString = (
+  formatted: FormattedAssetString,
+): { chain: Chain; symbol: string } => {
+  const [chain, symbol] = formatted.split(':');
+  if (!(chain in Chains)) {
+    throw new Error(`Invalid chain in asset string: ${chain}`);
+  }
+  return {
+    chain: chain as Chain,
+    symbol,
+  };
+};
+
+export const getChainsFromOrder = (
+  order: NewCreateOrderRequest,
+): { sourceChain: Chain; destinationChain: Chain } => {
+  const [sourceChain] = order.source.asset.split(':');
+  const [destinationChain] = order.destination.asset.split(':');
+
+  if (!(sourceChain in Chains)) {
+    throw new Error(`Invalid source chain: ${sourceChain}`);
+  }
+  if (!(destinationChain in Chains)) {
+    throw new Error(`Invalid destination chain: ${destinationChain}`);
+  }
+
+  return {
+    sourceChain: sourceChain as Chain,
+    destinationChain: destinationChain as Chain,
+  };
 };

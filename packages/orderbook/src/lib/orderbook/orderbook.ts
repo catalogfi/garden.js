@@ -1,6 +1,6 @@
 import {
-  CreateOrderRequestWithAdditionalData,
-  CreateOrderResponse,
+  CreateOrderFromEVMResponse,
+  // CreateOrderRequestWithAdditionalData,
   IOrderbook,
   NewCreateOrderRequest,
   Order,
@@ -36,19 +36,19 @@ export class Orderbook implements IOrderbook {
    * Creates an order
    * @param {CreateOrderRequestWithAdditionalData} order - The configuration for the creating the order.
    * @param {IAuth} auth - The auth object.
-   * @returns {string} The create order ID.
+   * @returns {CreateOrderFromEVMResponse} The create order ID.
    */
   async createOrder(
     order: NewCreateOrderRequest,
     auth: IAuth,
-  ): AsyncResult<string, string> {
+  ): AsyncResult<CreateOrderFromEVMResponse, string> {
     const headers = await auth.getAuthHeaders();
     if (headers.error) {
       return Err(headers.error);
     }
     try {
-      const res = await Fetcher.post<CreateOrderResponse>(
-        this.Url.endpoint('orders'),
+      const res = await Fetcher.post<APIResponse<CreateOrderFromEVMResponse>>(
+        this.Url.endpoint('/v2/orders'),
         {
           body: JSON.stringify(order),
           headers: {
@@ -57,12 +57,10 @@ export class Orderbook implements IOrderbook {
           },
         },
       );
-      if (res.error) {
-        return Err(res.error);
-      }
-      return res.result
-        ? Ok(res.result)
-        : Err('CreateOrder: Unexpected error, result is undefined');
+      if (res.error) return Err(res.error);
+      if (!res.result)
+        return Err('CreateOrder: Unexpected error, result is undefined');
+      return Ok(res.result);
     } catch (error) {
       return Err('CreateOrder Err:', String(error));
     }

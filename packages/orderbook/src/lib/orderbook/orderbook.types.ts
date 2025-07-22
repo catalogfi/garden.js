@@ -1,5 +1,7 @@
 import { APIResponse, AsyncResult, IAuth, IStore } from '@gardenfi/utils';
 import { Asset, Chain } from '../asset';
+import type { TypedData as EIP712TypedData } from 'viem';
+import type { Calldata, RawArgs, TypedData } from 'starknet';
 
 /**
  * Configuration for creating an order
@@ -94,7 +96,7 @@ export interface IOrderbook {
   createOrder(
     order: NewCreateOrderRequest,
     auth: IAuth,
-  ): AsyncResult<string, string>;
+  ): AsyncResult<CreateOrderFromEVMResponse, string>;
 
   /**
    * Get the order from orderbook based on provided Id and match status.
@@ -242,22 +244,24 @@ export type CreateOrder = CreateOrderRequestWithAdditionalData & {
   block_number: string;
 };
 
+export type FormattedAssetString = `${Chain}:${string}`;
+
 export type NewCreateOrderRequest = {
   source: {
-    asset: string;
+    asset: FormattedAssetString;
     owner: string;
-    delegate: string;
+    delegate: string | null;
     amount: string;
   };
   destination: {
-    asset: string;
+    asset: FormattedAssetString;
     owner: string;
-    delegate: string;
+    delegate: string | null;
     amount: string;
   };
-  slippage: number;
-  secret_hash: string;
-  nonce: string;
+  slippage?: number;
+  secret_hash?: string;
+  nonce: number;
   affiliate_fees?: AffiliateFee[];
 };
 
@@ -328,3 +332,48 @@ export type PaginationConfig = {
 };
 
 export type Status = 'all' | 'pending' | 'fulfilled';
+
+export type EVMTransaction = {
+  to: string;
+  value: string;
+  data: string;
+  gas_limit: string;
+  chain_id: number;
+};
+
+export type StarknetCall = {
+  to: string;
+  calldata?: RawArgs | Calldata;
+  selector?: string;
+};
+
+export type BaseCreateOrderResponse = {
+  order_id: string;
+};
+
+export type CreateOrderFromBitcoinResponse = BaseCreateOrderResponse & {
+  to: string;
+  amount: number;
+};
+
+type WithTypedData<T, D> = T & { typed_data: D };
+
+export type CreateOrderFromEVMResponse = WithTypedData<
+  BaseCreateOrderResponse & {
+    approval_transaction?: EVMTransaction;
+    initiate_transaction?: EVMTransaction;
+  },
+  EIP712TypedData
+>;
+
+export type CreateOrderFromStarknetResponse = WithTypedData<
+  BaseCreateOrderResponse & {
+    approval_call?: StarknetCall;
+    initiate_call?: StarknetCall;
+  },
+  TypedData
+>;
+
+export type CreateOrderFromSolanaResponse = BaseCreateOrderResponse & {
+  versioned_tx: string;
+};
