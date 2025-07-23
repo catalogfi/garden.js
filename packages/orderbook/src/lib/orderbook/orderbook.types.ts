@@ -203,17 +203,17 @@ export type OldCreateOrderRequest = {
   secret_hash: string;
 };
 
-export type FormattedAssetString = `${Chain}:${string}`;
+export type ChainAsset = `${Chain}:${string}`;
 
 export type CreateOrderRequest = {
   source: {
-    asset: FormattedAssetString;
+    asset: ChainAsset;
     owner: string;
     delegate: string | null;
     amount: string;
   };
   destination: {
-    asset: FormattedAssetString;
+    asset: ChainAsset;
     owner: string;
     delegate: string | null;
     amount: string;

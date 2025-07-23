@@ -1,7 +1,4 @@
-import {
-  FormattedAssetString,
-  NewCreateOrderRequest,
-} from './orderbook/orderbook.types';
+import { ChainAsset, CreateOrderRequest } from './orderbook/orderbook.types';
 
 export type AssetCommon = {
   name: string;
@@ -217,12 +214,12 @@ export const isNativeToken = (asset: Asset) => {
   );
 };
 
-export const toFormattedAssetString = (asset: Asset): FormattedAssetString => {
-  return `${asset.chain}:${asset.symbol.toLowerCase()}` as FormattedAssetString;
+export const toFormattedAssetString = (asset: Asset): ChainAsset => {
+  return `${asset.chain}:${asset.symbol.toLowerCase()}` as ChainAsset;
 };
 
 export const fromFormattedAssetString = (
-  formatted: FormattedAssetString,
+  formatted: ChainAsset,
 ): { chain: Chain; symbol: string } => {
   const [chain, symbol] = formatted.split(':');
   if (!(chain in Chains)) {
@@ -235,7 +232,7 @@ export const fromFormattedAssetString = (
 };
 
 export const getChainsFromOrder = (
-  order: NewCreateOrderRequest,
+  order: CreateOrderRequest,
 ): { sourceChain: Chain; destinationChain: Chain } => {
   const [sourceChain] = order.source.asset.split(':');
   const [destinationChain] = order.destination.asset.split(':');

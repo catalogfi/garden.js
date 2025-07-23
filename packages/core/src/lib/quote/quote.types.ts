@@ -1,9 +1,4 @@
-import {
-  Asset,
-  Chain,
-  CreateOrderRequestWithAdditionalData,
-  CreateOrderReqWithStrategyId,
-} from '@gardenfi/orderbook';
+import { Asset, Chain, ChainAsset } from '@gardenfi/orderbook';
 import { APIResponse, AsyncResult, Request } from '@gardenfi/utils';
 
 export interface IQuote {
@@ -19,7 +14,7 @@ export interface IQuote {
    */
   getQuoteFromAssets(
     params: QuoteParamsForAssets,
-  ): AsyncResult<QuoteResponse, string>;
+  ): AsyncResult<QuoteResponse[], string>;
 
   /**
    * Get a quote for the given orderpair and amount
@@ -33,20 +28,12 @@ export interface IQuote {
    * @param options { affiliateFee?: number; request?: Request } - The options for the quote request, affiliate fee in bps and request object
    */
   getQuote(
-    orderpair: string,
+    from: ChainAsset,
+    to: ChainAsset,
     amount: number,
     isExactOut: boolean,
     options?: QuoteOptions,
-  ): AsyncResult<QuoteResponse, string>;
-
-  /**
-   * Attest the quote, server will return a signature by verifying and signing the quote according to the provided `strategy_id`
-   * @param order - The order for which the attestation is requested. Order should include `strategy_id` in the `additional_data` field.
-   * @returns {string} The attestation signature
-   */
-  getAttestedQuote(
-    order: CreateOrderReqWithStrategyId,
-  ): AsyncResult<CreateOrderRequestWithAdditionalData, string>;
+  ): AsyncResult<QuoteResponse[], string>;
 
   /**
    * Get the strategies available for quoting
@@ -72,15 +59,25 @@ export type QuoteParamsForAssets = BaseQuoteParams & {
 };
 
 export type QuoteParamsForOrderPair = BaseQuoteParams & {
-  orderpair: string;
+  from: ChainAsset;
+  to: ChainAsset;
 };
 
 export type QuoteResponse = {
-  quotes: { [strategy_id: string]: string };
-  input_token_price: number;
-  output_token_price: number;
+  source: {
+    asset: string;
+    amount: string;
+    display: string;
+    value: string;
+  };
+  destination: {
+    asset: string;
+    amount: string;
+    display: string;
+    value: string;
+  };
+  solver_id: string;
 };
-
 export type Strategies = Record<
   string,
   {
