@@ -299,14 +299,14 @@ export type BaseCreateOrderResponse = {
   order_id: string;
 };
 
-export type CreateOrderFromBitcoinResponse = BaseCreateOrderResponse & {
+export type BitcoinOrderResponse = BaseCreateOrderResponse & {
   to: string;
   amount: number;
 };
 
 type WithTypedData<T, D> = T & { typed_data: D };
 
-export type CreateOrderFromEVMResponse = WithTypedData<
+export type EvmOrderResponse = WithTypedData<
   BaseCreateOrderResponse & {
     approval_transaction?: EVMTransaction;
     initiate_transaction?: EVMTransaction;
@@ -314,7 +314,7 @@ export type CreateOrderFromEVMResponse = WithTypedData<
   EIP712TypedData
 >;
 
-export type CreateOrderFromStarknetResponse = WithTypedData<
+export type StarknetOrderResponse = WithTypedData<
   BaseCreateOrderResponse & {
     approval_call?: StarknetCall;
     initiate_call?: StarknetCall;
@@ -322,12 +322,12 @@ export type CreateOrderFromStarknetResponse = WithTypedData<
   TypedData
 >;
 
-export type CreateOrderFromSolanaResponse = BaseCreateOrderResponse & {
+export type SolanaOrderResponse = BaseCreateOrderResponse & {
   versioned_tx: string;
 };
 
 export type CreateOrderResponse =
-  | ({ type: 'evm' } & CreateOrderFromEVMResponse)
-  | ({ type: 'bitcoin' } & CreateOrderFromBitcoinResponse)
-  | ({ type: 'starknet' } & CreateOrderFromStarknetResponse)
-  | ({ type: 'solana' } & CreateOrderFromSolanaResponse);
+  | ({ type: 'evm' } & EvmOrderResponse)
+  | ({ type: 'bitcoin' } & BitcoinOrderResponse)
+  | ({ type: 'starknet' } & StarknetOrderResponse)
+  | ({ type: 'solana' } & SolanaOrderResponse);
