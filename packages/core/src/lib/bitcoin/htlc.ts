@@ -303,11 +303,6 @@ export class GardenHTLC implements IHTLCWallet {
       ]);
     }
 
-    console.log('sacp :', tx.toHex());
-
-    const provider = await this.signer.getProvider();
-    const txHash = await provider.broadcast(tx.toHex());
-    console.log('txHash :', txHash);
     return tx.toHex();
   }
 
