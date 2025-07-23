@@ -1,8 +1,8 @@
-import { describe, test } from 'vitest';
+import { describe, expect, expectTypeOf, test } from 'vitest';
 import { DigestKey, Siwe, Url } from '@gardenfi/utils';
 import { Orderbook } from './orderbook';
+import { CreateOrderRequest, Order } from './orderbook.types';
 // import { Order } from './orderbook.types';
-import { NewCreateOrderRequest } from './orderbook.types';
 // import {
 //   // CreateOrderConfig,
 //   // CreateOrderRequestWithAdditionalData,
@@ -13,62 +13,62 @@ import { NewCreateOrderRequest } from './orderbook.types';
 describe('orders provider', async () => {
   const orderbookApi = 'https://api.garden.finance';
   const authUrl = 'https://api.garden.finance/auth';
-  // const address = '0xdF4E5212cC36428504712d7E75a9922762FeD28A';
-  // const id = 'd461a0c760948f07f972bdaa379f503cb7ef10cac84d059646a755e83905f4c5';
+  const address = '0xdF4E5212cC36428504712d7E75a9922762FeD28A';
+  const id = 'd461a0c760948f07f972bdaa379f503cb7ef10cac84d059646a755e83905f4c5';
 
   const orderbook = new Orderbook(new Url(orderbookApi));
   const auth = Siwe.fromDigestKey(
     new Url(authUrl),
     DigestKey.generateRandom().val!,
   );
-  // test('should get order', async () => {
-  //   const order = await orderbook.getOrder(id);
-  //   console.log('order.error :', order.error);
-  //   console.log('order.val :', order.val);
-  //   expect(order.error).toBeUndefined();
-  //   if (order.val) {
-  //     expect(order.val.order_id).toEqual(id);
-  //     expectTypeOf(order.val).toEqualTypeOf<Order>();
-  //   }
-  // });
+  test('should get order', async () => {
+    const order = await orderbook.getOrder(id);
+    console.log('order.error :', order.error);
+    console.log('order.val :', order.val);
+    expect(order.error).toBeUndefined();
+    if (order.val) {
+      expect(order.val.order_id).toEqual(id);
+      expectTypeOf(order.val).toEqualTypeOf<Order>();
+    }
+  });
 
-  // test('should get orders of a address', async () => {
-  //   const orders = await orderbook.getOrders(undefined, address);
-  //   console.log('orders.error :', orders.error);
-  //   console.log('orders.val :', orders.val);
-  //   expect(orders.error).toBeUndefined();
-  //   if (orders.val) {
-  //     expect(orders.val.data.length).toBeGreaterThan(0);
-  //     expectTypeOf(orders.val.data).toEqualTypeOf<Order[]>();
-  //   }
-  // });
+  test('should get orders of a address', async () => {
+    const orders = await orderbook.getOrders(undefined, address);
+    console.log('orders.error :', orders.error);
+    console.log('orders.val :', orders.val);
+    expect(orders.error).toBeUndefined();
+    if (orders.val) {
+      expect(orders.val.data.length).toBeGreaterThan(0);
+      expectTypeOf(orders.val.data).toEqualTypeOf<Order[]>();
+    }
+  });
 
-  // test('should get all orders', async () => {
-  //   const orders = await orderbook.getOrders();
-  //   expect(orders.error).toBeUndefined();
-  //   console.log('all orders here orders.val :', orders.val);
-  //   console.log('orders.val.data :', orders.val?.data);
-  //   if (orders.val) {
-  //     expect(orders.val.data.length).toBeGreaterThan(0);
-  //     expectTypeOf(orders.val.data).toEqualTypeOf<Order[]>();
-  //   }
-  // });
+  test('should get all orders', async () => {
+    const orders = await orderbook.getOrders();
+    expect(orders.error).toBeUndefined();
+    console.log('all orders here orders.val :', orders.val);
+    console.log('orders.val.data :', orders.val?.data);
+    if (orders.val) {
+      expect(orders.val.data.length).toBeGreaterThan(0);
+      expectTypeOf(orders.val.data).toEqualTypeOf<Order[]>();
+    }
+  });
 
-  // test('should subscribe to orders', async () => {
-  //   const unsubscribe = await orderbook.subscribeOrders(
-  //     address,
-  //     1000,
-  //     async (orders) => {
-  //       console.log('subscribe orders :', orders);
-  //       expect(orders.data.length).toBeGreaterThan(0);
-  //       expectTypeOf(orders.data).toEqualTypeOf<Order[]>();
-  //     },
-  //   );
-  //   expectTypeOf(unsubscribe).toEqualTypeOf<() => void>();
-  // });
+  test('should subscribe to orders', async () => {
+    const unsubscribe = await orderbook.subscribeOrders(
+      address,
+      1000,
+      async (orders) => {
+        console.log('subscribe orders :', orders);
+        expect(orders.data.length).toBeGreaterThan(0);
+        expectTypeOf(orders.data).toEqualTypeOf<Order[]>();
+      },
+    );
+    expectTypeOf(unsubscribe).toEqualTypeOf<() => void>();
+  });
 
-  test('should create an order', async () => {
-    const CreateOrderRequest: NewCreateOrderRequest = {
+  test.only('should create an order', async () => {
+    const CreateOrderRequest: CreateOrderRequest = {
       source: {
         asset: 'arbitrum:wbtc',
         owner: '0xdF4E5212cC36428504712d7E75a9922762FeD28A',
@@ -83,17 +83,13 @@ describe('orders provider', async () => {
       },
       slippage: 50,
       secret_hash:
-        '057ff5cacab1d75df04e8e9d349f0d8dd92e87b989244b934d9b09bc97fc4169',
+        '037ff5cacab1d35df04e6e9d349f0d8dd92e87b989244b934d9b09bc97fc4169',
       nonce: 250,
       affiliate_fees: [],
     };
     // console.log('CreateOrderRequest :', JSON.stringify(CreateOrderRequest));
     const order = await orderbook.createOrder(CreateOrderRequest, auth);
-    console.log('order ID value :', order.val?.order_id);
-    console.log('order value :', order.val);
-    console.log('order :', order.ok);
-    console.log('order error:', order.error);
-    // console.log('order :', order);
+    console.log('order :', order.val);
   }, 5000000);
 });
 

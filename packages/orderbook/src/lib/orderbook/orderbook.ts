@@ -1,12 +1,11 @@
 import {
-  CreateOrderFromEVMResponse,
-  // CreateOrderRequestWithAdditionalData,
   IOrderbook,
-  NewCreateOrderRequest,
+  CreateOrderResponse,
   Order,
   PaginatedData,
   PaginationConfig,
   Status,
+  CreateOrderRequest,
 } from './orderbook.types';
 import {
   APIResponse,
@@ -17,7 +16,7 @@ import {
   Ok,
   Url,
 } from '@gardenfi/utils';
-import { ConstructUrl } from '../utils';
+import { ConstructUrl, withDiscriminatedType } from '../utils';
 import { Chain } from '../asset';
 
 /**
@@ -34,20 +33,20 @@ export class Orderbook implements IOrderbook {
 
   /**
    * Creates an order
-   * @param {CreateOrderRequestWithAdditionalData} order - The configuration for the creating the order.
+   * @param {CreateOrderRequest} order - The configuration for the creating the order.
    * @param {IAuth} auth - The auth object.
-   * @returns {CreateOrderFromEVMResponse} The create order ID.
+   * @returns {CreateOrderResponse} The create order ID.
    */
   async createOrder(
-    order: NewCreateOrderRequest,
+    order: CreateOrderRequest,
     auth: IAuth,
-  ): AsyncResult<CreateOrderFromEVMResponse, string> {
+  ): AsyncResult<CreateOrderResponse, string> {
     const headers = await auth.getAuthHeaders();
     if (headers.error) {
       return Err(headers.error);
     }
     try {
-      const res = await Fetcher.post<APIResponse<CreateOrderFromEVMResponse>>(
+      const res = await Fetcher.post<APIResponse<CreateOrderResponse>>(
         this.Url.endpoint('/v2/orders'),
         {
           body: JSON.stringify(order),
@@ -60,7 +59,12 @@ export class Orderbook implements IOrderbook {
       if (res.error) return Err(res.error);
       if (!res.result)
         return Err('CreateOrder: Unexpected error, result is undefined');
-      return Ok(res.result);
+      const finalSol = withDiscriminatedType(res.result);
+      if (!finalSol) {
+        return Err('CreateOrder: Unable to determine order type from response');
+      }
+
+      return Ok(finalSol);
     } catch (error) {
       return Err('CreateOrder Err:', String(error));
     }

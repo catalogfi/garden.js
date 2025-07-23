@@ -1,4 +1,4 @@
-import { APIResponse, AsyncResult, IAuth, IStore } from '@gardenfi/utils';
+import { AsyncResult, IAuth, IStore } from '@gardenfi/utils';
 import { Asset, Chain } from '../asset';
 import type { TypedData as EIP712TypedData } from 'viem';
 import type { Calldata, RawArgs, TypedData } from 'starknet';
@@ -94,9 +94,9 @@ export interface IOrderbook {
    * @returns {number} The create order ID.
    */
   createOrder(
-    order: NewCreateOrderRequest,
+    order: CreateOrderRequest,
     auth: IAuth,
-  ): AsyncResult<CreateOrderFromEVMResponse, string>;
+  ): AsyncResult<CreateOrderResponse, string>;
 
   /**
    * Get the order from orderbook based on provided Id and match status.
@@ -169,35 +169,6 @@ export type DecodedAuthToken = {
   iat: number;
 };
 
-export type Orders = {
-  unmatched: PaginatedData<CreateOrder[]>;
-  matched: PaginatedData<Order[]>;
-};
-
-export type AdditionalData = {
-  additional_data: {
-    strategy_id: string;
-    sig: string;
-    input_token_price: number;
-    output_token_price: number;
-    deadline: number;
-    bitcoin_optional_recipient?: string;
-    [key: string]: any;
-  };
-};
-
-export type AdditionalDataWithStrategyId = {
-  additional_data: {
-    strategy_id: string;
-    bitcoin_optional_recipient?: string;
-    [key: string]: any;
-  };
-};
-
-export type CreateOrderReqWithStrategyId = CreateOrderRequest &
-  AdditionalDataWithStrategyId &
-  AffiliateFeeList<AffiliateFee>;
-
 export type AffiliateFee = {
   address: string;
   asset: string;
@@ -216,7 +187,7 @@ export type AffiliateFeeList<T extends AffiliateFee | AffiliateFeeWithAmount> =
 export type AffiliateFeeOptionalAsset = Omit<AffiliateFee, 'asset'> &
   Partial<Pick<AffiliateFee, 'asset'>>;
 
-export type CreateOrderRequest = {
+export type OldCreateOrderRequest = {
   source_chain: string;
   destination_chain: string;
   source_asset: string;
@@ -232,21 +203,9 @@ export type CreateOrderRequest = {
   secret_hash: string;
 };
 
-export type CreateOrderRequestWithAdditionalData = CreateOrderRequest &
-  AdditionalData &
-  AffiliateFeeList<AffiliateFeeWithAmount>;
-
-export type CreateOrder = CreateOrderRequestWithAdditionalData & {
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
-  create_id: string;
-  block_number: string;
-};
-
 export type FormattedAssetString = `${Chain}:${string}`;
 
-export type NewCreateOrderRequest = {
+export type CreateOrderRequest = {
   source: {
     asset: FormattedAssetString;
     owner: string;
@@ -295,15 +254,6 @@ export type Swap = {
   current_confirmations: number;
 };
 
-// export type MatchedOrder = {
-//   created_at: string;
-//   updated_at: string;
-//   deleted_at: string | null;
-//   source_swap: Swap;
-//   destination_swap: Swap;
-//   create_order: CreateOrder;
-// };
-
 export type Order = {
   order_id: string;
   created_at: string;
@@ -323,8 +273,6 @@ export type PaginatedData<T> = {
   total_items: number;
   per_page: number;
 };
-
-export type CreateOrderResponse = APIResponse<string>;
 
 export type PaginationConfig = {
   page?: number;
@@ -377,3 +325,9 @@ export type CreateOrderFromStarknetResponse = WithTypedData<
 export type CreateOrderFromSolanaResponse = BaseCreateOrderResponse & {
   versioned_tx: string;
 };
+
+export type CreateOrderResponse =
+  | ({ type: 'evm' } & CreateOrderFromEVMResponse)
+  | ({ type: 'bitcoin' } & CreateOrderFromBitcoinResponse)
+  | ({ type: 'starknet' } & CreateOrderFromStarknetResponse)
+  | ({ type: 'solana' } & CreateOrderFromSolanaResponse);
