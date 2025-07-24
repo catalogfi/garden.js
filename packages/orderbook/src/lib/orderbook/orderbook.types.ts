@@ -308,8 +308,8 @@ type WithTypedData<T, D> = T & { typed_data: D };
 
 export type EvmOrderResponse = WithTypedData<
   BaseCreateOrderResponse & {
-    approval_transaction?: EVMTransaction;
-    initiate_transaction?: EVMTransaction;
+    approval_transaction: EVMTransaction | null;
+    initiate_transaction: EVMTransaction;
   },
   EIP712TypedData
 >;

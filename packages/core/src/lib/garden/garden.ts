@@ -11,11 +11,15 @@ import {
 } from './garden.types';
 import {
   AffiliateFee,
+  Asset,
   BlockchainType,
   Chain,
+  ChainAsset,
   CreateOrderRequest,
+  EvmOrderResponse,
   getBlockchainType,
-  getTimeLock,
+  getChain,
+  getChainTypeFromAssetChain,
   IOrderbook,
   isBitcoin,
   isMainnet,
@@ -246,8 +250,8 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
     const { btcAddress } = params.additionalData;
 
-    const isSourceBitcoin = isBitcoin(params.fromAsset.chain);
-    const isDestinationBitcoin = isBitcoin(params.toAsset.chain);
+    const isSourceBitcoin = isBitcoin(getChain(params.fromAsset));
+    const isDestinationBitcoin = isBitcoin(getChain(params.toAsset));
 
     const order: CreateOrderRequest = {
       source: {
@@ -272,8 +276,15 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     if (!createOrderRes.ok) return Err(createOrderRes.error);
 
     const orderRes = await this.pollOrder(createOrderRes.val.order_id);
+    console.log('orderRes', orderRes.val?.order_id);
     if (!orderRes.ok) return Err(orderRes.error);
-
+    if (getChainTypeFromAssetChain(order.source.asset) === 'evm') {
+      const initRes = await this._evmHTLC?.initiateWithCreateOrderResponse(
+        createOrderRes.val as unknown as EvmOrderResponse,
+      );
+      console.log('initRes', initRes);
+      return Ok(orderRes.val);
+    }
     return Ok(orderRes.val);
   }
 
@@ -288,20 +299,14 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   }
 
   private async validateAndFillParams(params: SwapParams) {
-    if (!params.additionalData.strategyId) return Err('StrategyId is required');
-
     if (!params.fromAsset || !params.toAsset)
       return Err('Source and destination assets are required for swap');
 
     if (
-      params.fromAsset.chain === params.toAsset.chain &&
-      params.fromAsset.atomicSwapAddress === params.toAsset.atomicSwapAddress
-    )
-      return Err('Source and destination assets cannot be the same');
-
-    if (
-      (isMainnet(params.fromAsset.chain) && !isMainnet(params.toAsset.chain)) ||
-      (!isMainnet(params.fromAsset.chain) && isMainnet(params.toAsset.chain))
+      (isMainnet(getChain(params.fromAsset)) &&
+        !isMainnet(getChain(params.toAsset))) ||
+      (!isMainnet(getChain(params.fromAsset)) &&
+        isMainnet(getChain(params.toAsset)))
     )
       return Err(
         'Both assets should be on the same network (either mainnet or testnet)',
@@ -316,30 +321,30 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     if (inputAmount < outputAmount)
       return Err('Send amount should be greater than receive amount');
 
-    const timelock = getTimeLock(params.fromAsset.chain);
-    if (!timelock) return Err('Unsupported chain for timelock');
-
-    if (isBitcoin(params.fromAsset.chain) || isBitcoin(params.toAsset.chain)) {
+    if (
+      isBitcoin(getChain(params.fromAsset)) ||
+      isBitcoin(getChain(params.toAsset))
+    ) {
       if (!params.additionalData.btcAddress)
         return Err(
           'btcAddress in additionalData is required if source or destination chain is bitcoin, it is used as refund or redeem address.',
         );
     }
 
-    const sendAddress = await this.getAddresses(params.fromAsset.chain);
+    const sendAddress = await this.getAddresses(params.fromAsset);
     if (!sendAddress.ok) return Err(sendAddress.error);
 
-    const receiveAddress = await this.getAddresses(params.toAsset.chain);
+    const receiveAddress = await this.getAddresses(params.toAsset);
     if (!receiveAddress.ok) return Err(receiveAddress.error);
 
     return Ok({
       sendAddress: sendAddress.val,
       receiveAddress: receiveAddress.val,
-      timelock: params.timelock ?? timelock,
     });
   }
 
-  private async getAddresses(chain: Chain) {
+  private async getAddresses(asset: Asset | ChainAsset) {
+    const chain = getChain(asset);
     const blockChianType = getBlockchainType(chain);
     switch (blockChianType) {
       case BlockchainType.EVM:

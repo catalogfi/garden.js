@@ -8,7 +8,12 @@ import {
   waitForTransactionReceipt,
 } from '@gardenfi/utils';
 import { WalletClient, createPublicClient, getContract, http } from 'viem';
-import { isEVM, isEvmNativeToken, MatchedOrder } from '@gardenfi/orderbook';
+import {
+  EvmOrderResponse,
+  isEVM,
+  isEvmNativeToken,
+  Order,
+} from '@gardenfi/orderbook';
 import { APIResponse, IAuth, Url, with0x } from '@gardenfi/utils';
 import { AtomicSwapABI } from '../abi/atomicSwap';
 import { IEVMHTLC } from '../htlc.types';
@@ -34,7 +39,50 @@ export class EvmRelay implements IEVMHTLC {
     return this.wallet.account.address;
   }
 
-  async initiate(order: MatchedOrder): AsyncResult<string, string> {
+  async initiateWithCreateOrderResponse(
+    order: EvmOrderResponse,
+  ): AsyncResult<string, string> {
+    if (!this.wallet.account) return Err('No account found');
+
+    try {
+      const { typed_data } = order;
+
+      const signature = await this.wallet.signTypedData({
+        account: this.wallet.account,
+        domain: typed_data['domain'] as unknown as Record<string, unknown>,
+        types: typed_data['types'] as unknown as Record<string, unknown>,
+        primaryType: typed_data['primaryType'] as unknown as string,
+        message: typed_data['message'] as unknown as Record<string, unknown>,
+      });
+      console.log('signature', signature);
+      const headers: Record<string, string> = {
+        ...(await this.auth.getAuthHeaders()).val,
+        'Content-Type': 'application/json',
+      };
+      console.log('headers', headers);
+      const res = await Fetcher.patch<APIResponse<string>>(
+        this.url
+          .endpoint('/v2/orders')
+          .endpoint(order.order_id)
+          .addSearchParams({ action: 'initiate' }),
+        {
+          body: JSON.stringify({
+            signature,
+          }),
+          headers,
+        },
+      );
+      console.log('res', res);
+      console.log('res.error', res.error);
+      if (res.error) return Err(res.error);
+      return Ok(res.result as string);
+    } catch (error: any) {
+      console.error('initiateWithCreateOrderResponse error:', error);
+      return Err('Failed to initiate: ' + (error?.message || String(error)));
+    }
+  }
+
+  async initiate(order: Order): AsyncResult<string, string> {
     if (!this.wallet.account) return Err('No account found');
     if (
       this.wallet.account.address.toLowerCase() !==
@@ -52,23 +100,23 @@ export class EvmRelay implements IEVMHTLC {
     this.wallet = _walletClient.val.walletClient;
     if (!this.wallet.account) return Err('No account found');
 
-    const { create_order, source_swap } = order;
+    const { source_swap } = order;
 
     if (
       !source_swap.amount ||
       !source_swap.redeemer ||
-      !create_order.timelock ||
-      !create_order.secret_hash
+      !source_swap.timelock ||
+      !source_swap.secret_hash
     )
       return Err('Invalid order');
 
-    const secretHash = with0x(create_order.secret_hash);
-    const timelock = BigInt(create_order.timelock);
+    const secretHash = with0x(source_swap.secret_hash);
+    const timelock = BigInt(source_swap.timelock);
     const redeemer = with0x(source_swap.redeemer);
     const amount = BigInt(source_swap.amount);
 
     const tokenAddress = await this.getTokenAddress(order.source_swap.asset);
-    if (!tokenAddress.ok ) return Err(tokenAddress.error);
+    if (!tokenAddress.ok) return Err(tokenAddress.error);
 
     if (isEvmNativeToken(order.source_swap.chain, tokenAddress.val)) {
       return this._initiateOnNativeHTLC(
@@ -86,7 +134,7 @@ export class EvmRelay implements IEVMHTLC {
         redeemer,
         order.source_swap.asset,
         tokenAddress.val,
-        create_order.create_id,
+        order.order_id,
       );
     }
   }
@@ -225,10 +273,7 @@ export class EvmRelay implements IEVMHTLC {
     }
   }
 
-  async redeem(
-    order: MatchedOrder,
-    secret: string,
-  ): AsyncResult<string, string> {
+  async redeem(order: Order, secret: string): AsyncResult<string, string> {
     try {
       const headers = await this.auth.getAuthHeaders();
       if (!headers.ok) return Err(headers.error);
@@ -237,7 +282,7 @@ export class EvmRelay implements IEVMHTLC {
         this.url.endpoint('redeem'),
         {
           body: JSON.stringify({
-            order_id: order.create_order.create_id,
+            order_id: order.order_id,
             secret: trim0x(secret),
             perform_on: 'Destination',
           }),

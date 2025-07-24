@@ -1,4 +1,4 @@
-import { MatchedOrder } from '@gardenfi/orderbook';
+import { Order } from '@gardenfi/orderbook';
 import { Swap } from '@gardenfi/orderbook';
 import { OrderActions } from '../garden/garden.types';
 import { OrderStatus, SwapStatus } from './status';
@@ -12,7 +12,7 @@ import { OrderStatus, SwapStatus } from './status';
  * @returns {OrderStatus} The status of the order
  */
 export const ParseOrderStatus = (
-  order: MatchedOrder,
+  order: Order,
   sourceChainCurrentBlockNumber: number,
   destChainCurrentBlockNumber: number,
 ): OrderStatus => {
@@ -118,7 +118,7 @@ export const ParseSwapStatus = (swap: Swap, currentBlockNumber: number) => {
  * @returns {OrderActions} The action to be performed on the order
  */
 export const parseAction = (
-  order: MatchedOrder,
+  order: Order,
   sourceChainCurrentBlockNumber: number,
   destChainCurrentBlockNumber: number,
 ): OrderActions => {
@@ -157,15 +157,13 @@ export const isExpired = (unixTime: number, tillHours = 0): boolean => {
   return currentTime >= expiryTime;
 };
 
-export const filterDeadlineExpiredOrders = (
-  orders: MatchedOrder[],
-): MatchedOrder[] => {
+export const filterDeadlineExpiredOrders = (orders: Order[]): Order[] => {
   return orders.filter((order) => {
     return !isOrderExpired(order);
   });
 };
 
-export const isOrderExpired = (order: MatchedOrder): boolean => {
+export const isOrderExpired = (order: Order): boolean => {
   const { source_swap, create_order } = order;
   const { initiate_tx_hash, initiate_block_number } = source_swap;
   const { deadline } = create_order.additional_data;

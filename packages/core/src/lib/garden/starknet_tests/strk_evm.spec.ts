@@ -17,8 +17,9 @@ import { STARKNET_CONFIG } from './../../constants';
 
 describe('StarkNet Integration Tests', () => {
   // Wallet configurations
-  const EVM_PRIVATE_KEY =
-    '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
+  // const EVM_PRIVATE_KEY =
+  //   '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
+
   const STARKNET_PRIVATE_KEY =
     '0x03eb1a8fc77eac663580829c3cfc3c3f8d495f16366af1cf42a7f4460cfbcd97';
   const STARKNET_ADDRESS =
@@ -158,7 +159,6 @@ describe('StarkNet Integration Tests', () => {
         receiveAmount: '99200',
         additionalData: {
           btcAddress: 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru',
-          strategyId: 'ea56aa70',
         },
       };
       const result = await garden.swap(order);
@@ -172,12 +172,12 @@ describe('StarkNet Integration Tests', () => {
       expect(result.val).toBeTruthy();
     }, 150000);
 
-    it('Initiate the swap', async () => {
-      const res = await garden.evmHTLC?.initiate(matchedOrder);
-      console.log('initiated ✅ :', res?.val);
-      if (res?.error) console.log('init error ❌ :', res.error);
-      expect(res?.ok).toBeTruthy();
-    }, 150000);
+    // it('Initiate the swap', async () => {
+    //   const res = await garden.evmHTLC?.initiate(matchedOrder);
+    //   console.log('initiated ✅ :', res?.val);
+    //   if (res?.error) console.log('init error ❌ :', res.error);
+    //   expect(res?.ok).toBeTruthy();
+    // }, 150000);
 
     it('Execute', async () => {
       setupEventListeners(garden);
@@ -195,10 +195,7 @@ describe('StarkNet Integration Tests', () => {
         toAsset: SupportedAssets.testnet.starknet_testnet_WBTC,
         sendAmount: '500000',
         receiveAmount: '214821925172042749',
-        additionalData: {
-          strategyId: 'as1dss59',
-        },
-        minDestinationConfirmations: 3,
+        additionalData: {},
       };
 
       const result = await garden.swap(order);

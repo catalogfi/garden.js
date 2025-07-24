@@ -214,7 +214,12 @@ export const isNativeToken = (asset: Asset) => {
   );
 };
 
-export const toFormattedAssetString = (asset: Asset): ChainAsset => {
+export const toFormattedAssetString = (
+  asset: Asset | ChainAsset,
+): ChainAsset => {
+  if (typeof asset === 'string') {
+    return asset as ChainAsset;
+  }
   return `${asset.chain}:${asset.symbol.toLowerCase()}` as ChainAsset;
 };
 
@@ -248,6 +253,13 @@ export const getChainsFromOrder = (
     sourceChain: sourceChain as Chain,
     destinationChain: destinationChain as Chain,
   };
+};
+
+export const getChain = (asset: Asset | ChainAsset): Chain => {
+  if (typeof asset === 'string') {
+    return asset.split(':')[0] as Chain;
+  }
+  return asset.chain;
 };
 
 /**

@@ -1,7 +1,7 @@
 import {
   AffiliateFee,
   Asset,
-  // ChainAsset,
+  ChainAsset,
   IOrderbook,
   Order,
 } from '@gardenfi/orderbook';
@@ -26,12 +26,12 @@ export type SwapParams = {
    * Asset to be sent.
    */
   // fromAsset: ChainAsset;
-  fromAsset: Asset;
+  fromAsset: Asset | ChainAsset;
   /**
    * Asset to be received.
    */
   // toAsset: ChainAsset;
-  toAsset: Asset;
+  toAsset: Asset | ChainAsset;
   /**
    * Amount in lowest denomination of the sendAsset.
    */
@@ -41,25 +41,13 @@ export type SwapParams = {
    */
   receiveAmount: string;
   /**
-   * Time lock for the swap.
+   * Slippage for the order.
    */
-  timelock?: number;
-  /**
-   * This will wait for the specified number of confirmations before redeeming the funds.
-   */
-  minDestinationConfirmations?: number;
-  /**
-   * Unique nonce for generating secret and secret hashes. If not provided, it will be generated as the total order count until now + 1.
-   */
-  nonce?: number;
+  slippage?: number;
   /**
    * Additional data for the order.
    */
   additionalData: {
-    /**
-     * Get strategy id from the quote
-     */
-    strategyId: string;
     /**
      * Provide btcAddress if the destination or source chain is bitcoin. This address is used as refund address if source chain is bitcoin, and as redeem address if destination chain is bitcoin.
      */
