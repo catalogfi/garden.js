@@ -1,8 +1,9 @@
 import {
-  AffiliateFeeOptionalChainAsset,
+  AffiliateFee,
   Asset,
+  // ChainAsset,
   IOrderbook,
-  MatchedOrder,
+  Order,
 } from '@gardenfi/orderbook';
 import { OrderStatus } from '../orderStatus/status';
 import { AsyncResult, Environment, EventBroker, IAuth } from '@gardenfi/utils';
@@ -24,10 +25,12 @@ export type SwapParams = {
   /**
    * Asset to be sent.
    */
+  // fromAsset: ChainAsset;
   fromAsset: Asset;
   /**
    * Asset to be received.
    */
+  // toAsset: ChainAsset;
   toAsset: Asset;
   /**
    * Amount in lowest denomination of the sendAsset.
@@ -65,19 +68,19 @@ export type SwapParams = {
   /**
    * Integrator fee for the order.
    */
-  affiliateFee?: AffiliateFeeOptionalChainAsset[];
+  affiliateFee?: AffiliateFee[];
 };
 
-export type OrderWithStatus = MatchedOrder & {
+export type OrderWithStatus = Order & {
   status: OrderStatus;
 };
 
 export type GardenEvents = {
-  error: (order: MatchedOrder, error: string) => void;
-  success: (order: MatchedOrder, action: OrderActions, result: string) => void;
+  error: (order: Order, error: string) => void;
+  success: (order: Order, action: OrderActions, result: string) => void;
   onPendingOrdersChanged: (orders: OrderWithStatus[]) => void;
   log: (id: string, message: string) => void;
-  rbf: (order: MatchedOrder, result: string) => void;
+  rbf: (order: Order, result: string) => void;
 };
 
 export type EventCallback = (...args: any[]) => void;
@@ -91,7 +94,7 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
    * @param {SwapParams} params - The parameters for creating the order.
    * @returns {AsyncResult<MatchedOrder, string>} The result of the swap operation.
    */
-  swap(params: SwapParams): AsyncResult<MatchedOrder, string>;
+  swap(params: SwapParams): AsyncResult<Order, string>;
 
   /**
    * Execute an action.
@@ -167,14 +170,9 @@ export type OrderCacheValue = {
 };
 
 export interface IOrderExecutorCache {
-  set(
-    order: MatchedOrder,
-    action: OrderActions,
-    txHash: string,
-    utxo?: string,
-  ): void;
-  get(order: MatchedOrder, action: OrderActions): OrderCacheValue | null;
-  remove(order: MatchedOrder, action: OrderActions): void;
+  set(order: Order, action: OrderActions, txHash: string, utxo?: string): void;
+  get(order: Order, action: OrderActions): OrderCacheValue | null;
+  remove(order: Order, action: OrderActions): void;
 }
 
 export type ApiConfig =

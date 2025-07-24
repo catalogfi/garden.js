@@ -11,17 +11,17 @@ import {
 } from './garden.types';
 import {
   AffiliateFee,
-  AffiliateFeeOptionalChainAsset,
   BlockchainType,
   Chain,
-  CreateOrderReqWithStrategyId,
+  CreateOrderRequest,
   getBlockchainType,
   getTimeLock,
   IOrderbook,
   isBitcoin,
   isMainnet,
-  MatchedOrder,
+  Order,
   Orderbook,
+  toFormattedAssetString,
 } from '@gardenfi/orderbook';
 import {
   APIResponse,
@@ -230,68 +230,59 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   /**
    * This method takes in the `SwapParams` and returns a placed order
-   * It internally calls `getAttestedQuote`, `createOrder` and `pollOrder`
+   * It internally calls `createOrder` and `pollOrder`
    * @param swapParams
-   * @returns MatchedOrder
+   * @returns Order
    */
-  async swap(params: SwapParams): AsyncResult<MatchedOrder, string> {
+  async swap(params: SwapParams): AsyncResult<Order, string> {
     const validate = await this.validateAndFillParams(params);
     if (!validate.ok) return Err(validate.error);
 
-    const { sendAddress, receiveAddress, timelock } = validate.val;
+    const { sendAddress, receiveAddress } = validate.val;
 
     const nonce = Date.now().toString();
     const secrets = await this._secretManager.generateSecret(nonce);
     if (!secrets.ok) return Err(secrets.error);
 
-    const { strategyId, btcAddress } = params.additionalData;
-    const additionalData = {
-      strategy_id: strategyId,
-      ...(btcAddress && {
-        bitcoin_optional_recipient: btcAddress,
-      }),
-    };
+    const { btcAddress } = params.additionalData;
 
-    const order: CreateOrderReqWithStrategyId = {
-      source_chain: params.fromAsset.chain,
-      destination_chain: params.toAsset.chain,
-      source_asset: params.fromAsset.atomicSwapAddress,
-      destination_asset: params.toAsset.atomicSwapAddress,
-      initiator_source_address: sendAddress,
-      initiator_destination_address: receiveAddress,
-      source_amount: params.sendAmount,
-      destination_amount: params.receiveAmount,
-      fee: '1',
-      nonce: nonce,
-      timelock: timelock,
+    const isSourceBitcoin = isBitcoin(params.fromAsset.chain);
+    const isDestinationBitcoin = isBitcoin(params.toAsset.chain);
+
+    const order: CreateOrderRequest = {
+      source: {
+        asset: toFormattedAssetString(params.fromAsset),
+        owner: sendAddress,
+        delegate: isSourceBitcoin ? btcAddress ?? null : null,
+        amount: params.sendAmount,
+      },
+      destination: {
+        asset: toFormattedAssetString(params.toAsset),
+        owner: receiveAddress,
+        delegate: isDestinationBitcoin ? btcAddress ?? null : null,
+        amount: params.receiveAmount,
+      },
+      nonce: Number(nonce),
       secret_hash: trim0x(secrets.val.secretHash),
-      min_destination_confirmations: params.minDestinationConfirmations ?? 0,
-      additional_data: additionalData,
       affiliate_fees: this.withDefaultAffiliateFees(params.affiliateFee),
+      slippage: 50,
     };
 
-    const quoteRes = await this._quote.getAttestedQuote(order);
-    if (!quoteRes.ok) return Err(quoteRes.error);
-
-    const createOrderRes = await this._orderbook.createOrder(
-      quoteRes.val,
-      this._auth,
-    );
+    const createOrderRes = await this._orderbook.createOrder(order, this._auth);
     if (!createOrderRes.ok) return Err(createOrderRes.error);
 
-    const orderRes = await this.pollOrder(createOrderRes.val);
+    const orderRes = await this.pollOrder(createOrderRes.val.order_id);
     if (!orderRes.ok) return Err(orderRes.error);
 
     return Ok(orderRes.val);
   }
 
   private withDefaultAffiliateFees(
-    list: AffiliateFeeOptionalChainAsset[] | undefined,
+    list: AffiliateFee[] | undefined,
   ): AffiliateFee[] {
     return (list ?? []).map((fee) => ({
       fee: fee.fee,
       address: fee.address,
-      chain: fee.chain ?? DEFAULT_AFFILIATE_ASSET.chain,
       asset: fee.asset ?? DEFAULT_AFFILIATE_ASSET.asset,
     }));
   }
@@ -391,7 +382,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   }
 
   private async pollOrder(createOrderID: string) {
-    let orderRes = await this._orderbook.getOrder(createOrderID, true);
+    let orderRes = await this._orderbook.getOrder(createOrderID);
     let attempts = 0;
 
     while (attempts < this.getOrderThreshold) {
@@ -404,13 +395,12 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         }
       } else if (
         orderRes.val &&
-        orderRes.val.create_order.create_id.toLowerCase() ===
-          createOrderID.toLowerCase()
+        orderRes.val.order_id.toLowerCase() === createOrderID.toLowerCase()
       ) {
         return Ok(orderRes.val);
       }
 
-      orderRes = await this._orderbook.getOrder(createOrderID, true);
+      orderRes = await this._orderbook.getOrder(createOrderID);
     }
 
     return Err(`Order not found, createOrder id: ${createOrderID}`);
@@ -419,7 +409,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   async execute(interval: number = 5000): Promise<() => void> {
     return await this._orderbook.subscribeOrders(
       this._digestKey.userId,
-      true,
       interval,
       async (pendingOrders) => {
         const ordersWithStatus = await this.filterExpiredAndAssignStatus(
@@ -451,7 +440,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           switch (orderAction) {
             case OrderActions.Redeem: {
               const secrets = await this._secretManager.generateSecret(
-                order.create_order.nonce,
+                order.nonce,
               );
               if (!secrets.ok) {
                 this.emit('error', order, secrets.error);
@@ -545,11 +534,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     );
   }
 
-  private async solRedeem(order: MatchedOrder, secret: string) {
-    this.emit('log', order.create_order.create_id, 'executing sol redeem');
+  private async solRedeem(order: Order, secret: string) {
+    this.emit('log', order.order_id, 'executing sol redeem');
     const cache = this.orderExecutorCache.get(order, OrderActions.Redeem);
     if (cache) {
-      this.emit('log', order.create_order.create_id, 'already redeemed');
+      this.emit('log', order.order_id, 'already redeemed');
       return;
     }
 
@@ -579,11 +568,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     }
   }
 
-  private async evmRedeem(order: MatchedOrder, secret: string): Promise<void> {
-    this.emit('log', order.create_order.create_id, 'executing evm redeem');
+  private async evmRedeem(order: Order, secret: string): Promise<void> {
+    this.emit('log', order.order_id, 'executing evm redeem');
     const cache = this.orderExecutorCache.get(order, OrderActions.Redeem);
     if (cache) {
-      this.emit('log', order.create_order.create_id, 'already redeemed');
+      this.emit('log', order.order_id, 'already redeemed');
       return;
     }
 
@@ -610,11 +599,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this.emit('success', order, OrderActions.Redeem, res.val);
   }
 
-  private async starknetRedeem(order: MatchedOrder, secret: string) {
-    this.emit('log', order.create_order.create_id, 'executing starknet redeem');
+  private async starknetRedeem(order: Order, secret: string) {
+    this.emit('log', order.order_id, 'executing starknet redeem');
     const cache = this.orderExecutorCache.get(order, OrderActions.Redeem);
     if (cache) {
-      this.emit('log', order.create_order.create_id, 'already redeemed');
+      this.emit('log', order.order_id, 'already redeemed');
       return;
     }
     if (!this._starknetHTLC) {
@@ -642,10 +631,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   private async btcRedeem(
     wallet: IBitcoinWallet,
-    order: MatchedOrder,
+    order: Order,
     secret: string,
   ) {
-    const _cache = this.bitcoinRedeemCache.get(order.create_order.create_id);
+    const _cache = this.bitcoinRedeemCache.get(order.order_id);
     const fillerInitTx = order.destination_swap.initiate_tx_hash
       .split(',')
       .at(-1)
@@ -660,23 +649,19 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     if (_cache) {
       if (_cache.redeemedFromUTXO && _cache.redeemedFromUTXO !== fillerInitTx) {
         rbf = true;
-        this.emit('log', order.create_order.create_id, 'rbf btc redeem');
+        this.emit('log', order.order_id, 'rbf btc redeem');
       } else if (
         _cache.redeemedAt &&
         Date.now() - _cache.redeemedAt > 1000 * 60 * 15 // 15 minutes
       ) {
         this.emit(
           'log',
-          order.create_order.create_id,
+          order.order_id,
           'redeem not confirmed in last 15 minutes',
         );
         rbf = true;
       } else {
-        this.emit(
-          'log',
-          order.create_order.create_id,
-          'btcRedeem: already redeemed',
-        );
+        this.emit('log', order.order_id, 'btcRedeem: already redeemed');
         return;
       }
     } else if (
@@ -685,9 +670,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       !Number(order.destination_swap.redeem_block_number)
     ) {
       try {
-        const tx = await (await wallet.getProvider()).getTransaction(
-          order.destination_swap.redeem_tx_hash,
-        );
+        const tx = await (
+          await wallet.getProvider()
+        ).getTransaction(order.destination_swap.redeem_tx_hash);
 
         let isValidRedeem = false;
         for (const input of tx.vin) {
@@ -697,11 +682,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           }
         }
         if (isValidRedeem) {
-          this.emit(
-            'log',
-            order.create_order.create_id,
-            'already a valid redeem',
-          );
+          this.emit('log', order.order_id, 'already a valid redeem');
           let redeemedAt = 0;
           try {
             const [_redeemedAt] = await (
@@ -713,7 +694,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
             redeemedAt = Date.now();
           }
 
-          this.bitcoinRedeemCache.set(order.create_order.create_id, {
+          this.bitcoinRedeemCache.set(order.order_id, {
             redeemedFromUTXO: fillerInitTx,
             redeemedAt,
             redeemTxHash: order.destination_swap.redeem_tx_hash,
@@ -731,39 +712,35 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       }
     }
 
-    this.emit('log', order.create_order.create_id, 'executing btc redeem');
+    this.emit('log', order.order_id, 'executing btc redeem');
     try {
       const bitcoinExecutor = await GardenHTLC.from(
         wallet as IBitcoinWallet,
         Number(order.destination_swap.amount),
-        order.create_order.secret_hash,
+        order.source_swap.secret_hash,
         toXOnly(order.destination_swap.initiator),
         toXOnly(order.destination_swap.redeemer),
         order.destination_swap.timelock,
         rbf ? [fillerInitTx] : [],
       );
+      const isSourceBitcoin = isBitcoin(order.source_swap.chain);
       const redeemHex = await bitcoinExecutor.getRedeemHex(
         trim0x(secret),
-        order.create_order.additional_data?.bitcoin_optional_recipient,
+        isSourceBitcoin
+          ? order.source_swap.delegate
+          : order.destination_swap.delegate,
       );
-      const res = await this.broadcastRedeemTx(
-        redeemHex,
-        order.create_order.create_id,
-      );
+      const res = await this.broadcastRedeemTx(redeemHex, order.order_id);
       if (!res.ok) {
         this.emit('error', order, res.error || 'Failed to broadcast redeem tx');
         return;
       }
 
       if (rbf) {
-        this.emit(
-          'log',
-          order.create_order.create_id,
-          'rbf: btc redeem success',
-        );
+        this.emit('log', order.order_id, 'rbf: btc redeem success');
         this.emit('rbf', order, res.val);
       } else this.emit('success', order, OrderActions.Redeem, res.val);
-      this.bitcoinRedeemCache.set(order.create_order.create_id, {
+      this.bitcoinRedeemCache.set(order.order_id, {
         redeemedFromUTXO: fillerInitTx,
         redeemedAt: Date.now(),
         redeemTxHash: res.val,
@@ -773,25 +750,23 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     }
   }
 
-  private async btcRefund(wallet: IBitcoinWallet, order: MatchedOrder) {
+  private async btcRefund(wallet: IBitcoinWallet, order: Order) {
     if (this.orderExecutorCache.get(order, OrderActions.Refund)) {
       return;
     }
 
-    this.emit('log', order.create_order.create_id, 'executing btc refund');
+    this.emit('log', order.order_id, 'executing btc refund');
 
     try {
       const bitcoinExecutor = await GardenHTLC.from(
         wallet as IBitcoinWallet,
         Number(order.source_swap.amount),
-        order.create_order.secret_hash,
+        order.source_swap.secret_hash,
         toXOnly(order.source_swap.initiator),
         toXOnly(order.source_swap.redeemer),
         order.source_swap.timelock,
       );
-      const res = await bitcoinExecutor.refund(
-        order.create_order.additional_data?.bitcoin_optional_recipient,
-      );
+      const res = await bitcoinExecutor.refund(order.source_swap.delegate);
       this.orderExecutorCache.set(order, OrderActions.Refund, res);
       this.emit('success', order, OrderActions.Refund, res);
     } catch (error) {
@@ -799,20 +774,19 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     }
   }
 
-  private async postRefundSACP(order: MatchedOrder, wallet: IBitcoinWallet) {
-    const cachedOrder = this.refundSacpCache.get(order.create_order.create_id);
+  private async postRefundSACP(order: Order, wallet: IBitcoinWallet) {
+    const cachedOrder = this.refundSacpCache.get(order.order_id);
     if (cachedOrder?.initTxHash === order.source_swap.initiate_tx_hash) return;
 
     const bitcoinExecutor = await GardenHTLC.from(
       wallet,
       Number(order.source_swap.amount),
-      order.create_order.secret_hash,
+      order.source_swap.secret_hash,
       toXOnly(order.source_swap.initiator),
       toXOnly(order.source_swap.redeemer),
       order.source_swap.timelock,
     );
-    const userBTCAddress =
-      order.create_order.additional_data.bitcoin_optional_recipient;
+    const userBTCAddress = order.source_swap.delegate;
     if (!userBTCAddress) return;
 
     try {
@@ -821,7 +795,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       );
       if (!this._api) return;
       const url = new Url(this._api.orderbook).endpoint(
-        'orders/bitcoin/' + order.create_order.create_id + '/instant-refund',
+        'orders/bitcoin/' + order.order_id + '/instant-refund',
       );
 
       const res = await Fetcher.post<APIResponse<string>>(url, {
@@ -833,7 +807,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         }),
       });
       if (res.status === 'Ok') {
-        this.refundSacpCache.set(order.create_order.create_id, {
+        this.refundSacpCache.set(order.order_id, {
           initTxHash: order.source_swap.initiate_tx_hash,
         });
       }
@@ -843,7 +817,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     }
   }
 
-  private async filterExpiredAndAssignStatus(orders: MatchedOrder[]) {
+  private async filterExpiredAndAssignStatus(orders: Order[]) {
     if (orders.length === 0) return Ok([]);
 
     const blockNumbers = await this._blockNumberFetcher?.fetchBlockNumbers();
@@ -858,8 +832,8 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         continue;
       }
 
-      const sourceChain = order.source_swap.chain;
-      const destinationChain = order.destination_swap.chain;
+      const sourceChain = order.source_swap.chain as Chain;
+      const destinationChain = order.destination_swap.chain as Chain;
 
       const sourceChainBlockNumber = blockNumbers?.val[sourceChain];
       const destinationChainBlockNumber = blockNumbers?.val[destinationChain];

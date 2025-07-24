@@ -171,7 +171,7 @@ export type DecodedAuthToken = {
 
 export type AffiliateFee = {
   address: string;
-  asset: string;
+  asset: ChainAsset;
   fee: number; // fee in bps
 };
 

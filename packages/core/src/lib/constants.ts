@@ -1,4 +1,4 @@
-import { SupportedAssets } from '@gardenfi/orderbook';
+import { SupportedAssets, toFormattedAssetString } from '@gardenfi/orderbook';
 import { Environment, Network } from '@gardenfi/utils';
 
 export type Api = {
@@ -73,6 +73,5 @@ export const solanaProgramAddress = {
 };
 
 export const DEFAULT_AFFILIATE_ASSET = {
-  chain: SupportedAssets.mainnet.base_cbBTC.chain,
-  asset: SupportedAssets.mainnet.base_cbBTC.atomicSwapAddress,
+  asset: toFormattedAssetString(SupportedAssets.mainnet.base_cbBTC),
 };

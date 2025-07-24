@@ -249,3 +249,19 @@ export const getChainsFromOrder = (
     destinationChain: destinationChain as Chain,
   };
 };
+
+/**
+ * Determines the blockchain type from a formatted asset string.
+ * @param assetChain - The formatted asset string (e.g., "bitcoin:btc", "ethereum:eth")
+ * @returns The chain type as a string: "bitcoin", "evm", "solana", or "starknet"
+ */
+export const getChainTypeFromAssetChain = (
+  assetChain: string,
+): 'bitcoin' | 'evm' | 'solana' | 'starknet' | 'unknown' => {
+  const [chain] = assetChain.split(':');
+  if (isBitcoin(chain as Chain)) return 'bitcoin';
+  if (isEVM(chain as Chain)) return 'evm';
+  if (isSolana(chain as Chain)) return 'solana';
+  if (isStarknet(chain as Chain)) return 'starknet';
+  return 'unknown';
+};
