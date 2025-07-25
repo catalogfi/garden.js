@@ -281,18 +281,9 @@ export class GardenHTLC implements IHTLCWallet {
       bitcoin.Transaction.SIGHASH_SINGLE |
       bitcoin.Transaction.SIGHASH_ANYONECANPAY;
     const instantRefundLeafHash = this.leafHash(Leaf.INSTANT_REFUND);
-    console.log(
-      'instantRefundLeafHash :',
-      instantRefundLeafHash.toString('hex'),
-    );
 
     const values = usedUtxos.map((utxo) => utxo.value);
-    console.log('values :', values);
     const outputs = generateOutputs(outputAddress, usedUtxos.length);
-    console.log(
-      'outputs :',
-      outputs.map((output) => output.toString('hex')),
-    );
 
     for (let i = 0; i < tx.ins.length; i++) {
       const hash = tx.hashForWitnessV1(
@@ -303,7 +294,6 @@ export class GardenHTLC implements IHTLCWallet {
         instantRefundLeafHash,
       );
 
-      console.log('hash :', hash.toString('hex'));
       const signature = await this.signer.signSchnorr(hash);
       tx.setWitness(i, [
         // first is initiator's signature
@@ -315,9 +305,7 @@ export class GardenHTLC implements IHTLCWallet {
         this.generateControlBlockFor(Leaf.INSTANT_REFUND),
       ]);
     }
-    console.log('tx: \n', tx);
 
-    console.log('tx.toHex() :', tx.toHex());
     return tx.toHex();
   }
 
