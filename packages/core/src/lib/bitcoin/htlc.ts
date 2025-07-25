@@ -331,7 +331,9 @@ export class GardenHTLC implements IHTLCWallet {
       const _hash = Buffer.from(hash[i], 'hex');
 
       const signature = await this.signer.signSchnorr(_hash);
-      signatures.push(serializeTaprootSignature(signature, hashType));
+      signatures.push(
+        serializeTaprootSignature(signature, hashType).toString('hex'),
+      );
     }
     return signatures;
   }
