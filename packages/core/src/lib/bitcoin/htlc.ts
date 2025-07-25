@@ -291,6 +291,7 @@ export class GardenHTLC implements IHTLCWallet {
         instantRefundLeafHash,
       );
 
+      console.log('hash :', hash.toString('hex'));
       const signature = await this.signer.signSchnorr(hash);
       tx.setWitness(i, [
         // first is initiator's signature
@@ -302,7 +303,9 @@ export class GardenHTLC implements IHTLCWallet {
         this.generateControlBlockFor(Leaf.INSTANT_REFUND),
       ]);
     }
+    console.log('tx: ', tx);
 
+    console.log('tx.toHex() :', tx.toHex());
     return tx.toHex();
   }
 
