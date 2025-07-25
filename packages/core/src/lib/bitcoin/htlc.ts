@@ -188,8 +188,11 @@ export class GardenHTLC implements IHTLCWallet {
       const fees = Math.ceil(feeRate.hourFee * options.vSize);
       const amountAfterFees = balance - fees;
 
-      // update the previously added output.
-      tx.outs[0].value = amountAfterFees;
+      tx.addOutput(
+        bitcoin.address.toOutputScript(receiver, this.network),
+        amountAfterFees,
+      );
+
       return { tx, usedUtxos: utxos };
     }
 
