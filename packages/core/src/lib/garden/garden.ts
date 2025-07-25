@@ -822,12 +822,34 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     if (!userBTCAddress) return;
 
     try {
-      const sacp = await bitcoinExecutor.generateInstantRefundSACP(
-        userBTCAddress,
-      );
       if (!this._api) return;
+      const hash = await Fetcher.post<APIResponse<string[]>>(
+        new Url(this._api.orderbook).endpoint(
+          'relayer/bitcoin/instant-refund-hash',
+        ),
+        {
+          body: JSON.stringify({
+            order_id: order.create_order.create_id,
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+      if (hash.error || !hash.result) {
+        this.emit(
+          'error',
+          order,
+          'Failed to get hash while posting instant refund SACP: ' + hash.error,
+        );
+        return;
+      }
+
+      const signatures =
+        await bitcoinExecutor.generateInstantRefundSACPWithHash(hash.result);
+
       const url = new Url(this._api.orderbook).endpoint(
-        'orders/bitcoin/' + order.create_order.create_id + '/instant-refund',
+        'relayer/bitcoin/instant-refund',
       );
 
       const res = await Fetcher.post<APIResponse<string>>(url, {
@@ -835,7 +857,8 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          instant_refund_tx_bytes: sacp,
+          order_id: order.create_order.create_id,
+          signatures: signatures,
         }),
       });
       if (res.status === 'Ok') {

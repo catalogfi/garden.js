@@ -258,14 +258,14 @@ export class GardenHTLC implements IHTLCWallet {
     return tx.toHex();
   }
 
-  async generateInstantRefundSACP(receiver: string, fee?: number) {
+  async generateInstantRefundSACP(receiver: string) {
     const outputAddress = this.getOutputScript();
     const {
       tx,
       usedUtxos,
       fee: txFee,
     } = await this._buildRawTx(receiver, {
-      fee,
+      fee: 0,
     });
     tx.outs = [];
     const maxUtxoValue = Math.max(...usedUtxos.map((utxo) => utxo.value));
@@ -281,9 +281,18 @@ export class GardenHTLC implements IHTLCWallet {
       bitcoin.Transaction.SIGHASH_SINGLE |
       bitcoin.Transaction.SIGHASH_ANYONECANPAY;
     const instantRefundLeafHash = this.leafHash(Leaf.INSTANT_REFUND);
+    console.log(
+      'instantRefundLeafHash :',
+      instantRefundLeafHash.toString('hex'),
+    );
 
     const values = usedUtxos.map((utxo) => utxo.value);
+    console.log('values :', values);
     const outputs = generateOutputs(outputAddress, usedUtxos.length);
+    console.log(
+      'outputs :',
+      outputs.map((output) => output.toString('hex')),
+    );
 
     for (let i = 0; i < tx.ins.length; i++) {
       const hash = tx.hashForWitnessV1(
@@ -306,10 +315,21 @@ export class GardenHTLC implements IHTLCWallet {
         this.generateControlBlockFor(Leaf.INSTANT_REFUND),
       ]);
     }
-    console.log('tx: ', tx);
+    console.log('tx: \n', tx);
 
     console.log('tx.toHex() :', tx.toHex());
     return tx.toHex();
+  }
+
+  async generateInstantRefundSACPWithHash(hash: string[]) {
+    const signatures = [];
+    for (let i = 0; i < hash.length; i++) {
+      const _hash = Buffer.from(hash[i], 'hex');
+
+      const signature = await this.signer.signSchnorr(_hash);
+      signatures.push(signature);
+    }
+    return signatures;
   }
 
   /**
