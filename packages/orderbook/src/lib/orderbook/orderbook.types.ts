@@ -1,5 +1,5 @@
 import { AsyncResult, IAuth, IStore } from '@gardenfi/utils';
-import { Asset, Chain } from '../asset';
+import { Asset, BlockchainType, Chain } from '../asset';
 import type { TypedData as EIP712TypedData } from 'viem';
 import type { Calldata, RawArgs, TypedData } from 'starknet';
 
@@ -275,6 +275,7 @@ export type AssetHTLCInfo = {
   max_amount: string;
   price: number;
 };
+
 export type PaginatedData<T> = {
   data: T[];
   page: number;
@@ -315,12 +316,19 @@ export type BitcoinOrderResponse = BaseCreateOrderResponse & {
 
 type WithTypedData<T, D> = T & { typed_data: D };
 
+type EvmTypedData = {
+  domain: Record<string, unknown>;
+  types: Record<string, unknown>;
+  primaryType: string;
+  message: Record<string, unknown>;
+};
+
 export type EvmOrderResponse = WithTypedData<
   BaseCreateOrderResponse & {
     approval_transaction: EVMTransaction | null;
     initiate_transaction: EVMTransaction;
   },
-  EIP712TypedData
+  EvmTypedData
 >;
 
 export type StarknetOrderResponse = WithTypedData<
@@ -336,7 +344,7 @@ export type SolanaOrderResponse = BaseCreateOrderResponse & {
 };
 
 export type CreateOrderResponse =
-  | ({ type: 'evm' } & EvmOrderResponse)
-  | ({ type: 'bitcoin' } & BitcoinOrderResponse)
-  | ({ type: 'starknet' } & StarknetOrderResponse)
-  | ({ type: 'solana' } & SolanaOrderResponse);
+  | ({ type: BlockchainType.EVM } & EvmOrderResponse)
+  | ({ type: BlockchainType.Bitcoin } & BitcoinOrderResponse)
+  | ({ type: BlockchainType.Starknet } & StarknetOrderResponse)
+  | ({ type: BlockchainType.Solana } & SolanaOrderResponse);

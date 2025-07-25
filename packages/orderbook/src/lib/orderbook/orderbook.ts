@@ -59,12 +59,12 @@ export class Orderbook implements IOrderbook {
       if (res.error) return Err(res.error);
       if (!res.result)
         return Err('CreateOrder: Unexpected error, result is undefined');
-      const finalSol = withDiscriminatedType(res.result);
-      if (!finalSol) {
+      const createOrderResponse = withDiscriminatedType(res.result);
+      if (!createOrderResponse) {
         return Err('CreateOrder: Unable to determine order type from response');
       }
 
-      return Ok(finalSol);
+      return Ok(createOrderResponse);
     } catch (error) {
       return Err('CreateOrder Err:', String(error));
     }

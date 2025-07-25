@@ -40,26 +40,68 @@ export class EvmRelay implements IEVMHTLC {
     return this.wallet.account.address;
   }
 
+  async executeApprovalTransaction(
+    order: EvmOrderResponse,
+  ): AsyncResult<string, string> {
+    if (!this.wallet.account) return Err('No account found');
+
+    if (!order.approval_transaction) {
+      return Ok('No approval transaction required');
+    }
+
+    try {
+      const approvalTx = order.approval_transaction;
+
+      const txHash = await this.wallet.sendTransaction({
+        account: this.wallet.account,
+        to: with0x(approvalTx.to),
+        value: BigInt(approvalTx.value),
+        data: with0x(approvalTx.data),
+        gas: BigInt(approvalTx.gas_limit),
+        chain: this.wallet.chain,
+      });
+
+      const receipt = await waitForTransactionReceipt(this.wallet, txHash);
+
+      if (receipt.val?.status !== 'success') {
+        return Err('Approval transaction failed');
+      }
+
+      return Ok(txHash);
+    } catch (error: any) {
+      console.error('executeApprovalTransaction error:', error);
+      return Err(
+        'Failed to execute approval: ' + (error?.message || String(error)),
+      );
+    }
+  }
+
   async initiateWithCreateOrderResponse(
     order: EvmOrderResponse,
   ): AsyncResult<string, string> {
     if (!this.wallet.account) return Err('No account found');
 
     try {
+      if (order.approval_transaction) {
+        const approvalResult = await this.executeApprovalTransaction(order);
+        if (approvalResult.error) {
+          return Err(`Approval failed: ${approvalResult.error}`);
+        }
+        console.log('Approval transaction completed:', approvalResult.val);
+      }
       const { typed_data } = order;
 
       const signature = await this.wallet.signTypedData({
         account: this.wallet.account,
-        domain: typed_data['domain'] as unknown as Record<string, unknown>,
-        types: typed_data['types'] as unknown as Record<string, unknown>,
-        primaryType: typed_data['primaryType'] as unknown as string,
-        message: typed_data['message'] as unknown as Record<string, unknown>,
+        domain: typed_data.domain,
+        types: typed_data.types,
+        primaryType: typed_data.primaryType,
+        message: typed_data.message,
       });
       const headers: Record<string, string> = {
         ...(await this.auth.getAuthHeaders()).val,
         'Content-Type': 'application/json',
       };
-      console.log('headers', headers);
       const res = await Fetcher.patch<APIResponse<string>>(
         this.url
           .endpoint('/v2/orders')
@@ -112,8 +154,9 @@ export class EvmRelay implements IEVMHTLC {
     const timelock = BigInt(source_swap.timelock);
     const redeemer = with0x(source_swap.redeemer);
     const amount = BigInt(source_swap.amount);
+
     const assetInfoRes = await Fetcher.get<APIResponse<AssetHTLCInfo[]>>(
-      'https://testnet.api.garden.finance/v2/assets',
+      this.url.origin + '/v2/assets',
     );
     if (assetInfoRes.error)
       return Err('Failed to fetch asset info: ' + assetInfoRes.error);
