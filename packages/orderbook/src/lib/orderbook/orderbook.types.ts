@@ -1,6 +1,5 @@
 import { AsyncResult, IAuth, IStore } from '@gardenfi/utils';
 import { Asset, BlockchainType, Chain } from '../asset';
-import type { TypedData as EIP712TypedData } from 'viem';
 import type { Calldata, RawArgs, TypedData } from 'starknet';
 
 /**

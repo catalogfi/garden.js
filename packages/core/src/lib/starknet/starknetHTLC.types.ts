@@ -1,4 +1,4 @@
-import { Order } from '@gardenfi/orderbook';
+import { Order, StarknetOrderResponse } from '@gardenfi/orderbook';
 import { AsyncResult } from '@gardenfi/utils';
 
 export interface IStarknetHTLC {
@@ -27,4 +27,13 @@ export interface IStarknetHTLC {
    * @returns A promise resolving to the transaction hash of the refund.
    */
   refund(order: Order): AsyncResult<string, string>;
+
+  /**
+   * Initiates the HTLC with the create order response.
+   * @param order - The create order response.
+   * @returns A promise resolving to the transaction hash of the initiation.
+   */
+  initiateWithCreateOrderResponse(
+    order: StarknetOrderResponse,
+  ): AsyncResult<string, string>;
 }

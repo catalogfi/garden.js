@@ -11,7 +11,7 @@ import {
   num,
   shortString,
 } from 'starknet';
-import { Order } from '@gardenfi/orderbook';
+import { Order, StarknetOrderResponse } from '@gardenfi/orderbook';
 import {
   APIResponse,
   AsyncResult,
@@ -227,6 +227,66 @@ export class StarknetRelay implements IStarknetHTLC {
     } catch (error) {
       return Err(String(error));
     }
+  }
+
+  async executeApprovalTransaction(
+    order: StarknetOrderResponse,
+  ): AsyncResult<string, string> {
+    if (!this.account.address) return Err('No account address');
+
+    if (!order.approval_call) {
+      return Ok('No approval transaction required');
+    }
+
+    try {
+      const approvalTx = order.approval_call;
+
+      const txHash = await this.account.execute([
+        {
+          contractAddress: with0x(approvalTx.to),
+          entrypoint: approvalTx.selector as string,
+          calldata: approvalTx.calldata,
+        },
+      ]);
+
+      await this.starknetProvider.waitForTransaction(txHash.transaction_hash, {
+        retryInterval: 2000,
+        successStates: [TransactionExecutionStatus.SUCCEEDED],
+      });
+
+      return Ok(txHash.transaction_hash);
+    } catch (error: any) {
+      console.error('executeApprovalTransaction error:', error);
+      return Err(
+        'Failed to execute approval: ' + (error?.message || String(error)),
+      );
+    }
+  }
+
+  async initiateWithCreateOrderResponse(
+    order: StarknetOrderResponse,
+  ): AsyncResult<string, string> {
+    if (!this.account.address) return Err('No account address');
+    const { typed_data } = order;
+    const signature = await this.account.signMessage(typed_data);
+    const formattedSignature = formatStarknetSignature(signature);
+    if (formattedSignature.error) {
+      return Err(formattedSignature.error);
+    }
+
+    const res = await Fetcher.patch<APIResponse<string>>(
+      this.url
+        .endpoint('/v2/orders')
+        .endpoint(order.order_id)
+        .addSearchParams({ action: 'initiate' }),
+      {
+        body: JSON.stringify({
+          signature: formattedSignature.val,
+        }),
+      },
+    );
+    if (res.error) return Err(res.error);
+    return Ok(res.result as string);
   }
 
   async refund(): AsyncResult<string, string> {

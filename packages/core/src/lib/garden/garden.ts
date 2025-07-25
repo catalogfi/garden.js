@@ -350,9 +350,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           );
         }
         {
-          const starknetInitRes = await this._starknetHTLC.initiate(
-            orderRes.val,
-          );
+          const starknetInitRes =
+            await this._starknetHTLC.initiateWithCreateOrderResponse(
+              createOrderRes.val,
+            );
           if (!starknetInitRes.ok)
             return Err(
               `Starknet HTLC initiation failed: ${starknetInitRes.error}`,
