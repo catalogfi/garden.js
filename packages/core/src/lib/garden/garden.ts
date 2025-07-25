@@ -16,7 +16,7 @@ import {
   Chain,
   ChainAsset,
   CreateOrderRequest,
-  EvmOrderResponse,
+  // EvmOrderResponse,
   getBlockchainType,
   getChain,
   getChainTypeFromAssetChain,
@@ -25,6 +25,8 @@ import {
   isMainnet,
   Order,
   Orderbook,
+  // SolanaOrderResponse,
+  // StarknetOrderResponse,
   toFormattedAssetString,
 } from '@gardenfi/orderbook';
 import {
@@ -42,6 +44,7 @@ import {
   AsyncResult,
   Ok,
   Fetcher,
+  ApiKey,
 } from '@gardenfi/utils';
 import { IQuote } from '../quote/quote.types';
 import {
@@ -101,6 +104,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     redeemTxHash: string;
   }>();
   private _digestKey: DigestKey;
+  private _apiKey: ApiKey | undefined;
   private _api: Api | undefined;
 
   constructor(config: GardenConfigWithHTLCs) {
@@ -115,10 +119,16 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     } else {
       this._digestKey = config.digestKey;
     }
+    if (typeof config.apiKey === 'string') {
+      this._apiKey = new ApiKey(config.apiKey);
+    } else {
+      this._apiKey = config.apiKey;
+    }
     this._quote = config.quote ?? new Quote(this._api.quote);
     this._auth =
       config.auth ??
-      Siwe.fromDigestKey(new Url(this._api.auth), this._digestKey);
+      Siwe.fromDigestKey(new Url(this._api.auth), this._digestKey) ??
+      this._apiKey;
     this._orderbook =
       config.orderbook ?? new Orderbook(new Url(this._api.orderbook));
     this._evmHTLC = config.htlc.evm;
@@ -141,12 +151,18 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   static fromWallets(config: GardenConfigWithWallets) {
     let digestKey: DigestKey;
+    let apiKey: ApiKey | undefined;
     if (typeof config.digestKey === 'string') {
       const _digestKey = DigestKey.from(config.digestKey);
       if (!_digestKey.ok) throw new Error(_digestKey.error);
       digestKey = _digestKey.val;
     } else {
       digestKey = config.digestKey;
+    }
+    if (typeof config.apiKey === 'string') {
+      apiKey = new ApiKey(config.apiKey);
+    } else {
+      apiKey = config.apiKey;
     }
     const { api } = resolveApiConfig(config.environment);
 
@@ -160,7 +176,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         ? new EvmRelay(
             api.evmRelay,
             config.wallets.evm,
-            Siwe.fromDigestKey(new Url(api.auth), digestKey),
+            apiKey ? apiKey : Siwe.fromDigestKey(new Url(api.auth), digestKey),
           )
         : undefined,
       starknet: config.wallets.starknet
@@ -238,22 +254,28 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
    * @param swapParams
    * @returns Order
    */
+  /**
+   * Executes a swap operation by creating and polling an order, and optionally initiating the HTLC
+   * on the appropriate chain. Handles all error cases robustly and ensures proper flow.
+   * @param params SwapParams
+   * @returns AsyncResult<Order, string>
+   */
   async swap(params: SwapParams): AsyncResult<Order, string> {
-    const validate = await this.validateAndFillParams(params);
-    if (!validate.ok) return Err(validate.error);
+    const validation = await this.validateAndFillParams(params);
+    if (!validation.ok) return Err(validation.error);
 
-    const { sendAddress, receiveAddress } = validate.val;
+    const { sendAddress, receiveAddress } = validation.val;
 
     const nonce = Date.now().toString();
     const secrets = await this._secretManager.generateSecret(nonce);
     if (!secrets.ok) return Err(secrets.error);
 
-    const { btcAddress } = params.additionalData;
+    const { btcAddress } = params.additionalData || {};
 
     const isSourceBitcoin = isBitcoin(getChain(params.fromAsset));
     const isDestinationBitcoin = isBitcoin(getChain(params.toAsset));
 
-    const order: CreateOrderRequest = {
+    const orderRequest: CreateOrderRequest = {
       source: {
         asset: toFormattedAssetString(params.fromAsset),
         owner: sendAddress,
@@ -272,19 +294,77 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       slippage: 50,
     };
 
-    const createOrderRes = await this._orderbook.createOrder(order, this._auth);
+    const createOrderRes = await this._orderbook.createOrder(
+      orderRequest,
+      this._auth,
+    );
+    console.log('createOrderRes', createOrderRes.error);
     if (!createOrderRes.ok) return Err(createOrderRes.error);
 
     const orderRes = await this.pollOrder(createOrderRes.val.order_id);
-    console.log('orderRes', orderRes.val?.order_id);
     if (!orderRes.ok) return Err(orderRes.error);
-    if (getChainTypeFromAssetChain(order.source.asset) === 'evm') {
-      const initRes = await this._evmHTLC?.initiateWithCreateOrderResponse(
-        createOrderRes.val as unknown as EvmOrderResponse,
-      );
-      console.log('initRes', initRes);
-      return Ok(orderRes.val);
+
+    const chainType = getChainTypeFromAssetChain(orderRequest.source.asset);
+
+    switch (chainType) {
+      case BlockchainType.EVM:
+        if (!this._evmHTLC || typeof this._evmHTLC.initiate !== 'function') {
+          return Err(
+            'EVM HTLC is not initialized or does not support initiation',
+          );
+        }
+        {
+          const evmInitRes =
+            // await this._evmHTLC.initiateWithCreateOrderResponse(
+            //   createOrderRes.val as unknown as EvmOrderResponse,
+            // );
+            await this._evmHTLC.initiate(orderRes.val);
+          console.log('evmInitRes', evmInitRes.error);
+          console.log('evmInitRes', evmInitRes.val);
+          if (!evmInitRes.ok)
+            return Err(`EVM HTLC initiation failed: ${evmInitRes.error}`);
+        }
+        break;
+      case BlockchainType.Solana:
+        if (
+          !this._solanaHTLC ||
+          typeof this._solanaHTLC.initiate !== 'function'
+        ) {
+          return Err(
+            'Solana HTLC is not initialized or does not support initiation',
+          );
+        }
+        {
+          const solanaInitRes = await this._solanaHTLC.initiate(orderRes.val);
+          if (!solanaInitRes.ok)
+            return Err(`Solana HTLC initiation failed: ${solanaInitRes.error}`);
+        }
+        break;
+      case BlockchainType.Starknet:
+        if (
+          !this._starknetHTLC ||
+          typeof this._starknetHTLC.initiate !== 'function'
+        ) {
+          return Err(
+            'Starknet HTLC is not initialized or does not support initiation',
+          );
+        }
+        {
+          const starknetInitRes = await this._starknetHTLC.initiate(
+            orderRes.val,
+          );
+          if (!starknetInitRes.ok)
+            return Err(
+              `Starknet HTLC initiation failed: ${starknetInitRes.error}`,
+            );
+        }
+        break;
+      case BlockchainType.Bitcoin:
+        break;
+      default:
+        return Err(`Unsupported chain type: ${chainType}`);
     }
+
     return Ok(orderRes.val);
   }
 

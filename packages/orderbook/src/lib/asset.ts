@@ -269,11 +269,11 @@ export const getChain = (asset: Asset | ChainAsset): Chain => {
  */
 export const getChainTypeFromAssetChain = (
   assetChain: string,
-): 'bitcoin' | 'evm' | 'solana' | 'starknet' | 'unknown' => {
+): BlockchainType => {
   const [chain] = assetChain.split(':');
-  if (isBitcoin(chain as Chain)) return 'bitcoin';
-  if (isEVM(chain as Chain)) return 'evm';
-  if (isSolana(chain as Chain)) return 'solana';
-  if (isStarknet(chain as Chain)) return 'starknet';
-  return 'unknown';
+  if (isBitcoin(chain as Chain)) return BlockchainType.Bitcoin;
+  if (isEVM(chain as Chain)) return BlockchainType.EVM;
+  if (isSolana(chain as Chain)) return BlockchainType.Solana;
+  if (isStarknet(chain as Chain)) return BlockchainType.Starknet;
+  throw new Error('Invalid or unsupported chain');
 };

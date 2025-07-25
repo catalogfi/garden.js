@@ -266,6 +266,15 @@ export type Order = {
   version: string;
 };
 
+export type AssetHTLCInfo = {
+  id: string;
+  htlc: { address: string; schema: string } | null;
+  token: { address: string; schema: string } | null;
+  decimals: number;
+  min_amount: string;
+  max_amount: string;
+  price: number;
+};
 export type PaginatedData<T> = {
   data: T[];
   page: number;

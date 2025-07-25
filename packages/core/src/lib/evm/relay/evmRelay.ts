@@ -9,6 +9,7 @@ import {
 } from '@gardenfi/utils';
 import { WalletClient, createPublicClient, getContract, http } from 'viem';
 import {
+  AssetHTLCInfo,
   EvmOrderResponse,
   isEVM,
   isEvmNativeToken,
@@ -58,6 +59,7 @@ export class EvmRelay implements IEVMHTLC {
         ...(await this.auth.getAuthHeaders()).val,
         'Content-Type': 'application/json',
       };
+      console.log('headers', headers);
       const res = await Fetcher.patch<APIResponse<string>>(
         this.url
           .endpoint('/v2/orders')
@@ -110,17 +112,36 @@ export class EvmRelay implements IEVMHTLC {
     const timelock = BigInt(source_swap.timelock);
     const redeemer = with0x(source_swap.redeemer);
     const amount = BigInt(source_swap.amount);
+    const assetInfoRes = await Fetcher.get<APIResponse<AssetHTLCInfo[]>>(
+      'https://testnet.api.garden.finance/v2/assets',
+    );
+    if (assetInfoRes.error)
+      return Err('Failed to fetch asset info: ' + assetInfoRes.error);
 
-    const tokenAddress = await this.getTokenAddress(order.source_swap.asset);
-    if (!tokenAddress.ok) return Err(tokenAddress.error);
+    const assetList = assetInfoRes.result || [];
+    const assetInfo = assetList.find((a) => a.id === order.source_swap.asset);
 
-    if (isEvmNativeToken(order.source_swap.chain, tokenAddress.val)) {
+    if (!assetInfo) {
+      return Err(
+        `Asset info not found for asset id: ${order.source_swap.asset}`,
+      );
+    }
+    if (!assetInfo.htlc || !assetInfo.htlc.address) {
+      return Err(
+        `HTLC address not found for asset id: ${order.source_swap.asset}`,
+      );
+    }
+
+    const htlcAddress = assetInfo.htlc.address;
+    const tokenAddress = assetInfo.token?.address || '';
+
+    if (isEvmNativeToken(order.source_swap.chain, tokenAddress)) {
       return this._initiateOnNativeHTLC(
         secretHash,
         timelock,
         amount,
         redeemer,
-        order.source_swap.asset,
+        htlcAddress,
       );
     } else {
       return this._initiateOnErc20HTLC(
@@ -128,25 +149,10 @@ export class EvmRelay implements IEVMHTLC {
         timelock,
         amount,
         redeemer,
-        order.source_swap.asset,
-        tokenAddress.val,
+        htlcAddress,
+        tokenAddress,
         order.order_id,
       );
-    }
-  }
-
-  private async getTokenAddress(asset: string): AsyncResult<string, string> {
-    try {
-      const atomicSwap = getContract({
-        address: with0x(asset),
-        abi: AtomicSwapABI,
-        client: this.wallet,
-      });
-
-      const token = await atomicSwap.read.token();
-      return Ok(token);
-    } catch (error) {
-      return Err('Failed to get token address', String(error));
     }
   }
 
@@ -236,12 +242,11 @@ export class EvmRelay implements IEVMHTLC {
           secretHash,
         },
       });
-
       const headers: Record<string, string> = {
         ...auth.val,
         'Content-Type': 'application/json',
       };
-
+      console.log('headers', headers);
       const res = await Fetcher.post<APIResponse<string>>(
         this.url.endpoint('initiate'),
         {
@@ -273,6 +278,7 @@ export class EvmRelay implements IEVMHTLC {
     try {
       const headers = await this.auth.getAuthHeaders();
       if (!headers.ok) return Err(headers.error);
+      console.log('headers', headers);
 
       const res = await Fetcher.patch<APIResponse<string>>(
         this.url

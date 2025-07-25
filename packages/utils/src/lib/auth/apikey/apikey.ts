@@ -2,10 +2,10 @@ import { AsyncResult, Err, Ok, Result } from '../../result/result';
 import { AuthHeaderEnum, AuthHeader, IAuth } from '../auth.types';
 
 export class ApiKey implements IAuth {
-  private readonly apiKey: string;
+  private readonly _apiKey: string;
 
   constructor(apiKey: string) {
-    this.apiKey = apiKey;
+    this._apiKey = apiKey;
   }
 
   async getToken(): AsyncResult<string, string> {
@@ -18,17 +18,10 @@ export class ApiKey implements IAuth {
   }
 
   verifyToken(): Result<boolean, string> {
-    const decodedBytes = this.decodeBase64UrlSafe(this.apiKey);
-    const data = this.extractData(decodedBytes);
-
-    if (!data.ok) {
-      return Err(data.error);
+    if (this.apiKey.length === 64) {
+      return Ok(true);
     }
-
-    const { expiryTimestamp } = data.val;
-    if (expiryTimestamp < new Date()) return Err('Token expired');
-
-    return Ok(true);
+    return Err('Invalid API key length');
   }
 
   private decodeBase64UrlSafe(base64Url: string) {
@@ -79,5 +72,9 @@ export class ApiKey implements IAuth {
     if (token.ok) return Ok({ [AuthHeaderEnum.ApiKey]: token.val });
 
     return Err(token.error ?? 'Failed to get auth token');
+  }
+
+  get apiKey() {
+    return this._apiKey;
   }
 }

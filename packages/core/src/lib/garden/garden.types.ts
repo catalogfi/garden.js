@@ -6,7 +6,13 @@ import {
   Order,
 } from '@gardenfi/orderbook';
 import { OrderStatus } from '../orderStatus/status';
-import { AsyncResult, Environment, EventBroker, IAuth } from '@gardenfi/utils';
+import {
+  ApiKey,
+  AsyncResult,
+  Environment,
+  EventBroker,
+  IAuth,
+} from '@gardenfi/utils';
 import { ISecretManager } from '../secretManager/secretManager.types';
 import { IQuote } from '../quote/quote.types';
 import { IBlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
@@ -170,6 +176,7 @@ export type ApiConfig =
 export type GardenCoreConfig = {
   environment: ApiConfig;
   digestKey: string | DigestKey;
+  apiKey?: string | ApiKey;
   secretManager?: ISecretManager;
   auth?: IAuth;
   orderbook?: IOrderbook;
