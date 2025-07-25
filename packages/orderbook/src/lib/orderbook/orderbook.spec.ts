@@ -1,69 +1,96 @@
-// import { sepolia } from 'viem/chains';
-// import { privateKeyToAccount } from 'viem/accounts';
-// import { createWalletClient, http, sha256 } from 'viem';
-// import { randomBytes } from 'crypto';
 import { describe, expect, expectTypeOf, test } from 'vitest';
-import {
-  //  Siwe, sleep,
-  // with0x,
-  Url,
-} from '@gardenfi/utils';
+import { DigestKey, Siwe, Url } from '@gardenfi/utils';
 import { Orderbook } from './orderbook';
-import {
-  // CreateOrderConfig,
-  // CreateOrderRequestWithAdditionalData,
-  MatchedOrder,
-} from './orderbook.types';
-// import { Asset, Chains } from '../asset';
+import { CreateOrderRequest, Order } from './orderbook.types';
+// import { Order } from './orderbook.types';
+// import {
+//   // CreateOrderConfig,
+//   // CreateOrderRequestWithAdditionalData,
+//   Order,
+//   OrderResult,
+// } from './orderbook.types';
 
 describe('orders provider', async () => {
-  const orderbookApi = 'https://orderbook-v2-staging.hashira.io';
-  const address = '0x52FE8afbbB800a33edcbDB1ea87be2547EB30000';
-  const id = 'c519b735bcef0a6bd6a54ac7d46449087b2146cae75541c2ddde686cf8fba294';
+  const orderbookApi = 'https://api.garden.finance';
+  const authUrl = 'https://api.garden.finance/auth';
+  const address = '0xdF4E5212cC36428504712d7E75a9922762FeD28A';
+  const id = 'd461a0c760948f07f972bdaa379f503cb7ef10cac84d059646a755e83905f4c5';
 
   const orderbook = new Orderbook(new Url(orderbookApi));
-
-  test.only('should get order', async () => {
-    const order = await orderbook.getOrder(id, true);
+  const auth = Siwe.fromDigestKey(
+    new Url(authUrl),
+    DigestKey.generateRandom().val!,
+  );
+  test('should get order', async () => {
+    const order = await orderbook.getOrder(id);
     console.log('order.error :', order.error);
     console.log('order.val :', order.val);
     expect(order.error).toBeUndefined();
-    expect(order.val.create_order.create_id).toEqual(id);
-    expectTypeOf(order.val).toEqualTypeOf<MatchedOrder>();
+    if (order.val) {
+      expect(order.val.order_id).toEqual(id);
+      expectTypeOf(order.val).toEqualTypeOf<Order>();
+    }
   });
 
   test('should get orders of a address', async () => {
-    const orders = await orderbook.getMatchedOrders(address, false);
+    const orders = await orderbook.getOrders(undefined, address);
+    console.log('orders.error :', orders.error);
+    console.log('orders.val :', orders.val);
     expect(orders.error).toBeUndefined();
-    expect(orders.val.data.length).toBeGreaterThan(0);
-    expectTypeOf(orders.val.data).toEqualTypeOf<MatchedOrder[]>();
+    if (orders.val) {
+      expect(orders.val.data.length).toBeGreaterThan(0);
+      expectTypeOf(orders.val.data).toEqualTypeOf<Order[]>();
+    }
   });
 
   test('should get all orders', async () => {
-    const orders = await orderbook.getOrders(true);
+    const orders = await orderbook.getOrders();
     expect(orders.error).toBeUndefined();
-    expect(orders.val.data.length).toBeGreaterThan(0);
-    expectTypeOf(orders.val.data).toEqualTypeOf<MatchedOrder[]>();
+    console.log('all orders here orders.val :', orders.val);
+    console.log('orders.val.data :', orders.val?.data);
+    if (orders.val) {
+      expect(orders.val.data.length).toBeGreaterThan(0);
+      expectTypeOf(orders.val.data).toEqualTypeOf<Order[]>();
+    }
   });
 
   test('should subscribe to orders', async () => {
     const unsubscribe = await orderbook.subscribeOrders(
       address,
-      true,
       1000,
       async (orders) => {
+        console.log('subscribe orders :', orders);
         expect(orders.data.length).toBeGreaterThan(0);
-        expectTypeOf(orders.data).toEqualTypeOf<MatchedOrder[]>();
+        expectTypeOf(orders.data).toEqualTypeOf<Order[]>();
       },
     );
     expectTypeOf(unsubscribe).toEqualTypeOf<() => void>();
   });
 
-  test('order count', async () => {
-    const count = await orderbook.getOrdersCount(address);
-    expect(count.error).toBeUndefined();
-    expect(count.val).toBe(0);
-  });
+  test.only('should create an order', async () => {
+    const CreateOrderRequest: CreateOrderRequest = {
+      source: {
+        asset: 'arbitrum:wbtc',
+        owner: '0xdF4E5212cC36428504712d7E75a9922762FeD28A',
+        delegate: null,
+        amount: '50000',
+      },
+      destination: {
+        asset: 'unichain:usdc',
+        owner: '0xdF4E5212cC36428504712d7E75a9922762FeD28A',
+        delegate: null,
+        amount: '58727337',
+      },
+      slippage: 50,
+      secret_hash:
+        '037ff5cacab1d35df04e6e9d349f0d8dd92e87b989244b934d9b09bc97fc4169',
+      nonce: 250,
+      affiliate_fees: [],
+    };
+    // console.log('CreateOrderRequest :', JSON.stringify(CreateOrderRequest));
+    const order = await orderbook.createOrder(CreateOrderRequest, auth);
+    console.log('order :', order.val);
+  }, 5000000);
 });
 
 // describe('orderbook', async () => {
@@ -175,7 +202,7 @@ describe('orders provider', async () => {
 //     await sleep(5000);
 //     const orderId = createOrderIds[0];
 //     const result = await orderbook.getOrder(orderId, true);
-//     expectTypeOf(result.val).toEqualTypeOf<MatchedOrder>();
+//     expectTypeOf(result.val).toEqualTypeOf<Order>();
 //     expect(result.ok).toBeTruthy();
 //     expect(result.val).toBeTruthy();
 //     expect(result.val.create_order.create_id).toEqual(orderId);

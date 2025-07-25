@@ -1,4 +1,9 @@
 import { Url } from '@gardenfi/utils';
+import {
+  BaseCreateOrderResponse,
+  CreateOrderResponse,
+} from './orderbook/orderbook.types';
+import { BlockchainType } from './asset';
 
 /**
  * Constructs a URL with the given base URL, endpoint and parameters (query params)
@@ -23,3 +28,33 @@ export const ConstructUrl = (
   }
   return url;
 };
+
+export function withDiscriminatedType(
+  response: BaseCreateOrderResponse,
+): CreateOrderResponse | null {
+  if ('typed_data' in response && 'initiate_transaction' in response) {
+    return {
+      type: BlockchainType.EVM,
+      ...response,
+    } as CreateOrderResponse;
+  }
+  if ('typed_data' in response && 'initiate_call' in response) {
+    return {
+      type: BlockchainType.Starknet,
+      ...response,
+    } as CreateOrderResponse;
+  }
+  if ('to' in response && 'amount' in response) {
+    return {
+      type: BlockchainType.Bitcoin,
+      ...response,
+    } as CreateOrderResponse;
+  }
+  if ('versioned_tx' in response) {
+    return {
+      type: BlockchainType.Solana,
+      ...response,
+    } as CreateOrderResponse;
+  }
+  return null;
+}

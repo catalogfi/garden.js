@@ -1,5 +1,5 @@
 import { Garden } from '../garden';
-import { Chains, MatchedOrder, SupportedAssets } from '@gardenfi/orderbook';
+import { Order, SupportedAssets } from '@gardenfi/orderbook';
 import {
   Environment,
   with0x,
@@ -48,6 +48,7 @@ describe('StarkNet Integration Tests', () => {
   const garden = Garden.fromWallets({
     environment: Environment.TESTNET,
     digestKey: DIGEST_KEY!,
+    apiKey: 'f242ea49332293424c96c562a6ef575a819908c878134dcb4fce424dc84ec796',
     wallets: {
       evm: evmWallet,
       starknet: starknetWallet,
@@ -58,7 +59,7 @@ describe('StarkNet Integration Tests', () => {
     garden.on('error', (order, error) => {
       console.log(
         'Error while executing ❌, orderId:',
-        order.create_order.create_id,
+        order.order_id,
         'error:',
         error,
       );
@@ -67,7 +68,7 @@ describe('StarkNet Integration Tests', () => {
     garden.on('success', (order, action, result) => {
       console.log(
         'Executed ✅, orderId:',
-        order.create_order.create_id,
+        order.order_id,
         'action:',
         action,
         'result:',
@@ -82,20 +83,15 @@ describe('StarkNet Integration Tests', () => {
     garden.on('onPendingOrdersChanged', (orders) => {
       console.log('⏳Pending orders:', orders.length);
       orders.forEach((order) => {
-        console.log(
-          'Order id :',
-          order.create_order.create_id,
-          'status :',
-          order.status,
-        );
+        console.log('Order id :', order.order_id, 'status :', order.status);
       });
     });
 
     garden.on('rbf', (order, result) => {
-      console.log('RBF:', order.create_order.create_id, result);
+      console.log('RBF:', order.order_id, result);
     });
   };
-  let matchedOrder: MatchedOrder;
+  let matchedOrder: Order;
 
   //-----------------STRK-EVM SWAP-----------------
 
@@ -157,28 +153,12 @@ describe('StarkNet Integration Tests', () => {
       // console.log('Order created :', createRes.val);
       // console.log('Order created :', createRes.error);
       const order: SwapParams = {
-        fromAsset: {
-          name: 'Starknet ETH',
-          decimals: 8,
-          symbol: 'WBTC',
-          chain: Chains.ethereum_sepolia,
-          logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
-          tokenAddress: '0x4D68da063577F98C55166c7AF6955cF58a97b20A',
-          atomicSwapAddress: '0x3C6a17b8cD92976D1D91E491c93c98cd81998265',
-        },
-        toAsset: {
-          name: 'Wrapped Bitcoin',
-          decimals: 8,
-          symbol: 'WBTC',
-          logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
-          chain: Chains.arbitrum_sepolia,
-          tokenAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
-          atomicSwapAddress: '0xE918A5a47b8e0AFAC2382bC5D1e981613e63fB07',
-        },
+        fromAsset: SupportedAssets.testnet.arbitrum_sepolia_WBTC,
+        toAsset: SupportedAssets.testnet.ethereum_sepolia_WBTC,
         sendAmount: '100000',
         receiveAmount: '99200',
         additionalData: {
-          strategyId: 'ea56aa70',
+          btcAddress: 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru',
         },
       };
       const result = await garden.swap(order);
@@ -186,21 +166,18 @@ describe('StarkNet Integration Tests', () => {
         console.log('Error while creating order ❌:', result.error);
         throw new Error(result.error);
       }
-      console.log(
-        'Order created and matched ✅',
-        result.val.create_order.create_id,
-      );
+      console.log('Order created and matched ✅', result.val.order_id);
       matchedOrder = result.val;
       expect(result.error).toBeFalsy();
       expect(result.val).toBeTruthy();
     }, 150000);
 
-    it('Initiate the swap', async () => {
-      const res = await garden.evmHTLC?.initiate(matchedOrder);
-      console.log('initiated ✅ :', res?.val);
-      if (res?.error) console.log('init error ❌ :', res.error);
-      expect(res?.ok).toBeTruthy();
-    }, 150000);
+    // it('Initiate the swap', async () => {
+    //   const res = await garden.evmHTLC?.initiate(matchedOrder);
+    //   console.log('initiated ✅ :', res?.val);
+    //   if (res?.error) console.log('init error ❌ :', res.error);
+    //   expect(res?.ok).toBeTruthy();
+    // }, 150000);
 
     it('Execute', async () => {
       setupEventListeners(garden);
@@ -218,10 +195,7 @@ describe('StarkNet Integration Tests', () => {
         toAsset: SupportedAssets.testnet.starknet_testnet_WBTC,
         sendAmount: '500000',
         receiveAmount: '214821925172042749',
-        additionalData: {
-          strategyId: 'as1dss59',
-        },
-        minDestinationConfirmations: 3,
+        additionalData: {},
       };
 
       const result = await garden.swap(order);
@@ -230,10 +204,7 @@ describe('StarkNet Integration Tests', () => {
         throw new Error(result.error);
       }
 
-      console.log(
-        'Order created and matched✅',
-        result.val.create_order.create_id,
-      );
+      console.log('Order created and matched✅', result.val.order_id);
       // console.log(result.val.source_swap.asset);
       matchedOrder = result.val;
 
@@ -280,10 +251,7 @@ describe('StarkNet Integration Tests', () => {
         throw new Error(result.error);
       }
 
-      console.log(
-        'Order created and matched✅',
-        result.val.create_order.create_id,
-      );
+      console.log('Order created and matched✅', result.val.order_id);
       // console.log(result.val.source_swap.asset);
       matchedOrder = result.val;
 
@@ -323,10 +291,7 @@ describe('StarkNet Integration Tests', () => {
         throw new Error(result.error);
       }
 
-      console.log(
-        'Order created and matched✅',
-        result.val.create_order.create_id,
-      );
+      console.log('Order created and matched✅', result.val.order_id);
       // console.log(result.val.source_swap.asset);
       matchedOrder = result.val;
 

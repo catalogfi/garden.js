@@ -11,7 +11,7 @@ import {
   Url,
 } from '@gardenfi/utils';
 import { ISolanaHTLC } from '../htlc/ISolanaHTLC';
-import { isSolanaNativeToken, MatchedOrder } from '@gardenfi/orderbook';
+import { isSolanaNativeToken, Order } from '@gardenfi/orderbook';
 import { waitForSolanaTxConfirmation } from '../../utils';
 
 /**
@@ -65,7 +65,7 @@ export class SolanaRelay implements ISolanaHTLC {
 
     try {
       this.program = new Program(
-        (idlWithAddress as unknown) as SolanaNativeSwaps,
+        idlWithAddress as unknown as SolanaNativeSwaps,
         this.provider,
       );
     } catch (cause) {
@@ -146,7 +146,7 @@ export class SolanaRelay implements ISolanaHTLC {
 
   private async initiateViaHTLC(
     transaction: web3.Transaction,
-    order: MatchedOrder,
+    order: Order,
   ): AsyncResult<string, string> {
     if (!order) return Err('Order is required');
 
@@ -173,12 +173,12 @@ export class SolanaRelay implements ISolanaHTLC {
 
   /**
    * Initiates a swap by creating a new swap account and locking funds.
-   * @param {MatchedOrder} order - The matched order containing swap details
+   * @param {Order} order - The matched order containing swap details
    * @returns {Promise<AsyncResult<string, string>>} A promise that resolves to either:
    *   - Ok with the transaction ID on success
    *   - Err with an error message on failure
    */
-  async initiate(order: MatchedOrder): AsyncResult<string, string> {
+  async initiate(order: Order): AsyncResult<string, string> {
     const { redeemer, secretHash, amount, expiresIn } = SwapConfig.from(order);
 
     const pdaSeeds = [
@@ -201,7 +201,7 @@ export class SolanaRelay implements ISolanaHTLC {
       if (
         !isSolanaNativeToken(order.source_swap.chain, order.source_swap.asset)
       )
-        return this.sendViaRelayer(tx, order.create_order.create_id);
+        return this.sendViaRelayer(tx, order.order_id);
       else return this.initiateViaHTLC(tx, order);
     } catch (e) {
       return Err('Error initiating swap: ', e);
@@ -210,16 +210,13 @@ export class SolanaRelay implements ISolanaHTLC {
 
   /**
    * Redeems a swap by providing the secret.
-   * @param {MatchedOrder} order - Matched order object containing swap details
+   * @param {Order} order - Matched order object containing swap details
    * @param {string} secret - Secret key in hex format
    * @returns {Promise<AsyncResult<string, string>>} A promise that resolves to either:
    *   - Ok with the transaction ID on success
    *   - Err with an error message on failure
    */
-  async redeem(
-    order: MatchedOrder,
-    secret: string,
-  ): AsyncResult<string, string> {
+  async redeem(order: Order, secret: string): AsyncResult<string, string> {
     const { secretHash } = SwapConfig.from(order);
     const pdaSeeds = [
       Buffer.from('swap_account'),
@@ -236,7 +233,7 @@ export class SolanaRelay implements ISolanaHTLC {
       const _secret = validateSecret(secret);
 
       const relayRequest = {
-        order_id: order.create_order.create_id,
+        order_id: order.order_id,
         secret: Buffer.from(_secret).toString('hex'),
         perform_on: 'destination',
       };

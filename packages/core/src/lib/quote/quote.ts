@@ -4,13 +4,9 @@ import {
   Strategies,
   StrategiesResponse,
 } from './quote.types';
-import {
-  CreateOrderRequestWithAdditionalData,
-  CreateOrderReqWithStrategyId,
-} from '@gardenfi/orderbook';
+import { toFormattedAssetString, ChainAsset } from '@gardenfi/orderbook';
 import {
   APIResponse,
-  AsyncResult,
   Err,
   Fetcher,
   Ok,
@@ -34,18 +30,15 @@ export class Quote implements IQuote {
     isExactOut = false,
     options,
   }: QuoteParamsForAssets) {
-    const orderpair = constructOrderPair(
-      fromAsset.chain,
-      fromAsset.atomicSwapAddress,
-      toAsset.chain,
-      toAsset.atomicSwapAddress,
-    );
+    const from = toFormattedAssetString(fromAsset);
+    const to = toFormattedAssetString(toAsset);
 
-    return this.getQuote(orderpair, amount, isExactOut, options);
+    return this.getQuote(from, to, amount, isExactOut, options);
   }
 
   async getQuote(
-    orderpair: string,
+    from: ChainAsset,
+    to: ChainAsset,
     amount: number,
     isExactOut = false,
     options?: {
@@ -55,16 +48,18 @@ export class Quote implements IQuote {
   ) {
     try {
       const params: Record<string, string> = {
-        order_pair: orderpair,
-        amount: amount.toString(),
-        exact_out: isExactOut.toString(),
+        from,
+        to,
+        ...(isExactOut
+          ? { to_amount: amount.toString() }
+          : { from_amount: amount.toString() }),
         ...(options?.affiliateFee !== undefined && {
           affiliate_fee: options.affiliateFee.toString(),
         }),
       };
 
-      const url = this.quoteUrl.endpoint('/').addSearchParams(params);
-      const res = await Fetcher.get<APIResponse<QuoteResponse>>(url, {
+      const url = this.quoteUrl.endpoint('/v2/quote').addSearchParams(params);
+      const res = await Fetcher.get<APIResponse<QuoteResponse[]>>(url, {
         retryCount: 0,
         ...options?.request,
       });
@@ -76,30 +71,6 @@ export class Quote implements IQuote {
       return Ok(res.result);
     } catch (error) {
       return Err('GetQuote:', String(error));
-    }
-  }
-
-  async getAttestedQuote(
-    order: CreateOrderReqWithStrategyId,
-  ): AsyncResult<CreateOrderRequestWithAdditionalData, string> {
-    try {
-      const res = await Fetcher.post<
-        APIResponse<CreateOrderRequestWithAdditionalData>
-      >(this.quoteUrl.endpoint('/attested').toString(), {
-        body: JSON.stringify(order),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (res.error) return Err(res.error);
-      if (!res.result)
-        return Err('GetAttestedQuote: Unexpected error, result is undefined');
-
-      return Ok(res.result);
-    } catch (error) {
-      console.log('error :', error);
-      return Err('GetAttestedQuote:', String(error));
     }
   }
 

@@ -1,4 +1,4 @@
-import { MatchedOrder } from '@gardenfi/orderbook';
+import { Order } from '@gardenfi/orderbook';
 import {
   IOrderExecutorCache,
   OrderActions,
@@ -8,27 +8,22 @@ import {
 export class ExecutorCache implements IOrderExecutorCache {
   private cache: Record<string, OrderCacheValue> = {};
 
-  set(
-    order: MatchedOrder,
-    action: OrderActions,
-    txHash: string,
-    utxo?: string,
-  ): void {
+  set(order: Order, action: OrderActions, txHash: string, utxo?: string): void {
     const value: OrderCacheValue = {
       txHash,
       timeStamp: Date.now(),
       btcRedeemUTXO: utxo,
     };
-    this.cache[`${action}_${order.create_order.create_id}`] = value;
+    this.cache[`${action}_${order.created_at}`] = value;
     return;
   }
 
-  get(order: MatchedOrder, action: OrderActions): OrderCacheValue | null {
-    return this.cache[`${action}_${order.create_order.create_id}`] || null;
+  get(order: Order, action: OrderActions): OrderCacheValue | null {
+    return this.cache[`${action}_${order.created_at}`] || null;
   }
 
-  remove(order: MatchedOrder, action: OrderActions): void {
-    delete this.cache[`${action}_${order.create_order.create_id}`];
+  remove(order: Order, action: OrderActions): void {
+    delete this.cache[`${action}_${order.created_at}`];
     return;
   }
 }

@@ -1,16 +1,14 @@
 import {
-  CreateOrder,
-  CreateOrderRequestWithAdditionalData,
-  CreateOrderResponse,
   IOrderbook,
-  MatchedOrder,
+  CreateOrderResponse,
+  Order,
   PaginatedData,
   PaginationConfig,
   Status,
+  CreateOrderRequest,
 } from './orderbook.types';
 import {
   APIResponse,
-  ApiStatus,
   AsyncResult,
   Err,
   Fetcher,
@@ -18,7 +16,7 @@ import {
   Ok,
   Url,
 } from '@gardenfi/utils';
-import { ConstructUrl } from '../utils';
+import { ConstructUrl, withDiscriminatedType } from '../utils';
 import { Chain } from '../asset';
 
 /**
@@ -35,21 +33,21 @@ export class Orderbook implements IOrderbook {
 
   /**
    * Creates an order
-   * @param {CreateOrderRequestWithAdditionalData} order - The configuration for the creating the order.
+   * @param {CreateOrderRequest} order - The configuration for the creating the order.
    * @param {IAuth} auth - The auth object.
-   * @returns {string} The create order ID.
+   * @returns {CreateOrderResponse} The create order ID.
    */
   async createOrder(
-    order: CreateOrderRequestWithAdditionalData,
+    order: CreateOrderRequest,
     auth: IAuth,
-  ): AsyncResult<string, string> {
+  ): AsyncResult<CreateOrderResponse, string> {
     const headers = await auth.getAuthHeaders();
     if (headers.error) {
       return Err(headers.error);
     }
     try {
-      const res = await Fetcher.post<CreateOrderResponse>(
-        this.Url.endpoint('/relayer').endpoint('create-order'),
+      const res = await Fetcher.post<APIResponse<CreateOrderResponse>>(
+        this.Url.endpoint('/v2/orders'),
         {
           body: JSON.stringify(order),
           headers: {
@@ -58,160 +56,154 @@ export class Orderbook implements IOrderbook {
           },
         },
       );
-      if (res.error) {
-        return Err(res.error);
+      if (res.error) return Err(res.error);
+      if (!res.result)
+        return Err('CreateOrder: Unexpected error, result is undefined');
+      const createOrderResponse = withDiscriminatedType(res.result);
+      if (!createOrderResponse) {
+        return Err('CreateOrder: Unable to determine order type from response');
       }
-      return res.result
-        ? Ok(res.result)
-        : Err('CreateOrder: Unexpected error, result is undefined');
+
+      return Ok(createOrderResponse);
     } catch (error) {
       return Err('CreateOrder Err:', String(error));
     }
   }
 
-  async getOrder<T extends boolean>(
-    id: string,
-    matched: T,
-  ): AsyncResult<T extends true ? MatchedOrder : CreateOrder, string> {
-    const endpoint = matched ? `/id/${id}/matched` : `/id/${id}/unmatched`;
-    const url = this.Url.endpoint('orders').endpoint(endpoint);
-
+  /**
+   * Get an order by its ID
+   * @param id - The ID of the order
+   * @returns {AsyncResult<Order, string>} A promise that resolves to the order.
+   */
+  async getOrder(id: string): AsyncResult<Order, string> {
     try {
-      const res = await Fetcher.get<
-        APIResponse<T extends true ? MatchedOrder : CreateOrder>
-      >(url);
+      const url = this.Url.endpoint(`/v2/orders/${id}`);
+      const res = await Fetcher.get<APIResponse<Order>>(url);
 
       if (res.error) return Err(res.error);
-      return res.result
-        ? Ok(res.result)
-        : Err('GetOrder: Unexpected error, result is undefined');
-    } catch (error) {
-      return Err('GetOrder:', String(error));
+      if (!res.result)
+        return Err('GetOrder: Unexpected error, result is undefined');
+      return Ok(res.result);
+    } catch (error: any) {
+      return Err(
+        `GetOrder: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
-  async getMatchedOrders(
+  /**
+   * Get orders by status
+   * @param address - The address of the order
+   * @param status - The status of the order
+   * @param paginationConfig - The pagination configuration
+   * @returns {AsyncResult<PaginatedData<Order>, string>} A promise that resolves to the orders.
+   */
+  async getOrdersByStatus(
     address: string,
     status: Status,
     paginationConfig?: PaginationConfig,
-  ): AsyncResult<PaginatedData<MatchedOrder>, string> {
-    const url = ConstructUrl(
-      this.Url.endpoint('orders'),
-      `/user/${address}/matched`,
-      {
-        ...paginationConfig,
-        status,
-      },
-    );
-
+  ): AsyncResult<PaginatedData<Order>, string> {
     try {
-      const res = await Fetcher.get<APIResponse<PaginatedData<MatchedOrder>>>(
-        url,
-      );
-
+      const endpoint = '/v2/orders';
+      const params = {
+        ...(paginationConfig?.page && { page: paginationConfig.page }),
+        ...(paginationConfig?.per_page && {
+          per_page: paginationConfig.per_page,
+        }),
+        ...(address && { address }),
+        ...(status && { status }),
+      };
+      const url = ConstructUrl(this.Url, endpoint, params);
+      const res = await Fetcher.get<APIResponse<PaginatedData<Order>>>(url);
       if (res.error) return Err(res.error);
-      return res.result
-        ? Ok(res.result)
-        : Err('GetMatchedOrders: Unexpected error, result is undefined');
-    } catch (error) {
-      return Err('GetMatchedOrders:', String(error));
+      if (!res.result)
+        return Err('GetOrdersByStatus: Unexpected error, result is undefined');
+      return Ok(res.result);
+    } catch (error: any) {
+      return Err(
+        `GetOrdersByStatus: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
     }
   }
 
-  async getUnMatchedOrders(
-    address: string,
-    paginationConfig?: PaginationConfig,
-  ): AsyncResult<PaginatedData<CreateOrder>, string> {
-    const url = ConstructUrl(
-      this.Url.endpoint('orders'),
-      `/user/${address}/unmatched`,
-      paginationConfig,
-    );
-
-    try {
-      const res = await Fetcher.get<APIResponse<PaginatedData<CreateOrder>>>(
-        url,
-      );
-
-      if (res.error) return Err(res.error);
-      return res.result
-        ? Ok(res.result)
-        : Err('GetUnMatchedOrders: Unexpected error, result is undefined');
-    } catch (error) {
-      return Err('GetUnMatchedOrders:', String(error));
-    }
-  }
-
-  async getOrders<T extends boolean>(
-    matched: T,
+  /**
+   * Get all orders
+   * @param paginationConfig - The pagination configuration
+   * @param address - The address of the order
+   * @param tx_hash - The transaction hash of the order
+   * @param fromChain - The chain of the order
+   * @param toChain - The chain of the order
+   * @returns {AsyncResult<PaginatedData<Order>, string>} A promise that resolves to the orders.
+   */
+  async getOrders(
     paginationConfig?: PaginationConfig,
     address?: string,
     tx_hash?: string,
     fromChain?: Chain,
     toChain?: Chain,
-  ): AsyncResult<
-    PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
-    string
-  > {
-    const endPoint = matched ? '/matched' : '/unmatched';
-    const params: Record<string, any> = {};
-    if (paginationConfig) {
-      params['page'] = paginationConfig.page;
-      params['per_page'] = paginationConfig.per_page;
-    }
-    if (address) {
-      params['address'] = address;
-    }
-    if (tx_hash) {
-      params['tx_hash'] = tx_hash;
-    }
-    if (fromChain) {
-      params['from_chain'] = fromChain;
-    }
-    if (toChain) {
-      params['to_chain'] = toChain;
-    }
-    const url = ConstructUrl(this.Url.endpoint('orders'), endPoint, params);
+  ): AsyncResult<PaginatedData<Order>, string> {
+    // ?per_page=500&status=pending
+    const endpoint = '/v2/orders';
+    const params = {
+      ...(paginationConfig?.page && { page: paginationConfig.page }),
+      ...(paginationConfig?.per_page && {
+        per_page: paginationConfig.per_page,
+      }),
+      ...(address && { address }),
+      ...(tx_hash && { tx_hash }),
+      ...(fromChain && { from_chain: fromChain }),
+      ...(toChain && { to_chain: toChain }),
+    };
+
+    const url = ConstructUrl(this.Url, endpoint, params);
+
     try {
-      const res = await Fetcher.get<
-        APIResponse<PaginatedData<T extends true ? MatchedOrder : CreateOrder>>
-      >(url);
+      const res = await Fetcher.get<APIResponse<PaginatedData<Order>>>(url);
 
       if (res.error) return Err(res.error);
-      return res.result
-        ? Ok(res.result)
-        : Err('GetAllOrders: Unexpected error, result is undefined');
-    } catch (error) {
-      return Err('GetAllOrders:', String(error));
+      if (!res.result)
+        return Err('GetAllOrders: Unexpected error, result is undefined');
+      return Ok(res.result);
+    } catch (error: any) {
+      return Err(
+        `GetAllOrders: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
     }
   }
 
-  async subscribeOrders<T extends boolean>(
+  /**
+   * Subscribe to orders
+   * @param account - The account of the order
+   * @param interval - The interval of the order
+   * @param cb - The callback function
+   * @param status - The status of the order
+   * @param paginationConfig - The pagination configuration
+   * @returns {Promise<() => void>} A promise that resolves to the unsubscribe function.
+   */
+  async subscribeOrders(
     account: string,
-    matched: T,
     interval: number,
-    cb: (
-      orders: PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
-    ) => Promise<void>,
+    cb: (orders: PaginatedData<Order>) => Promise<void>,
     status: Status = 'all',
     paginationConfig?: PaginationConfig,
   ): Promise<() => void> {
     let isProcessing = false;
-
     const fetchOrders = async () => {
       if (isProcessing) return;
       isProcessing = true;
 
       try {
-        const result = matched
-          ? await this.getMatchedOrders(account, status, paginationConfig)
-          : await this.getUnMatchedOrders(account, paginationConfig);
+        const result = await this.getOrdersByStatus(
+          account,
+          status,
+          paginationConfig,
+        );
         if (result.ok) {
-          await cb(
-            result.val as PaginatedData<
-              T extends true ? MatchedOrder : CreateOrder
-            >,
-          );
+          await cb(result.val);
         } else {
           console.error('Error fetching orders:', result.error);
         }
@@ -228,20 +220,5 @@ export class Orderbook implements IOrderbook {
     return () => {
       clearInterval(intervalId);
     };
-  }
-
-  async getOrdersCount(address: string): AsyncResult<number, string> {
-    const url = this.Url.endpoint('orders').endpoint(`/user/${address}/count`);
-
-    try {
-      const res = await Fetcher.get<APIResponse<number>>(url);
-
-      if (res.error) return Err(res.error);
-      return res.status === ApiStatus.Ok && res.result !== undefined
-        ? Ok(res.result)
-        : Err('GetOrdersCount: Unexpected error, result is undefined');
-    } catch (error) {
-      return Err('GetOrdersCount:', String(error));
-    }
   }
 }
