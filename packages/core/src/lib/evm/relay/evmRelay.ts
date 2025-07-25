@@ -54,12 +54,10 @@ export class EvmRelay implements IEVMHTLC {
         primaryType: typed_data['primaryType'] as unknown as string,
         message: typed_data['message'] as unknown as Record<string, unknown>,
       });
-      console.log('signature', signature);
       const headers: Record<string, string> = {
         ...(await this.auth.getAuthHeaders()).val,
         'Content-Type': 'application/json',
       };
-      console.log('headers', headers);
       const res = await Fetcher.patch<APIResponse<string>>(
         this.url
           .endpoint('/v2/orders')
@@ -72,8 +70,6 @@ export class EvmRelay implements IEVMHTLC {
           headers,
         },
       );
-      console.log('res', res);
-      console.log('res.error', res.error);
       if (res.error) return Err(res.error);
       return Ok(res.result as string);
     } catch (error: any) {
@@ -278,13 +274,14 @@ export class EvmRelay implements IEVMHTLC {
       const headers = await this.auth.getAuthHeaders();
       if (!headers.ok) return Err(headers.error);
 
-      const res = await Fetcher.post<APIResponse<string>>(
-        this.url.endpoint('redeem'),
+      const res = await Fetcher.patch<APIResponse<string>>(
+        this.url
+          .endpoint('/v2/orders')
+          .endpoint(order.order_id)
+          .addSearchParams({ action: 'redeem' }),
         {
           body: JSON.stringify({
-            order_id: order.order_id,
             secret: trim0x(secret),
-            perform_on: 'Destination',
           }),
           headers: {
             ...headers.val,

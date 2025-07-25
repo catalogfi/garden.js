@@ -11,7 +11,7 @@ import {
   num,
   shortString,
 } from 'starknet';
-import { MatchedOrder } from '@gardenfi/orderbook';
+import { Order } from '@gardenfi/orderbook';
 import {
   APIResponse,
   AsyncResult,
@@ -68,16 +68,16 @@ export class StarknetRelay implements IStarknetHTLC {
     return this.account.address;
   }
 
-  async initiate(order: MatchedOrder): AsyncResult<string, string> {
+  async initiate(order: Order): AsyncResult<string, string> {
     if (!this.account.address) return Err('No account address');
-    const { create_order, source_swap } = order;
+    const { source_swap } = order;
     const { redeemer, amount } = source_swap;
 
     if (
       !amount ||
       !redeemer ||
-      !create_order.secret_hash ||
-      !create_order.timelock
+      !source_swap.secret_hash ||
+      !source_swap.timelock
     ) {
       return Err('Invalid order');
     }
@@ -111,11 +111,11 @@ export class StarknetRelay implements IStarknetHTLC {
 
   private async approveAndInitiate(
     tokenAddress: string,
-    order: MatchedOrder,
+    order: Order,
   ): AsyncResult<string, string> {
-    const { create_order, source_swap } = order;
+    const { source_swap } = order;
     const { redeemer, amount } = source_swap;
-    const { secret_hash, timelock } = create_order;
+    const { secret_hash, timelock } = source_swap;
     const contractAddress = source_swap.asset;
 
     try {
@@ -153,10 +153,8 @@ export class StarknetRelay implements IStarknetHTLC {
     }
   }
 
-  private async initiateRelay(
-    order: MatchedOrder,
-  ): AsyncResult<string, string> {
-    const { create_order, source_swap } = order;
+  private async initiateRelay(order: Order): AsyncResult<string, string> {
+    const { source_swap } = order;
     const { redeemer, amount } = source_swap;
 
     const DOMAIN = {
@@ -173,8 +171,8 @@ export class StarknetRelay implements IStarknetHTLC {
       message: {
         redeemer: redeemer,
         amount: cairo.uint256(amount),
-        timelock: create_order.timelock,
-        secretHash: hexToU32Array(create_order.secret_hash),
+        timelock: order.source_swap.timelock,
+        secretHash: hexToU32Array(order.source_swap.secret_hash),
       },
     };
     try {
@@ -188,7 +186,7 @@ export class StarknetRelay implements IStarknetHTLC {
         this.url.endpoint('initiate'),
         {
           body: JSON.stringify({
-            order_id: create_order.create_id,
+            order_id: order.order_id,
             signature: formattedSignature.val,
             perform_on: 'Source',
           }),
@@ -206,16 +204,13 @@ export class StarknetRelay implements IStarknetHTLC {
     }
   }
 
-  async redeem(
-    order: MatchedOrder,
-    secret: string,
-  ): AsyncResult<string, string> {
+  async redeem(order: Order, secret: string): AsyncResult<string, string> {
     try {
       const res = await Fetcher.post<APIResponse<string>>(
         this.url.endpoint('redeem'),
         {
           body: JSON.stringify({
-            order_id: order.create_order.create_id,
+            order_id: order.order_id,
             secret: secret,
             perform_on: 'Destination',
           }),

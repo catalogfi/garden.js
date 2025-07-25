@@ -17,9 +17,8 @@ import { STARKNET_CONFIG } from './../../constants';
 
 describe('StarkNet Integration Tests', () => {
   // Wallet configurations
-  // const EVM_PRIVATE_KEY =
-  //   '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
-
+  const EVM_PRIVATE_KEY =
+    '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
   const STARKNET_PRIVATE_KEY =
     '0x03eb1a8fc77eac663580829c3cfc3c3f8d495f16366af1cf42a7f4460cfbcd97';
   const STARKNET_ADDRESS =
@@ -154,7 +153,7 @@ describe('StarkNet Integration Tests', () => {
       // console.log('Order created :', createRes.error);
       const order: SwapParams = {
         fromAsset: SupportedAssets.testnet.arbitrum_sepolia_WBTC,
-        toAsset: SupportedAssets.testnet.starknet_testnet_WBTC,
+        toAsset: SupportedAssets.testnet.ethereum_sepolia_WBTC,
         sendAmount: '100000',
         receiveAmount: '99200',
         additionalData: {

@@ -46,9 +46,8 @@ export const ParseOrderStatus = (
   if (destSwapStatus === SwapStatus.RefundDetected)
     return OrderStatus.CounterPartyRefundDetected;
 
-  const attestedDeadlineUnixTime = Number(
-    order.create_order.additional_data.deadline,
-  );
+  const attestedDeadlineUnixTime =
+    Math.floor(new Date(order.created_at).getTime() / 1000) + 3600;
 
   //initiate check
   if (destSwapStatus === SwapStatus.Initiated)
@@ -164,19 +163,22 @@ export const filterDeadlineExpiredOrders = (orders: Order[]): Order[] => {
 };
 
 export const isOrderExpired = (order: Order): boolean => {
-  const { source_swap, create_order } = order;
+  const { source_swap, created_at } = order;
   const { initiate_tx_hash, initiate_block_number } = source_swap;
-  const { deadline } = create_order.additional_data;
+
+  // Parse created_at as a Date and get the unix timestamp in seconds
+  const createdAtDate = new Date(created_at);
+  const createdAtUnix = Math.floor(createdAtDate.getTime() / 1000);
 
   // Initiated and confirmed
   if (initiate_tx_hash && Number(initiate_block_number)) return false;
 
   // Initiated but not confirmed yet, check for 12-hour deadline
   if (initiate_tx_hash && !Number(initiate_block_number))
-    return isExpired(Number(deadline), 12);
+    return isExpired(createdAtUnix, 12);
 
   // Not initiated yet, check for 1-hour deadline
-  if (!initiate_tx_hash) return isExpired(Number(deadline), 1);
+  if (!initiate_tx_hash) return isExpired(createdAtUnix, 1);
 
   return false;
 };
