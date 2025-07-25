@@ -80,7 +80,7 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
   /**
    * Create Order
    * @param {SwapParams} params - The parameters for creating the order.
-   * @returns {AsyncResult<MatchedOrder, string>} The result of the swap operation.
+   * @returns {AsyncResult<Order, string>} The result of the swap operation.
    */
   swap(params: SwapParams): AsyncResult<Order, string>;
 

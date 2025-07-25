@@ -126,7 +126,7 @@ export class Fetcher {
     );
   }
 
-  static async pawtch<T>(input: RequestInfo | URL, init?: Request): Promise<T> {
+  static async patch<T>(input: RequestInfo | URL, init?: Request): Promise<T> {
     return await defaultRetrier(init).retry(() => this._patch(input, init));
   }
 

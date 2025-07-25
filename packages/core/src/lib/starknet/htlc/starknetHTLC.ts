@@ -1,5 +1,5 @@
 import { STARKNET_CONFIG } from './../../constants';
-import { MatchedOrder } from '@gardenfi/orderbook';
+import { Order } from '@gardenfi/orderbook';
 import { Account, cairo, Contract, num, CallData, RpcProvider } from 'starknet';
 import { AsyncResult, Err, hexToU32Array, Network, Ok } from '@gardenfi/utils';
 import { TokenABI } from '../abi/starknetTokenABI';
@@ -26,10 +26,7 @@ export class StarknetHTLC implements IStarknetHTLC {
     return this.account.address;
   }
 
-  private async getHTLCContract(
-    order: MatchedOrder,
-    isRedeeming: boolean = false,
-  ) {
+  private async getHTLCContract(order: Order, isRedeeming: boolean = false) {
     const assetAddress = isRedeeming
       ? order.destination_swap.asset
       : order.source_swap.asset;
@@ -42,7 +39,7 @@ export class StarknetHTLC implements IStarknetHTLC {
    * @param order Order to initiate HTLC for
    * @returns Transaction ID
    */
-  async initiate(order: MatchedOrder): AsyncResult<string, string> {
+  async initiate(order: Order): AsyncResult<string, string> {
     try {
       const htlcContract = await this.getHTLCContract(order);
 
@@ -75,7 +72,7 @@ export class StarknetHTLC implements IStarknetHTLC {
           BigInt(order.source_swap.timelock),
           amountUint256.low,
           amountUint256.high,
-          ...hexToU32Array(order.create_order.secret_hash),
+          ...hexToU32Array(order.source_swap.secret_hash),
         ],
       });
 
@@ -97,13 +94,10 @@ export class StarknetHTLC implements IStarknetHTLC {
    * @param secret Secret to redeem HTLC with
    * @returns Transaction ID
    */
-  async redeem(
-    order: MatchedOrder,
-    secret: string,
-  ): AsyncResult<string, string> {
+  async redeem(order: Order, secret: string): AsyncResult<string, string> {
     try {
       const htlcContract = await this.getHTLCContract(order, true);
-      const swapId = order.create_order.source_chain.includes('starknet')
+      const swapId = order.source_swap.chain.includes('starknet')
         ? order.source_swap.swap_id
         : order.destination_swap.swap_id;
       const redeemResponse = await this.account.execute({
@@ -129,9 +123,9 @@ export class StarknetHTLC implements IStarknetHTLC {
    * @param order Order to refund HTLC for
    * @returns Refund transaction ID
    */
-  async refund(order: MatchedOrder): AsyncResult<string, string> {
+  async refund(order: Order): AsyncResult<string, string> {
     try {
-      const swapId = order.create_order.source_chain.includes('starknet')
+      const swapId = order.source_swap.chain.includes('starknet')
         ? order.source_swap.swap_id
         : order.destination_swap.swap_id;
       const htlcContract = await this.getHTLCContract(order);
