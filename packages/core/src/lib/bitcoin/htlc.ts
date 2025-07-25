@@ -323,11 +323,15 @@ export class GardenHTLC implements IHTLCWallet {
 
   async generateInstantRefundSACPWithHash(hash: string[]) {
     const signatures = [];
+    const hashType =
+      bitcoin.Transaction.SIGHASH_SINGLE |
+      bitcoin.Transaction.SIGHASH_ANYONECANPAY;
+
     for (let i = 0; i < hash.length; i++) {
       const _hash = Buffer.from(hash[i], 'hex');
 
       const signature = await this.signer.signSchnorr(_hash);
-      signatures.push(signature);
+      signatures.push(serializeTaprootSignature(signature, hashType));
     }
     return signatures;
   }
