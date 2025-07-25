@@ -823,6 +823,16 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
     try {
       if (!this._api) return;
+      const authHeaders = await this._auth.getAuthHeaders();
+      if (authHeaders.error) {
+        this.emit(
+          'error',
+          order,
+          'Failed to get auth headers: ' + authHeaders.error,
+        );
+        return;
+      }
+
       const hash = await Fetcher.post<APIResponse<string[]>>(
         new Url(this._api.orderbook).endpoint(
           'relayer/bitcoin/instant-refund-hash',
@@ -833,6 +843,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           }),
           headers: {
             'Content-Type': 'application/json',
+            ...authHeaders.val,
           },
         },
       );
@@ -855,6 +866,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       const res = await Fetcher.post<APIResponse<string>>(url, {
         headers: {
           'Content-Type': 'application/json',
+          ...authHeaders.val,
         },
         body: JSON.stringify({
           order_id: order.create_order.create_id,
