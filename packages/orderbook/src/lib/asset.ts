@@ -64,6 +64,7 @@ export const Chains = {
   unichain: 'unichain',
   corn: 'corn',
   botanix: 'botanix',
+  bnb_testnet: 'bnb_testnet',
 } as const;
 
 export type Chain = keyof typeof Chains;
@@ -97,7 +98,8 @@ export const isMainnet = (chain: Chain) => {
     chain === Chains.monad_testnet ||
     chain === Chains.starknet_devnet ||
     chain === Chains.starknet_sepolia ||
-    chain === Chains.hyperliquid_testnet
+    chain === Chains.hyperliquid_testnet ||
+    chain === Chains.bnb_testnet
   );
 };
 
@@ -127,7 +129,8 @@ export const isEVM = (chain: Chain) => {
     chain === Chains.hyperliquid ||
     chain === Chains.unichain ||
     chain === Chains.corn ||
-    chain === Chains.botanix
+    chain === Chains.botanix ||
+    chain === Chains.bnb_testnet
   );
 };
 
@@ -174,6 +177,7 @@ export const TimeLocks: Record<Chain, number> = {
   [Chains.unichain]: 86400,
   [Chains.corn]: 17136,
   [Chains.botanix]: 34560,
+  [Chains.bnb_testnet]: 7200,
 };
 
 export const getBlockchainType = (chain: Chain) => {
