@@ -8,7 +8,7 @@ import {
   waitForTransactionReceipt,
 } from '@gardenfi/utils';
 import { WalletClient, createPublicClient, getContract, http } from 'viem';
-import { isEVM, isEvmNativeToken, MatchedOrder } from '@gardenfi/orderbook';
+import { isEVM, isEvmNativeToken, MatchedOrder, OrderVersion, parseOrderVersion } from '@gardenfi/orderbook';
 import { APIResponse, IAuth, Url, with0x } from '@gardenfi/utils';
 import { AtomicSwapABI } from '../abi/atomicSwap';
 import { IEVMHTLC } from '../htlc.types';
@@ -67,6 +67,7 @@ export class EvmRelay implements IEVMHTLC {
     const timelock = BigInt(create_order.timelock);
     const redeemer = with0x(source_swap.redeemer);
     const amount = BigInt(source_swap.amount);
+    const version = parseOrderVersion(create_order.additional_data.version);
 
     const tokenAddress = await this.getTokenAddress(order.source_swap.asset);
     if (!tokenAddress.ok ) return Err(tokenAddress.error);
@@ -88,6 +89,7 @@ export class EvmRelay implements IEVMHTLC {
         order.source_swap.asset,
         tokenAddress.val,
         create_order.create_id,
+        version
       );
     }
   }
@@ -146,6 +148,7 @@ export class EvmRelay implements IEVMHTLC {
     asset: string,
     tokenAddress: string,
     orderId: string,
+    version: OrderVersion,
   ): AsyncResult<string, string> {
     if (!this.wallet.account) return Err('No account found');
 
@@ -169,30 +172,69 @@ export class EvmRelay implements IEVMHTLC {
 
       const domain = await atomicSwap.read.eip712Domain();
 
-      const signature = await this.wallet.signTypedData({
-        account: this.wallet.account,
-        domain: {
-          name: domain[1],
-          version: domain[2],
-          chainId: Number(domain[3]),
-          verifyingContract: domain[4],
-        },
-        types: {
-          Initiate: [
-            { name: 'redeemer', type: 'address' },
-            { name: 'timelock', type: 'uint256' },
-            { name: 'amount', type: 'uint256' },
-            { name: 'secretHash', type: 'bytes32' },
-          ],
-        },
-        primaryType: 'Initiate',
-        message: {
-          redeemer,
-          timelock,
-          amount,
-          secretHash,
-        },
-      });
+      let signature: string;
+      
+      console.log('Order version for signing:', version);
+      
+      if (version === OrderVersion.V1) {
+        // V1: Current signing approach (existing implementation)
+        signature = await this.wallet.signTypedData({
+          account: this.wallet.account,
+          domain: {
+            name: domain[1],
+            version: domain[2],
+            chainId: Number(domain[3]),
+            verifyingContract: domain[4],
+          },
+          types: {
+            Initiate: [
+              { name: 'redeemer', type: 'address' },
+              { name: 'timelock', type: 'uint256' },
+              { name: 'amount', type: 'uint256' },
+              { name: 'secretHash', type: 'bytes32' },
+            ],
+          },
+          primaryType: 'Initiate',
+          message: {
+            redeemer,
+            timelock,
+            amount,
+            secretHash,
+          },
+        });
+      } else if (version === OrderVersion.V2) {
+        // V2: New signing approach with destinationData hash
+        const destinationData = '0x'; 
+        const destinationDataHash = await this.wallet.signTypedData({
+          account: this.wallet.account,
+          domain: {
+            name: domain[1],
+            version: domain[2],
+            chainId: Number(domain[3]),
+            verifyingContract: domain[4],
+          },
+          types: {
+            Initiate: [
+              { name: 'redeemer', type: 'address' },
+              { name: 'timelock', type: 'uint256' },
+              { name: 'amount', type: 'uint256' },
+              { name: 'secretHash', type: 'bytes32' },
+              { name: 'destinationDataHash', type: 'bytes' },
+            ],
+          },
+          primaryType: 'Initiate',
+          message: {
+            redeemer,
+            timelock,
+            amount,
+            secretHash,
+            destinationDataHash: destinationData, 
+          },
+        });
+        signature = destinationDataHash;
+      } else {
+        return Err(`Unsupported order version: ${version}`);
+      }
 
       const headers: Record<string, string> = {
         ...auth.val,
