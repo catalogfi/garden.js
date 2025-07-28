@@ -205,7 +205,7 @@ export class EvmRelay implements IEVMHTLC {
       } else if (version === OrderVersion.V2) {
         // V2: New signing approach with destinationData hash
         const destinationData = '0x'; 
-        const destinationDataHash = await this.wallet.signTypedData({
+        signature = await this.wallet.signTypedData({
           account: this.wallet.account,
           domain: {
             name: domain[1],
@@ -231,7 +231,6 @@ export class EvmRelay implements IEVMHTLC {
             destinationDataHash: destinationData, 
           },
         });
-        signature = destinationDataHash;
       } else {
         return Err(`Unsupported order version: ${version}`);
       }
