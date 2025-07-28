@@ -395,5 +395,14 @@ export const SupportedAssets = {
       tokenAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
       atomicSwapAddress: '0x39f3294352208905fc6ebf033954E6c6455CdB4C',
     },
+    bnb_BTCB: {
+      name: 'Binance-Peg BTCB',
+      decimals: 18,
+      symbol: 'BTCB',
+      chain: Chains.bnb,
+      logo: 'https://garden-finance.imgix.net/token-images/bitcoin.svg',
+      tokenAddress: '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c',
+      atomicSwapAddress: '0x39f3294352208905fc6ebf033954E6c6455CdB4C',
+    },
   },
 } as const;
