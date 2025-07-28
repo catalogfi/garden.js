@@ -47,7 +47,6 @@ import {
   toXOnly,
 } from '../utils';
 import {
-  isOrderExpired,
   parseActionFromStatus,
   ParseOrderStatus,
 } from '../orderStatus/orderStatusParser';
@@ -422,9 +421,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       true,
       interval,
       async (pendingOrders) => {
-        const ordersWithStatus = await this.filterExpiredAndAssignStatus(
-          pendingOrders.data,
-        );
+        const ordersWithStatus = await this.assignStatus(pendingOrders.data);
         if (!ordersWithStatus.ok) return;
 
         this.emit('onPendingOrdersChanged', ordersWithStatus.val);
@@ -438,7 +435,16 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           //post refund sacp for bitcoin orders
           if (
             isBitcoin(order.source_swap.chain) &&
-            order.status === OrderStatus.InitiateDetected
+            // post refund sacp for bitcoin orders only at relevent statuses
+            (order.status === OrderStatus.InitiateDetected ||
+              order.status === OrderStatus.Initiated ||
+              order.status === OrderStatus.CounterPartyInitiated ||
+              order.status === OrderStatus.CounterPartyInitiateDetected ||
+              order.status === OrderStatus.CounterPartyRefundDetected ||
+              order.status === OrderStatus.CounterPartyRefunded ||
+              order.status === OrderStatus.CounterPartySwapExpired ||
+              order.status === OrderStatus.Expired ||
+              order.status === OrderStatus.DeadLineExceeded)
           ) {
             const wallet = this._btcWallet;
             if (!wallet) {
@@ -685,9 +691,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       !Number(order.destination_swap.redeem_block_number)
     ) {
       try {
-        const tx = await (await wallet.getProvider()).getTransaction(
-          order.destination_swap.redeem_tx_hash,
-        );
+        const tx = await (
+          await wallet.getProvider()
+        ).getTransaction(order.destination_swap.redeem_tx_hash);
 
         let isValidRedeem = false;
         for (const input of tx.vin) {
@@ -816,20 +822,55 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     if (!userBTCAddress) return;
 
     try {
-      const sacp = await bitcoinExecutor.generateInstantRefundSACP(
-        userBTCAddress,
-      );
       if (!this._api) return;
+      const authHeaders = await this._auth.getAuthHeaders();
+      if (authHeaders.error) {
+        this.emit(
+          'error',
+          order,
+          'Failed to get auth headers: ' + authHeaders.error,
+        );
+        return;
+      }
+
+      const hash = await Fetcher.post<APIResponse<string[]>>(
+        new Url(this._api.orderbook).endpoint(
+          'relayer/bitcoin/instant-refund-hash',
+        ),
+        {
+          body: JSON.stringify({
+            order_id: order.create_order.create_id,
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders.val,
+          },
+        },
+      );
+      if (hash.error || !hash.result) {
+        this.emit(
+          'error',
+          order,
+          'Failed to get hash while posting instant refund SACP: ' + hash.error,
+        );
+        return;
+      }
+
+      const signatures =
+        await bitcoinExecutor.generateInstantRefundSACPWithHash(hash.result);
+
       const url = new Url(this._api.orderbook).endpoint(
-        'orders/bitcoin/' + order.create_order.create_id + '/instant-refund',
+        'relayer/bitcoin/instant-refund',
       );
 
       const res = await Fetcher.post<APIResponse<string>>(url, {
         headers: {
           'Content-Type': 'application/json',
+          ...authHeaders.val,
         },
         body: JSON.stringify({
-          instant_refund_tx_bytes: sacp,
+          order_id: order.create_order.create_id,
+          signatures: signatures,
         }),
       });
       if (res.status === 'Ok') {
@@ -843,7 +884,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     }
   }
 
-  private async filterExpiredAndAssignStatus(orders: MatchedOrder[]) {
+  private async assignStatus(orders: MatchedOrder[]) {
     if (orders.length === 0) return Ok([]);
 
     const blockNumbers = await this._blockNumberFetcher?.fetchBlockNumbers();
@@ -853,10 +894,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
     for (let i = 0; i < orders.length; i++) {
       const order = orders[i];
-
-      if (isOrderExpired(order)) {
-        continue;
-      }
 
       const sourceChain = order.source_swap.chain;
       const destinationChain = order.destination_swap.chain;

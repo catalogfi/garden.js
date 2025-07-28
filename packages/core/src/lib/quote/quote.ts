@@ -127,6 +127,7 @@ export class Quote implements IQuote {
           minAmount: value.min_amount,
           maxAmount: value.max_amount,
           fee: value.fee,
+          fixed_fee: Number(value.fixed_fee),
         };
       }
 
