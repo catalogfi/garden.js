@@ -62,4 +62,9 @@ export const WALLET_CONFIG = {
     name: 'Keplr Wallet',
     icon: 'https://garden-finance.imgix.net/wallets/keplr.svg',
   },
+  Leap: {
+    id: 'leap',
+    name: 'Leap Wallet',
+    icon: 'https://garden-finance.imgix.net/wallets/LeapLight.svg',
+  },
 } as const;
