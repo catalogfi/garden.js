@@ -396,7 +396,7 @@ export const SupportedAssets = {
       atomicSwapAddress: '0x39f3294352208905fc6ebf033954E6c6455CdB4C',
     },
     bnbchain_BTCB: {
-      name: 'Binance-Peg BTCB',
+      name: 'Binance Bitcoin',
       decimals: 18,
       symbol: 'BTCB',
       chain: Chains.bnbchain,
