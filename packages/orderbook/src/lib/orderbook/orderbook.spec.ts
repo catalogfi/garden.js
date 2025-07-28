@@ -14,9 +14,8 @@ import {
   // CreateOrderRequestWithAdditionalData,
   MatchedOrder,
   OrderVersion,
-  parseOrderVersion,
-  orderVersionToString,
 } from './orderbook.types';
+import { parseOrderVersion, orderVersionToString } from '../utils';
 // import { Asset, Chains } from '../asset';
 
 describe('orders provider', async () => {

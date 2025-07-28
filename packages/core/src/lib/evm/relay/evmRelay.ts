@@ -58,7 +58,8 @@ export class EvmRelay implements IEVMHTLC {
       !source_swap.amount ||
       !source_swap.redeemer ||
       !create_order.timelock ||
-      !create_order.secret_hash
+      !create_order.secret_hash ||
+      !create_order.additional_data.version
     )
       return Err('Invalid order');
 
