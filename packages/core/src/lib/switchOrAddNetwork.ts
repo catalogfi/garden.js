@@ -121,8 +121,8 @@ export const evmToViemChainMap: Record<EvmChain, viemChain> = {
   unichain: unichain,
   corn: corn,
   botanix: botanixMainnet,
-  bnb: bsc,
-  bnb_testnet: bscTestnet,
+  bnbchain: bsc,
+  bnbchain_testnet: bscTestnet,
 };
 
 /**

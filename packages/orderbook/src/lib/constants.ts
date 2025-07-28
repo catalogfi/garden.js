@@ -240,11 +240,11 @@ export const SupportedAssets = {
       tokenAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
       atomicSwapAddress: '0xE99D8A21d4F2ad2f90c279c869311503f9e25867',
     },
-    bnb_testnet_WBTC: {
+    bnbchain_testnet_WBTC: {
       name: 'Wrapped Bitcoin',
       decimals: 8,
       symbol: 'WBTC',
-      chain: Chains.bnb_testnet,
+      chain: Chains.bnbchain_testnet,
       logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
       tokenAddress: '0x39f3294352208905fc6ebf033954E6c6455CdB4C',
       atomicSwapAddress: '0xD8a6E3FCA403d79b6AD6216b60527F51cc967D39',
@@ -395,11 +395,11 @@ export const SupportedAssets = {
       tokenAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
       atomicSwapAddress: '0x39f3294352208905fc6ebf033954E6c6455CdB4C',
     },
-    bnb_BTCB: {
+    bnbchain_BTCB: {
       name: 'Binance-Peg BTCB',
       decimals: 18,
       symbol: 'BTCB',
-      chain: Chains.bnb,
+      chain: Chains.bnbchain,
       logo: 'https://garden-finance.imgix.net/token-images/bitcoin.svg',
       tokenAddress: '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c',
       atomicSwapAddress: '0x39f3294352208905fc6ebf033954E6c6455CdB4C',
