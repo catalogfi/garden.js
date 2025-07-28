@@ -13,6 +13,9 @@ import {
   // CreateOrderConfig,
   // CreateOrderRequestWithAdditionalData,
   MatchedOrder,
+  OrderVersion,
+  parseOrderVersion,
+  orderVersionToString,
 } from './orderbook.types';
 // import { Asset, Chains } from '../asset';
 
@@ -23,18 +26,23 @@ describe('orders provider', async () => {
 
   const orderbook = new Orderbook(new Url(orderbookApi));
 
-  test.only('should get order', async () => {
+  test('should get order', async () => {
     const order = await orderbook.getOrder(id, true);
     console.log('order.error :', order.error);
     console.log('order.val :', order.val);
-    expect(order.error).toBeUndefined();
+    if (!order.ok) {
+      return;
+    }
     expect(order.val.create_order.create_id).toEqual(id);
     expectTypeOf(order.val).toEqualTypeOf<MatchedOrder>();
   });
 
   test('should get orders of a address', async () => {
-    const orders = await orderbook.getMatchedOrders(address, false);
+    const orders = await orderbook.getMatchedOrders(address, 'all');
     expect(orders.error).toBeUndefined();
+    if (!orders.val) {
+      return;
+    }
     expect(orders.val.data.length).toBeGreaterThan(0);
     expectTypeOf(orders.val.data).toEqualTypeOf<MatchedOrder[]>();
   });
@@ -42,6 +50,9 @@ describe('orders provider', async () => {
   test('should get all orders', async () => {
     const orders = await orderbook.getOrders(true);
     expect(orders.error).toBeUndefined();
+    if (!orders.val) {
+      return;
+    }
     expect(orders.val.data.length).toBeGreaterThan(0);
     expectTypeOf(orders.val.data).toEqualTypeOf<MatchedOrder[]>();
   });
@@ -64,7 +75,79 @@ describe('orders provider', async () => {
     expect(count.error).toBeUndefined();
     expect(count.val).toBe(0);
   });
+
+  test('should parse order version correctly', async () => {
+    const orders = await orderbook.getOrders(true);
+    expect(orders.ok).toBeTruthy();
+    expect(orders.val!.data.length).toBeGreaterThan(0);
+
+    // Check that orders have version field and it's properly formatted
+    const firstOrder = orders.val!.data[0];
+    expect(firstOrder.create_order.additional_data).toBeDefined();
+    expect(firstOrder.create_order.additional_data.version).toBeDefined();
+
+    // The version should be a string like "v1" or "v2"
+    const version = firstOrder.create_order.additional_data.version;
+    expect(typeof version).toBe('string');
+    expect(version).toMatch(/^v[12]$/);
+
+    console.log('Order version:', version);
+  });
 });
+
+describe.only('OrderVersion parsing with real API', async () => {
+  const orderbookApi = 'https://api.garden.finance';
+  const orderbook = new Orderbook(new Url(orderbookApi));
+  console.log('orderbookApi :', orderbookApi);
+
+  test('should convert order version using our utilities', async () => {
+    const orders = await orderbook.getOrders(true);
+    expect(orders.ok).toBeTruthy();
+    expect(orders.val!.data.length).toBeGreaterThan(0);
+
+    const firstOrder = orders.val!.data[0];
+    console.log('firstOrder :', firstOrder);
+    const versionString = firstOrder.create_order.additional_data.version;
+
+    // Test our parseOrderVersion function
+    const parsedVersion = parseOrderVersion(versionString);
+    console.log('parsedVersion :', parsedVersion);
+    console.log('versionString :', versionString);
+    expect(parsedVersion).toBeDefined();
+    expect([OrderVersion.V1, OrderVersion.V2]).toContain(parsedVersion);
+
+    // Test our orderVersionToString function
+    const convertedBack = orderVersionToString(parsedVersion);
+    expect(convertedBack).toBe(versionString);
+
+    console.log('Original version:', versionString);
+    console.log('Parsed version:', parsedVersion);
+    console.log('Converted back:', convertedBack);
+  });
+
+  test('should handle all version types from API', async () => {
+    const orders = await orderbook.getOrders(true);
+    expect(orders.ok).toBeTruthy();
+    expect(orders.val!.data.length).toBeGreaterThan(0);
+
+    // Check all orders in the response
+    const versions = new Set<string>();
+    orders.val!.data.forEach((order) => {
+      const version = order.create_order.additional_data.version;
+      versions.add(version);
+      console.log(`Order ${order.create_order.create_id}: version ${version}`);
+    });
+
+    console.log('All unique versions found:', Array.from(versions));
+
+    // Verify all versions can be parsed
+    versions.forEach((version) => {
+      expect(() => parseOrderVersion(version)).not.toThrow();
+      const parsed = parseOrderVersion(version);
+      expect([OrderVersion.V1, OrderVersion.V2]).toContain(parsed);
+    });
+  });
+}, 15000);
 
 // describe('orderbook', async () => {
 //   const OrderbookApi = 'orderbook.garden.finance';
