@@ -418,10 +418,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         for (const order of ordersWithStatus.val) {
           if (!this.isSecretManagementEnabled) {
             switch (order.status) {
-              case OrderStatus.CounterPartyInitiated:
               case OrderStatus.Completed:
               case OrderStatus.Redeemed:
               case OrderStatus.CounterPartyRedeemed: {
+                if (!order.destination_swap.redeem_tx_hash) continue;
+
                 this.orderExecutorCache.set(
                   order,
                   OrderActions.Redeem,
