@@ -37,6 +37,7 @@ export {
   ParseOrderStatus,
   ParseSwapStatus,
   isExpired,
+  isOrderExpired,
   filterDeadlineExpiredOrders,
   parseActionFromStatus,
 } from './lib/orderStatus/orderStatusParser';

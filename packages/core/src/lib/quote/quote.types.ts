@@ -79,6 +79,7 @@ export type Strategies = Record<
     minAmount: string;
     maxAmount: string;
     fee: number;
+    fixed_fee: number;
   }
 >;
 
@@ -90,6 +91,7 @@ export type StrategiesResponse = APIResponse<{
     fee: number;
     source_chain: Chain;
     dest_chain: Chain;
+    fixed_fee: string;
     source_asset: {
       asset: string;
       token_id: string;

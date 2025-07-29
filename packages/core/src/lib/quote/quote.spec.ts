@@ -7,7 +7,7 @@ import { Quote } from './quote';
 import { describe, expect, it } from 'vitest';
 
 describe('quote', () => {
-  const quoteUrl = 'https://testnet.api.hashira.io/quote';
+  const quoteUrl = 'https://api.garden.finance/quote';
   const quote = new Quote(quoteUrl);
 
   it('should get quote for evm-strk', async () => {
@@ -32,7 +32,7 @@ describe('quote', () => {
     expect(res.val).toBeTruthy();
   });
 
-  it.only('should get quote for strk-evm', async () => {
+  it('should get quote for strk-evm', async () => {
     const res = await quote.getQuote(
       'starknet_sepolia:0x75cf614ce4ebce29ac622a50cd5151ddfff853159707589a85dd67b9fb1eba::arbitrum_sepolia:0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
       10000000000000000,
@@ -112,7 +112,7 @@ describe('quote', () => {
   //   expect(res.val).toBeTruthy();
   // }, 30000);
 
-  it('should get strategies', async () => {
+  it.only('should get strategies', async () => {
     const res = await quote.getStrategies();
     console.log('strategies :', res.val);
     expect(res.error).toBeUndefined();
