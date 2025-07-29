@@ -13,10 +13,7 @@ yarn add @gardenfi/wallet-connectors
 ### Setup Provider
 
 ```tsx
-import {
-  BTCWalletProvider,
-  useBitcoinWallet,
-} from '@gardenfi/wallet-connectors';
+import { BTCWalletProvider } from '@gardenfi/wallet-connectors';
 import { Network } from '@gardenfi/utils';
 
 function App() {
