@@ -1,19 +1,38 @@
-## @gardenfi/orderbook
+# @gardenfi/orderbook
 
-The `@gardenfi/orderbook` package is used to facilitate the creation of orders. It also provides functionality for listening to orders and retrieving orders created by a specific address.
+The `@gardenfi/orderbook` package manages the orderbook for cross-chain atomic swaps. It provides APIs for creating orders, retrieving order information, managing matched orders, and subscribing to real-time order updates. The package handles order lifecycle management, pagination for large order datasets, and supports filtering orders by various criteria including user address, transaction hash, and order status.
 
-### Installation
+## Installation
 
 ```
-npm install @gardenfi/orderbook
+yarn add @gardenfi/orderbook
 ```
 
-### Usage
+## Usage
 
-1. Creating an order: ([should create an order with the valid configuration](https://github.com/catalogfi/garden.js/blob/4623a0679d1948755500c7179113112a025e33f8/packages/orderbook/src/lib/orderbook.spec.ts#L61  ))
-2. Getting all orders created by an address: ([should return orders where the user is the maker](https://github.com/catalogfi/garden.js/blob/4623a0679d1948755500c7179113112a025e33f8/packages/orderbook/src/lib/orderbook.spec.ts#L79))
-3. Listening to orders: ([should update when order is created](https://github.com/catalogfi/garden.js/blob/4623a0679d1948755500c7179113112a025e33f8/packages/orderbook/src/lib/orderbook.spec.ts#L94))
+```typescript
+import { Orderbook } from '@gardenfi/orderbook';
 
-### Setup
+// Get matched orders for a user
+const matchedOrders = await orderbook.getMatchedOrders(userAddress, 'pending', {
+  page: 1,
+  per_page: 10,
+});
 
-Both CommonJs and ES imports are supported so there is not extra setup needed to use the library. To use the orderbook simply import it (using import or require statements) and perform your logic. Make sure to use a signer if you're using the library in an environment where you do not have access to the private keys.
+// Subscribe to real-time order updates
+const unsubscribe = await orderbook.subscribeOrders(
+  userAddress,
+  true, // matched orders
+  5000, // 5 second interval
+  async (orders) => {
+    console.log('Orders updated:', orders);
+  },
+);
+
+// Cleanup subscription
+setTimeout(() => unsubscribe(), 30000);
+```
+
+## Dependencies
+
+- **@gardenfi/utils** - Utility functions for HTTP requests, authentication, and error handling
