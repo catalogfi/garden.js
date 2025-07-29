@@ -1,5 +1,5 @@
 import { Garden } from './garden';
-import { Environment, with0x } from '@gardenfi/utils';
+import { Environment, sleep, with0x } from '@gardenfi/utils';
 import {
   createWalletClient,
   http,
@@ -16,7 +16,6 @@ import {
 
   // SupportedAssets,
 } from '@gardenfi/orderbook';
-import { sleep } from '@catalogfi/utils';
 import {
   arbitrumSepolia,
   sepolia,
@@ -29,11 +28,10 @@ import { switchOrAddNetwork } from '../switchOrAddNetwork';
 import { SwapParams } from './garden.types';
 // import { SecretManager } from '../secretManager/secretManager';
 // import { DigestKey } from './digestKey/digestKey';
-// import { BitcoinNetwork, BitcoinProvider } from '@catalogfi/wallets';
 // import { Quote } from './../quote/quote';
 // import { Orderbook } from 'gardenfi/orderbook';
 
-describe.only('checking garden initialisation', async () => {
+describe('checking garden initialisation', async () => {
   const pk = '8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
   // const address = '0x52FE8afbbB800a33edcbDB1ea87be2547EB30000';
   const account = privateKeyToAccount(with0x(pk));
@@ -180,7 +178,7 @@ describe('swap and execute using garden', () => {
     };
 
     const result = await garden.swap(orderObj);
-    if (result.error) {
+    if (!result.ok) {
       console.log('error while creating order ❌ :', result.error);
       throw new Error(result.error);
     }
@@ -207,7 +205,7 @@ describe('swap and execute using garden', () => {
 
     const res = await garden.evmHTLC.initiate(order);
     console.log('initiated ✅ :', res.val);
-    if (res.error) console.log('init error ❌ :', res.error);
+    if (!res.ok) console.log('init error ❌ :', res.error);
     expect(res.ok).toBeTruthy();
   }, 20000);
 
@@ -247,16 +245,20 @@ describe('swap and execute using garden', () => {
   }, 150000);
 });
 
-describe('switch network with http transport', () => {
+describe.only('switch network with http transport', () => {
   const evmAccount = privateKeyToAccount(
-    '0x8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61',
+    '0xa6aef474481a516e9f24edf5e55c7a7e11ee23f785de73da2e3f1ba64faffa28',
   );
   const executeStrategy = async (garden: Garden) => {
-    const strategies = (await garden.quote.getStrategies()).val;
-    const strategyKeys = Object.keys(strategies);
+    const strategies = await garden.quote.getStrategies();
+    if (!strategies.ok) {
+      console.log('Error getting strategy', strategies.error);
+      return;
+    }
+    const strategyKeys = Object.keys(strategies.val);
     const randomKey =
       strategyKeys[Math.floor(Math.random() * strategyKeys.length)];
-    const strategy = strategies[randomKey];
+    const strategy = strategies.val[randomKey];
 
     return { strategy, randomKey };
   };
@@ -285,14 +287,21 @@ describe('switch network with http transport', () => {
   };
   const trade = async (garden: Garden) => {
     for (let i = 0; i < 10; i++) {
-      const { strategy, randomKey } = await executeStrategy(garden);
-      const quote = (
-        await garden.quote.getQuote(
-          randomKey,
-          Number(strategy.minAmount),
-          false,
-        )
-      ).val;
+      const response = await executeStrategy(garden);
+      if (!response) {
+        console.log('failed to execute strategy');
+        continue;
+      }
+      const { randomKey, strategy } = response;
+      const quote = await garden.quote.getQuote(
+        randomKey,
+        Number(strategy.minAmount),
+        false,
+      );
+      if (!quote.ok) {
+        console.log('Error getting quote', quote.error);
+        continue;
+      }
       const [sourceChainAndAsset, destChainAndAsset] = randomKey.split('::');
       const [sourceChain, sourceAsset] = sourceChainAndAsset.split(':');
       const [destChain, destAsset] = destChainAndAsset.split(':');
@@ -307,7 +316,7 @@ describe('switch network with http transport', () => {
       }
       const fromAsset = getAssetByAtomicSwapAddress(sourceChain, sourceAsset)!;
       const toAsset = getAssetByAtomicSwapAddress(destChain, destAsset)!;
-      const receiveAmount = Object.values(quote.quotes)[0];
+      const receiveAmount = Object.values(quote.val.quotes)[0];
       const swapData: SwapParams = {
         fromAsset,
         toAsset,
@@ -318,7 +327,7 @@ describe('switch network with http transport', () => {
         },
       };
       const order = await garden.swap(swapData);
-      if (order.error) {
+      if (!order.ok) {
         const errorMsg = `Error while creating order: ${order.error}`;
         console.log('❌', errorMsg);
         continue;
@@ -344,7 +353,7 @@ describe('switch network with http transport', () => {
       const res = await switchOrAddNetwork('citrea_testnet', client);
       expect(res.ok).toBeTruthy();
       expect(
-        res.val.walletClient.chain?.name === 'Citrea Testnet',
+        res.val?.walletClient.chain?.name === 'Citrea Testnet',
       ).toBeTruthy();
     } catch (error) {
       console.error('Network switch test failed:', error);
@@ -359,7 +368,7 @@ describe('switch network with http transport', () => {
     });
     const res = await switchOrAddNetwork('ethereum_sepolia', client);
     expect(res.ok).toBeTruthy();
-    expect(res.val.message).toBe('Already on the network');
+    expect(res?.val?.message).toBe('Already on the network');
   }, 15000);
   it('should switch chain and do evm-evm trades in node environment', async () => {
     const client = createWalletClient({

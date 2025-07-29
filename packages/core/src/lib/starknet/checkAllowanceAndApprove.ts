@@ -5,9 +5,8 @@ import {
   RpcProvider,
   TransactionExecutionStatus,
 } from 'starknet';
-import { AsyncResult, Err, Ok, with0x } from '@catalogfi/utils';
 import { TokenABI } from './abi/starknetTokenABI';
-import { sleep } from '@gardenfi/utils';
+import { AsyncResult, Err, Ok, sleep, with0x } from '@gardenfi/utils';
 
 export const checkAllowanceAndApprove = async (
   account: AccountInterface,
@@ -23,7 +22,7 @@ export const checkAllowanceAndApprove = async (
       htlcAddress,
       starknetProvider,
     );
-    if (allowance.error) return Err(allowance.error);
+    if (!allowance.ok) return Err(allowance.error);
 
     const currentAllowance = allowance.val;
 
@@ -57,11 +56,33 @@ export const checkAllowanceAndApprove = async (
         htlcAddress,
         starknetProvider,
       );
-      if (_allowance.error) return Err(_allowance.error);
+      if (!_allowance.ok) return Err(_allowance.error);
       if (_allowance.val >= amount) {
         return Ok(approveResponse.transaction_hash);
       }
       await sleep(2000);
+
+      // in a loop check if the allowance is approved for every 2 sec until 40sec and exit
+      let allowance = 0n;
+      for (let i = 0; i < 20; i++) {
+        const _allowance = await checkAllowance(
+          account.address,
+          tokenAddress,
+          htlcAddress,
+          starknetProvider,
+        );
+        if (!_allowance.ok) return Err(_allowance.error);
+        allowance = _allowance.val;
+        if (allowance >= amount) {
+          break;
+        }
+        await sleep(2000);
+      }
+      if (allowance < amount) {
+        return Err('Allowance not approved');
+      }
+
+      return Ok(approveResponse.transaction_hash);
     }
 
     return Err('Allowance not approved after transaction.');
@@ -115,7 +136,7 @@ export const isAllowanceSufficient = async (
     htlcAddress,
     starknetProvider,
   );
-  if (allowance.error) return Err(allowance.error);
+  if (!allowance.ok) return Err(allowance.error);
 
   return Ok(allowance.val >= amount);
 };

@@ -1,19 +1,24 @@
-import { WALLET_CONFIG } from "./../../constants";
+import { WALLET_CONFIG } from './../../constants';
 import {
   Balance,
   Connect,
   IInjectedBitcoinProvider,
-} from "../../bitcoin.types";
+} from '../../bitcoin.types';
 import {
   XverseBitcoinNetworkType,
   XVerseBitcoinProvider,
-} from "./xverse.types";
-import { AsyncResult, Err, executeWithTryCatch, Ok } from "@catalogfi/utils";
-import { Network } from "@gardenfi/utils";
+} from './xverse.types';
+import {
+  AsyncResult,
+  Err,
+  executeWithTryCatch,
+  Network,
+  Ok,
+} from '@gardenfi/utils';
 
 export class XverseProvider implements IInjectedBitcoinProvider {
   #xverseProvider: XVerseBitcoinProvider;
-  public address = "";
+  public address = '';
   public id = WALLET_CONFIG.Xverse.id;
   public name = WALLET_CONFIG.Xverse.name;
   public icon = WALLET_CONFIG.Xverse.icon;
@@ -26,19 +31,19 @@ export class XverseProvider implements IInjectedBitcoinProvider {
     try {
       if (!network) network = Network.MAINNET;
 
-      await this.#xverseProvider.request("wallet_connect", null);
+      await this.#xverseProvider.request('wallet_connect', null);
 
       const currentNetwork = await this.getNetwork();
       if (currentNetwork.error)
-        return Err("Could not get network", currentNetwork.error);
+        return Err('Could not get network', currentNetwork.error);
 
       if (currentNetwork.val !== network) {
         const switchRes = await this.switchNetwork();
         if (switchRes.error)
-          return Err("Failed to switch network", switchRes.error);
+          return Err('Failed to switch network', switchRes.error);
       }
       const addresses = await this.getAccounts();
-      if (addresses.val.length > 0) {
+      if (addresses.ok && addresses.val.length > 0) {
         this.address = addresses.val[0];
       }
 
@@ -49,22 +54,22 @@ export class XverseProvider implements IInjectedBitcoinProvider {
         id: WALLET_CONFIG.Xverse.id,
       });
     } catch (error) {
-      return Err("Error while connecting to the XVerse wallet", error);
+      return Err('Error while connecting to the XVerse wallet', error);
     }
   };
 
   getBalance = async () => {
     return await executeWithTryCatch(async () => {
-      const response = await this.#xverseProvider.request("getBalance", {});
+      const response = await this.#xverseProvider.request('getBalance', {});
       return response.result as Balance;
-    }, "Error while getting balance from XVerse wallet");
+    }, 'Error while getting balance from XVerse wallet');
   };
 
   requestAccounts = async (): AsyncResult<string[], string> => {
     return await executeWithTryCatch(async () => {
-      const res = await this.#xverseProvider.request("getAccounts", {
-        purposes: ["payment"],
-        message: "I want to connect",
+      const res = await this.#xverseProvider.request('getAccounts', {
+        purposes: ['payment'],
+        message: 'I want to connect',
       });
       return res.result.map((acc: any) => acc.address);
     });
@@ -72,8 +77,8 @@ export class XverseProvider implements IInjectedBitcoinProvider {
 
   getAccounts = async (): AsyncResult<string[], string> => {
     return await executeWithTryCatch(async () => {
-      const res = await this.#xverseProvider.request("getAddresses", {
-        purposes: ["payment"],
+      const res = await this.#xverseProvider.request('getAddresses', {
+        purposes: ['payment'],
       });
       return res.result.addresses.map((acc: any) => acc.address);
     });
@@ -84,7 +89,7 @@ export class XverseProvider implements IInjectedBitcoinProvider {
     satoshis: number,
   ): AsyncResult<string, string> => {
     return await executeWithTryCatch(async () => {
-      const res = await this.#xverseProvider.request("sendTransfer", {
+      const res = await this.#xverseProvider.request('sendTransfer', {
         recipients: [{ address: toAddress, amount: satoshis }],
       });
       const txid = res.result?.txid;
@@ -93,13 +98,13 @@ export class XverseProvider implements IInjectedBitcoinProvider {
       } else {
         throw new Error(res.error);
       }
-    }, "Error while sending bitcoin from Xverse wallet");
+    }, 'Error while sending bitcoin from Xverse wallet');
   };
 
   async getNetwork() {
     return await executeWithTryCatch(async () => {
       const network = await this.#xverseProvider.request(
-        "wallet_getNetwork",
+        'wallet_getNetwork',
         null,
       );
       if (network.result.bitcoin.name === XverseBitcoinNetworkType.Mainnet) {
@@ -110,14 +115,14 @@ export class XverseProvider implements IInjectedBitcoinProvider {
         return Network.TESTNET;
       }
       throw new Error(network.result);
-    }, "Error while getting network from Xverse wallet");
+    }, 'Error while getting network from Xverse wallet');
   }
 
   async switchNetwork(): AsyncResult<Network, string> {
     try {
       const currentNetwork = await this.getNetwork();
       if (currentNetwork.error) {
-        return Err("Failed to get current network");
+        return Err('Failed to get current network');
       }
 
       const toNetwork =
@@ -125,18 +130,18 @@ export class XverseProvider implements IInjectedBitcoinProvider {
           ? XverseBitcoinNetworkType.Testnet4
           : XverseBitcoinNetworkType.Mainnet;
 
-      await this.#xverseProvider.request("wallet_changeNetwork", {
+      await this.#xverseProvider.request('wallet_changeNetwork', {
         name: toNetwork,
       });
 
       const newNetwork = await this.getNetwork();
-      if (newNetwork.error) {
-        return Err("Failed to verify network switch");
+      if (!newNetwork.ok) {
+        return Err('Failed to verify network switch');
       }
 
       return Ok(newNetwork.val);
     } catch (error) {
-      return Err("Error while switching network in Xverse:", error);
+      return Err('Error while switching network in Xverse:', error);
     }
   }
 
@@ -151,7 +156,7 @@ export class XverseProvider implements IInjectedBitcoinProvider {
   off = () => {};
 
   disconnect = (): AsyncResult<string, string> => {
-    this.address = "";
-    return Promise.resolve(Ok("Disconnected"));
+    this.address = '';
+    return Promise.resolve(Ok('Disconnected'));
   };
 }

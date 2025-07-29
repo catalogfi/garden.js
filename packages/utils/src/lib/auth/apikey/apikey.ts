@@ -1,5 +1,4 @@
-import { Err, Ok, Result } from '@catalogfi/utils';
-import { AsyncResult } from '@catalogfi/utils';
+import { AsyncResult, Err, Ok, Result } from '../../result/result';
 import { AuthHeaderEnum, AuthHeader, IAuth } from '../auth.types';
 
 export class ApiKey implements IAuth {
@@ -22,7 +21,7 @@ export class ApiKey implements IAuth {
     const decodedBytes = this.decodeBase64UrlSafe(this.apiKey);
     const data = this.extractData(decodedBytes);
 
-    if (data.error) {
+    if (!data.ok) {
       return Err(data.error);
     }
 

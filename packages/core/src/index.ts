@@ -57,6 +57,10 @@ export type {
   IQuote,
   QuoteResponse,
   Strategies,
+  QuoteParamsForAssets,
+  QuoteParamsForOrderPair,
+  QuoteOptions,
+  BaseQuoteParams,
 } from './lib/quote/quote.types';
 
 export {
@@ -74,6 +78,10 @@ export {
   botanixMainnet as botanix,
 } from './lib/switchOrAddNetwork';
 
+export { BitcoinNetwork } from './lib/bitcoin/provider/provider.interface';
+export { BitcoinProvider } from './lib/bitcoin/provider/provider';
+export { BitcoinWallet } from './lib/bitcoin/wallet/wallet';
+export type { IBitcoinProvider } from './lib/bitcoin/provider/provider.interface';
 export {
   API,
   STARKNET_CONFIG,

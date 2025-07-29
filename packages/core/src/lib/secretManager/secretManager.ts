@@ -1,14 +1,11 @@
-import { Err, Ok, trim0x } from '@catalogfi/utils';
 import { sha256, WalletClient } from 'viem';
-import ECPairFactory from 'ecpair';
+import { ECPairFactory } from 'ecpair';
 import * as ecc from 'tiny-secp256k1';
-import { EventBroker, with0x } from '@gardenfi/utils';
+import { Err, EventBroker, Ok, trim0x, with0x } from '@gardenfi/utils';
 import { ISecretManager, SecretManagerEvents } from './secretManager.types';
 
-export class SecretManager
-  extends EventBroker<SecretManagerEvents>
-  implements ISecretManager
-{
+export class SecretManager extends EventBroker<SecretManagerEvents>
+  implements ISecretManager {
   private digestKey?: string;
   private walletClient?: WalletClient;
 
@@ -95,7 +92,7 @@ export class SecretManager
 
   async generateSecret(nonce: string) {
     const signature = await this.signMessage(nonce);
-    if (signature.error) return Err(signature.error);
+    if (!signature.ok) return Err(signature.error);
 
     const secret = sha256(with0x(signature.val));
     const secretHash = sha256(secret);
@@ -105,7 +102,7 @@ export class SecretManager
   private async signMessage(nonce: string) {
     if (!this.digestKey) {
       const digestKey = await this.getDigestKey();
-      if (digestKey.error) return Err(digestKey.error);
+      if (!digestKey.ok) return Err(digestKey.error);
 
       this.digestKey = digestKey.val;
     }

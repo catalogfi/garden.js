@@ -1,11 +1,11 @@
-import { Err, Fetcher, Ok, Request } from '@catalogfi/utils';
+import { Err, Fetcher, Ok, Request as UtilsRequest } from '@gardenfi/utils';
 import {
   IQuote,
+  QuoteParamsForAssets,
   QuoteResponse,
   Strategies,
   StrategiesResponse,
 } from './quote.types';
-import { Asset } from '@gardenfi/orderbook';
 import { APIResponse, Url } from '@gardenfi/utils';
 import { constructOrderPair } from '../utils';
 
@@ -16,16 +16,13 @@ export class Quote implements IQuote {
     this.quoteUrl = new Url(quoteUrl);
   }
 
-  async getQuoteFromAssets(
-    fromAsset: Asset,
-    toAsset: Asset,
-    amount: number,
+  async getQuoteFromAssets({
+    fromAsset,
+    toAsset,
+    amount,
     isExactOut = false,
-    options?: {
-      affiliateFee?: number;
-      request?: Request;
-    },
-  ) {
+    options,
+  }: QuoteParamsForAssets) {
     const orderpair = constructOrderPair(
       fromAsset.chain,
       fromAsset.atomicSwapAddress,
@@ -42,7 +39,7 @@ export class Quote implements IQuote {
     isExactOut = false,
     options?: {
       affiliateFee?: number;
-      request?: Request;
+      request?: UtilsRequest;
     },
   ) {
     try {

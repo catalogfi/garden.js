@@ -1,7 +1,6 @@
 import { CookieJar } from 'tough-cookie';
 import { default as fetchCookie } from 'fetch-cookie';
 import { AuthHeader, IAuth, SiweOpts } from '../auth.types';
-import { AsyncResult, Err, Ok, Result } from '@catalogfi/utils';
 import { Url } from '../../url';
 import { MemoryStorage } from '../../store/memoryStorage';
 import { IStore, StoreKeys } from '../../store/store.interface';
@@ -12,6 +11,8 @@ import { add0x, Authorization, parseJwt } from '../../utils';
 import { privateKeyToAccount } from 'viem/accounts';
 import { mainnet } from 'viem/chains';
 import { DigestKey } from '../../digestKey/digestKey';
+import { AsyncResult, Err, Ok, Result } from '../../result/result';
+
 export class Siwe implements IAuth {
   private readonly url: Url;
   private store: IStore;
@@ -183,7 +184,8 @@ export class Siwe implements IAuth {
 
   async getAuthHeaders(): AsyncResult<AuthHeader, string> {
     const token = await this.getToken();
-    if (token.error) return Err(token.error);
+    if (!token.ok) return Err(token.error);
+
     return Ok({ Authorization: Authorization(token.val) });
   }
 }

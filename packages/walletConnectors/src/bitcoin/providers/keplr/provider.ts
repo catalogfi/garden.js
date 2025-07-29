@@ -1,8 +1,13 @@
-import { Connect, IInjectedBitcoinProvider } from 'src/bitcoin/bitcoin.types';
+import { Connect, IInjectedBitcoinProvider } from '../../bitcoin.types';
 import { KeplrBitcoinChainType, KeplrBitcoinProvider } from './keplr.types';
 import { WALLET_CONFIG } from '../../constants';
-import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
-import { Network } from '@gardenfi/utils';
+import {
+  AsyncResult,
+  Err,
+  executeWithTryCatch,
+  Network,
+  Ok,
+} from '@gardenfi/utils';
 
 export class KeplrProvider implements IInjectedBitcoinProvider {
   #keplrProvider: KeplrBitcoinProvider;

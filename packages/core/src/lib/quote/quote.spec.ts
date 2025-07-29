@@ -50,8 +50,10 @@ describe('quote', () => {
       true,
     );
     console.log('quote :', res.val);
-    expect(res.error).toBeUndefined();
+    expect(res.ok).toBeTruthy();
     expect(res.val).toBeTruthy();
+
+    if (!res.ok) return;
     expect(Number(Object.values(res.val.quotes)[0])).toBeGreaterThan(100000);
   });
 

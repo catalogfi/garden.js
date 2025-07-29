@@ -1,18 +1,15 @@
 import { Garden } from '../garden';
 import { EthereumLocalnet, SupportedAssets } from '@gardenfi/orderbook';
-import { Environment, with0x } from '@gardenfi/utils';
+import { Environment, sleep, with0x } from '@gardenfi/utils';
 import { RpcProvider, Account } from 'starknet';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { privateKeyToAccount } from 'viem/accounts';
-import { sleep } from '@catalogfi/utils';
 import { createWalletClient, http, WalletClient } from 'viem';
-import {
-  BitcoinNetwork,
-  BitcoinProvider,
-  BitcoinWallet,
-} from '@catalogfi/wallets';
 import { Quote } from '@gardenfi/core';
 import { StarknetRelay } from '../../starknet/relay/starknetRelay';
+import { BitcoinNetwork } from '../../bitcoin/provider/provider.interface';
+import { BitcoinWallet } from '../../bitcoin/wallet/wallet';
+import { BitcoinProvider } from '../../bitcoin/provider/provider';
 // import axios from 'axios';
 // import { promisify } from 'util';
 // import { exec } from 'child_process';
@@ -205,7 +202,7 @@ describe('Bitcoin to StarkNet Integration Tests', () => {
     // console.log('Order Parameters:', JSON.stringify(order, null, 2));
 
     const result = await garden.swap(order);
-    if (result.error) {
+    if (!result.ok) {
       console.log('\n------ SWAP ERROR ------');
       console.log('Error:', result.error);
       console.log('------------------------');

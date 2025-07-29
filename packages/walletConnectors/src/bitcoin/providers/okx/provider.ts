@@ -1,7 +1,12 @@
-import { AsyncResult, Err, executeWithTryCatch, Ok } from '@catalogfi/utils';
 import { Connect, IInjectedBitcoinProvider } from '../../bitcoin.types';
 import { OKXBitcoinProvider } from './okx.types';
-import { Network } from '@gardenfi/utils';
+import {
+  AsyncResult,
+  Err,
+  executeWithTryCatch,
+  Network,
+  Ok,
+} from '@gardenfi/utils';
 import { WALLET_CONFIG } from './../../constants';
 
 export class OKXProvider implements IInjectedBitcoinProvider {
@@ -11,7 +16,7 @@ export class OKXProvider implements IInjectedBitcoinProvider {
   public id = WALLET_CONFIG.OKX.id;
   public name = WALLET_CONFIG.OKX.name;
   public icon = WALLET_CONFIG.OKX.icon;
-  
+
   constructor(provider: OKXBitcoinProvider, network: Network) {
     this.#provider = provider;
     this.#network = network;
@@ -44,7 +49,7 @@ export class OKXProvider implements IInjectedBitcoinProvider {
 
   async requestAccounts(): AsyncResult<string[], string> {
     const connectResult = await this.connect();
-    if (connectResult.error) {
+    if (!connectResult.ok) {
       return Err(connectResult.error);
     }
     return Ok([connectResult.val.address]);

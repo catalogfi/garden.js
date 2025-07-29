@@ -1,4 +1,3 @@
-import { IBitcoinWallet, IHTLCWallet, Urgency } from '@catalogfi/wallets';
 import * as bitcoin from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
 import { generateInternalkey } from './internalKey';
@@ -7,7 +6,10 @@ import { serializeTaprootSignature } from 'bitcoinjs-lib/src/psbt/bip371';
 import { assert, xOnlyPubkey } from '../utils';
 import { serializeScript, sortLeaves } from '../utils';
 import { htlcErrors } from '../errors';
-import { BitcoinUTXO } from '@catalogfi/wallets';
+import {BitcoinUTXO} from "./provider/provider.interface";
+import { Urgency } from './provider/provider.interface';
+import { IHTLCWallet } from '../htlc.interface';
+import { IBitcoinWallet } from './wallet/wallet.interface';
 
 export enum Leaf {
   REFUND,

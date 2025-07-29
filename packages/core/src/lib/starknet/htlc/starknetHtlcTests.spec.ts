@@ -2,7 +2,7 @@ import { Account, RpcProvider } from 'starknet';
 import { describe, it, expect, beforeAll } from 'vitest';
 import { StarknetHTLC } from './starknetHTLC';
 import { Garden } from '../../garden/garden';
-import { Environment, sleep, with0x } from '@gardenfi/utils';
+import { Environment, sleep, trim0x, with0x } from '@gardenfi/utils';
 import { privateKeyToAccount } from 'viem/accounts';
 import { WalletClient, createWalletClient, http } from 'viem';
 import {
@@ -11,14 +11,11 @@ import {
   getTimeLock,
   SupportedAssets,
 } from '@gardenfi/orderbook';
-import { trim0x } from '@catalogfi/utils';
-import {
-  BitcoinNetwork,
-  BitcoinProvider,
-  BitcoinWallet,
-} from '@catalogfi/wallets';
 import { BlockNumberFetcher, Quote } from '@gardenfi/core';
 import { StarknetRelay } from '../relay/starknetRelay';
+import { BitcoinProvider } from '../../bitcoin/provider';
+import { BitcoinNetwork } from '../../bitcoin/provider/provider.interface';
+import { BitcoinWallet } from '../../bitcoin/wallet';
 
 describe('starknetHtlcTests', () => {
   const RELAYER_URL = 'http://localhost:4426';
