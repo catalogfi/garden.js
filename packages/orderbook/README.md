@@ -12,27 +12,24 @@ yarn add @gardenfi/orderbook
 
 ```typescript
 import { Orderbook } from '@gardenfi/orderbook';
+import { Url } from '@gardenfi/utils';
+
+// Initialize the orderbook with the API URL
+const orderbook = new Orderbook(new Url('<ORDERBOOK_API>'));
 
 // Get matched orders for a user
-const matchedOrders = await orderbook.getMatchedOrders(userAddress, 'pending', {
-  page: 1,
-  per_page: 10,
-});
-
-// Subscribe to real-time order updates
-const unsubscribe = await orderbook.subscribeOrders(
-  userAddress,
-  true, // matched orders
-  5000, // 5 second interval
-  async (orders) => {
-    console.log('Orders updated:', orders);
+const matchedOrdersResult = await orderbook.getMatchedOrders(
+  '<USER_ADDRESS>', // user address
+  'pending', // status: 'all' | 'pending' | 'fulfilled'
+  {
+    page: 1,
+    per_page: 10,
   },
 );
 
-// Cleanup subscription
-setTimeout(() => unsubscribe(), 30000);
+if (matchedOrdersResult.ok) {
+  console.log('Matched orders:', matchedOrdersResult.val.data);
+} else {
+  console.error('Error fetching matched orders:', matchedOrdersResult.error);
+}
 ```
-
-## Dependencies
-
-- **@gardenfi/utils** - Utility functions for HTTP requests, authentication, and error handling
