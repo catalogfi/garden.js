@@ -1014,7 +1014,7 @@ __metadata:
     bitcoinjs-lib: "npm:^6.1.5"
     dotenv: "npm:^16.3.1"
     ecpair: "npm:^2.1.0"
-    starknet: "npm:6.23.1"
+    starknet: "npm:7.6.4"
     tiny-secp256k1: "npm:^2.2.3"
     typescript: "npm:^5.2.2"
     varuint-bitcoin: "npm:^1.1.2"
@@ -4578,6 +4578,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@starknet-io/starknet-types-07@npm:@starknet-io/types-js@~0.7.10, starknet-types-07@npm:@starknet-io/types-js@^0.7.10":
+  version: 0.7.10
+  resolution: "@starknet-io/types-js@npm:0.7.10"
+  checksum: 10c0/ca114d740198be3738dddd2e452bd9e51fe68c482925d3f6455e3b2c73f330bd5440e7ab1b3a6899022c24362367413fe8b8b2ecfde9fe28eed2dcaccd3b1362
+  languageName: node
+  linkType: hard
+
+"@starknet-io/starknet-types-08@npm:@starknet-io/types-js@~0.8.4":
+  version: 0.8.4
+  resolution: "@starknet-io/types-js@npm:0.8.4"
+  checksum: 10c0/afdd9deec1a881de85aea576dfc6b8827557a3257330c31abed91b3f33b96806da1f7bfb53f14cbf8250e530e6f21e93a8d2a283b2d84685e712fcc92d822d5d
+  languageName: node
+  linkType: hard
+
 "@stellar/js-xdr@npm:^3.1.2":
   version: 3.1.2
   resolution: "@stellar/js-xdr@npm:3.1.2"
@@ -6901,7 +6915,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"abi-wan-kanabi@npm:^2.2.3":
+"abi-wan-kanabi@npm:2.2.4, abi-wan-kanabi@npm:^2.2.3":
   version: 2.2.4
   resolution: "abi-wan-kanabi@npm:2.2.4"
   dependencies:
@@ -13906,13 +13920,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"starknet-types-07@npm:@starknet-io/types-js@^0.7.10":
-  version: 0.7.10
-  resolution: "@starknet-io/types-js@npm:0.7.10"
-  checksum: 10c0/ca114d740198be3738dddd2e452bd9e51fe68c482925d3f6455e3b2c73f330bd5440e7ab1b3a6899022c24362367413fe8b8b2ecfde9fe28eed2dcaccd3b1362
-  languageName: node
-  linkType: hard
-
 "starknet@npm:6.23.1":
   version: 6.23.1
   resolution: "starknet@npm:6.23.1"
@@ -13929,6 +13936,24 @@ __metadata:
     starknet-types-07: "npm:@starknet-io/types-js@^0.7.10"
     ts-mixer: "npm:^6.0.3"
   checksum: 10c0/2d904e5448ca466ff2fbf9aa7993df6bf3ad45d4aaef906bb381c5e7a7d562ffeff615b3345ddabb7cf1cfc750e93ff006ac3d5073a52eefdee33fb9a4746d9a
+  languageName: node
+  linkType: hard
+
+"starknet@npm:7.6.4":
+  version: 7.6.4
+  resolution: "starknet@npm:7.6.4"
+  dependencies:
+    "@noble/curves": "npm:1.7.0"
+    "@noble/hashes": "npm:1.6.0"
+    "@scure/base": "npm:1.2.1"
+    "@scure/starknet": "npm:1.1.0"
+    "@starknet-io/starknet-types-07": "npm:@starknet-io/types-js@~0.7.10"
+    "@starknet-io/starknet-types-08": "npm:@starknet-io/types-js@~0.8.4"
+    abi-wan-kanabi: "npm:2.2.4"
+    lossless-json: "npm:^4.0.1"
+    pako: "npm:^2.0.4"
+    ts-mixer: "npm:^6.0.3"
+  checksum: 10c0/7a7d584ca9be587af6f13daa60aacb893475bf1244b89f0ae3f4de231fb9b3be598f75c142a33068b30e41af39894ba7364b24fb56b41d1fcbb6588ac5c01d2e
   languageName: node
   linkType: hard
 
