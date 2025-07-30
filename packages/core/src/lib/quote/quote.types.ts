@@ -40,15 +40,6 @@ export interface IQuote {
   ): AsyncResult<QuoteResponse, string>;
 
   /**
-   * Attest the quote, server will return a signature by verifying and signing the quote according to the provided `strategy_id`
-   * @param order - The order for which the attestation is requested. Order should include `strategy_id` in the `additional_data` field.
-   * @returns {string} The attestation signature
-   */
-  getAttestedQuote(
-    order: CreateOrderReqWithStrategyId,
-  ): AsyncResult<CreateOrderRequestWithAdditionalData, string>;
-
-  /**
    * Get the strategies available for quoting
    * @returns {Strategies} The strategies available
    */
@@ -88,6 +79,7 @@ export type Strategies = Record<
     minAmount: string;
     maxAmount: string;
     fee: number;
+    fixed_fee: number;
   }
 >;
 
@@ -99,6 +91,7 @@ export type StrategiesResponse = APIResponse<{
     fee: number;
     source_chain: Chain;
     dest_chain: Chain;
+    fixed_fee: string;
     source_asset: {
       asset: string;
       token_id: string;

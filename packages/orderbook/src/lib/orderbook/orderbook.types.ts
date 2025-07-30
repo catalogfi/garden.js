@@ -92,9 +92,9 @@ export interface IOrderbook {
    * @returns {number} The create order ID.
    */
   createOrder(
-    order: CreateOrderRequestWithAdditionalData,
+    order: CreateOrderReqWithStrategyId,
     auth: IAuth,
-  ): AsyncResult<string, string>;
+  ): AsyncResult<MatchedOrder, string>;
 
   /**
    * Get the order from orderbook based on provided Id and match status.
@@ -252,15 +252,12 @@ export type CreateOrderRequest = {
   destination_chain: string;
   source_asset: string;
   destination_asset: string;
-  initiator_source_address: string;
-  initiator_destination_address: string;
   source_amount: string; // BigDecimal as string
   destination_amount: string; // BigDecimal as string
-  fee: string; // BigDecimal as string
   nonce: string; // BigDecimal as string
-  min_destination_confirmations: number;
-  timelock: number;
-  secret_hash: string;
+  initiator_source_address?: string;
+  initiator_destination_address?: string;
+  secret_hash?: string;
 };
 
 export type CreateOrderRequestWithAdditionalData = CreateOrderRequest &
@@ -268,6 +265,9 @@ export type CreateOrderRequestWithAdditionalData = CreateOrderRequest &
   AffiliateFeeList<AffiliateFeeWithAmount>;
 
 export type CreateOrder = CreateOrderRequestWithAdditionalData & {
+  fee: string; // BigDecimal as string
+  min_destination_confirmations: number;
+  timelock: number;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -317,7 +317,7 @@ export type PaginatedData<T> = {
   per_page: number;
 };
 
-export type CreateOrderResponse = APIResponse<string>;
+export type CreateOrderResponse = APIResponse<MatchedOrder>;
 
 export type PaginationConfig = {
   page?: number;

@@ -12,6 +12,8 @@ import {
   citreaTestnet,
   unichain,
   corn,
+  bsc,
+  bscTestnet,
 } from 'viem/chains';
 import {
   ArbitrumLocalnet,
@@ -119,6 +121,8 @@ export const evmToViemChainMap: Record<EvmChain, viemChain> = {
   unichain: unichain,
   corn: corn,
   botanix: botanixMainnet,
+  bnbchain: bsc,
+  bnbchain_testnet: bscTestnet,
 };
 
 /**
