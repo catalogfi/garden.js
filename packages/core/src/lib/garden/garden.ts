@@ -175,12 +175,17 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
             config.environment === Environment.MAINNET
               ? SolanaRelayerAddress.mainnet
               : SolanaRelayerAddress.testnet,
-            (config.solanaProgramAddress && config.solanaProgramAddress.native)
-              ? config.solanaProgramAddress.native
-              : solanaProgramAddress.mainnet.native,
-            (config.solanaProgramAddress && config.solanaProgramAddress.spl)
-              ? config.solanaProgramAddress.spl
-              : solanaProgramAddress.mainnet.spl,
+            {
+              native:
+                config.solanaProgramAddress &&
+                config.solanaProgramAddress.native
+                  ? config.solanaProgramAddress.native
+                  : solanaProgramAddress.mainnet.native,
+              spl:
+                config.solanaProgramAddress && config.solanaProgramAddress.spl
+                  ? config.solanaProgramAddress.spl
+                  : solanaProgramAddress.mainnet.spl,
+            },
           )
         : undefined,
     };
@@ -688,9 +693,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       !Number(order.destination_swap.redeem_block_number)
     ) {
       try {
-        const tx = await (await wallet.getProvider()).getTransaction(
-          order.destination_swap.redeem_tx_hash,
-        );
+        const tx = await (
+          await wallet.getProvider()
+        ).getTransaction(order.destination_swap.redeem_tx_hash);
 
         let isValidRedeem = false;
         for (const input of tx.vin) {

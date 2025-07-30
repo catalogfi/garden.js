@@ -15,7 +15,7 @@ import {
 import { ISolanaHTLC } from '../htlc/ISolanaHTLC';
 import { isSolanaNativeToken, MatchedOrder } from '@gardenfi/orderbook';
 import { waitForSolanaTxConfirmation } from '../../utils';
-import * as Spl from "@solana/spl-token";
+import * as Spl from '@solana/spl-token';
 
 /**
  * A Relay is an endpoint that submits the transaction on-chain on one's behalf, paying any fees.
@@ -27,9 +27,8 @@ export class SolanaRelay implements ISolanaHTLC {
    * A PDA represents an on-chain memory space. It can store SOL too and is owned by a program (that derived it).
    * This PDA stores the swap state (initiator, redeemer, secrethash etc) on-chain and also escrows the tokens/SOL.
    */
-  private swapAccount?: web3.PublicKey;
-  private splProgram: Program<SolanaSplSwaps>;
-  private nativeProgram: Program<SolanaNativeSwaps>;
+  private splProgram?: Program<SolanaSplSwaps>;
+  private nativeProgram?: Program<SolanaNativeSwaps>;
   private relayer: web3.PublicKey;
 
   /**
@@ -45,8 +44,10 @@ export class SolanaRelay implements ISolanaHTLC {
     private provider: AnchorProvider,
     private url: Url,
     relayer: string,
-    nativeProgramAddress: string,
-    splProgramAddress: string,
+    programAddress: {
+      native?: string;
+      spl?: string;
+    },
   ) {
     if (!provider) throw new Error('Provider is required');
     if (!url) throw new Error('Endpoint URL is required');
@@ -62,33 +63,41 @@ export class SolanaRelay implements ISolanaHTLC {
     }
 
     // Initialize SPL program
-    const splIdlWithAddress = {
-      ...rawSplIdl,
-      metadata: {
-        ...(rawSplIdl.metadata ?? {}),
-      },
-      address: splProgramAddress,
-    };
+    const splIdlWithAddress = programAddress.spl
+      ? {
+          ...rawSplIdl,
+          metadata: {
+            ...(rawSplIdl.metadata ?? {}),
+          },
+          address: programAddress.spl,
+        }
+      : undefined;
 
     // Initialize Native program
-    const nativeIdlWithAddress = {
-      ...rawNativeIdl,
-      metadata: {
-        ...(rawNativeIdl.metadata ?? {}),
-      },
-      address: nativeProgramAddress,
-    };
+    const nativeIdlWithAddress = programAddress.native
+      ? {
+          ...rawNativeIdl,
+          metadata: {
+            ...(rawNativeIdl.metadata ?? {}),
+          },
+          address: programAddress.native,
+        }
+      : undefined;
 
     try {
-      this.splProgram = new Program(
-        (splIdlWithAddress as unknown) as SolanaSplSwaps,
-        this.provider,
-      );
-      
-      this.nativeProgram = new Program(
-        (nativeIdlWithAddress as unknown) as SolanaNativeSwaps,
-        this.provider,
-      );
+      this.splProgram = splIdlWithAddress
+        ? new Program(
+            splIdlWithAddress as unknown as SolanaSplSwaps,
+            this.provider,
+          )
+        : undefined;
+
+      this.nativeProgram = nativeIdlWithAddress
+        ? new Program(
+            nativeIdlWithAddress as unknown as SolanaNativeSwaps,
+            this.provider,
+          )
+        : undefined;
     } catch (cause) {
       throw new Error(
         'Error creating Program instances. Ensure the IDLs and provider are correct.',
@@ -103,7 +112,8 @@ export class SolanaRelay implements ISolanaHTLC {
    * @throws {Error} If no provider public key is found
    */
   get htlcActorAddress(): string {
-    if (!this.provider.publicKey) throw new Error('No provider public key found');
+    if (!this.provider.publicKey)
+      throw new Error('No provider public key found');
     return this.provider.publicKey.toBase58();
   }
 
@@ -114,7 +124,10 @@ export class SolanaRelay implements ISolanaHTLC {
    * @private
    */
   private isNativeToken(order: MatchedOrder): boolean {
-    return isSolanaNativeToken(order.source_swap.chain, order.source_swap.token_address);
+    return isSolanaNativeToken(
+      order.source_swap.chain,
+      order.source_swap.token_address,
+    );
   }
 
   /**
@@ -160,7 +173,7 @@ export class SolanaRelay implements ISolanaHTLC {
       if (res.error || !res.result) {
         return Err(`Error from Relayer: ${res.error}`);
       }
- 
+
       const isConfirmed = await waitForSolanaTxConfirmation(
         this.provider.connection,
         res.result,
@@ -196,7 +209,7 @@ export class SolanaRelay implements ISolanaHTLC {
       const txHash = await this.provider.sendAndConfirm(transaction);
 
       if (!txHash) return Err('Failed to initiate HTLC transaction');
- 
+
       const isConfirmed = await waitForSolanaTxConfirmation(
         this.provider.connection,
         txHash,
@@ -221,7 +234,10 @@ export class SolanaRelay implements ISolanaHTLC {
    * @returns {web3.PublicKey} The derived PDA
    * @private
    */
-  private createSwapPDA(secretHash: Buffer, programId: web3.PublicKey): web3.PublicKey {
+  private createSwapPDA(
+    secretHash: Buffer,
+    programId: web3.PublicKey,
+  ): web3.PublicKey {
     const pdaSeeds = [
       Buffer.from('swap_account'),
       this.provider.publicKey.toBuffer(),
@@ -239,14 +255,13 @@ export class SolanaRelay implements ISolanaHTLC {
    *   - Err with an error message on failure
    * @private
    */
-  private async initiateSplSwap(order: MatchedOrder): AsyncResult<string, string> {
+  private async initiateSplSwap(
+    order: MatchedOrder,
+  ): AsyncResult<string, string> {
+    if (!this.splProgram) return Err('SPL program is not initialized');
     try {
-      const { redeemer, secretHash, amount, expiresIn } = SwapConfig.from(order);
-
-      this.swapAccount = this.createSwapPDA(
-        Buffer.from(secretHash),
-        this.splProgram.programId
-      );
+      const { redeemer, secretHash, amount, expiresIn } =
+        SwapConfig.from(order);
 
       const txBuilder = this.splProgram.methods.initiate(
         expiresIn,
@@ -262,7 +277,7 @@ export class SolanaRelay implements ISolanaHTLC {
         mint,
         initiatorTokenAccount: Spl.getAssociatedTokenAddressSync(
           mint,
-          this.provider.publicKey
+          this.provider.publicKey,
         ),
         sponsor: this.relayer,
       };
@@ -286,14 +301,13 @@ export class SolanaRelay implements ISolanaHTLC {
    *   - Err with an error message on failure
    * @private
    */
-  private async initiateNativeSwap(order: MatchedOrder): AsyncResult<string, string> {
+  private async initiateNativeSwap(
+    order: MatchedOrder,
+  ): AsyncResult<string, string> {
+    if (!this.nativeProgram) return Err('Native program is not initialized');
     try {
-      const { redeemer, secretHash, amount, expiresIn } = SwapConfig.from(order);
-
-      this.swapAccount = this.createSwapPDA(
-        Buffer.from(secretHash),
-        this.nativeProgram.programId
-      );
+      const { redeemer, secretHash, amount, expiresIn } =
+        SwapConfig.from(order);
 
       const tx = await this.nativeProgram.methods
         .initiate(amount, expiresIn, redeemer, secretHash)
@@ -326,10 +340,13 @@ export class SolanaRelay implements ISolanaHTLC {
     try {
       // Determine token type and route to appropriate handler
       const isNative = this.isNativeToken(order);
-      
+
       if (isNative) {
+        if (!this.nativeProgram)
+          return Err('Native program is not initialized');
         return await this.initiateNativeSwap(order);
       } else {
+        if (!this.splProgram) return Err('SPL program is not initialized');
         return await this.initiateSplSwap(order);
       }
     } catch (error) {
