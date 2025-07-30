@@ -1,27 +1,14 @@
-# @gardenfi/core
+# @gardenfi/react-hooks
 
-The `@gardenfi/core` package handles atomic swaps between different blockchains. It provides an interface for applications to integrate the Garden SDK. The Garden instance provides all required functionalities such as quote generation, swap initiation, HTLC interactions, and wallet operations.
+The `@gardenfi/react-hooks` package provides React hooks and context providers for integrating Garden.fi's cross-chain atomic swap functionality into React applications. It includes a context provider for global state management and hooks that provide a unified interface for quote retrieval and atomic swap execution. The package handles automatic cleanup of subscriptions and provides real-time updates for order status changes.
 
 ## Installation
 
 ```
-yarn add `@gardenfi/core`
+yarn add @gardenfi/react-hooks
 ```
 
-## Usage
-
-1. Creating an atomic swap: ([should create an order with valid parameters](https://github.com/catalogfi/garden.js/blob/main/packages/core/src/lib/garden/garden.spec.ts#L150))
-2. Interacting with created orders: ([should initiate and redeem](https://github.com/catalogfi/garden.js/blob/main/packages/core/src/lib/garden/garden.spec.ts#L197))
-
 ## Setup
-
-### Node
-
-No extra setup is required as both `cjs` and `esm` modules are supported.
-
-### Browser
-
-Following cases only cover vite and webpack setups. For other bundlers, please refer to their respective documentation on how to add wasm and polyfills support.
 
 ### Vite
 
@@ -68,4 +55,32 @@ const nextConfig = {
   },
 };
 module.exports = nextConfig;
+```
+
+
+
+## Usage
+
+### Setup GardenProvider
+
+```tsx
+import { GardenProvider } from '@gardenfi/react-hooks';
+
+const gardenConfig = {
+  environment: 'testnet',
+  wallets: {
+    evm: {
+      // EVM wallet configuration
+    },
+    // Additional wallet configurations (bitcoin, starknet, solana) can be added as needed
+  },
+};
+
+function App() {
+  return (
+    <GardenProvider config={gardenConfig}>
+      <YourApp />
+    </GardenProvider>
+  );
+}
 ```
