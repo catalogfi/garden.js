@@ -1,6 +1,6 @@
 import {
   CreateOrder,
-  CreateOrderRequestWithAdditionalData,
+  CreateOrderReqWithStrategyId,
   CreateOrderResponse,
   IOrderbook,
   MatchedOrder,
@@ -40,24 +40,21 @@ export class Orderbook implements IOrderbook {
    * @returns {string} The create order ID.
    */
   async createOrder(
-    order: CreateOrderRequestWithAdditionalData,
+    order: CreateOrderReqWithStrategyId,
     auth: IAuth,
-  ): AsyncResult<string, string> {
+  ): AsyncResult<MatchedOrder, string> {
     const headers = await auth.getAuthHeaders();
     if (headers.error) {
       return Err(headers.error);
     }
     try {
-      const res = await Fetcher.post<CreateOrderResponse>(
-        this.Url.endpoint('/relayer').endpoint('create-order'),
-        {
-          body: JSON.stringify(order),
-          headers: {
-            ...headers.val,
-            'Content-Type': 'application/json',
-          },
+      const res = await Fetcher.post<CreateOrderResponse>(this.Url, {
+        body: JSON.stringify(order),
+        headers: {
+          ...headers.val,
+          'Content-Type': 'application/json',
         },
-      );
+      });
       if (res.error) {
         return Err(res.error);
       }
@@ -73,8 +70,9 @@ export class Orderbook implements IOrderbook {
     id: string,
     matched: T,
   ): AsyncResult<T extends true ? MatchedOrder : CreateOrder, string> {
-    const endpoint = matched ? `/id/${id}/matched` : `/id/${id}/unmatched`;
-    const url = this.Url.endpoint('orders').endpoint(endpoint);
+    const url = this.Url.endpoint(
+      matched ? `/id/${id}/matched` : `/id/${id}/unmatched`,
+    );
 
     try {
       const res = await Fetcher.get<
@@ -95,14 +93,10 @@ export class Orderbook implements IOrderbook {
     status: Status,
     paginationConfig?: PaginationConfig,
   ): AsyncResult<PaginatedData<MatchedOrder>, string> {
-    const url = ConstructUrl(
-      this.Url.endpoint('orders'),
-      `/user/${address}/matched`,
-      {
-        ...paginationConfig,
-        status,
-      },
-    );
+    const url = ConstructUrl(this.Url, `/user/${address}/matched`, {
+      ...paginationConfig,
+      status,
+    });
 
     try {
       const res = await Fetcher.get<APIResponse<PaginatedData<MatchedOrder>>>(
@@ -123,7 +117,7 @@ export class Orderbook implements IOrderbook {
     paginationConfig?: PaginationConfig,
   ): AsyncResult<PaginatedData<CreateOrder>, string> {
     const url = ConstructUrl(
-      this.Url.endpoint('orders'),
+      this.Url,
       `/user/${address}/unmatched`,
       paginationConfig,
     );
@@ -231,7 +225,7 @@ export class Orderbook implements IOrderbook {
   }
 
   async getOrdersCount(address: string): AsyncResult<number, string> {
-    const url = this.Url.endpoint('orders').endpoint(`/user/${address}/count`);
+    const url = this.Url.endpoint(`/user/${address}/count`);
 
     try {
       const res = await Fetcher.get<APIResponse<number>>(url);

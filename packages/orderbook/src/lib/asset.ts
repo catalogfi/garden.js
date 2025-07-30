@@ -152,48 +152,12 @@ export const isStarknet = (chain: Chain) => {
   );
 };
 
-export const TimeLocks: Record<Chain, number> = {
-  [Chains.bitcoin]: 144,
-  [Chains.bitcoin_testnet]: 144,
-  [Chains.bitcoin_regtest]: 200,
-  [Chains.ethereum]: 7200,
-  [Chains.arbitrum]: 7200,
-  [Chains.ethereum_sepolia]: 7200,
-  [Chains.arbitrum_localnet]: 7200,
-  [Chains.arbitrum_sepolia]: 7200,
-  [Chains.ethereum_localnet]: 7200,
-  [Chains.base_sepolia]: 43200,
-  [Chains.base]: 43200,
-  [Chains.bera_testnet]: 43200,
-  [Chains.citrea_testnet]: 43200,
-  [Chains.bera]: 43200,
-  [Chains.monad_testnet]: 172800,
-  [Chains.solana]: 432000, //In solana timeslots exist in chunks of 0.4s so, 48 hrs in terms of that would be 48hrs => sec / 0.4
-  [Chains.solana_localnet]: 432000,
-  [Chains.solana_testnet]: 432000,
-  [Chains.starknet]: 2880,
-  [Chains.starknet_devnet]: 2880,
-  [Chains.starknet_sepolia]: 2880,
-  [Chains.hyperliquid_testnet]: 43200,
-  [Chains.hyperliquid]: 43200,
-  [Chains.unichain]: 86400,
-  [Chains.corn]: 17136,
-  [Chains.botanix]: 34560,
-  [Chains.bnbchain]: 7200,
-  [Chains.bnbchain_testnet]: 7200,
-};
-
 export const getBlockchainType = (chain: Chain) => {
   if (isBitcoin(chain)) return BlockchainType.Bitcoin;
   if (isEVM(chain)) return BlockchainType.EVM;
   if (isSolana(chain)) return BlockchainType.Solana;
   if (isStarknet(chain)) return BlockchainType.Starknet;
   throw new Error('Invalid or unsupported chain');
-};
-
-export const getTimeLock = (chain: Chain) => {
-  if (!TimeLocks[chain]) throw new Error('Invalid or unsupported chain');
-  return TimeLocks[chain];
 };
 
 export const NativeTokenAddress = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
