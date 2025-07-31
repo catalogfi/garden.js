@@ -1,6 +1,6 @@
 {
   "name": "@gardenfi/react-hooks",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -30,7 +30,7 @@
     "@gardenfi/orderbook": "workspace:*",
     "@gardenfi/utils": "workspace:*",
     "react": "^18.3.1",
-    "starknet": "6.23.1"
+    "starknet": "7.6.4"
   },
   "devDependencies": {
     "@types/react": "^18",
