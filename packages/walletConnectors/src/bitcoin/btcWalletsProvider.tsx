@@ -166,7 +166,10 @@ export const BTCWalletProvider = ({
       const keplrProvider = new KeplrProvider(window.keplr.bitcoin);
       addToWalletList(keplrProvider);
     }
-    if (window.leapBitcoin) {
+    if (
+      network === Network.MAINNET && 
+      window.leapBitcoin
+    ) {
       const leapProvider = new LeapProvider(window.leapBitcoin);
       addToWalletList(leapProvider);
     }

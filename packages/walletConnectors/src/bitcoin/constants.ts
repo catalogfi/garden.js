@@ -29,6 +29,11 @@ export const SupportedWallets = {
     icon: 'https://garden-finance.imgix.net/wallets/keplr.svg',
     description: 'Keplr Wallet',
   },
+  Leap: {
+    name: 'Leap wallet',
+    icon: 'https://garden-finance.imgix.net/wallets/LeapLight.svg',
+    description: 'Leap Wallet',
+  },
 };
 
 export const WALLET_CONFIG = {
