@@ -240,6 +240,15 @@ export const SupportedAssets = {
       tokenAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
       atomicSwapAddress: '0xE99D8A21d4F2ad2f90c279c869311503f9e25867',
     },
+    bnbchain_testnet_WBTC: {
+      name: 'Wrapped Bitcoin',
+      decimals: 8,
+      symbol: 'WBTC',
+      chain: Chains.bnbchain_testnet,
+      logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
+      tokenAddress: '0x39f3294352208905fc6ebf033954E6c6455CdB4C',
+      atomicSwapAddress: '0xD8a6E3FCA403d79b6AD6216b60527F51cc967D39',
+    },
   },
   mainnet: {
     bitcoin_BTC: {
@@ -385,6 +394,24 @@ export const SupportedAssets = {
       logo: 'https://garden-finance.imgix.net/chain_images/BotanixLogo.svg',
       tokenAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
       atomicSwapAddress: '0x39f3294352208905fc6ebf033954E6c6455CdB4C',
+    },
+    bnbchain_BTCB: {
+      name: 'Binance Bitcoin',
+      decimals: 18,
+      symbol: 'BTCB',
+      chain: Chains.bnbchain,
+      logo: 'https://garden-finance.imgix.net/token-images/bitcoin.svg',
+      tokenAddress: '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c',
+      atomicSwapAddress: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
+    },
+    bnbchain_USDC: {
+      name: 'USD Coin',
+      decimals: 18,
+      symbol: 'USDC',
+      chain: Chains.bnbchain,
+      logo: 'https://garden-finance.imgix.net/token-images/usdc.svg',
+      tokenAddress: '0xD8a6E3FCA403d79b6AD6216b60527F51cc967D39',
+      atomicSwapAddress: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
     },
   },
 } as const;
