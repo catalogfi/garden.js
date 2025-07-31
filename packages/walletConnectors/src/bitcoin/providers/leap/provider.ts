@@ -48,15 +48,20 @@ export class LeapProvider implements IInjectedBitcoinProvider {
 
   async requestAccounts() {
     return await executeWithTryCatch(async () => {
-      return await this.#leapProvider.requestAccounts();
+      const accounts = await this.#leapProvider.requestAccounts();
+      if (accounts.length > 0) this.address = accounts[0];
+      return accounts.map((account) => account);
     }, 'Error while requesting accounts from Leap wallet');
   }
 
   async getAccounts() {
     return await executeWithTryCatch(async () => {
-        return await this.#leapProvider.getAccounts();
-      }, 'Error while getting accounts from Leap wallet');
+      const accounts = await this.#leapProvider.getAccounts();
+      if (accounts.length > 0) this.address = accounts[0];
+      return accounts.map((account) => account);
+    }, 'Error while getting accounts from Leap wallet');
   }
+
 
   // bitcoin testnet is not supported in Leap wallet
   async getNetwork() {
