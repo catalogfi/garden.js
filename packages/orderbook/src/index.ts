@@ -14,6 +14,7 @@ export {
   NativeTokenAddress,
   isEvmNativeToken,
   isSolanaNativeToken,
+  isNativeToken,
 } from './lib/asset';
 
 export {
