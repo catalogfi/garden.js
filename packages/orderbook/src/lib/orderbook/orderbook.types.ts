@@ -200,6 +200,11 @@ export type Orders = {
   matched: PaginatedData<MatchedOrder[]>;
 };
 
+export enum OrderVersion {
+  V1 = 'V1',
+  V2 = 'V2',
+}
+
 export type AdditionalData = {
   additional_data: {
     strategy_id: string;
@@ -209,6 +214,7 @@ export type AdditionalData = {
     deadline: number;
     bitcoin_optional_recipient?: string;
     [key: string]: any;
+    version: OrderVersion;
   };
 };
 

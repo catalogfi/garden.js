@@ -1,5 +1,6 @@
 export { Orderbook } from './lib/orderbook/orderbook';
 export type * from './lib/orderbook/orderbook.types';
+export { OrderVersion } from './lib/orderbook/orderbook.types';
 export type { Chain, EvmChain, Asset } from './lib/asset';
 export {
   Chains,
@@ -28,3 +29,5 @@ export {
   StarknetLocalnet,
   STRKStarknetLocalnetAsset,
 } from './lib/constants';
+
+export { parseOrderVersion, orderVersionToString } from './lib/utils';
