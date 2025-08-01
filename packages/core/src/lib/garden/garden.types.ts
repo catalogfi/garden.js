@@ -19,6 +19,7 @@ import { Api } from '../constants';
 import { IBitcoinWallet } from '../bitcoin/wallet/wallet.interface';
 import { ISolanaHTLC } from '../solana/htlc/ISolanaHTLC';
 import { AnchorProvider } from '@coral-xyz/anchor';
+import { ISuiHTLC } from '../sui/suiHTLC.types';
 
 export type SwapParams = {
   /**
@@ -198,6 +199,7 @@ export type GardenHTLCModules = {
     evm?: IEVMHTLC;
     starknet?: IStarknetHTLC;
     solana?: ISolanaHTLC;
+    sui?: ISuiHTLC;
   };
 };
 

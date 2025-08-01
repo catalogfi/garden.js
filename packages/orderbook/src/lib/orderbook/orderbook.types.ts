@@ -273,6 +273,7 @@ export type CreateOrder = CreateOrderRequestWithAdditionalData & {
   deleted_at: string | null;
   create_id: string;
   block_number: string;
+  user_id: string;
 };
 
 export type Swap = {
@@ -282,6 +283,8 @@ export type Swap = {
   swap_id: string;
   chain: Chain;
   asset: string;
+  htlc_address: string;
+  token_address: string;
   initiator: string;
   redeemer: string;
   timelock: number;
@@ -296,6 +299,10 @@ export type Swap = {
   redeem_block_number: string | null;
   refund_block_number: string | null;
   required_confirmations: number;
+  current_confirmations: number;
+  initiate_timestamp: string | null;
+  redeem_timestamp: string | null;
+  refund_timestamp: string | null;
 };
 
 export type MatchedOrder = {
