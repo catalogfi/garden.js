@@ -165,7 +165,7 @@ export class Orderbook implements IOrderbook {
     if (toChain) {
       params['to_chain'] = toChain;
     }
-    const url = ConstructUrl(this.Url.endpoint('orders'), endPoint, params);
+    const url = ConstructUrl(this.Url, endPoint, params);
     try {
       const res = await Fetcher.get<
         APIResponse<PaginatedData<T extends true ? MatchedOrder : CreateOrder>>
