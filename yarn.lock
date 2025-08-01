@@ -959,26 +959,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gardenfi/core@portal:/Users/shanmukhm/Desktop/garden.js/packages/core::locator=gardenjs%40workspace%3A.":
-  version: 0.0.0-use.local
-  resolution: "@gardenfi/core@portal:/Users/shanmukhm/Desktop/garden.js/packages/core::locator=gardenjs%40workspace%3A."
-  dependencies:
-    "@coral-xyz/anchor": "npm:^0.31.1"
-    "@gardenfi/orderbook": "workspace:*"
-    "@gardenfi/utils": "workspace:*"
-    bignumber.js: "npm:^9.1.2"
-    bip32: "npm:^4.0.0"
-    bip39: "npm:^3.1.0"
-    bitcoinjs-lib: "npm:^6.1.5"
-    ecpair: "npm:^2.1.0"
-    starknet: "npm:7.6.4"
-    tiny-secp256k1: "npm:^2.2.3"
-    varuint-bitcoin: "npm:^1.1.2"
-    yup: "npm:^1.4.0"
-  languageName: node
-  linkType: soft
-
-"@gardenfi/core@workspace:packages/core":
+"@gardenfi/core@workspace:*, @gardenfi/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@gardenfi/core@workspace:packages/core"
   dependencies:
@@ -1021,20 +1002,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gardenfi/orderbook@portal:/Users/shanmukhm/Desktop/garden.js/packages/orderbook::locator=gardenjs%40workspace%3A.":
-  version: 0.0.0-use.local
-  resolution: "@gardenfi/orderbook@portal:/Users/shanmukhm/Desktop/garden.js/packages/orderbook::locator=gardenjs%40workspace%3A."
-  dependencies:
-    "@coral-xyz/anchor": "npm:^0.31.1"
-    "@gardenfi/utils": "workspace:*"
-    bufferutil: "npm:^4.0.8"
-    siwe: "npm:^2.1.4"
-    utf-8-validate: "npm:^6.0.3"
-    ws: "npm:^8.14.2"
-  languageName: node
-  linkType: soft
-
-"@gardenfi/orderbook@workspace:packages/orderbook":
+"@gardenfi/orderbook@workspace:*, @gardenfi/orderbook@workspace:packages/orderbook":
   version: 0.0.0-use.local
   resolution: "@gardenfi/orderbook@workspace:packages/orderbook"
   dependencies:
@@ -1053,19 +1021,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@gardenfi/react-hooks@portal:/Users/shanmukhm/Desktop/garden.js/packages/react-hooks::locator=gardenjs%40workspace%3A.":
-  version: 0.0.0-use.local
-  resolution: "@gardenfi/react-hooks@portal:/Users/shanmukhm/Desktop/garden.js/packages/react-hooks::locator=gardenjs%40workspace%3A."
-  dependencies:
-    "@gardenfi/core": "workspace:*"
-    "@gardenfi/orderbook": "workspace:*"
-    "@gardenfi/utils": "workspace:*"
-    react: "npm:^18.3.1"
-    starknet: "npm:7.6.4"
-  languageName: node
-  linkType: soft
-
-"@gardenfi/react-hooks@workspace:packages/react-hooks":
+"@gardenfi/react-hooks@workspace:*, @gardenfi/react-hooks@workspace:packages/react-hooks":
   version: 0.0.0-use.local
   resolution: "@gardenfi/react-hooks@workspace:packages/react-hooks"
   dependencies:
@@ -1137,19 +1093,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@gardenfi/utils@portal:/Users/shanmukhm/Desktop/garden.js/packages/utils::locator=gardenjs%40workspace%3A.":
-  version: 0.0.0-use.local
-  resolution: "@gardenfi/utils@portal:/Users/shanmukhm/Desktop/garden.js/packages/utils::locator=gardenjs%40workspace%3A."
-  dependencies:
-    "@peculiar/webcrypto": "npm:^1.5.0"
-    "@simplewebauthn/browser": "npm:^13.1.0"
-    fetch-cookie: "npm:^3.1.0"
-    jwt-decode: "npm:^4.0.0"
-    tough-cookie: "npm:^5.1.2"
-  languageName: node
-  linkType: soft
-
-"@gardenfi/utils@workspace:packages/utils":
+"@gardenfi/utils@workspace:*, @gardenfi/utils@workspace:packages/utils":
   version: 0.0.0-use.local
   resolution: "@gardenfi/utils@workspace:packages/utils"
   dependencies:
@@ -1167,20 +1111,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@gardenfi/wallet-connectors@portal:/Users/shanmukhm/Desktop/garden.js/packages/walletConnectors::locator=gardenjs%40workspace%3A.":
-  version: 0.0.0-use.local
-  resolution: "@gardenfi/wallet-connectors@portal:/Users/shanmukhm/Desktop/garden.js/packages/walletConnectors::locator=gardenjs%40workspace%3A."
-  dependencies:
-    "@gardenfi/core": "workspace:*"
-    "@gardenfi/utils": "workspace:*"
-    axios: "npm:^1.7.9"
-    bitcoinjs-lib: "npm:^6.1.7"
-    react: "npm:^18.3.1"
-    tiny-secp256k1: "npm:^2.2.3"
-  languageName: node
-  linkType: soft
-
-"@gardenfi/wallet-connectors@workspace:packages/walletConnectors":
+"@gardenfi/wallet-connectors@workspace:*, @gardenfi/wallet-connectors@workspace:packages/walletConnectors":
   version: 0.0.0-use.local
   resolution: "@gardenfi/wallet-connectors@workspace:packages/walletConnectors"
   dependencies:
