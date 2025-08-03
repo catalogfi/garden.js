@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { CreateOrderReqWithStrategyId, Orderbook } from '@gardenfi/orderbook';
 import { SuiHTLC } from './suiHTLC';
 import {
@@ -13,6 +12,7 @@ import {
 } from '@gardenfi/utils';
 import { Garden } from '../../garden/garden';
 import { SecretManager } from '../../secretManager/secretManager';
+import { WebCryptoSigner } from '@mysten/signers/webcrypto';
 
 describe.only('sui htlc init tests', () => {
   const url = 'https://testnet.api.hashira.io/orders';
@@ -36,10 +36,11 @@ describe.only('sui htlc init tests', () => {
   };
   let garden: Garden;
   it('should initiate', async () => {
-    const privateKey =
-      'suiprivkey1qrgdeyaw552slccg8gkqzacz64q3fyh3px890ltq3qkm0f90xm22j5ddka9';
-    const account = Ed25519Keypair.fromSecretKey(privateKey);
-    const htlc = new SuiHTLC(account, Network.TESTNET);
+    // const privateKey =
+    //   'suiprivkey1qrgdeyaw552slccg8gkqzacz64q3fyh3px890ltq3qkm0f90xm22j5ddka9';
+    // TODO: export keypair and create signer from it
+    const signer = await WebCryptoSigner.generate();
+    const htlc = new SuiHTLC(signer, Network.TESTNET);
     garden = new Garden({
       auth: new ApiKey(
         'AAAAAGm47cw6Og5G37SuhX_uiXy8CYZCwx5XHgNS1DCsTi_HOzpOaAoYBPZLbGm1th0qVlom1EuaV_OtU6oJ_UIffIpsfVVDbKAc',
@@ -48,7 +49,7 @@ describe.only('sui htlc init tests', () => {
       digestKey: DigestKey.generateRandom().val!,
       environment: Environment.TESTNET,
       htlc: {
-        sui: new SuiHTLC(account, Network.TESTNET),
+        sui: htlc,
       },
     });
     const order = await garden.orderbook.createOrder(create_order, garden.auth);
@@ -82,9 +83,10 @@ describe(
     };
     let garden: Garden;
     it('should initiate and redeem', async () => {
-      const privateKey =
-        'suiprivkey1qrgdeyaw552slccg8gkqzacz64q3fyh3px890ltq3qkm0f90xm22j5ddka9';
-      const account = Ed25519Keypair.fromSecretKey(privateKey);
+      //   const privateKey =
+      //     'suiprivkey1qrgdeyaw552slccg8gkqzacz64q3fyh3px890ltq3qkm0f90xm22j5ddka9';
+      // TODO: export keypair and create signer from it
+      const signer = await WebCryptoSigner.generate();
       garden = new Garden({
         auth: new ApiKey(
           'AAAAAGm47cw6Og5G37SuhX_uiXy8CYZCwx5XHgNS1DCsTi_HOzpOaAoYBPZLbGm1th0qVlom1EuaV_OtU6oJ_UIffIpsfVVDbKAc',
@@ -93,7 +95,7 @@ describe(
         digestKey: DigestKey.generateRandom().val!,
         environment: Environment.TESTNET,
         htlc: {
-          sui: new SuiHTLC(account, Network.TESTNET),
+          sui: new SuiHTLC(signer, Network.TESTNET),
         },
       });
       const secretManager = SecretManager.fromDigestKey(
@@ -117,7 +119,7 @@ describe(
 
       await sleep(1000 * 60 * 2);
 
-      const htlc = new SuiHTLC(account, Network.TESTNET);
+      const htlc = new SuiHTLC(signer, Network.TESTNET);
       const redeemRes = await htlc.redeem(order.val!, trim0x(secret));
       console.log('redeemRes', redeemRes);
       expect(redeemRes.ok).toBe(true);
@@ -150,10 +152,11 @@ describe.skip(
     };
     let garden: Garden;
     it('should initiate and refund', async () => {
-      const privateKey =
-        'suiprivkey1qrgdeyaw552slccg8gkqzacz64q3fyh3px890ltq3qkm0f90xm22j5ddka9';
-      const account = Ed25519Keypair.fromSecretKey(privateKey);
-      const htlc = new SuiHTLC(account, Network.TESTNET);
+      //   const privateKey =
+      //     'suiprivkey1qrgdeyaw552slccg8gkqzacz64q3fyh3px890ltq3qkm0f90xm22j5ddka9';
+      // TODO: export keypair and create signer from it
+      const signer = await WebCryptoSigner.generate();
+      const htlc = new SuiHTLC(signer, Network.TESTNET);
       garden = new Garden({
         auth: new ApiKey(
           'AAAAAGm47cw6Og5G37SuhX_uiXy8CYZCwx5XHgNS1DCsTi_HOzpOaAoYBPZLbGm1th0qVlom1EuaV_OtU6oJ_UIffIpsfVVDbKAc',
@@ -162,7 +165,7 @@ describe.skip(
         digestKey: DigestKey.generateRandom().val!,
         environment: Environment.TESTNET,
         htlc: {
-          sui: new SuiHTLC(account, Network.TESTNET),
+          sui: htlc,
         },
       });
       const order = (

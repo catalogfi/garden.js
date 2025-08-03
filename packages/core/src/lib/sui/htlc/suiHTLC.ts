@@ -2,18 +2,18 @@ import { MatchedOrder } from '@gardenfi/orderbook';
 import { AsyncResult, Err, Ok } from '@gardenfi/utils';
 import { ISuiHTLC } from '../suiHTLC.types';
 import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
-import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { Network } from '@gardenfi/utils';
 import { Transaction } from '@mysten/sui/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import { SUI_CONFIG } from 'src/lib/constants';
+import { WebCryptoSigner } from '@mysten/signers/webcrypto';
 
 export class SuiHTLC implements ISuiHTLC {
   private client: SuiClient;
-  private account: Ed25519Keypair;
+  private account: WebCryptoSigner;
   private network: Network;
 
-  constructor(account: Ed25519Keypair, network: Network) {
+  constructor(account: WebCryptoSigner, network: Network) {
     this.client = new SuiClient({ url: getFullnodeUrl(network) });
     this.account = account;
     this.network = network;
