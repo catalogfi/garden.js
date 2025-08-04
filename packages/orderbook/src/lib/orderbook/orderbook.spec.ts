@@ -23,27 +23,36 @@ describe('orders provider', async () => {
 
   const orderbook = new Orderbook(new Url(orderbookApi));
 
-  test.only('should get order', async () => {
+  test('should get order', async () => {
     const order = await orderbook.getOrder(id, true);
     console.log('order.error :', order.error);
     console.log('order.val :', order.val);
     expect(order.error).toBeUndefined();
-    expect(order.val.create_order.create_id).toEqual(id);
+    expect(order.val!.create_order.create_id).toEqual(id);
     expectTypeOf(order.val).toEqualTypeOf<MatchedOrder>();
   });
 
-  test('should get orders of a address', async () => {
-    const orders = await orderbook.getMatchedOrders(address, false);
+  test.only('should get orders of a address', async () => {
+    const orders = await orderbook.getOrders(
+      true,
+      undefined,
+      '',
+      '',
+      undefined,
+      undefined,
+      'not-initiated',
+    );
+    console.log(orders.val!.data[0]);
     expect(orders.error).toBeUndefined();
-    expect(orders.val.data.length).toBeGreaterThan(0);
-    expectTypeOf(orders.val.data).toEqualTypeOf<MatchedOrder[]>();
+    expect(orders.val!.data.length).toBeGreaterThan(0);
+    expectTypeOf(orders.val!.data).toEqualTypeOf<MatchedOrder[]>();
   });
 
   test('should get all orders', async () => {
     const orders = await orderbook.getOrders(true);
     expect(orders.error).toBeUndefined();
-    expect(orders.val.data.length).toBeGreaterThan(0);
-    expectTypeOf(orders.val.data).toEqualTypeOf<MatchedOrder[]>();
+    expect(orders.val!.data.length).toBeGreaterThan(0);
+    expectTypeOf(orders.val!.data).toEqualTypeOf<MatchedOrder[]>();
   });
 
   test('should subscribe to orders', async () => {

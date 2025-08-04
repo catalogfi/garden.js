@@ -4,6 +4,7 @@ import {
   CreateOrderResponse,
   IOrderbook,
   MatchedOrder,
+  OrderStatus,
   PaginatedData,
   PaginationConfig,
   Status,
@@ -143,6 +144,7 @@ export class Orderbook implements IOrderbook {
     tx_hash?: string,
     fromChain?: Chain,
     toChain?: Chain,
+    status?: OrderStatus,
   ): AsyncResult<
     PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
     string
@@ -164,6 +166,9 @@ export class Orderbook implements IOrderbook {
     }
     if (toChain) {
       params['to_chain'] = toChain;
+    }
+    if (status) {
+      params['status'] = status;
     }
     const url = ConstructUrl(this.Url, endPoint, params);
     try {
