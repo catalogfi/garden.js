@@ -9,8 +9,8 @@ import {
   Url,
 } from '@gardenfi/utils';
 import { ISuiHTLC } from '../suiHTLC.types';
-import { getFullnodeUrl, SuiClient } from '@mysten/sui/dist/cjs/client';
-import { WebCryptoSigner } from '@mysten/signers/dist/cjs/webcrypto';
+import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
+import { WebCryptoSigner } from '@mysten/signers/webcrypto';
 
 export class SuiRelay implements ISuiHTLC {
   private url: Url;
