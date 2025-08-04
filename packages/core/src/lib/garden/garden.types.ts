@@ -20,6 +20,7 @@ import { IBitcoinWallet } from '../bitcoin/wallet/wallet.interface';
 import { ISolanaHTLC } from '../solana/htlc/ISolanaHTLC';
 import { AnchorProvider } from '@coral-xyz/anchor';
 import { ISuiHTLC } from '../sui/suiHTLC.types';
+import { WebCryptoSigner } from '@mysten/signers/webcrypto';
 
 export type SwapParams = {
   /**
@@ -119,6 +120,12 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
   get solanaHTLC(): ISolanaHTLC | undefined;
 
   /**
+   * The Sui relay.
+   * @readonly
+   */
+  get suiHTLC(): ISuiHTLC | undefined;
+
+  /**
    * The current quote.
    * @readonly
    */
@@ -208,6 +215,7 @@ export type GardenWalletModules = {
     evm?: WalletClient;
     starknet?: AccountInterface;
     solana?: AnchorProvider;
+    sui?: WebCryptoSigner;
   };
 };
 

@@ -73,6 +73,8 @@ import { BitcoinProvider } from '../bitcoin/provider/provider';
 import { BitcoinWallet } from '../bitcoin/wallet/wallet';
 import { ISolanaHTLC } from '../solana/htlc/ISolanaHTLC';
 import { SolanaRelay } from '../solana/relayer/solanaRelay';
+import { ISuiHTLC } from '../sui/suiHTLC.types';
+import { SuiRelay } from '../sui/relay/suiRelay';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment = Environment.TESTNET;
@@ -87,6 +89,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private _evmHTLC: IEVMHTLC | undefined;
   private _starknetHTLC: IStarknetHTLC | undefined;
   private _solanaHTLC: ISolanaHTLC | undefined;
+  private _suiHTLC: ISuiHTLC | undefined;
   private _btcWallet: IBitcoinWallet | undefined;
   private bitcoinRedeemCache = new Cache<{
     redeemedFromUTXO: string;
@@ -118,6 +121,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this._evmHTLC = config.htlc.evm;
     this._starknetHTLC = config.htlc.starknet;
     this._solanaHTLC = config.htlc.solana;
+    this._suiHTLC = config.htlc.sui;
     this._secretManager =
       config.secretManager ??
       SecretManager.fromDigestKey(this._digestKey.digestKey);
@@ -182,6 +186,15 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
               : solanaProgramAddress.mainnet,
           )
         : undefined,
+      sui: config.wallets.sui
+        ? new SuiRelay(
+            api.suiRelay,
+            config.wallets.sui,
+            config.environment === Environment.MAINNET
+              ? Network.MAINNET
+              : Network.TESTNET,
+          )
+        : undefined,
     };
 
     return new Garden({
@@ -200,6 +213,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   get solanaHTLC() {
     return this._solanaHTLC;
+  }
+
+  get suiHTLC() {
+    return this._suiHTLC;
   }
 
   get quote() {

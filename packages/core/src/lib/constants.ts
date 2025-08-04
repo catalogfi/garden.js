@@ -9,6 +9,7 @@ export type Api = {
   evmRelay: string;
   starknetRelay: string;
   solanaRelay: string;
+  suiRelay: string;
 };
 export const API: Record<Environment, Api> = {
   mainnet: {
@@ -19,6 +20,7 @@ export const API: Record<Environment, Api> = {
     evmRelay: 'https://api.garden.finance/relayer',
     solanaRelay: 'https://solana-relayer.garden.finance/',
     starknetRelay: 'https://api.garden.finance/starknet',
+    suiRelay: '',
   },
   testnet: {
     orderbook: 'https://testnet.api.garden.finance/orders',
@@ -28,6 +30,7 @@ export const API: Record<Environment, Api> = {
     evmRelay: 'https://testnet.api.garden.finance/relayer',
     solanaRelay: 'https://solana-relay.garden.finance',
     starknetRelay: 'https://testnet.api.garden.finance/starknet',
+    suiRelay: '',
   },
   localnet: {
     orderbook: '',
@@ -37,6 +40,7 @@ export const API: Record<Environment, Api> = {
     evmRelay: '',
     starknetRelay: '',
     solanaRelay: '',
+    suiRelay: '',
   },
 } as const;
 
@@ -61,7 +65,6 @@ export const STARKNET_CONFIG: Record<
   },
 };
 
-
 export const SolanaRelayerAddress: Record<Network, string> = {
   [Network.MAINNET]: '9cBuPNiHXiMNg3Fin8xLCGJQBTXjYQTFtyaFQv2uiM1H',
   [Network.TESTNET]: 'ANUVKxeqaec3bf4DVPqLTnG1PT3Fng56wPcE7LXAb46Q',
@@ -74,10 +77,21 @@ export const solanaProgramAddress = {
 };
 
 // TODO: change mainnet and localnet packageIds
-export const SUI_CONFIG: Record<Network, {packageId: string, moduleName: string}> = {
-  [Network.TESTNET]: {packageId: '0x9f1a9894237645834ed8830ef9884c334b352b3d9de852ff463825c02f76f855', moduleName: 'AtomicSwap'},
-  [Network.MAINNET]: {packageId: '0x9f1a9894237645834ed8830ef9884c334b352b3d9de852ff463825c02f76f855', moduleName: 'AtomicSwap'},
-  [Network.LOCALNET]: {packageId: '', moduleName: ''},
+export const SUI_CONFIG: Record<
+  Network,
+  { packageId: string; moduleName: string }
+> = {
+  [Network.TESTNET]: {
+    packageId:
+      '0x9f1a9894237645834ed8830ef9884c334b352b3d9de852ff463825c02f76f855',
+    moduleName: 'AtomicSwap',
+  },
+  [Network.MAINNET]: {
+    packageId:
+      '0x9f1a9894237645834ed8830ef9884c334b352b3d9de852ff463825c02f76f855',
+    moduleName: 'AtomicSwap',
+  },
+  [Network.LOCALNET]: { packageId: '', moduleName: '' },
 } as const;
 
 export const DEFAULT_AFFILIATE_ASSET = {
