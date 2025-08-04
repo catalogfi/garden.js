@@ -70,7 +70,7 @@ export class SuiHTLC implements ISuiHTLC {
         transactionBlock: data,
       });
       if (dryRunResult.effects.status.status === 'failure') {
-        throw new Error(`${dryRunResult.effects.status.error}`);
+        return Err(`${dryRunResult.effects.status.error}`);
       }
 
       const initResult = await this.client.signAndExecuteTransaction({
@@ -81,9 +81,7 @@ export class SuiHTLC implements ISuiHTLC {
         },
       });
       if (initResult.effects?.status.status === 'failure') {
-        throw new Error(
-          `Failed to initiate: ${initResult.effects?.status.error}`,
-        );
+        return Err(`Failed to initiate: ${initResult.effects?.status.error}`);
       }
 
       const transaction = await this.client.waitForTransaction({
@@ -93,9 +91,7 @@ export class SuiHTLC implements ISuiHTLC {
         },
       });
       if (transaction.effects?.status.status === 'failure') {
-        throw new Error(
-          `Failed to initiate: ${transaction.effects?.status.error}`,
-        );
+        return Err(`Failed to initiate: ${transaction.effects?.status.error}`);
       }
 
       return Ok(transaction.digest);
@@ -142,7 +138,7 @@ export class SuiHTLC implements ISuiHTLC {
         transactionBlock: data,
       });
       if (dryRunResult.effects.status.status === 'failure') {
-        throw new Error(`${dryRunResult.effects.status.error}`);
+        return Err(`${dryRunResult.effects.status.error}`);
       }
 
       const redeemResult = await this.client.signAndExecuteTransaction({
@@ -153,9 +149,7 @@ export class SuiHTLC implements ISuiHTLC {
         },
       });
       if (redeemResult.effects?.status.status === 'failure') {
-        throw new Error(
-          `Failed to redeem: ${redeemResult.effects?.status.error}`,
-        );
+        return Err(`Failed to redeem: ${redeemResult.effects?.status.error}`);
       }
 
       const transaction = await this.client.waitForTransaction({
@@ -165,9 +159,7 @@ export class SuiHTLC implements ISuiHTLC {
         },
       });
       if (transaction.effects?.status.status === 'failure') {
-        throw new Error(
-          `Failed to redeem: ${transaction.effects?.status.error}`,
-        );
+        return Err(`Failed to redeem: ${transaction.effects?.status.error}`);
       }
 
       return Ok(transaction.digest);
@@ -211,7 +203,7 @@ export class SuiHTLC implements ISuiHTLC {
       });
 
       if (dryRunResult.effects.status.status === 'failure') {
-        throw new Error(`${dryRunResult.effects.status.error}`);
+        return Err(`${dryRunResult.effects.status.error}`);
       }
 
       const refundResult = await this.client.signAndExecuteTransaction({
@@ -222,9 +214,7 @@ export class SuiHTLC implements ISuiHTLC {
         },
       });
       if (refundResult.effects?.status.status === 'failure') {
-        throw new Error(
-          `Failed to refund: ${refundResult.effects?.status.error}`,
-        );
+        return Err(`Failed to refund: ${refundResult.effects?.status.error}`);
       }
 
       const transaction = await this.client.waitForTransaction({
@@ -234,9 +224,7 @@ export class SuiHTLC implements ISuiHTLC {
         },
       });
       if (transaction.effects?.status.status === 'failure') {
-        throw new Error(
-          `Failed to refund: ${transaction.effects?.status.error}`,
-        );
+        return Err(`Failed to refund: ${transaction.effects?.status.error}`);
       }
 
       return Ok(transaction.digest);
