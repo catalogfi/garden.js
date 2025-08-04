@@ -35,7 +35,7 @@ cd "$PROJECT_ROOT"
 add_portal_resolutions() {
     print_status "Adding portal resolutions to garden.js package.json..."
     
-    cp "$PROJECT_ROOT/package.json" "$PROJECT_ROOT/package.json.backup"
+    cp "$PROJECT_ROOT/package.json" "$PROJECT_ROOT/package.json.prod"
     
     cat > "$PROJECT_ROOT/temp_modify_package.js" << 'EOF'
 const fs = require('fs');
@@ -75,26 +75,86 @@ EOF
 remove_portal_resolutions() {
     print_status "Removing portal resolutions from garden.js package.json..."
     
-    if [ ! -f "$PROJECT_ROOT/package.json.backup" ]; then
+    if [ ! -f "$PROJECT_ROOT/package.json.prod" ]; then
         print_warning "No backup found, creating one from current package.json..."
-        cp "$PROJECT_ROOT/package.json" "$PROJECT_ROOT/package.json.backup"
+        cp "$PROJECT_ROOT/package.json" "$PROJECT_ROOT/package.json.prod"
     fi
     
-    cp "$PROJECT_ROOT/package.json.backup" "$PROJECT_ROOT/package.json"
+    cp "$PROJECT_ROOT/package.json.prod" "$PROJECT_ROOT/package.json"
     
-    rm "$PROJECT_ROOT/package.json.backup"
+    rm "$PROJECT_ROOT/package.json.prod"
     
     print_success "Removed portal resolutions from garden.js package.json"
     print_success "Backup file cleaned up"
 }
 
+setup_package_for_dev() {
+    local package=$1
+    local package_name=$2
+    
+    print_status "Setting up $package_name for development (source files)..."
+    cd "packages/$package"
+    
+    # Create backup of original package.json only if it doesn't exist
+    if [ ! -f "package.json.prod" ]; then
+        cp package.json package.json.prod
+        print_status "Created backup of original package.json"
+    else
+        print_status "Backup already exists, skipping backup creation"
+    fi
+    
+    # Create development version pointing to source files
+    cat > package.json.dev << EOF
+{
+  "name": "$package_name",
+  "version": "$(node -p "require('./package.json').version")",
+  "type": "module",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "typings": "./src/index.ts",
+  "exports": {
+    ".": {
+      "require": "./src/index.ts",
+      "import": "./src/index.ts",
+      "types": "./src/index.ts",
+      "development": "./src/index.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist"],
+  "scripts": $(node -p "JSON.stringify(require('./package.json').scripts)"),
+  "dependencies": $(node -p "JSON.stringify(require('./package.json').dependencies || {})"),
+  "devDependencies": $(node -p "JSON.stringify(require('./package.json').devDependencies || {})"),
+  "publishConfig": $(node -p "JSON.stringify(require('./package.json').publishConfig || {})"),
+  "sideEffects": $(node -p "JSON.stringify(require('./package.json').sideEffects || false)")
+}
+EOF
+    
+    mv package.json.dev package.json
+    
+    cd "$PROJECT_ROOT"
+    print_success "Set up $package_name for development"
+}
+
+restore_package_to_prod() {
+    local package=$1
+    local package_name=$2
+    
+    print_status "Restoring $package_name to production (built files)..."
+    cd "packages/$package"
+    
+    if [ -f "package.json.prod" ]; then
+        mv package.json.prod package.json
+        print_success "Restored $package_name from backup"
+    else
+        print_warning "No backup found for $package_name, skipping restoration"
+    fi
+    
+    cd "$PROJECT_ROOT"
+}
+
 link_packages() {
-    print_status "Linking all GardenJS packages globally..."
-    
-    print_status "Building all packages..."
-    yarn build
-    
-    add_portal_resolutions
+    print_status "Linking all GardenJS packages globally for development..."
     
     packages=("core" "orderbook" "react-hooks" "utils" "walletConnectors")
     
@@ -108,6 +168,8 @@ link_packages() {
                     package_name="@gardenfi/$package"
                     ;;
             esac
+            
+            setup_package_for_dev "$package" "$package_name"
             
             print_status "Linking $package_name..."
             cd "packages/$package"
@@ -119,14 +181,15 @@ link_packages() {
         fi
     done
     
-    print_success "All packages linked successfully!"
+    add_portal_resolutions
+    
+    print_success "All packages linked for development successfully!"
     print_status "Portal resolutions added to garden.js package.json"
-    print_status "You can now use these packages in other projects with:"
-    print_status "./scripts/portal-setup.sh /path/to/your/project"
+    print_warning "Note: This links directly to source files. Make sure your consuming project can handle TypeScript files."
 }
 
 unlink_packages() {
-    print_status "Unlinking all GardenJS packages..."
+    print_status "Unlinking all GardenJS packages and restoring production mode..."
     
     packages=("core" "orderbook" "react-hooks" "utils" "walletConnectors")
     
@@ -141,11 +204,15 @@ unlink_packages() {
                     ;;
             esac
             
+            # Unlink the package
             print_status "Unlinking $package_name..."
             cd "packages/$package"
             yarn unlink 2>/dev/null || print_warning "Package $package_name was not linked"
             cd "$PROJECT_ROOT"
             print_success "Unlinked $package_name"
+            
+            # Restore package to production mode
+            restore_package_to_prod "$package" "$package_name"
         else
             print_warning "Package $package not found, skipping..."
         fi
@@ -153,7 +220,7 @@ unlink_packages() {
     
     remove_portal_resolutions
     
-    print_success "All packages unlinked successfully!"
+    print_success "All packages unlinked and restored to production mode!"
     print_status "Portal resolutions removed from garden.js package.json"
 }
 
@@ -161,24 +228,26 @@ show_usage() {
     echo "Usage: $0 [link|unlink]"
     echo ""
     echo "Commands:"
-    echo "  link    - Link all GardenJS packages globally and add portal resolutions"
-    echo "  unlink  - Unlink all GardenJS packages globally and remove portal resolutions"
+    echo "  link      - Link all GardenJS packages globally for development (source files)"
+    echo "  unlink    - Unlink all GardenJS packages globally and restore production mode (built files)"
     echo ""
     echo "Examples:"
     echo "  $0 link"
     echo "  $0 unlink"
     echo ""
     echo "This script will:"
-    echo "  1. Build all packages"
-    echo "  2. Add/remove portal resolutions to garden.js package.json"
-    echo "  3. Link/unlink all packages globally"
+    echo "  link:"
+    echo "    1. Set up all packages for development (point to source files)"
+    echo "    2. Create backup files (package.json.prod) for each package"
+    echo "    3. Link all packages globally"
+    echo "    4. Add portal resolutions to garden.js package.json"
     echo ""
-    echo "After linking, other projects can use:"
-    echo "  yarn link @gardenfi/core"
-    echo "  yarn link @gardenfi/orderbook"
-    echo "  yarn link @gardenfi/react-hooks"
-    echo "  yarn link @gardenfi/utils"
-    echo "  yarn link @gardenfi/wallet-connectors"
+    echo "  unlink:"
+    echo "    1. Build all packages for production"
+    echo "    2. Unlink all packages globally"
+    echo "    3. Restore all packages to production mode (point to built files)"
+    echo "    4. Delete backup files after restoration"
+    echo "    5. Remove portal resolutions from garden.js package.json"
 }
 
 case "${1:-}" in
