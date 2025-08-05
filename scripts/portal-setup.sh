@@ -25,25 +25,35 @@ if [ ! -f "$TARGET_DIR/package.json" ]; then
     exit 1
 fi
 
+if [ -f "$TARGET_DIR/package.json.backup" ]; then
+    echo -e "\033[31m [ERROR] Target directory already has a backup file: $TARGET_DIR/package.json.backup\033[0m"
+    echo -e "\033[31m [ERROR] Please run yarn unlink:all before running this script\033[0m"
+    exit 1
+fi
+
 echo -e "\033[34m [INFO] Setting up portal links for GardenJS packages in: $TARGET_DIR\033[0m"
-
-TEMP_PACKAGE_JSON="$TARGET_DIR/package.json.temp"
-
-cat "$TARGET_DIR/package.json" | jq --arg garden_root "$GARDEN_ROOT" '
-.resolutions = {
-  "@gardenfi/core": ("portal:" + $garden_root + "/packages/core"),
-  "@gardenfi/orderbook": ("portal:" + $garden_root + "/packages/orderbook"), 
-  "@gardenfi/react-hooks": ("portal:" + $garden_root + "/packages/react-hooks"),
-  "@gardenfi/utils": ("portal:" + $garden_root + "/packages/utils"),
-  "@gardenfi/wallet-connectors": ("portal:" + $garden_root + "/packages/walletConnectors")
-} + (.resolutions // {})
-' > "$TEMP_PACKAGE_JSON"
 
 cp "$TARGET_DIR/package.json" "$TARGET_DIR/package.json.backup"
 
-mv "$TEMP_PACKAGE_JSON" "$TARGET_DIR/package.json"
+TEMP_PACKAGE_JSON="$TARGET_DIR/package.json.temp"
 
-rm "$TARGET_DIR/package.json.backup"
+# Generate dynamic portal resolutions
+RESOLUTIONS_JSON="{}"
+for dir in "$GARDEN_ROOT"/packages/*/; do
+    if [ -d "$dir" ]; then
+        package_dir=$(basename "$dir")
+        package_name=$(jq -r .name "$dir/package.json")
+        if [ "$package_name" != "@gardenfi/test" ]; then
+            RESOLUTIONS_JSON=$(echo "$RESOLUTIONS_JSON" | jq --arg pkg "$package_name" --arg path "$GARDEN_ROOT/packages/$package_dir" '. + {($pkg): ("portal:" + $path)}')
+        fi
+    fi
+done
+
+cat "$TARGET_DIR/package.json" | jq --argjson resolutions "$RESOLUTIONS_JSON" '
+.resolutions = $resolutions + (.resolutions // {})
+' > "$TEMP_PACKAGE_JSON"
+
+mv "$TEMP_PACKAGE_JSON" "$TARGET_DIR/package.json"
 
 echo -e "\033[32m [SUCCESS] Updated package.json with portal resolutions\033[0m"
 
