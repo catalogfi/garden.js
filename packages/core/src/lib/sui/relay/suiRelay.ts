@@ -32,6 +32,7 @@ export class SuiRelay implements ISuiHTLC {
   }
 
   async initiate(order: MatchedOrder): AsyncResult<string, string> {
+    console.log(order);
     return Ok('done');
   }
 

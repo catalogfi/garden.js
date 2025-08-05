@@ -31,6 +31,7 @@
     "@gardenfi/utils": "workspace:*",
     "@mysten/signers": "^0.3.4",
     "@mysten/sui": "^1.37.1",
+    "@mysten/wallet-standard": "^0.16.9",
     "bignumber.js": "^9.1.2",
     "bip32": "^4.0.0",
     "bip39": "^3.1.0",

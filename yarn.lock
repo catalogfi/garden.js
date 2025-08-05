@@ -1035,6 +1035,7 @@ __metadata:
     "@gardenfi/utils": "workspace:*"
     "@mysten/signers": "npm:^0.3.4"
     "@mysten/sui": "npm:^1.37.1"
+    "@mysten/wallet-standard": "npm:^0.16.9"
     bignumber.js: "npm:^9.1.2"
     bip32: "npm:^4.0.0"
     bip39: "npm:^3.1.0"
@@ -2078,6 +2079,16 @@ __metadata:
   dependencies:
     "@scure/base": "npm:^1.2.6"
   checksum: 10c0/95b0493eaef8aeed885b9f4a62c57b62c8340274ea9c44e7a7bab7ea5310f77abe44fd4cd81f4df1dca027fa67d1f4bec3ccfb298ebd634f6fe5c33062528c6b
+  languageName: node
+  linkType: hard
+
+"@mysten/wallet-standard@npm:^0.16.9":
+  version: 0.16.9
+  resolution: "@mysten/wallet-standard@npm:0.16.9"
+  dependencies:
+    "@mysten/sui": "npm:1.37.1"
+    "@wallet-standard/core": "npm:1.1.1"
+  checksum: 10c0/bf4f72ea26c8284133d99f06de7fbce6e38318cedecbe7b1ec378f978b87a8022eb140878dae9b28bf1f5879fd09acad3d3aa33f0955b37adb5fc9d14c64b8c0
   languageName: node
   linkType: hard
 
@@ -6352,7 +6363,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wallet-standard/core@npm:^1.0.3":
+"@wallet-standard/core@npm:1.1.1, @wallet-standard/core@npm:^1.0.3":
   version: 1.1.1
   resolution: "@wallet-standard/core@npm:1.1.1"
   dependencies:

@@ -1,25 +1,41 @@
 import { MatchedOrder } from '@gardenfi/orderbook';
 import { AsyncResult, Err, Ok } from '@gardenfi/utils';
 import { ISuiHTLC } from '../suiHTLC.types';
-import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
+import {
+  getFullnodeUrl,
+  SuiClient,
+  SuiTransactionBlockResponse,
+} from '@mysten/sui/client';
 import { Network } from '@gardenfi/utils';
 import { Transaction } from '@mysten/sui/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
 import { SUI_CONFIG } from 'src/lib/constants';
-import { WebCryptoSigner } from '@mysten/signers/webcrypto';
+// import { WebCryptoSigner } from '@mysten/signers/webcrypto';
+import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+import {
+  SuiSignAndExecuteTransaction,
+  SuiSignAndExecuteTransactionOutput,
+  type WalletWithRequiredFeatures,
+} from '@mysten/wallet-standard';
 
 export class SuiHTLC implements ISuiHTLC {
   private client: SuiClient;
-  private account: WebCryptoSigner;
+  private account: WalletWithRequiredFeatures | Ed25519Keypair;
   private network: Network;
 
-  constructor(account: WebCryptoSigner, network: Network) {
+  constructor(
+    account: WalletWithRequiredFeatures | Ed25519Keypair,
+    network: Network,
+  ) {
     this.client = new SuiClient({ url: getFullnodeUrl(network) });
     this.account = account;
     this.network = network;
   }
 
   get htlcActorAddress(): string {
+    if ('accounts' in this.account) {
+      return this.account.accounts[0].address;
+    }
     return this.account.getPublicKey().toSuiAddress();
   }
 
@@ -37,7 +53,10 @@ export class SuiHTLC implements ISuiHTLC {
       const solverPubKey = source_swap.redeemer;
       const secretHash = source_swap.secret_hash;
 
-      const userPubKeyBytes = this.account.getPublicKey().toRawBytes();
+      const userPubKeyBytes =
+        'accounts' in this.account
+          ? this.account.accounts[0].publicKey
+          : this.account.getPublicKey().toRawBytes();
       const counterPartyAddressBytes = Buffer.from(solverPubKey, 'hex');
 
       const tx = new Transaction();
@@ -73,15 +92,47 @@ export class SuiHTLC implements ISuiHTLC {
         return Err(`${dryRunResult.effects.status.error}`);
       }
 
-      const initResult = await this.client.signAndExecuteTransaction({
-        transaction: tx,
-        signer: this.account,
-        options: {
-          showEffects: true,
-        },
-      });
-      if (initResult.effects?.status.status === 'failure') {
-        return Err(`Failed to initiate: ${initResult.effects?.status.error}`);
+      // const initResult = await this.client.signAndExecuteTransaction({
+      //   transaction: tx,
+      //   signer: this.account,
+      //   options: {
+      //     showEffects: true,
+      //   },
+      // });
+      // const initResult = await (
+      //   this.account as WalletWithRequiredFeatures
+      // ).features[SuiSignAndExecuteTransaction]?.signAndExecuteTransaction({
+      //   transaction: tx,
+      //   account: (this.account as WalletWithRequiredFeatures).accounts[0],
+      //   chain: (this.account as WalletWithRequiredFeatures).chains[0],
+      // });
+
+      let initResult:
+        | SuiSignAndExecuteTransactionOutput
+        | SuiTransactionBlockResponse
+        | undefined;
+      if ('features' in this.account) {
+        initResult = await (
+          this.account as WalletWithRequiredFeatures
+        ).features[SuiSignAndExecuteTransaction]?.signAndExecuteTransaction({
+          transaction: tx,
+          account: (this.account as WalletWithRequiredFeatures).accounts[0],
+          chain: (this.account as WalletWithRequiredFeatures).chains[0],
+        });
+      } else {
+        // The return type of signAndExecuteTransaction is SuiTransactionBlockResponse,
+        // but we need SuiSignAndExecuteTransactionOutput for consistent typing.
+        // We'll cast it for now, but ideally, you should handle the difference explicitly.
+        initResult = await this.client.signAndExecuteTransaction({
+          signer: this.account as Ed25519Keypair,
+          transaction: tx,
+          options: {
+            showEffects: true,
+          },
+        });
+      }
+      if (!initResult) {
+        return Err(`Failed to initiate`);
       }
 
       const transaction = await this.client.waitForTransaction({
@@ -141,15 +192,33 @@ export class SuiHTLC implements ISuiHTLC {
         return Err(`${dryRunResult.effects.status.error}`);
       }
 
-      const redeemResult = await this.client.signAndExecuteTransaction({
-        signer: this.account,
-        transaction: tx,
-        options: {
-          showEffects: true,
-        },
-      });
-      if (redeemResult.effects?.status.status === 'failure') {
-        return Err(`Failed to redeem: ${redeemResult.effects?.status.error}`);
+      let redeemResult:
+        | SuiSignAndExecuteTransactionOutput
+        | SuiTransactionBlockResponse
+        | undefined;
+      if ('features' in this.account) {
+        redeemResult = await (
+          this.account as WalletWithRequiredFeatures
+        ).features[SuiSignAndExecuteTransaction]?.signAndExecuteTransaction({
+          transaction: tx,
+          account: (this.account as WalletWithRequiredFeatures).accounts[0],
+          chain: (this.account as WalletWithRequiredFeatures).chains[0],
+        });
+      } else {
+        // The return type of signAndExecuteTransaction is SuiTransactionBlockResponse,
+        // but we need SuiSignAndExecuteTransactionOutput for consistent typing.
+        // We'll cast it for now, but ideally, you should handle the difference explicitly.
+        redeemResult = await this.client.signAndExecuteTransaction({
+          signer: this.account as Ed25519Keypair,
+          transaction: tx,
+          options: {
+            showEffects: true,
+          },
+        });
+      }
+
+      if (!redeemResult) {
+        return Err(`Failed to redeem`);
       }
 
       const transaction = await this.client.waitForTransaction({
@@ -206,15 +275,15 @@ export class SuiHTLC implements ISuiHTLC {
         return Err(`${dryRunResult.effects.status.error}`);
       }
 
-      const refundResult = await this.client.signAndExecuteTransaction({
-        signer: this.account,
+      const refundResult = await (
+        this.account as WalletWithRequiredFeatures
+      ).features[SuiSignAndExecuteTransaction]?.signAndExecuteTransaction({
         transaction: tx,
-        options: {
-          showEffects: true,
-        },
+        account: (this.account as WalletWithRequiredFeatures).accounts[0],
+        chain: (this.account as WalletWithRequiredFeatures).chains[0],
       });
-      if (refundResult.effects?.status.status === 'failure') {
-        return Err(`Failed to refund: ${refundResult.effects?.status.error}`);
+      if (!refundResult) {
+        return Err(`Failed to refund`);
       }
 
       const transaction = await this.client.waitForTransaction({

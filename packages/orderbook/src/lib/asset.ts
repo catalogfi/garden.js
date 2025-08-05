@@ -159,10 +159,7 @@ export const isStarknet = (chain: Chain) => {
 };
 
 export const isSui = (chain: Chain) => {
-  return (
-    chain === Chains.sui ||
-    chain === Chains.sui_testnet
-  );
+  return chain === Chains.sui || chain === Chains.sui_testnet;
 };
 
 export const getBlockchainType = (chain: Chain) => {
@@ -192,6 +189,7 @@ export const isNativeToken = (asset: Asset) => {
     isEvmNativeToken(asset.chain, asset.tokenAddress) ||
     isSolanaNativeToken(asset.chain, asset.tokenAddress) ||
     isBitcoin(asset.chain) ||
+    isSui(asset.chain) ||
     // Starknet doesn't have a native token
     !isStarknet(asset.chain)
   );
