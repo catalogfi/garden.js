@@ -1,21 +1,21 @@
-import { MatchedOrder } from '@gardenfi/orderbook';
-import { AsyncResult, Err, Ok } from '@gardenfi/utils';
-import { ISuiHTLC } from '../suiHTLC.types';
+import { MatchedOrder } from "@gardenfi/orderbook";
+import { AsyncResult, Err, Ok } from "@gardenfi/utils";
+import { ISuiHTLC } from "../suiHTLC.types";
 import {
   getFullnodeUrl,
   SuiClient,
   SuiTransactionBlockResponse,
-} from '@mysten/sui/client';
-import { Network } from '@gardenfi/utils';
-import { Transaction } from '@mysten/sui/transactions';
-import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
-import { SUI_CONFIG } from '../../constants';
-import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+} from "@mysten/sui/client";
+import { Network } from "@gardenfi/utils";
+import { Transaction } from "@mysten/sui/transactions";
+import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui/utils";
+import { SUI_CONFIG } from "../../constants";
+import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import {
   SuiSignAndExecuteTransaction,
   SuiSignAndExecuteTransactionOutput,
   type WalletWithRequiredFeatures,
-} from '@mysten/wallet-standard';
+} from "@mysten/wallet-standard";
 
 export class SuiHTLC implements ISuiHTLC {
   private client: SuiClient;
@@ -32,14 +32,21 @@ export class SuiHTLC implements ISuiHTLC {
   }
 
   get htlcActorAddress(): string {
-    if ('accounts' in this.account) {
-      return this.account.accounts[0].address;
+    if ("accounts" in this.account) {
+      return Buffer.from(this.account.accounts[0].publicKey).toString("hex");
     }
-    return this.account.getPublicKey().toSuiAddress();
+    console.log(
+      "this.account.getPublicKey().toRawBytes()",
+      Buffer.from(this.account.getPublicKey().toRawBytes()).toString("hex"),
+    );
+
+    return Buffer.from(this.account.getPublicKey().toRawBytes()).toString(
+      "hex",
+    );
   }
 
   get userSuiAddress(): string {
-    return 'accounts' in this.account
+    return "accounts" in this.account
       ? this.account.accounts[0].address
       : this.account.toSuiAddress();
   }
@@ -59,27 +66,27 @@ export class SuiHTLC implements ISuiHTLC {
       const secretHash = source_swap.secret_hash;
 
       const userPubKeyBytes =
-        'accounts' in this.account
+        "accounts" in this.account
           ? this.account.accounts[0].publicKey
           : this.account.getPublicKey().toRawBytes();
-      const counterPartyAddressBytes = Buffer.from(solverPubKey, 'hex');
+      const counterPartyAddressBytes = Buffer.from(solverPubKey, "hex");
 
       const tx = new Transaction();
-      tx.setGasBudget(100000000);
+      tx.setGasBudget(1000000);
       tx.setSender(this.userSuiAddress);
 
       const [coin] = tx.splitCoins(tx.gas, [amount]);
 
       console.log(
-        'userPubKeyBytes',
-        Buffer.from(userPubKeyBytes).toString('hex'),
+        "userPubKeyBytes",
+        Buffer.from(userPubKeyBytes).toString("hex"),
       );
-      console.log('counterPartyAddressBytes', solverPubKey);
-      console.log('secretHash', secretHash);
-      console.log('amount', amount);
-      console.log('source_swap.timelock', source_swap.timelock);
-      console.log('coin', coin);
-      console.log('SUI_CLOCK_OBJECT_ID', SUI_CLOCK_OBJECT_ID);
+      console.log("counterPartyAddressBytes", solverPubKey);
+      console.log("secretHash", secretHash);
+      console.log("amount", amount);
+      console.log("source_swap.timelock", source_swap.timelock);
+      console.log("coin", coin);
+      console.log("SUI_CLOCK_OBJECT_ID", SUI_CLOCK_OBJECT_ID);
 
       tx.moveCall({
         target: `${SUI_CONFIG[this.network].packageId}::${
@@ -88,12 +95,12 @@ export class SuiHTLC implements ISuiHTLC {
         typeArguments: [source_swap.token_address],
         arguments: [
           tx.object(registryId),
-          tx.pure.vector('u8', userPubKeyBytes),
-          tx.pure.vector('u8', counterPartyAddressBytes),
-          tx.pure.vector('u8', Buffer.from(secretHash, 'hex')),
+          tx.pure.vector("u8", userPubKeyBytes),
+          tx.pure.vector("u8", counterPartyAddressBytes),
+          tx.pure.vector("u8", Buffer.from(secretHash, "hex")),
           tx.pure.u64(amount),
           tx.pure.u256(source_swap.timelock),
-          tx.pure.vector('u8', Buffer.from('')),
+          tx.pure.vector("u8", Buffer.from("")),
           coin,
           tx.object(SUI_CLOCK_OBJECT_ID),
         ],
@@ -104,7 +111,8 @@ export class SuiHTLC implements ISuiHTLC {
       const dryRunResult = await this.client.dryRunTransactionBlock({
         transactionBlock: data,
       });
-      if (dryRunResult.effects.status.status === 'failure') {
+      if (dryRunResult.effects.status.status === "failure") {
+        console.log("dryRunResult", dryRunResult);
         return Err(`${dryRunResult.effects.status.error}`);
       }
 
@@ -112,7 +120,7 @@ export class SuiHTLC implements ISuiHTLC {
         | SuiSignAndExecuteTransactionOutput
         | SuiTransactionBlockResponse
         | undefined;
-      if ('features' in this.account) {
+      if ("features" in this.account) {
         initResult = await this.account.features[
           SuiSignAndExecuteTransaction
         ]?.signAndExecuteTransaction({
@@ -139,7 +147,7 @@ export class SuiHTLC implements ISuiHTLC {
           showEffects: true,
         },
       });
-      if (transaction.effects?.status.status === 'failure') {
+      if (transaction.effects?.status.status === "failure") {
         return Err(`Failed to initiate: ${transaction.effects?.status.error}`);
       }
 
@@ -176,8 +184,8 @@ export class SuiHTLC implements ISuiHTLC {
         typeArguments: [destination_swap.token_address],
         arguments: [
           tx.object(registryId),
-          tx.pure.vector('u8', Buffer.from(destination_swap.swap_id, 'hex')),
-          tx.pure.vector('u8', Buffer.from(secret, 'hex')),
+          tx.pure.vector("u8", Buffer.from(destination_swap.swap_id, "hex")),
+          tx.pure.vector("u8", Buffer.from(secret, "hex")),
         ],
       });
 
@@ -186,7 +194,7 @@ export class SuiHTLC implements ISuiHTLC {
       const dryRunResult = await this.client.dryRunTransactionBlock({
         transactionBlock: data,
       });
-      if (dryRunResult.effects.status.status === 'failure') {
+      if (dryRunResult.effects.status.status === "failure") {
         return Err(`${dryRunResult.effects.status.error}`);
       }
 
@@ -194,7 +202,7 @@ export class SuiHTLC implements ISuiHTLC {
         | SuiSignAndExecuteTransactionOutput
         | SuiTransactionBlockResponse
         | undefined;
-      if ('features' in this.account) {
+      if ("features" in this.account) {
         redeemResult = await this.account.features[
           SuiSignAndExecuteTransaction
         ]?.signAndExecuteTransaction({
@@ -222,7 +230,7 @@ export class SuiHTLC implements ISuiHTLC {
           showEffects: true,
         },
       });
-      if (transaction.effects?.status.status === 'failure') {
+      if (transaction.effects?.status.status === "failure") {
         return Err(`Failed to redeem: ${transaction.effects?.status.error}`);
       }
 
@@ -255,7 +263,7 @@ export class SuiHTLC implements ISuiHTLC {
         typeArguments: [source_swap.token_address],
         arguments: [
           tx.object(registryId),
-          tx.pure.vector('u8', Buffer.from(source_swap.swap_id, 'hex')),
+          tx.pure.vector("u8", Buffer.from(source_swap.swap_id, "hex")),
           tx.object(SUI_CLOCK_OBJECT_ID),
         ],
       });
@@ -266,7 +274,7 @@ export class SuiHTLC implements ISuiHTLC {
         transactionBlock: data,
       });
 
-      if (dryRunResult.effects.status.status === 'failure') {
+      if (dryRunResult.effects.status.status === "failure") {
         return Err(`${dryRunResult.effects.status.error}`);
       }
 
@@ -274,7 +282,7 @@ export class SuiHTLC implements ISuiHTLC {
         | SuiSignAndExecuteTransactionOutput
         | SuiTransactionBlockResponse
         | undefined;
-      if ('features' in this.account) {
+      if ("features" in this.account) {
         refundResult = await this.account.features[
           SuiSignAndExecuteTransaction
         ]?.signAndExecuteTransaction({
@@ -301,7 +309,7 @@ export class SuiHTLC implements ISuiHTLC {
           showEffects: true,
         },
       });
-      if (transaction.effects?.status.status === 'failure') {
+      if (transaction.effects?.status.status === "failure") {
         return Err(`Failed to refund: ${transaction.effects?.status.error}`);
       }
 

@@ -1,4 +1,4 @@
-import { MatchedOrder } from '@gardenfi/orderbook';
+import { MatchedOrder } from "@gardenfi/orderbook";
 import {
   APIResponse,
   AsyncResult,
@@ -7,22 +7,22 @@ import {
   Network,
   Ok,
   Url,
-} from '@gardenfi/utils';
-import { ISuiHTLC } from '../suiHTLC.types';
+} from "@gardenfi/utils";
+import { ISuiHTLC } from "../suiHTLC.types";
 import {
   getFullnodeUrl,
   SuiClient,
   SuiTransactionBlockResponse,
-} from '@mysten/sui/client';
-import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
-import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
-import { Transaction } from '@mysten/sui/transactions';
+} from "@mysten/sui/client";
+import { Ed25519Keypair, Ed25519PublicKey } from "@mysten/sui/keypairs/ed25519";
+import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui/utils";
+import { Transaction } from "@mysten/sui/transactions";
 import {
   SuiSignAndExecuteTransaction,
   SuiSignAndExecuteTransactionOutput,
   WalletWithRequiredFeatures,
-} from '@mysten/wallet-standard';
-import { SUI_CONFIG } from '../../constants';
+} from "@mysten/wallet-standard";
+import { SUI_CONFIG } from "../../constants";
 
 export class SuiRelay implements ISuiHTLC {
   private client: SuiClient;
@@ -42,16 +42,22 @@ export class SuiRelay implements ISuiHTLC {
   }
 
   get htlcActorAddress(): string {
-    if ('accounts' in this.account) {
-      return Buffer.from(this.account.accounts[0].publicKey).toString('hex');
+    if ("accounts" in this.account) {
+      const suiBytes = new Ed25519PublicKey(
+        this.account.accounts[0].publicKey,
+      ).toRawBytes();
+      const output = Buffer.from(suiBytes.slice(1)).toString("hex");
+      console.log("output", output);
+      return output;
     }
+
     return Buffer.from(this.account.getPublicKey().toRawBytes()).toString(
-      'hex',
+      "hex",
     );
   }
 
   get userSuiAddress(): string {
-    return 'accounts' in this.account
+    return "accounts" in this.account
       ? this.account.accounts[0].address
       : this.account.toSuiAddress();
   }
@@ -61,15 +67,16 @@ export class SuiRelay implements ISuiHTLC {
       const { source_swap } = order;
 
       const amount = BigInt(source_swap.amount);
-      const registryId = source_swap.asset;
+      const registryId =
+        "0x82e72404d3fa1ce75dba83b1d53005488ace8287cd0467852e0bab7367952053";
       const solverPubKey = source_swap.redeemer;
       const secretHash = source_swap.secret_hash;
 
       const userPubKeyBytes =
-        'accounts' in this.account
+        "accounts" in this.account
           ? this.account.accounts[0].publicKey
           : this.account.getPublicKey().toRawBytes();
-      const counterPartyAddressBytes = Buffer.from(solverPubKey, 'hex');
+      const counterPartyAddressBytes = Buffer.from(solverPubKey, "hex");
 
       const tx = new Transaction();
       tx.setGasBudget(100000000);
@@ -84,12 +91,12 @@ export class SuiRelay implements ISuiHTLC {
         typeArguments: [source_swap.token_address],
         arguments: [
           tx.object(registryId),
-          tx.pure.vector('u8', userPubKeyBytes),
-          tx.pure.vector('u8', counterPartyAddressBytes),
-          tx.pure.vector('u8', Buffer.from(secretHash, 'hex')),
+          tx.pure.vector("u8", userPubKeyBytes),
+          tx.pure.vector("u8", counterPartyAddressBytes),
+          tx.pure.vector("u8", Buffer.from(secretHash, "hex")),
           tx.pure.u64(amount),
           tx.pure.u256(source_swap.timelock),
-          tx.pure.vector('u8', Buffer.from('')),
+          tx.pure.vector("u8", Buffer.from("")),
           coin,
           tx.object(SUI_CLOCK_OBJECT_ID),
         ],
@@ -100,7 +107,7 @@ export class SuiRelay implements ISuiHTLC {
       const dryRunResult = await this.client.dryRunTransactionBlock({
         transactionBlock: data,
       });
-      if (dryRunResult.effects.status.status === 'failure') {
+      if (dryRunResult.effects.status.status === "failure") {
         return Err(`${dryRunResult.effects.status.error}`);
       }
 
@@ -108,7 +115,7 @@ export class SuiRelay implements ISuiHTLC {
         | SuiSignAndExecuteTransactionOutput
         | SuiTransactionBlockResponse
         | undefined;
-      if ('features' in this.account) {
+      if ("features" in this.account) {
         initResult = await this.account.features[
           SuiSignAndExecuteTransaction
         ]?.signAndExecuteTransaction({
@@ -135,7 +142,7 @@ export class SuiRelay implements ISuiHTLC {
           showEffects: true,
         },
       });
-      if (transaction.effects?.status.status === 'failure') {
+      if (transaction.effects?.status.status === "failure") {
         return Err(`Failed to initiate: ${transaction.effects?.status.error}`);
       }
 
@@ -151,15 +158,15 @@ export class SuiRelay implements ISuiHTLC {
   ): AsyncResult<string, string> {
     try {
       const res = await Fetcher.post<APIResponse<string>>(
-        this.url.endpoint('redeem'),
+        this.url.endpoint("redeem"),
         {
           body: JSON.stringify({
             order_id: order.create_order.create_id,
             secret: secret,
-            perform_on: 'Destination',
+            perform_on: "Destination",
           }),
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           retryCount: 10,
           retryDelay: 2000,
@@ -167,13 +174,13 @@ export class SuiRelay implements ISuiHTLC {
       );
 
       if (res.error) return Err(res.error);
-      return res.result ? Ok(res.result) : Err('Redeem: No result found');
+      return res.result ? Ok(res.result) : Err("Redeem: No result found");
     } catch (error) {
       return Err(String(error));
     }
   }
 
   async refund(): AsyncResult<string, string> {
-    return Err('Refund is taken care of by the relayer');
+    return Err("Refund is taken care of by the relayer");
   }
 }
