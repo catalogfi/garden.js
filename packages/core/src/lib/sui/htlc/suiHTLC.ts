@@ -9,7 +9,7 @@ import {
 import { Network } from '@gardenfi/utils';
 import { Transaction } from '@mysten/sui/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
-import { SUI_CONFIG } from 'src/lib/constants';
+import { SUI_CONFIG } from '../../constants';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import {
   SuiSignAndExecuteTransaction,
