@@ -345,10 +345,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     if (
       (isMainnet(params.fromAsset.chain) && !isMainnet(params.toAsset.chain)) ||
       (!isMainnet(params.fromAsset.chain) && isMainnet(params.toAsset.chain))
-    )
+    ) {
       return Err(
         'Both assets should be on the same network (either mainnet or testnet)',
       );
+    }
 
     const inputAmount = this.validateAmount(params.sendAmount);
     if (!inputAmount.ok) return Err(inputAmount.error);
@@ -400,6 +401,12 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         if (!this._starknetHTLC)
           return Err('Please provide starknetHTLC when initializing garden');
         return Ok(this._starknetHTLC.htlcActorAddress);
+      }
+      case BlockchainType.Sui: {
+        if (!this._suiHTLC)
+          return Err('Please provide suiHTLC when initializing garden');
+        console.log('suiHTLC address', this._suiHTLC.htlcActorAddress);
+        return Ok(this._suiHTLC.htlcActorAddress);
       }
       default:
         return Err('Unsupported chain');
@@ -512,6 +519,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                   await this.solRedeem(order, secrets.val.secret);
                   break;
                 }
+                case BlockchainType.Sui: {
+                  await this.suiRedeem(order, secrets.val.secret);
+                  break;
+                }
                 default:
                   this.emit(
                     'error',
@@ -588,6 +599,40 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     }
 
     const res = await this._solanaHTLC.redeem(order, secret);
+
+    if (res.error) {
+      this.emit('error', order, res.error);
+
+      if (res.error.includes('Order already redeemed')) {
+        this.orderExecutorCache.set(
+          order,
+          OrderActions.Redeem,
+          order.destination_swap.redeem_tx_hash,
+        );
+      }
+      return;
+    }
+
+    if (res.val) {
+      this.orderExecutorCache.set(order, OrderActions.Redeem, res.val);
+      this.emit('success', order, OrderActions.Redeem, res.val);
+    }
+  }
+
+  private async suiRedeem(order: MatchedOrder, secret: string) {
+    this.emit('log', order.create_order.create_id, 'executing sol redeem');
+    const cache = this.orderExecutorCache.get(order, OrderActions.Redeem);
+    if (cache) {
+      this.emit('log', order.create_order.create_id, 'already redeemed');
+      return;
+    }
+
+    if (!this._suiHTLC) {
+      this.emit('error', order, 'Solana HTLC is required');
+      return;
+    }
+
+    const res = await this._suiHTLC.redeem(order, secret);
 
     if (res.error) {
       this.emit('error', order, res.error);

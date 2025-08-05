@@ -43,9 +43,17 @@ export class SuiRelay implements ISuiHTLC {
 
   get htlcActorAddress(): string {
     if ('accounts' in this.account) {
-      return this.account.accounts[0].address;
+      return Buffer.from(this.account.accounts[0].publicKey).toString('hex');
     }
-    return this.account.getPublicKey().toSuiAddress();
+    return Buffer.from(this.account.getPublicKey().toRawBytes()).toString(
+      'hex',
+    );
+  }
+
+  get userSuiAddress(): string {
+    return 'accounts' in this.account
+      ? this.account.accounts[0].address
+      : this.account.toSuiAddress();
   }
 
   async initiate(order: MatchedOrder): AsyncResult<string, string> {
@@ -65,7 +73,7 @@ export class SuiRelay implements ISuiHTLC {
 
       const tx = new Transaction();
       tx.setGasBudget(100000000);
-      tx.setSender(this.htlcActorAddress);
+      tx.setSender(this.userSuiAddress);
 
       const [coin] = tx.splitCoins(tx.gas, [amount]);
 

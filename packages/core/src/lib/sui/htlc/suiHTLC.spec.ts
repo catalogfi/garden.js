@@ -15,7 +15,7 @@ describe.only('sui htlc init tests', () => {
       '0x1b02d7acf45a93db3fa8e84e6ff5d31f305a5f2e483d437803f910389c392744',
     destination_asset: '6eksgdCnSjUaGQWZ6iYvauv1qzvYPF33RTGTM1ZuyENx',
     source_amount: '10000000',
-    destination_amount: '206237',
+    destination_amount: '2062',
     nonce: '1753963050221',
     initiator_source_address:
       '276f0daa0b360b524191208df668356ff37af0012cf4ba8cb9a457924a37054c',

@@ -20,7 +20,7 @@ import { IBitcoinWallet } from '../bitcoin/wallet/wallet.interface';
 import { ISolanaHTLC } from '../solana/htlc/ISolanaHTLC';
 import { AnchorProvider } from '@coral-xyz/anchor';
 import { ISuiHTLC } from '../sui/suiHTLC.types';
-import { WebCryptoSigner } from '@mysten/signers/webcrypto';
+import { WalletWithRequiredFeatures } from '@mysten/wallet-standard';
 
 export type SwapParams = {
   /**
@@ -215,7 +215,7 @@ export type GardenWalletModules = {
     evm?: WalletClient;
     starknet?: AccountInterface;
     solana?: AnchorProvider;
-    sui?: WebCryptoSigner;
+    sui?: WalletWithRequiredFeatures;
   };
 };
 

@@ -38,6 +38,12 @@ export class SuiHTLC implements ISuiHTLC {
     return this.account.getPublicKey().toSuiAddress();
   }
 
+  get userSuiAddress(): string {
+    return 'accounts' in this.account
+      ? this.account.accounts[0].address
+      : this.account.toSuiAddress();
+  }
+
   /**
    * Initiates the HTLC
    * @param order Order to initiate HTLC for
@@ -60,9 +66,20 @@ export class SuiHTLC implements ISuiHTLC {
 
       const tx = new Transaction();
       tx.setGasBudget(100000000);
-      tx.setSender(this.htlcActorAddress);
+      tx.setSender(this.userSuiAddress);
 
       const [coin] = tx.splitCoins(tx.gas, [amount]);
+
+      console.log(
+        'userPubKeyBytes',
+        Buffer.from(userPubKeyBytes).toString('hex'),
+      );
+      console.log('counterPartyAddressBytes', solverPubKey);
+      console.log('secretHash', secretHash);
+      console.log('amount', amount);
+      console.log('source_swap.timelock', source_swap.timelock);
+      console.log('coin', coin);
+      console.log('SUI_CLOCK_OBJECT_ID', SUI_CLOCK_OBJECT_ID);
 
       tx.moveCall({
         target: `${SUI_CONFIG[this.network].packageId}::${
@@ -150,7 +167,7 @@ export class SuiHTLC implements ISuiHTLC {
 
       const tx = new Transaction();
       tx.setGasBudget(100000000);
-      tx.setSender(this.htlcActorAddress);
+      tx.setSender(this.userSuiAddress);
 
       tx.moveCall({
         target: `${SUI_CONFIG[this.network].packageId}::${
@@ -229,7 +246,7 @@ export class SuiHTLC implements ISuiHTLC {
 
       const tx = new Transaction();
       tx.setGasBudget(100000000);
-      tx.setSender(this.htlcActorAddress);
+      tx.setSender(this.userSuiAddress);
 
       tx.moveCall({
         target: `${SUI_CONFIG[this.network].packageId}::${
