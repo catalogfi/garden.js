@@ -235,11 +235,10 @@ export type AffiliateFeeWithAmount = AffiliateFee & {
   amount: string;
 };
 
-export type AffiliateFeeList<
-  T extends AffiliateFee | AffiliateFeeWithAmount
-> = {
-  affiliate_fees?: T[];
-};
+export type AffiliateFeeList<T extends AffiliateFee | AffiliateFeeWithAmount> =
+  {
+    affiliate_fees?: T[];
+  };
 
 export type AffiliateFeeOptionalChainAsset = Omit<
   AffiliateFee,

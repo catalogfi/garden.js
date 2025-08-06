@@ -1,6 +1,6 @@
 import { web3, AnchorProvider, Program } from '@coral-xyz/anchor';
-import idl from '../idl/solana_native_swaps.json';
-import { SolanaNativeSwaps } from '../idl/solana_native_swaps';
+import idl from '../idl/native/solana_native_swaps.json';
+import { SolanaNativeSwaps } from '../idl/native/solana_native_swaps';
 import { SwapConfig, validateSecret } from '../solanaTypes';
 import { ISolanaHTLC } from './ISolanaHTLC';
 import { MatchedOrder } from '@gardenfi/orderbook';
