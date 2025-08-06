@@ -299,3 +299,6 @@ describe.only("sui relay tests", () => {
 //   },
 //   1000 * 60 * 5,
 // );
+
+// phantom: d38f39f36df6d77d78f75efcd7ddb7e34d78e36df6d78ebbe75d74d76dbce76e79d7bf7de36e35d7bd7cf75d3adb5df5d7ddb5eb5eb4d7ce37ef8f3bf3
+// slush: 303ae80d95b2c0220090e8924b6e7a55ffb35e1875bd6ad577d8a0b825045752
