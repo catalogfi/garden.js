@@ -14,7 +14,7 @@ import {
   SuiClient,
   SuiTransactionBlockResponse,
 } from "@mysten/sui/client";
-import { Ed25519Keypair, Ed25519PublicKey } from "@mysten/sui/keypairs/ed25519";
+import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui/utils";
 import { Transaction } from "@mysten/sui/transactions";
 import {
@@ -43,12 +43,10 @@ export class SuiRelay implements ISuiHTLC {
 
   get htlcActorAddress(): string {
     if ("accounts" in this.account) {
-      const suiBytes = new Ed25519PublicKey(
-        this.account.accounts[0].publicKey,
-      ).toRawBytes();
-      const output = Buffer.from(suiBytes.slice(1)).toString("hex");
-      console.log("output", output);
-      return output;
+      const suiBytes = this.account.accounts[0].publicKey;
+      const output = Buffer.from(suiBytes).toString("hex");
+      const trimmed = output.startsWith("00") ? output.slice(2) : output;
+      return trimmed;
     }
 
     return Buffer.from(this.account.getPublicKey().toRawBytes()).toString(
@@ -67,18 +65,14 @@ export class SuiRelay implements ISuiHTLC {
       const { source_swap } = order;
 
       const amount = BigInt(source_swap.amount);
-      const registryId =
-        "0x82e72404d3fa1ce75dba83b1d53005488ace8287cd0467852e0bab7367952053";
+      const registryId = source_swap.asset;
       const solverPubKey = source_swap.redeemer;
       const secretHash = source_swap.secret_hash;
 
-      const userPubKeyBytes =
-        "accounts" in this.account
-          ? this.account.accounts[0].publicKey
-          : this.account.getPublicKey().toRawBytes();
       const counterPartyAddressBytes = Buffer.from(solverPubKey, "hex");
 
       const tx = new Transaction();
+
       tx.setGasBudget(100000000);
       tx.setSender(this.userSuiAddress);
 
@@ -91,7 +85,7 @@ export class SuiRelay implements ISuiHTLC {
         typeArguments: [source_swap.token_address],
         arguments: [
           tx.object(registryId),
-          tx.pure.vector("u8", userPubKeyBytes),
+          tx.pure.vector("u8", Buffer.from(this.htlcActorAddress, "hex")),
           tx.pure.vector("u8", counterPartyAddressBytes),
           tx.pure.vector("u8", Buffer.from(secretHash, "hex")),
           tx.pure.u64(amount),
@@ -103,7 +97,6 @@ export class SuiRelay implements ISuiHTLC {
       });
 
       const data = await tx.build({ client: this.client });
-
       const dryRunResult = await this.client.dryRunTransactionBlock({
         transactionBlock: data,
       });
@@ -121,7 +114,7 @@ export class SuiRelay implements ISuiHTLC {
         ]?.signAndExecuteTransaction({
           transaction: tx,
           account: this.account.accounts[0],
-          chain: this.account.chains[0],
+          chain: `sui:${this.network}`,
         });
       } else {
         initResult = await this.client.signAndExecuteTransaction({
