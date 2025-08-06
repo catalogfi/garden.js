@@ -1,11 +1,12 @@
 {
   "name": "@gardenfi/wallet-connectors",
-  "version": "2.3.2",
+  "version": "2.3.3",
   "type": "module",
   "scripts": {
     "build": "vite build",
     "test": "vitest run",
-    "dev": "vite build --watch"
+    "dev": "vite build --watch",
+    "link": "yarn link"
   },
   "files": [
     "dist"
