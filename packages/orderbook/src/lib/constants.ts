@@ -131,6 +131,15 @@ export const SupportedAssets = {
       atomicSwapAddress: 'gdnvdMCHJgnidtU7SL8RkRshHPvDJU1pdfZEpoLvqdU',
       tokenAddress: '5JbWjyLdYKTuykpq2itWbdRcZkhK3hs6fiH62pkmLYZi',
     },
+    solana_testnet_cbBTC: {
+      name: 'Coinbase Bitcoin',
+      decimals: 8,
+      symbol: 'cbBTC',
+      chain: Chains.solana_testnet,
+      logo: 'https://garden-finance.imgix.net/token-images/cbBTC.svg',
+      atomicSwapAddress: 'gdnvdMCHJgnidtU7SL8RkRshHPvDJU1pdfZEpoLvqdU',
+      tokenAddress: 'CL8C4gsaEQyWPxL4Zn7dcnZ8LKvPYqHmv4ipMax4cDUL',
+    },
     bitcoin_testnet_BTC: {
       name: 'BTC',
       decimals: 8,
