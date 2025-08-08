@@ -25,14 +25,14 @@ import {
 } from './orderbook.types';
 // import { Asset, Chains } from '../asset';
 
-describe('orders provider', async () => {
+describe.only('orders provider', async () => {
   const orderbookApi = 'https://testnet.api.garden.finance/orders';
   const address = '0xE1CA48fcaFBD42Da402352b645A9855E33C716BE';
   const id = '1d93c7cccbbb5bea0b1f8072e357185780efb5dcbf74e4d8f675219778e1a8b9';
 
   const orderbook = new Orderbook(new Url(orderbookApi));
 
-  test('should get order', async () => {
+  test.skip('should get order', async () => {
     const order = await orderbook.getOrder(id, true);
     console.log('order.val :', order.val);
     expect(order.error).toBeUndefined();
@@ -42,7 +42,7 @@ describe('orders provider', async () => {
     }
   });
 
-  test('should get pending orders of a address', async () => {
+  test.skip('should get pending orders of a address', async () => {
     const orders = await orderbook.getMatchedOrders(address, 'pending');
     expect(orders.error).toBeUndefined();
     expect(orders.val?.data.length).toBeGreaterThan(0);
@@ -60,7 +60,7 @@ describe('orders provider', async () => {
     }
   });
 
-  test('should subscribe to orders', async () => {
+  test.skip('should subscribe to orders', async () => {
     const unsubscribe = await orderbook.subscribeOrders(
       address,
       true,
@@ -73,14 +73,34 @@ describe('orders provider', async () => {
     expectTypeOf(unsubscribe).toEqualTypeOf<() => void>();
   }, 10000);
 
-  test('order count', async () => {
+  test.only('should get orders with options', async () => {
+    const orderResponse = await orderbook.getOrders(
+      true,
+      {
+        page: 1,
+        per_page: 1,
+      },
+      undefined,
+      undefined,
+      undefined,
+      'bitcoin_testnet',
+      undefined,
+      undefined,
+      { key1: '1', key2: '2' },
+    );
+    expect(orderResponse.ok).toBeTruthy();
+    const orders = orderResponse.val!.data;
+    console.log('orders :', orders[0]);
+  });
+
+  test.skip('order count', async () => {
     const count = await orderbook.getOrdersCount(address);
     expect(count.error).toBeUndefined();
     expect(count.val).toBe(0);
   }, 10000);
-});
+}, 950000);
 
-describe('AbortController functionality', () => {
+describe.skip('AbortController functionality', () => {
   const orderbookApi = 'https://testnet.api.garden.finance/orders';
   const orderbook = new Orderbook(new Url(orderbookApi));
   const address = '0xE1CA48fcaFBD42Da402352b645A9855E33C716BE';

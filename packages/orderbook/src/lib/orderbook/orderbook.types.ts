@@ -1,4 +1,10 @@
-import { APIResponse, AsyncResult, IAuth, IStore } from '@gardenfi/utils';
+import {
+  APIResponse,
+  AsyncResult,
+  IAuth,
+  IStore,
+  Request as UtilsRequest,
+} from '@gardenfi/utils';
 import { Asset, Chain } from '../asset';
 
 /**
@@ -139,6 +145,9 @@ export interface IOrderbook {
    * @param tx_hash - The tx hash to get the orders for (initiate_tx_hash, redeem_tx_hash, refund_tx_hash).
    * @param fromChain - The source chain to filter orders by.
    * @param toChain - The destination chain to filter orders by.
+   * @param status - The status to filter orders by.
+   * @param request - Optional request configuration.
+   * @param last - Additional key-value pairs for query parameters (both keys and values must be strings).
    * @returns {AsyncResult<PaginatedData<T extends true ? MatchedOrder : CreateOrder>, string>} A promise that resolves to the orders.
    */
   getOrders<T extends boolean>(
@@ -146,6 +155,11 @@ export interface IOrderbook {
     paginationConfig?: PaginationConfig,
     address?: string,
     tx_hash?: string,
+    fromChain?: Chain,
+    toChain?: Chain,
+    status?: OrderStatus,
+    request?: UtilsRequest,
+    last?: Record<string, string>,
   ): AsyncResult<
     PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
     string
