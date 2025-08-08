@@ -166,7 +166,6 @@ export class Orderbook implements IOrderbook {
       ...filters,
     };
     const url = ConstructUrl(this.Url, endPoint, params);
-    console.log('url :', url);
     try {
       const res = await Fetcher.get<
         APIResponse<PaginatedData<T extends true ? MatchedOrder : CreateOrder>>
