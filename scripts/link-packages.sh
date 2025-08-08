@@ -28,7 +28,7 @@ print_error() {
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-TARGET_PROJECT_PATH="$2"
+TARGET_PROJECT_PATH="${2:-$(pwd)/../garden-kiosk}"
 
 cd "$PROJECT_ROOT"
 
@@ -273,7 +273,7 @@ unlink_packages() {
     remove_portal_resolutions
 
     yarn install
-    
+
     print_success "All packages unlinked and restored to production mode!"
 }
 
