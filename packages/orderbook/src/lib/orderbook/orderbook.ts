@@ -18,6 +18,7 @@ import {
   IAuth,
   Ok,
   Url,
+  Request as UtilsRequest,
 } from '@gardenfi/utils';
 import { ConstructUrl } from '../utils';
 import { Chain } from '../asset';
@@ -70,6 +71,7 @@ export class Orderbook implements IOrderbook {
   async getOrder<T extends boolean>(
     id: string,
     matched: T,
+    request?: UtilsRequest,
   ): AsyncResult<T extends true ? MatchedOrder : CreateOrder, string> {
     const url = this.Url.endpoint(
       matched ? `/id/${id}/matched` : `/id/${id}/unmatched`,
@@ -78,7 +80,7 @@ export class Orderbook implements IOrderbook {
     try {
       const res = await Fetcher.get<
         APIResponse<T extends true ? MatchedOrder : CreateOrder>
-      >(url);
+      >(url, { ...request });
 
       if (res.error) return Err(res.error);
       return res.result
@@ -93,6 +95,7 @@ export class Orderbook implements IOrderbook {
     address: string,
     status: Status,
     paginationConfig?: PaginationConfig,
+    request?: UtilsRequest,
   ): AsyncResult<PaginatedData<MatchedOrder>, string> {
     const url = ConstructUrl(this.Url, `/user/${address}/matched`, {
       ...paginationConfig,
@@ -102,6 +105,7 @@ export class Orderbook implements IOrderbook {
     try {
       const res = await Fetcher.get<APIResponse<PaginatedData<MatchedOrder>>>(
         url,
+        { ...request },
       );
 
       if (res.error) return Err(res.error);
@@ -116,6 +120,7 @@ export class Orderbook implements IOrderbook {
   async getUnMatchedOrders(
     address: string,
     paginationConfig?: PaginationConfig,
+    request?: UtilsRequest,
   ): AsyncResult<PaginatedData<CreateOrder>, string> {
     const url = ConstructUrl(
       this.Url,
@@ -126,6 +131,7 @@ export class Orderbook implements IOrderbook {
     try {
       const res = await Fetcher.get<APIResponse<PaginatedData<CreateOrder>>>(
         url,
+        { ...request },
       );
 
       if (res.error) return Err(res.error);
@@ -145,6 +151,7 @@ export class Orderbook implements IOrderbook {
     fromChain?: Chain,
     toChain?: Chain,
     status?: OrderStatus,
+    request?: UtilsRequest,
   ): AsyncResult<
     PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
     string
@@ -174,7 +181,7 @@ export class Orderbook implements IOrderbook {
     try {
       const res = await Fetcher.get<
         APIResponse<PaginatedData<T extends true ? MatchedOrder : CreateOrder>>
-      >(url);
+      >(url, { ...request });
 
       if (res.error) return Err(res.error);
       return res.result
@@ -194,6 +201,7 @@ export class Orderbook implements IOrderbook {
     ) => Promise<void>,
     status: Status = 'all',
     paginationConfig?: PaginationConfig,
+    request?: UtilsRequest,
   ): Promise<() => void> {
     let isProcessing = false;
 
@@ -203,8 +211,13 @@ export class Orderbook implements IOrderbook {
 
       try {
         const result = matched
-          ? await this.getMatchedOrders(account, status, paginationConfig)
-          : await this.getUnMatchedOrders(account, paginationConfig);
+          ? await this.getMatchedOrders(
+              account,
+              status,
+              paginationConfig,
+              request,
+            )
+          : await this.getUnMatchedOrders(account, paginationConfig, request);
         if (result.ok) {
           await cb(
             result.val as PaginatedData<
@@ -229,11 +242,14 @@ export class Orderbook implements IOrderbook {
     };
   }
 
-  async getOrdersCount(address: string): AsyncResult<number, string> {
+  async getOrdersCount(
+    address: string,
+    request?: UtilsRequest,
+  ): AsyncResult<number, string> {
     const url = this.Url.endpoint(`/user/${address}/count`);
 
     try {
-      const res = await Fetcher.get<APIResponse<number>>(url);
+      const res = await Fetcher.get<APIResponse<number>>(url, { ...request });
 
       if (res.error) return Err(res.error);
       return res.status === ApiStatus.Ok && res.result !== undefined
