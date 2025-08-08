@@ -50,7 +50,9 @@ revert_target_project_resolutions() {
         if [ -f "$target_path/package.json.backup" ]; then
             cp "$target_path/package.json.backup" "$target_path/package.json"
             rm "$target_path/package.json.backup"
+            cd "$target_path"
             yarn install
+            cd "$PROJECT_ROOT"
             print_success "Reverted portal resolutions in target project"
         else
             print_warning "No backup found for target project, skipping reversion"
