@@ -5,7 +5,8 @@
   "scripts": {
     "build": "vite build",
     "test": "vitest run",
-    "dev": "vite build --watch"
+    "dev": "vite build --watch",
+    "link": "yarn link"
   },
   "files": [
     "dist"
