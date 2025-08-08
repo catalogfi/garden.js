@@ -9,7 +9,7 @@ import {
 import { Network } from '@gardenfi/utils';
 import { Transaction } from '@mysten/sui/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
-import { SUI_CONFIG } from '../../constants';
+import { SUI_BASE_GAS_BUDGET, SUI_CONFIG } from '../../constants';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import {
   SuiSignAndExecuteTransaction,
@@ -48,41 +48,24 @@ export class SuiHTLC implements ISuiHTLC {
 
       const amount = BigInt(source_swap.amount);
       const registryId = source_swap.asset;
-      const solverPubKey = source_swap.redeemer;
+      const solverAddress = source_swap.redeemer;
       const secretHash = source_swap.secret_hash;
 
-      const userPubKeyBytes =
-        'accounts' in this.account
-          ? this.account.accounts[0].publicKey
-          : this.account.getPublicKey().toRawBytes();
-      const counterPartyAddressBytes = Buffer.from(solverPubKey, 'hex');
-
       const tx = new Transaction();
-      tx.setGasBudget(1000000);
+      tx.setGasBudget(amount + SUI_BASE_GAS_BUDGET);
       tx.setSender(this.htlcActorAddress);
 
       const [coin] = tx.splitCoins(tx.gas, [amount]);
 
-      console.log(
-        'userPubKeyBytes',
-        Buffer.from(userPubKeyBytes).toString('hex'),
-      );
-      console.log('counterPartyAddressBytes', solverPubKey);
-      console.log('secretHash', secretHash);
-      console.log('amount', amount);
-      console.log('source_swap.timelock', source_swap.timelock);
-      console.log('coin', coin);
-      console.log('SUI_CLOCK_OBJECT_ID', SUI_CLOCK_OBJECT_ID);
-
       tx.moveCall({
         target: `${SUI_CONFIG[this.network].packageId}::${
           SUI_CONFIG[this.network].moduleName
-        }::initiate_swap`,
+        }::initiate`,
         typeArguments: [source_swap.token_address],
         arguments: [
           tx.object(registryId),
-          tx.pure.vector('u8', userPubKeyBytes),
-          tx.pure.vector('u8', counterPartyAddressBytes),
+          tx.pure.address(this.htlcActorAddress),
+          tx.pure.address(solverAddress),
           tx.pure.vector('u8', Buffer.from(secretHash, 'hex')),
           tx.pure.u64(amount),
           tx.pure.u256(source_swap.timelock),
@@ -160,13 +143,13 @@ export class SuiHTLC implements ISuiHTLC {
       const registryId = destination_swap.asset;
 
       const tx = new Transaction();
-      tx.setGasBudget(100000000);
+      tx.setGasBudget(SUI_BASE_GAS_BUDGET);
       tx.setSender(this.htlcActorAddress);
 
       tx.moveCall({
         target: `${SUI_CONFIG[this.network].packageId}::${
           SUI_CONFIG[this.network].moduleName
-        }::redeem_swap`,
+        }::redeem`,
         typeArguments: [destination_swap.token_address],
         arguments: [
           tx.object(registryId),
@@ -240,13 +223,13 @@ export class SuiHTLC implements ISuiHTLC {
 
       const tx = new Transaction();
 
-      tx.setGasBudget(100000000);
+      tx.setGasBudget(SUI_BASE_GAS_BUDGET);
       tx.setSender(this.htlcActorAddress);
 
       tx.moveCall({
         target: `${SUI_CONFIG[this.network].packageId}::${
           SUI_CONFIG[this.network].moduleName
-        }::refund_swap`,
+        }::refund`,
         typeArguments: [source_swap.token_address],
         arguments: [
           tx.object(registryId),

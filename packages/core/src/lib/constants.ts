@@ -89,7 +89,7 @@ export const SUI_CONFIG: Record<
 > = {
   [Network.TESTNET]: {
     packageId:
-      '0x008bba214bc6f12f83200f45f0905c2ee784406feac6e8ee724a49f7eba334eb',
+      '0x9bc40081ec0a6e04d90b3c4db23b7daf6f5ae75e57d2779e70c210d803a39e6b',
     moduleName: 'AtomicSwap',
   },
   [Network.MAINNET]: {
@@ -104,3 +104,5 @@ export const DEFAULT_AFFILIATE_ASSET = {
   chain: SupportedAssets.mainnet.base_cbBTC.chain,
   asset: SupportedAssets.mainnet.base_cbBTC.atomicSwapAddress,
 };
+
+export const SUI_BASE_GAS_BUDGET = 100000000n;
