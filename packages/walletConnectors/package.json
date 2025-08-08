@@ -1,6 +1,6 @@
 {
   "name": "@gardenfi/wallet-connectors",
-  "version": "2.3.3",
+  "version": "2.3.5",
   "type": "module",
   "scripts": {
     "build": "vite build",
