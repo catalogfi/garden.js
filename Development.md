@@ -9,6 +9,8 @@ cd /path/to/garden.js
 yarn link:all /path/to/your/project
 ```
 
+**Note**: If no target project path is provided, the script will default to `../garden-kiosk` relative to the current directory.
+
 #### Development
 - Make changes in garden.js source files
 - Changes immediately reflect in your project
@@ -28,6 +30,8 @@ yarn unlink:all
 cd /path/to/garden.js
 yarn link:all /path/to/your/project
 ```
+
+**Default Target**: If no target project path is specified, the script defaults to `../garden-kiosk` relative to the current directory.
 
 This single command will:
 - Automatically detect all packages in `packages/` directory (excluding `test`)
@@ -59,7 +63,8 @@ This single command will:
 
 **What the scripts do:**
 
-1. **`yarn link:all /path/to/project`** (Dynamic script):
+1. **`yarn link:all [path/to/project]`** (Dynamic script):
+   - **Target Project**: Accepts an optional target project path. If not provided, defaults to `../garden-kiosk`
    - Automatically detects all packages in `packages/` directory
    - Reads package names from each package's `package.json`
    - Modifies each package's `package.json` to point to `./src/index.ts` (source files)
