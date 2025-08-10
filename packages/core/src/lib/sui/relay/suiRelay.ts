@@ -22,7 +22,7 @@ import {
   SuiSignAndExecuteTransactionOutput,
   WalletWithRequiredFeatures,
 } from '@mysten/wallet-standard';
-import { SUI_BASE_GAS_BUDGET, SUI_CONFIG } from '../../constants';
+import { SUI_CONFIG } from '../../constants';
 
 export class SuiRelay implements ISuiHTLC {
   private client: SuiClient;
@@ -57,8 +57,6 @@ export class SuiRelay implements ISuiHTLC {
       const secretHash = source_swap.secret_hash;
 
       const tx = new Transaction();
-
-      tx.setGasBudget(amount + SUI_BASE_GAS_BUDGET);
       tx.setSender(this.htlcActorAddress);
 
       const [coin] = tx.splitCoins(tx.gas, [amount]);

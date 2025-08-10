@@ -104,5 +104,3 @@ export const DEFAULT_AFFILIATE_ASSET = {
   chain: SupportedAssets.mainnet.base_cbBTC.chain,
   asset: SupportedAssets.mainnet.base_cbBTC.atomicSwapAddress,
 };
-
-export const SUI_BASE_GAS_BUDGET = 100000000n;

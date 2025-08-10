@@ -9,7 +9,7 @@ import {
 import { Network } from '@gardenfi/utils';
 import { Transaction } from '@mysten/sui/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui/utils';
-import { SUI_BASE_GAS_BUDGET, SUI_CONFIG } from '../../constants';
+import { SUI_CONFIG } from '../../constants';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import {
   SuiSignAndExecuteTransaction,
@@ -52,7 +52,6 @@ export class SuiHTLC implements ISuiHTLC {
       const secretHash = source_swap.secret_hash;
 
       const tx = new Transaction();
-      tx.setGasBudget(amount + SUI_BASE_GAS_BUDGET);
       tx.setSender(this.htlcActorAddress);
 
       const [coin] = tx.splitCoins(tx.gas, [amount]);
@@ -81,7 +80,6 @@ export class SuiHTLC implements ISuiHTLC {
         transactionBlock: data,
       });
       if (dryRunResult.effects.status.status === 'failure') {
-        console.log('dryRunResult', dryRunResult);
         return Err(`${dryRunResult.effects.status.error}`);
       }
 
@@ -143,7 +141,6 @@ export class SuiHTLC implements ISuiHTLC {
       const registryId = destination_swap.asset;
 
       const tx = new Transaction();
-      tx.setGasBudget(SUI_BASE_GAS_BUDGET);
       tx.setSender(this.htlcActorAddress);
 
       tx.moveCall({
@@ -222,8 +219,6 @@ export class SuiHTLC implements ISuiHTLC {
       const registryId = source_swap.asset;
 
       const tx = new Transaction();
-
-      tx.setGasBudget(SUI_BASE_GAS_BUDGET);
       tx.setSender(this.htlcActorAddress);
 
       tx.moveCall({
