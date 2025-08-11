@@ -11,7 +11,7 @@ import { RpcProvider, Account } from 'starknet';
 import { describe, expect, it } from 'vitest';
 import { privateKeyToAccount } from 'viem/accounts';
 import { createWalletClient, http } from 'viem';
-import { arbitrumSepolia } from 'viem/chains';
+import { mainnet } from 'viem/chains';
 import { IGardenJS, SwapParams } from '../garden.types';
 import { STARKNET_CONFIG } from './../../constants';
 
@@ -31,11 +31,12 @@ describe('StarkNet Integration Tests', () => {
   const evmAccount = privateKeyToAccount(with0x(EVM_PRIVATE_KEY));
   const evmWallet = createWalletClient({
     account: evmAccount,
-    chain: arbitrumSepolia,
+    chain: mainnet,
     transport: http(),
   });
+  console.log('EVM Wallet Address:', evmWallet.account.address);
   const snProvider = new RpcProvider({
-    nodeUrl: STARKNET_CONFIG[Network.TESTNET].nodeUrl,
+    nodeUrl: STARKNET_CONFIG[Network.MAINNET].nodeUrl,
   });
   const starknetWallet = new Account(
     snProvider,
@@ -46,14 +47,14 @@ describe('StarkNet Integration Tests', () => {
   );
 
   const garden = Garden.fromWallets({
-    environment: Environment.TESTNET,
+    environment: Environment.MAINNET,
     digestKey: DIGEST_KEY!,
     apiKey: 'f242ea49332293424c96c562a6ef575a819908c878134dcb4fce424dc84ec796',
     wallets: {
       evm: evmWallet,
       starknet: starknetWallet,
     },
-  });
+  }).handleSecretManagement(true);
 
   const setupEventListeners = (garden: IGardenJS) => {
     garden.on('error', (order, error) => {
@@ -161,6 +162,33 @@ describe('StarkNet Integration Tests', () => {
           btcAddress: 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru',
         },
       };
+      // const order: SwapParams = {
+      //   toAsset: {
+      //     name: 'Starknet ETH',
+      //     decimals: 8,
+      //     symbol: 'WBTC',
+      //     chain: Chains.starknet_sepolia,
+      //     logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
+      //     tokenAddress:
+      //       '0x496bef3ed20371382fbe0ca6a5a64252c5c848f9f1f0cccf8110fc4def912d5',
+      //     atomicSwapAddress:
+      //       '0x06579d255314109429a4477d89629bc2b94f529ae01979c2f8014f9246482603',
+      //   },
+      //   fromAsset: {
+      //     name: 'Wrapped Bitcoin',
+      //     decimals: 8,
+      //     symbol: 'WBTC',
+      //     logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
+      //     chain: Chains.arbitrum_sepolia,
+      //     tokenAddress: '0xD8a6E3FCA403d79b6AD6216b60527F51cc967D39',
+      //     atomicSwapAddress: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
+      //   },
+      //   sendAmount: '100000',
+      //   receiveAmount: '99200',
+      //   additionalData: {
+      //     strategyId: 'aa8dsa30',
+      //   },
+      // };
       const result = await garden.swap(order);
       if (!result.ok) {
         console.log('Error while creating order ❌:', result.error);

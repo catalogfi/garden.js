@@ -32,7 +32,6 @@ import {
   EventBroker,
   IAuth,
   Siwe,
-  sleep,
   Url,
   DigestKey,
   Network,
@@ -51,7 +50,6 @@ import {
   toXOnly,
 } from '../utils';
 import {
-  isOrderExpired,
   parseActionFromStatus,
   ParseOrderStatus,
 } from '../orderStatus/orderStatusParser';
@@ -103,6 +101,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private _digestKey: DigestKey;
   private _apiKey: ApiKey | undefined;
   private _api: Api | undefined;
+  private isSecretManagementEnabled: boolean = false;
 
   constructor(config: GardenConfigWithHTLCs) {
     super();
@@ -144,6 +143,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       this._digestKey.digestKey,
       provider,
     );
+  }
+  handleSecretManagement(enabled: boolean): this {
+    this.isSecretManagementEnabled = enabled;
+    return this;
   }
 
   static fromWallets(config: GardenConfigWithWallets) {
@@ -264,8 +267,13 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     const { sendAddress, receiveAddress } = validation.val;
 
     const nonce = Date.now().toString();
-    const secrets = await this._secretManager.generateSecret(nonce);
-    if (!secrets.ok) return Err(secrets.error);
+    let secretHash: string | undefined;
+
+    if (this.isSecretManagementEnabled) {
+      const secrets = await this._secretManager.generateSecret(nonce);
+      if (!secrets.ok) return Err(secrets.error);
+      secretHash = secrets.val.secretHash;
+    }
 
     const { btcAddress } = params.additionalData || {};
 
@@ -495,23 +503,51 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       this._digestKey.userId,
       interval,
       async (pendingOrders) => {
-        const ordersWithStatus = await this.filterExpiredAndAssignStatus(
-          pendingOrders.data,
-        );
+        const ordersWithStatus = await this.assignStatus(pendingOrders.data);
         if (!ordersWithStatus.ok) return;
 
         this.emit('onPendingOrdersChanged', ordersWithStatus.val);
         if (pendingOrders.data.length === 0) return;
 
-        //initialize swappers and execute orders
-        for (let i = 0; i < ordersWithStatus.val.length; i++) {
-          const order = ordersWithStatus.val[i];
+        for (const order of ordersWithStatus.val) {
+          if (!this.isSecretManagementEnabled) {
+            switch (order.status) {
+              case OrderStatus.Completed:
+              case OrderStatus.Redeemed:
+              case OrderStatus.CounterPartyRedeemed: {
+                if (!order.destination_swap.redeem_tx_hash) continue;
+
+                this.orderExecutorCache.set(
+                  order,
+                  OrderActions.Redeem,
+                  order.destination_swap.redeem_tx_hash,
+                );
+                this.emit(
+                  'success',
+                  order,
+                  OrderActions.Redeem,
+                  order.destination_swap.redeem_tx_hash,
+                );
+                break;
+              }
+            }
+            continue;
+          }
+
           const orderAction = parseActionFromStatus(order.status);
 
-          //post refund sacp for bitcoin orders
           if (
             isBitcoin(order.source_swap.chain) &&
-            order.status === OrderStatus.InitiateDetected
+            // post refund sacp for bitcoin orders only at relevent statuses
+            (order.status === OrderStatus.InitiateDetected ||
+              order.status === OrderStatus.Initiated ||
+              order.status === OrderStatus.CounterPartyInitiated ||
+              order.status === OrderStatus.CounterPartyInitiateDetected ||
+              order.status === OrderStatus.CounterPartyRefundDetected ||
+              order.status === OrderStatus.CounterPartyRefunded ||
+              order.status === OrderStatus.CounterPartySwapExpired ||
+              order.status === OrderStatus.Expired ||
+              order.status === OrderStatus.DeadLineExceeded)
           ) {
             const wallet = this._btcWallet;
             if (!wallet) {
@@ -531,28 +567,28 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                 return;
               }
 
+              const secret = secrets.val.secret;
               switch (getBlockchainType(order.destination_swap.chain)) {
-                case BlockchainType.EVM: {
-                  await this.evmRedeem(order, secrets.val.secret);
+                case BlockchainType.EVM:
+                  await this.evmRedeem(order, secret);
                   break;
-                }
                 case BlockchainType.Bitcoin: {
                   const destWallet = this.btcWallet;
                   if (!destWallet) {
                     this.emit('error', order, 'BTC wallet not found');
                     return;
                   }
-
-                  await this.btcRedeem(destWallet, order, secrets.val.secret);
+                  await this.btcRedeem(destWallet, order, secret);
                   break;
                 }
                 case BlockchainType.Starknet: {
-                  await this.starknetRedeem(order, secrets.val.secret);
+                  await this.starknetRedeem(order, secret);
                   break;
                 }
-                case BlockchainType.Solana:
+                case BlockchainType.Solana: {
                   await this.solRedeem(order, secrets.val.secret);
                   break;
+                }
                 default:
                   this.emit(
                     'error',
@@ -562,6 +598,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
               }
               break;
             }
+
             case OrderActions.Refund: {
               switch (getBlockchainType(order.source_swap.chain)) {
                 case BlockchainType.Solana: {
@@ -584,20 +621,18 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                   const sourceWallet = this.btcWallet;
                   if (!sourceWallet) {
                     this.emit('error', order, 'BTC wallet not found');
-                    return;
+                    continue;
                   }
-
                   await this.btcRefund(sourceWallet, order);
                   break;
                 }
-                case BlockchainType.Starknet: {
+                case BlockchainType.Starknet:
                   this.emit(
                     'error',
                     order,
                     'Starknet refund is automatically done by relay service',
                   );
                   break;
-                }
                 default:
                   this.emit(
                     'error',
@@ -612,9 +647,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         return;
       },
       'pending',
-      {
-        per_page: 500,
-      },
+      { per_page: 500 },
     );
   }
 
@@ -874,10 +907,43 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     if (!userBTCAddress) return;
 
     try {
-      const sacp = await bitcoinExecutor.generateInstantRefundSACP(
-        userBTCAddress,
-      );
       if (!this._api) return;
+      const authHeaders = await this._auth.getAuthHeaders();
+      if (authHeaders.error) {
+        this.emit(
+          'error',
+          order,
+          'Failed to get auth headers: ' + authHeaders.error,
+        );
+        return;
+      }
+
+      const hash = await Fetcher.post<APIResponse<string[]>>(
+        new Url(this._api.orderbook).endpoint(
+          'relayer/bitcoin/instant-refund-hash',
+        ),
+        {
+          body: JSON.stringify({
+            order_id: order.create_order.create_id,
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders.val,
+          },
+        },
+      );
+      if (hash.error || !hash.result) {
+        this.emit(
+          'error',
+          order,
+          'Failed to get hash while posting instant refund SACP: ' + hash.error,
+        );
+        return;
+      }
+
+      const signatures =
+        await bitcoinExecutor.generateInstantRefundSACPWithHash(hash.result);
+
       const url = new Url(this._api.orderbook).endpoint(
         'orders/bitcoin/' + order.order_id + '/instant-refund',
       );
@@ -885,9 +951,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       const res = await Fetcher.post<APIResponse<string>>(url, {
         headers: {
           'Content-Type': 'application/json',
+          ...authHeaders.val,
         },
         body: JSON.stringify({
-          instant_refund_tx_bytes: sacp,
+          order_id: order.create_order.create_id,
+          signatures: signatures,
         }),
       });
       if (res.status === 'Ok') {
@@ -901,7 +969,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     }
   }
 
-  private async filterExpiredAndAssignStatus(orders: Order[]) {
+  private async assignStatus(orders: Order[]) {
     if (orders.length === 0) return Ok([]);
 
     const blockNumbers = await this._blockNumberFetcher?.fetchBlockNumbers();
@@ -912,12 +980,8 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     for (let i = 0; i < orders.length; i++) {
       const order = orders[i];
 
-      if (isOrderExpired(order)) {
-        continue;
-      }
-
-      const sourceChain = order.source_swap.chain as Chain;
-      const destinationChain = order.destination_swap.chain as Chain;
+      const sourceChain = order.source_swap.chain;
+      const destinationChain = order.destination_swap.chain;
 
       const sourceChainBlockNumber = blockNumbers?.val[sourceChain];
       const destinationChainBlockNumber = blockNumbers?.val[destinationChain];

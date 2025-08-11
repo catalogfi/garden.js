@@ -29,6 +29,7 @@ export const GardenContext = createContext<GardenContextType>({
 export const GardenProvider: FC<GardenProviderProps> = ({
   children,
   config,
+  handleSecretManagement,
 }) => {
   const [garden, setGarden] = useState<IGardenJS>();
 
@@ -133,7 +134,9 @@ export const GardenProvider: FC<GardenProviderProps> = ({
       garden = Garden.fromWallets({
         ...config,
         digestKey: digestKey,
-      });
+      }).handleSecretManagement(
+        handleSecretManagement ? handleSecretManagement : false,
+      );
     } else if (
       'htlc' in config &&
       Object.keys(config.htlc).length > 0 &&
@@ -142,14 +145,16 @@ export const GardenProvider: FC<GardenProviderProps> = ({
       garden = new Garden({
         ...config,
         digestKey: digestKey,
-      });
+      }).handleSecretManagement(
+        handleSecretManagement ? handleSecretManagement : false,
+      );
     } else {
       // Handle case where neither wallets nor htlc is provided
       return;
     }
 
     setGarden(garden);
-  }, [config, digestKey]);
+  }, [config, digestKey, handleSecretManagement]);
 
   return (
     <GardenContext.Provider

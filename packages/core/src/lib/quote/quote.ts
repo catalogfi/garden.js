@@ -1,20 +1,14 @@
+import { Err, Fetcher, Ok, Request as UtilsRequest } from '@gardenfi/utils';
 import {
   IQuote,
+  QuoteParamsForAssets,
   QuoteResponse,
   Strategies,
   StrategiesResponse,
 } from './quote.types';
 import { toFormattedAssetString, ChainAsset } from '@gardenfi/orderbook';
-import {
-  APIResponse,
-  Err,
-  Fetcher,
-  Ok,
-  Url,
-  Request as UtilsRequest,
-} from '@gardenfi/utils';
+import { APIResponse, Url } from '@gardenfi/utils';
 import { constructOrderPair } from '../utils';
-import { QuoteParamsForAssets } from './quote.types';
 
 export class Quote implements IQuote {
   private quoteUrl: Url;
@@ -98,6 +92,7 @@ export class Quote implements IQuote {
           minAmount: value.min_amount,
           maxAmount: value.max_amount,
           fee: value.fee,
+          fixed_fee: Number(value.fixed_fee),
         };
       }
 

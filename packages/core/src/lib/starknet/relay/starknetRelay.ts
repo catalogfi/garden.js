@@ -81,7 +81,6 @@ export class StarknetRelay implements IStarknetHTLC {
     ) {
       return Err('Invalid order');
     }
-
     try {
       const contract = new Contract(
         starknetHtlcABI,
@@ -96,7 +95,7 @@ export class StarknetRelay implements IStarknetHTLC {
         tokenHex,
         source_swap.asset,
         this.starknetProvider,
-        BigInt(amount),
+        BigInt(source_swap.amount),
       );
       if (_isAllowanceSufficient.error) {
         return Err(_isAllowanceSufficient.error);
@@ -156,7 +155,10 @@ export class StarknetRelay implements IStarknetHTLC {
   private async initiateRelay(order: Order): AsyncResult<string, string> {
     const { source_swap } = order;
     const { redeemer, amount } = source_swap;
-
+    if (!create_order.secret_hash) {
+      return Err('Invalid order: secret_hash is undefined');
+    }
+    const secretHash = with0x(create_order.secret_hash);
     const DOMAIN = {
       name: 'HTLC',
       version: shortString.encodeShortString('1'),

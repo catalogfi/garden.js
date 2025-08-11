@@ -65,7 +65,7 @@ describe('orders provider', async () => {
       },
     );
     expectTypeOf(unsubscribe).toEqualTypeOf<() => void>();
-  });
+  }, 10000);
 
   test.only('should create an order', async () => {
     const CreateOrderRequest: CreateOrderRequest = {

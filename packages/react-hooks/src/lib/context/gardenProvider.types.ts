@@ -42,4 +42,5 @@ export type GardenProviderProps = {
   config:
     | Omit<GardenConfigWithHTLCs, 'digestKey'>
     | Omit<GardenConfigWithWallets, 'digestKey'>;
+  handleSecretManagement?: boolean;
 };
