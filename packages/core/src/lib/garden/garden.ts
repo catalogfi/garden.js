@@ -627,7 +627,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   }
 
   private async suiRedeem(order: MatchedOrder, secret: string) {
-    this.emit('log', order.create_order.create_id, 'executing sol redeem');
+    this.emit('log', order.create_order.create_id, 'executing sui redeem');
     const cache = this.orderExecutorCache.get(order, OrderActions.Redeem);
     if (cache) {
       this.emit('log', order.create_order.create_id, 'already redeemed');
@@ -635,7 +635,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     }
 
     if (!this._suiHTLC) {
-      this.emit('error', order, 'Solana HTLC is required');
+      this.emit('error', order, 'Sui HTLC is required');
       return;
     }
 

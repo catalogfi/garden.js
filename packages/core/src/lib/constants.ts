@@ -89,7 +89,7 @@ export const SUI_CONFIG: Record<
 > = {
   [Network.TESTNET]: {
     packageId:
-      '0x9f1a9894237645834ed8830ef9884c334b352b3d9de852ff463825c02f76f855',
+      '0x9bc40081ec0a6e04d90b3c4db23b7daf6f5ae75e57d2779e70c210d803a39e6b',
     moduleName: 'AtomicSwap',
   },
   [Network.MAINNET]: {
