@@ -13,7 +13,6 @@ import {
   AffiliateFee,
   Asset,
   BlockchainType,
-  Chain,
   ChainAsset,
   CreateOrderRequest,
   getBlockchainType,
@@ -41,6 +40,7 @@ import {
   Ok,
   Fetcher,
   ApiKey,
+  sleep,
 } from '@gardenfi/utils';
 import { IQuote } from '../quote/quote.types';
 import {
@@ -294,7 +294,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         amount: params.receiveAmount,
       },
       nonce: Number(nonce),
-      secret_hash: trim0x(secrets.val.secretHash),
+      ...(this.isSecretManagementEnabled && secretHash
+        ? {
+            secret_hash: trim0x(secretHash),
+          }
+        : {}),
       affiliate_fees: this.withDefaultAffiliateFees(params.affiliateFee),
       slippage: 50,
     };
@@ -924,7 +928,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         ),
         {
           body: JSON.stringify({
-            order_id: order.create_order.create_id,
+            order_id: order.order_id,
           }),
           headers: {
             'Content-Type': 'application/json',
@@ -954,7 +958,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           ...authHeaders.val,
         },
         body: JSON.stringify({
-          order_id: order.create_order.create_id,
+          order_id: order.order_id,
           signatures: signatures,
         }),
       });

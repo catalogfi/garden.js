@@ -1,5 +1,5 @@
 import { STARKNET_CONFIG } from './../../constants';
-import { Order } from '@gardenfi/orderbook';
+import { Order, StarknetOrderResponse } from '@gardenfi/orderbook';
 import { Account, cairo, Contract, num, CallData, RpcProvider } from 'starknet';
 import { AsyncResult, Err, hexToU32Array, Network, Ok } from '@gardenfi/utils';
 import { TokenABI } from '../abi/starknetTokenABI';
@@ -63,7 +63,7 @@ export class StarknetHTLC implements IStarknetHTLC {
       } catch (error) {
         return Err(`Allowance check failed: ${error}`);
       }
-      const { secret_hash } = order.create_order;
+      const secret_hash = order.source_swap.secret_hash;
       if (!secret_hash) {
         return Err('Invalid order: secret_hash is undefined');
       }
@@ -76,7 +76,7 @@ export class StarknetHTLC implements IStarknetHTLC {
           BigInt(order.source_swap.timelock),
           amountUint256.low,
           amountUint256.high,
-          ...hexToU32Array(order.source_swap.secret_hash),
+          ...hexToU32Array(secret_hash),
         ],
       });
 
@@ -148,5 +148,11 @@ export class StarknetHTLC implements IStarknetHTLC {
     } catch (error) {
       return Err(`HTLC Refund Error`);
     }
+  }
+  async initiateWithCreateOrderResponse(
+    order: StarknetOrderResponse,
+  ): AsyncResult<string, string> {
+    console.log(order);
+    return Ok('initiateWithCreateOrderResponse');
   }
 }

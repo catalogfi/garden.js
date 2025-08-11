@@ -15,7 +15,6 @@ import {
   IAuth,
   Ok,
   Url,
-  Request as UtilsRequest,
 } from '@gardenfi/utils';
 import { ConstructUrl, withDiscriminatedType } from '../utils';
 import { Chain } from '../asset';
@@ -191,7 +190,6 @@ export class Orderbook implements IOrderbook {
     cb: (orders: PaginatedData<Order>) => Promise<void>,
     status: Status = 'all',
     paginationConfig?: PaginationConfig,
-    request?: UtilsRequest,
   ): Promise<() => void> {
     let isProcessing = false;
     const fetchOrders = async () => {

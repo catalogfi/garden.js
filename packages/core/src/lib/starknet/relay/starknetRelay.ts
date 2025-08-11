@@ -155,10 +155,10 @@ export class StarknetRelay implements IStarknetHTLC {
   private async initiateRelay(order: Order): AsyncResult<string, string> {
     const { source_swap } = order;
     const { redeemer, amount } = source_swap;
-    if (!create_order.secret_hash) {
+    if (!source_swap.secret_hash) {
       return Err('Invalid order: secret_hash is undefined');
     }
-    const secretHash = with0x(create_order.secret_hash);
+    const secretHash = with0x(source_swap.secret_hash);
     const DOMAIN = {
       name: 'HTLC',
       version: shortString.encodeShortString('1'),
@@ -174,7 +174,7 @@ export class StarknetRelay implements IStarknetHTLC {
         redeemer: redeemer,
         amount: cairo.uint256(amount),
         timelock: order.source_swap.timelock,
-        secretHash: hexToU32Array(order.source_swap.secret_hash),
+        secretHash: hexToU32Array(secretHash),
       },
     };
     try {
