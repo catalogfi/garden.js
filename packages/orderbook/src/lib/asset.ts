@@ -184,12 +184,19 @@ export const isSolanaNativeToken = (chain: Chain, tokenAddress: string) => {
   return isSolana(chain) && tokenAddress.toLowerCase() === 'primary';
 };
 
+export const isSuiNativeToken = (chain: Chain, tokenAddress: string) => {
+  return (
+    (isSui(chain) && tokenAddress.toLowerCase() === 'primary') ||
+    tokenAddress.toLowerCase() === '0x2::sui::SUI'
+  );
+};
+
 export const isNativeToken = (asset: Asset) => {
   return (
     isEvmNativeToken(asset.chain, asset.tokenAddress) ||
     isSolanaNativeToken(asset.chain, asset.tokenAddress) ||
     isBitcoin(asset.chain) ||
-    isSui(asset.chain) ||
+    isSuiNativeToken(asset.chain, asset.tokenAddress) ||
     // Starknet doesn't have a native token
     !isStarknet(asset.chain)
   );
