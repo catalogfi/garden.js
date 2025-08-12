@@ -25,14 +25,14 @@ import {
 } from './orderbook.types';
 // import { Asset, Chains } from '../asset';
 
-describe.only('orders provider', async () => {
+describe('orders provider', async () => {
   const orderbookApi = 'https://testnet.api.garden.finance/orders';
   const address = '0xE1CA48fcaFBD42Da402352b645A9855E33C716BE';
   const id = '1d93c7cccbbb5bea0b1f8072e357185780efb5dcbf74e4d8f675219778e1a8b9';
 
   const orderbook = new Orderbook(new Url(orderbookApi));
 
-  test.skip('should get order', async () => {
+  test('should get order', async () => {
     const order = await orderbook.getOrder(id, true);
     console.log('order.val :', order.val);
     expect(order.error).toBeUndefined();
@@ -42,7 +42,7 @@ describe.only('orders provider', async () => {
     }
   });
 
-  test.skip('should get pending orders of a address', async () => {
+  test('should get pending orders of a address', async () => {
     const orders = await orderbook.getMatchedOrders(address, 'pending');
     expect(orders.error).toBeUndefined();
     expect(orders.val?.data.length).toBeGreaterThan(0);
@@ -60,7 +60,7 @@ describe.only('orders provider', async () => {
     }
   });
 
-  test.skip('should subscribe to orders', async () => {
+  test('should subscribe to orders', async () => {
     const unsubscribe = await orderbook.subscribeOrders(
       address,
       true,
@@ -73,7 +73,7 @@ describe.only('orders provider', async () => {
     expectTypeOf(unsubscribe).toEqualTypeOf<() => void>();
   }, 10000);
 
-  test.only('should get orders with options', async () => {
+  test('should get orders with options', async () => {
     const orderResponse = await orderbook.getOrders(
       true,
       {
@@ -90,7 +90,7 @@ describe.only('orders provider', async () => {
     console.log('orders :', orders[0]);
   });
 
-  test.skip('order count', async () => {
+  test('order count', async () => {
     const count = await orderbook.getOrdersCount(address);
     expect(count.error).toBeUndefined();
     expect(count.val).toBe(0);
@@ -111,7 +111,7 @@ describe('AbortController functionality', () => {
     vi.restoreAllMocks();
   });
 
-  test.skip('should accept AbortController in getOrder request', async () => {
+  test('should accept AbortController in getOrder request', async () => {
     const abortController = new AbortController();
     const request: UtilsRequest = {
       signal: abortController.signal,
@@ -122,7 +122,7 @@ describe('AbortController functionality', () => {
     expect(order.val?.create_order.create_id).toEqual(id);
   });
 
-  test.skip('should accept AbortController in getMatchedOrders request', async () => {
+  test('should accept AbortController in getMatchedOrders request', async () => {
     const abortController = new AbortController();
     const request: UtilsRequest = {
       signal: abortController.signal,
@@ -139,7 +139,7 @@ describe('AbortController functionality', () => {
     expect(orders.val?.data).toBeDefined();
   });
 
-  test.skip('should accept AbortController in getUnMatchedOrders request', async () => {
+  test('should accept AbortController in getUnMatchedOrders request', async () => {
     const abortController = new AbortController();
     const request: UtilsRequest = {
       signal: abortController.signal,
@@ -155,7 +155,7 @@ describe('AbortController functionality', () => {
     expect(orders.val?.data).toBeDefined();
   });
 
-  test.only('should accept AbortController in getOrders request', async () => {
+  test('should accept AbortController in getOrders request', async () => {
     const abortController = new AbortController();
     const request: UtilsRequest = {
       signal: abortController.signal,
@@ -167,7 +167,7 @@ describe('AbortController functionality', () => {
     expect(orders.val?.data).toBeDefined();
   });
 
-  test.skip('should accept AbortController in getOrdersCount request', async () => {
+  test('should accept AbortController in getOrdersCount request', async () => {
     const abortController = new AbortController();
     const request: UtilsRequest = {
       signal: abortController.signal,
@@ -179,7 +179,7 @@ describe('AbortController functionality', () => {
     expect(typeof count.val).toBe('number');
   });
 
-  test.skip('should accept AbortController in subscribeOrders request', async () => {
+  test('should accept AbortController in subscribeOrders request', async () => {
     const abortController = new AbortController();
     const request: UtilsRequest = {
       signal: abortController.signal,
@@ -202,7 +202,7 @@ describe('AbortController functionality', () => {
     unsubscribe(); // Clean up
   });
 
-  test.skip('should handle aborted requests gracefully', async () => {
+  test('should handle aborted requests gracefully', async () => {
     const abortController = new AbortController();
     const request: UtilsRequest = {
       signal: abortController.signal,
@@ -217,7 +217,7 @@ describe('AbortController functionality', () => {
     expect(order.error).toContain('aborted');
   });
 
-  test.skip('should handle custom retry configuration with AbortController', async () => {
+  test('should handle custom retry configuration with AbortController', async () => {
     const abortController = new AbortController();
     const request: UtilsRequest = {
       signal: abortController.signal,
@@ -235,10 +235,9 @@ describe('AbortController functionality', () => {
     expect(orders.val?.data).toBeDefined();
   });
 
-  test.skip('should work with partial request configuration', async () => {
+  test('should work with partial request configuration', async () => {
     const request: UtilsRequest = {
       retryCount: 0,
-      // No signal provided
     };
 
     const order = await orderbook.getOrder(id, true, request);
@@ -328,12 +327,8 @@ test.only('should search orders', async () => {
 
   const result = await orderbook.getOrders(
     true,
+    {address: '0xccF3d872b01762ABA74b41B1958A9A86EE8f34A3'},
     { page: 1, per_page: 10 },
-    '0xccF3d872b01762ABA74b41B1958A9A86EE8f34A3',
-    undefined,
-    undefined,
-    undefined,
-    undefined,
     { signal, retryCount: 0 }
   );
 
