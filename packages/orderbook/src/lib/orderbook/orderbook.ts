@@ -15,6 +15,7 @@ import {
   IAuth,
   Ok,
   Url,
+  Request as UtilsRequest,
 } from '@gardenfi/utils';
 import { ConstructUrl, withDiscriminatedType } from '../utils';
 import { Chain } from '../asset';
@@ -77,10 +78,13 @@ export class Orderbook implements IOrderbook {
    * @param id - The ID of the order
    * @returns {AsyncResult<Order, string>} A promise that resolves to the order.
    */
-  async getOrder(id: string): AsyncResult<Order, string> {
+  async getOrder(
+    id: string,
+    request?: UtilsRequest,
+  ): AsyncResult<Order, string> {
     try {
       const url = this.Url.endpoint(`/v2/orders/${id}`);
-      const res = await Fetcher.get<APIResponse<Order>>(url);
+      const res = await Fetcher.get<APIResponse<Order>>(url, { ...request });
 
       if (res.error) return Err(res.error);
       if (!res.result)
@@ -104,6 +108,7 @@ export class Orderbook implements IOrderbook {
     address: string,
     status: Status,
     paginationConfig?: PaginationConfig,
+    request?: UtilsRequest,
   ): AsyncResult<PaginatedData<Order>, string> {
     try {
       const endpoint = '/v2/orders';
@@ -116,7 +121,9 @@ export class Orderbook implements IOrderbook {
         ...(status && { status }),
       };
       const url = ConstructUrl(this.Url, endpoint, params);
-      const res = await Fetcher.get<APIResponse<PaginatedData<Order>>>(url);
+      const res = await Fetcher.get<APIResponse<PaginatedData<Order>>>(url, {
+        ...request,
+      });
       if (res.error) return Err(res.error);
       if (!res.result)
         return Err('GetOrdersByStatus: Unexpected error, result is undefined');

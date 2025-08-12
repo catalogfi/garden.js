@@ -121,6 +121,7 @@ export interface IOrderbook {
   /**
    * Get all orders from the orderbook based on the match status.
    * @param matched - If true, returns matched orders, else returns unmatched orders.
+   * @param filters - Object containing filter parameters like: `address`, `tx_hash`, `fromChain`, `toChain`, `status` and any additional key-value pairs for query parameters.
    * @param paginationConfig - The configuration for the pagination.
    * @param address - The address to get the orders for.
    * @param tx_hash - The tx hash to get the orders for (initiate_tx_hash, redeem_tx_hash, refund_tx_hash).
@@ -129,6 +130,14 @@ export interface IOrderbook {
    * @returns {AsyncResult<PaginatedData<T extends true ? Order : CreateOrder>, string>} A promise that resolves to the orders.
    */
   getOrders(
+    filters: {
+      address?: string;
+      tx_hash?: string;
+      fromChain?: Chain;
+      toChain?: Chain;
+      status?: OrderStatus;
+      [key: string]: string | undefined;
+    },
     paginationConfig?: PaginationConfig,
     address?: string,
     tx_hash?: string,
@@ -346,3 +355,9 @@ export type CreateOrderResponse =
   | ({ type: BlockchainType.Bitcoin } & BitcoinOrderResponse)
   | ({ type: BlockchainType.Starknet } & StarknetOrderResponse)
   | ({ type: BlockchainType.Solana } & SolanaOrderResponse);
+export type OrderStatus =
+  | 'refunded'
+  | 'expired'
+  | 'completed'
+  | 'in-progress'
+  | 'not-initiated';

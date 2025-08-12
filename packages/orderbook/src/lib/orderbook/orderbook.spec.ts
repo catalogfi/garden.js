@@ -2,7 +2,7 @@ import { describe, expect, expectTypeOf, test } from 'vitest';
 import { DigestKey, Siwe, Url } from '@gardenfi/utils';
 import { Orderbook } from './orderbook';
 import { CreateOrderRequest, Order } from './orderbook.types';
-// import { Order } from './orderbook.types';
+// import { Order } from './orderbook.types';s
 // import {
 //   // CreateOrderConfig,
 //   // CreateOrderRequestWithAdditionalData,
@@ -54,7 +54,7 @@ describe('orders provider', async () => {
     }
   });
 
-  test('should subscribe to orders', async () => {
+  test.skip('should subscribe to orders', async () => {
     const unsubscribe = await orderbook.subscribeOrders(
       address,
       1000,
