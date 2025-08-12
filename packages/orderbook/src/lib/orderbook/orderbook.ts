@@ -148,8 +148,8 @@ export class Orderbook implements IOrderbook {
     filters: {
       address?: string;
       tx_hash?: string;
-      fromChain?: Chain;
-      toChain?: Chain;
+      from_chain?: Chain;
+      to_chain?: Chain;
       status?: OrderStatus;
       [key: string]: string | undefined;
     },
