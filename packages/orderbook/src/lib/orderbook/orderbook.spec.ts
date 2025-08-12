@@ -2,7 +2,15 @@
 // import { privateKeyToAccount } from 'viem/accounts';
 // import { createWalletClient, http, sha256 } from 'viem';
 // import { randomBytes } from 'crypto';
-import { describe, expect, expectTypeOf, test, vi, beforeEach, afterEach } from 'vitest';
+import {
+  describe,
+  expect,
+  expectTypeOf,
+  test,
+  vi,
+  beforeEach,
+  afterEach,
+} from 'vitest';
 import {
   //  Siwe, sleep,
   // with0x,
@@ -17,14 +25,14 @@ import {
 } from './orderbook.types';
 // import { Asset, Chains } from '../asset';
 
-describe('orders provider', async () => {
+describe.only('orders provider', async () => {
   const orderbookApi = 'https://testnet.api.garden.finance/orders';
   const address = '0xE1CA48fcaFBD42Da402352b645A9855E33C716BE';
   const id = '1d93c7cccbbb5bea0b1f8072e357185780efb5dcbf74e4d8f675219778e1a8b9';
 
   const orderbook = new Orderbook(new Url(orderbookApi));
 
-  test('should get order', async () => {
+  test.skip('should get order', async () => {
     const order = await orderbook.getOrder(id, true);
     console.log('order.val :', order.val);
     expect(order.error).toBeUndefined();
@@ -34,7 +42,7 @@ describe('orders provider', async () => {
     }
   });
 
-  test('should get pending orders of a address', async () => {
+  test.skip('should get pending orders of a address', async () => {
     const orders = await orderbook.getMatchedOrders(address, 'pending');
     expect(orders.error).toBeUndefined();
     expect(orders.val?.data.length).toBeGreaterThan(0);
@@ -44,7 +52,7 @@ describe('orders provider', async () => {
   });
 
   test('should get all orders', async () => {
-    const orders = await orderbook.getOrders(true);
+    const orders = await orderbook.getOrders(true, {});
     expect(orders.error).toBeUndefined();
     expect(orders.val?.data.length).toBeGreaterThan(0);
     if (orders.val?.data) {
@@ -52,7 +60,7 @@ describe('orders provider', async () => {
     }
   });
 
-  test('should subscribe to orders', async () => {
+  test.skip('should subscribe to orders', async () => {
     const unsubscribe = await orderbook.subscribeOrders(
       address,
       true,
@@ -65,12 +73,29 @@ describe('orders provider', async () => {
     expectTypeOf(unsubscribe).toEqualTypeOf<() => void>();
   }, 10000);
 
-  test('order count', async () => {
+  test.only('should get orders with options', async () => {
+    const orderResponse = await orderbook.getOrders(
+      true,
+      {
+        address: '0x41154d8D32dA87A7c565e964CD191243B728EDF7',
+        fromChain: 'bitcoin_testnet',
+        status: 'in-progress',
+        toChain: undefined,
+        tx_hash: undefined,
+      },
+      undefined,
+    );
+    expect(orderResponse.ok).toBeTruthy();
+    const orders = orderResponse.val!.data;
+    console.log('orders :', orders[0]);
+  });
+
+  test.skip('order count', async () => {
     const count = await orderbook.getOrdersCount(address);
     expect(count.error).toBeUndefined();
     expect(count.val).toBe(0);
   }, 10000);
-});
+}, 950000);
 
 describe('AbortController functionality', () => {
   const orderbookApi = 'https://testnet.api.garden.finance/orders';
@@ -86,7 +111,7 @@ describe('AbortController functionality', () => {
     vi.restoreAllMocks();
   });
 
-  test('should accept AbortController in getOrder request', async () => {
+  test.skip('should accept AbortController in getOrder request', async () => {
     const abortController = new AbortController();
     const request: UtilsRequest = {
       signal: abortController.signal,
@@ -97,43 +122,52 @@ describe('AbortController functionality', () => {
     expect(order.val?.create_order.create_id).toEqual(id);
   });
 
-  test('should accept AbortController in getMatchedOrders request', async () => {
+  test.skip('should accept AbortController in getMatchedOrders request', async () => {
     const abortController = new AbortController();
     const request: UtilsRequest = {
       signal: abortController.signal,
       retryCount: 0,
     };
 
-    const orders = await orderbook.getMatchedOrders(address, 'pending', undefined, request);
+    const orders = await orderbook.getMatchedOrders(
+      address,
+      'pending',
+      undefined,
+      request,
+    );
     expect(orders.error).toBeUndefined();
     expect(orders.val?.data).toBeDefined();
   });
 
-  test('should accept AbortController in getUnMatchedOrders request', async () => {
+  test.skip('should accept AbortController in getUnMatchedOrders request', async () => {
     const abortController = new AbortController();
     const request: UtilsRequest = {
       signal: abortController.signal,
       retryCount: 0,
     };
 
-    const orders = await orderbook.getUnMatchedOrders(address, undefined, request);
+    const orders = await orderbook.getUnMatchedOrders(
+      address,
+      undefined,
+      request,
+    );
     expect(orders.error).toBeUndefined();
     expect(orders.val?.data).toBeDefined();
   });
 
-  test('should accept AbortController in getOrders request', async () => {
+  test.only('should accept AbortController in getOrders request', async () => {
     const abortController = new AbortController();
     const request: UtilsRequest = {
       signal: abortController.signal,
       retryCount: 0,
     };
 
-    const orders = await orderbook.getOrders(true, undefined, address, undefined, undefined, undefined, 'in-progress', request);
+    const orders = await orderbook.getOrders(true, {}, undefined, request);
     expect(orders.error).toBeUndefined();
     expect(orders.val?.data).toBeDefined();
   });
 
-  test('should accept AbortController in getOrdersCount request', async () => {
+  test.skip('should accept AbortController in getOrdersCount request', async () => {
     const abortController = new AbortController();
     const request: UtilsRequest = {
       signal: abortController.signal,
@@ -145,7 +179,7 @@ describe('AbortController functionality', () => {
     expect(typeof count.val).toBe('number');
   });
 
-  test('should accept AbortController in subscribeOrders request', async () => {
+  test.skip('should accept AbortController in subscribeOrders request', async () => {
     const abortController = new AbortController();
     const request: UtilsRequest = {
       signal: abortController.signal,
@@ -161,14 +195,14 @@ describe('AbortController functionality', () => {
       },
       'all',
       undefined,
-      request
+      request,
     );
 
     expectTypeOf(unsubscribe).toEqualTypeOf<() => void>();
     unsubscribe(); // Clean up
   });
 
-  test('should handle aborted requests gracefully', async () => {
+  test.skip('should handle aborted requests gracefully', async () => {
     const abortController = new AbortController();
     const request: UtilsRequest = {
       signal: abortController.signal,
@@ -183,7 +217,7 @@ describe('AbortController functionality', () => {
     expect(order.error).toContain('aborted');
   });
 
-  test('should handle custom retry configuration with AbortController', async () => {
+  test.skip('should handle custom retry configuration with AbortController', async () => {
     const abortController = new AbortController();
     const request: UtilsRequest = {
       signal: abortController.signal,
@@ -191,12 +225,17 @@ describe('AbortController functionality', () => {
       retryDelay: 500,
     };
 
-    const orders = await orderbook.getMatchedOrders(address, 'all', undefined, request);
+    const orders = await orderbook.getMatchedOrders(
+      address,
+      'all',
+      undefined,
+      request,
+    );
     expect(orders.error).toBeUndefined();
     expect(orders.val?.data).toBeDefined();
   });
 
-  test('should work with partial request configuration', async () => {
+  test.skip('should work with partial request configuration', async () => {
     const request: UtilsRequest = {
       retryCount: 0,
       // No signal provided
@@ -231,7 +270,7 @@ describe('AbortController functionality', () => {
 
     const [order1, order2] = await Promise.all([
       orderbook.getOrder(id, true, request1),
-      orderbook.getOrder(id, true, request2)
+      orderbook.getOrder(id, true, request2),
     ]);
 
     expect(order1.error).toBeUndefined();

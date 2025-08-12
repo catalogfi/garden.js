@@ -80,7 +80,7 @@ export class Orderbook implements IOrderbook {
     try {
       const res = await Fetcher.get<
         APIResponse<T extends true ? MatchedOrder : CreateOrder>
-        >(url, {...request});
+      >(url, { ...request });
 
       if (res.error) return Err(res.error);
       return res.result
@@ -145,38 +145,26 @@ export class Orderbook implements IOrderbook {
 
   async getOrders<T extends boolean>(
     matched: T,
+    filters: {
+      address?: string;
+      tx_hash?: string;
+      fromChain?: Chain;
+      toChain?: Chain;
+      status?: OrderStatus;
+      [key: string]: string | undefined;
+    },
     paginationConfig?: PaginationConfig,
-    address?: string,
-    tx_hash?: string,
-    fromChain?: Chain,
-    toChain?: Chain,
-    status?: OrderStatus,
     request?: UtilsRequest,
   ): AsyncResult<
     PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
     string
   > {
     const endPoint = matched ? '/matched' : '/unmatched';
-    const params: Record<string, any> = {};
-    if (paginationConfig) {
-      params['page'] = paginationConfig.page;
-      params['per_page'] = paginationConfig.per_page;
-    }
-    if (address) {
-      params['address'] = address;
-    }
-    if (tx_hash) {
-      params['tx_hash'] = tx_hash;
-    }
-    if (fromChain) {
-      params['from_chain'] = fromChain;
-    }
-    if (toChain) {
-      params['to_chain'] = toChain;
-    }
-    if (status) {
-      params['status'] = status;
-    }
+    const params = {
+      page: paginationConfig?.page,
+      per_page: paginationConfig?.per_page,
+      ...filters,
+    };
     const url = ConstructUrl(this.Url, endPoint, params);
     try {
       const res = await Fetcher.get<
@@ -211,7 +199,12 @@ export class Orderbook implements IOrderbook {
 
       try {
         const result = matched
-          ? await this.getMatchedOrders(account, status, paginationConfig, request)
+          ? await this.getMatchedOrders(
+              account,
+              status,
+              paginationConfig,
+              request,
+            )
           : await this.getUnMatchedOrders(account, paginationConfig, request);
         if (result.ok) {
           await cb(
@@ -237,7 +230,10 @@ export class Orderbook implements IOrderbook {
     };
   }
 
-  async getOrdersCount(address: string, request?: UtilsRequest): AsyncResult<number, string> {
+  async getOrdersCount(
+    address: string,
+    request?: UtilsRequest,
+  ): AsyncResult<number, string> {
     const url = this.Url.endpoint(`/user/${address}/count`);
 
     try {
