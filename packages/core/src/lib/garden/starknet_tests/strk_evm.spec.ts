@@ -30,10 +30,10 @@ describe('StarkNet Integration Tests', () => {
   const DIGEST_KEY = DigestKey.generateRandom().val;
   const TEST_RPC_URL = 'https://api.devnet.solana.com';
   const PRIV = [
-    73, 87, 221, 5, 63, 180, 104, 26, 64, 41, 225, 50, 165, 84, 157, 74, 187,
-    105, 53, 112, 214, 236, 175, 55, 86, 247, 214, 120, 101, 90, 62, 178, 103,
-    156, 200, 13, 24, 181, 121, 93, 15, 85, 202, 164, 4, 30, 165, 77, 244, 66,
-    207, 78, 179, 255, 45, 233, 17, 131, 203, 187, 120, 110, 176, 172,
+    232, 233, 3, 253, 26, 253, 143, 149, 62, 236, 184, 209, 212, 87, 145, 32,
+    228, 83, 130, 93, 222, 115, 125, 121, 216, 244, 58, 68, 31, 107, 176, 51,
+    197, 191, 130, 99, 215, 91, 65, 186, 187, 112, 43, 136, 122, 80, 136, 164,
+    246, 74, 62, 58, 37, 23, 48, 219, 158, 63, 241, 235, 233, 158, 249, 127,
   ];
   const connection = new web3.Connection(TEST_RPC_URL, {
     commitment: 'confirmed',
@@ -175,8 +175,8 @@ describe('StarkNet Integration Tests', () => {
         fromAsset: {
           name: 'Wrapped Bitcoin',
           decimals: 8,
-          symbol: 'WBTC',
-          chain: 'starknet_sepolia',
+          symbol: 'SOL',
+          chain: 'solana_testnet',
           logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
           tokenAddress: '0xD8a6E3FCA403d79b6AD6216b60527F51cc967D39',
           atomicSwapAddress: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
@@ -192,7 +192,7 @@ describe('StarkNet Integration Tests', () => {
           atomicSwapAddress:
             '0x06579d255314109429a4477d89629bc2b94f529ae01979c2f8014f9246482603',
         },
-        sendAmount: '1000000',
+        sendAmount: '50000000',
         receiveAmount: '99200',
         additionalData: {
           btcAddress: 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru',

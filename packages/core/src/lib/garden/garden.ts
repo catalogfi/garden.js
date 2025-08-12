@@ -23,7 +23,6 @@ import {
   isMainnet,
   Order,
   Orderbook,
-  StarknetOrderResponse,
   toFormattedAssetString,
 } from '@gardenfi/orderbook';
 import {
@@ -187,6 +186,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
             config.environment === Environment.MAINNET
               ? Network.MAINNET
               : Network.TESTNET,
+            apiKey ? apiKey : Siwe.fromDigestKey(new Url(api.auth), digestKey),
           )
         : undefined,
       solana: config.wallets.solana
@@ -207,6 +207,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                   ? config.solanaProgramAddress.spl
                   : solanaProgramAddress.mainnet.spl,
             },
+            apiKey ? apiKey : Siwe.fromDigestKey(new Url(api.auth), digestKey),
           )
         : undefined,
     };

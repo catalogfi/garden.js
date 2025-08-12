@@ -17,10 +17,12 @@ import {
   AsyncResult,
   Err,
   Fetcher,
+  IAuth,
   Network,
   Ok,
   Url,
   hexToU32Array,
+  trim0x,
   with0x,
 } from '@gardenfi/utils';
 import { IStarknetHTLC } from '../starknetHTLC.types';
@@ -48,11 +50,13 @@ export class StarknetRelay implements IStarknetHTLC {
   private account: AccountInterface;
   private starknetProvider: RpcProvider;
   private chainId: string;
+  private auth: IAuth;
 
   constructor(
     relayerUrl: string | Url,
     account: AccountInterface,
     network: Network,
+    auth: IAuth,
     nodeUrl?: string,
   ) {
     this.url = relayerUrl instanceof Url ? relayerUrl : new Url(relayerUrl);
@@ -61,6 +65,7 @@ export class StarknetRelay implements IStarknetHTLC {
       nodeUrl: nodeUrl || STARKNET_CONFIG[network].nodeUrl,
     });
     this.chainId = STARKNET_CONFIG[network].chainId;
+    this.auth = auth;
   }
 
   get htlcActorAddress(): string {
@@ -209,15 +214,20 @@ export class StarknetRelay implements IStarknetHTLC {
 
   async redeem(order: Order, secret: string): AsyncResult<string, string> {
     try {
-      const res = await Fetcher.post<APIResponse<string>>(
-        this.url.endpoint('redeem'),
+      const headers = await this.auth.getAuthHeaders();
+      if (!headers.ok) return Err(headers.error);
+      const res = await Fetcher.patch<APIResponse<string>>(
+        this.url
+          .endpoint('/v2/orders')
+          .endpoint(order.order_id)
+          .addSearchParams({ action: 'redeem' }),
         {
           body: JSON.stringify({
-            order_id: order.order_id,
-            secret: secret,
-            perform_on: 'Destination',
+            secret: trim0x(secret),
           }),
           headers: {
+            'garden-app-id':
+              'f242ea49332293424c96c562a6ef575a819908c878134dcb4fce424dc84ec796',
             'Content-Type': 'application/json',
           },
           retryCount: 10,

@@ -9,6 +9,7 @@ import {
   AsyncResult,
   Err,
   Fetcher,
+  IAuth,
   Ok,
   Url,
 } from '@gardenfi/utils';
@@ -17,6 +18,8 @@ import {
   isSolanaNativeToken,
   Order,
   SolanaOrderResponse,
+  Orderbook,
+  IOrderbook,
 } from '@gardenfi/orderbook';
 import { waitForSolanaTxConfirmation } from '../../utils';
 import * as Spl from '@solana/spl-token';
@@ -34,6 +37,8 @@ export class SolanaRelay implements ISolanaHTLC {
   private splProgram?: Program<SolanaSplSwaps>;
   private nativeProgram?: Program<SolanaNativeSwaps>;
   private relayer: web3.PublicKey;
+  private orderbook: IOrderbook;
+  private auth: IAuth;
 
   /**
    * Creates a new instance of SolanaRelay.
@@ -52,6 +57,7 @@ export class SolanaRelay implements ISolanaHTLC {
       native?: string;
       spl?: string;
     },
+    auth: IAuth,
   ) {
     if (!provider) throw new Error('Provider is required');
     if (!url) throw new Error('Endpoint URL is required');
@@ -59,6 +65,8 @@ export class SolanaRelay implements ISolanaHTLC {
 
     try {
       this.relayer = new web3.PublicKey(relayer);
+      this.orderbook = new Orderbook(url);
+      this.auth = auth;
     } catch (cause) {
       throw new Error(
         'Error decoding relayer public key. Ensure it is base58 encoded.',
@@ -232,26 +240,6 @@ export class SolanaRelay implements ISolanaHTLC {
   }
 
   /**
-   * Creates a PDA (Program Derived Address) for the swap account.
-   * @param {Buffer} secretHash - The secret hash buffer
-   * @param {web3.PublicKey} programId - The program ID to use for PDA derivation
-   * @returns {web3.PublicKey} The derived PDA
-   * @private
-   */
-  private createSwapPDA(
-    secretHash: Buffer,
-    programId: web3.PublicKey,
-  ): web3.PublicKey {
-    const pdaSeeds = [
-      Buffer.from('swap_account'),
-      this.provider.publicKey.toBuffer(),
-      secretHash,
-    ];
-
-    return web3.PublicKey.findProgramAddressSync(pdaSeeds, programId)[0];
-  }
-
-  /**
    * Initiates a swap for SPL tokens.
    * @param {Order} order - The matched order containing swap details
    * @returns {Promise<AsyncResult<string, string>>} A promise that resolves to either:
@@ -370,27 +358,26 @@ export class SolanaRelay implements ISolanaHTLC {
     try {
       const _secret = validateSecret(secret);
 
-      const relayRequest = {
-        order_id: order.order_id,
-        secret: Buffer.from(_secret).toString('hex'),
-        // perform_on: 'destination',
-      };
-
-      const res: APIResponse<string> = await Fetcher.post(
-        this.url.endpoint('redeem'),
+      const headers = await this.auth.getAuthHeaders();
+      if (!headers.ok) return Err(headers.error);
+      const res: APIResponse<string> = await Fetcher.patch<APIResponse<string>>(
+        this.url
+          .endpoint('/v2/orders')
+          .endpoint(order.order_id)
+          .addSearchParams({ action: 'redeem' }),
         {
-          body: JSON.stringify(relayRequest),
+          body: JSON.stringify({
+            secret: Buffer.from(_secret).toString('hex'),
+          }),
           headers: {
+            'garden-app-id':
+              'f242ea49332293424c96c562a6ef575a819908c878134dcb4fce424dc84ec796',
             'Content-Type': 'application/json',
           },
         },
       );
-      if (res.error) {
+      if (res.error || !res.result) {
         return Err(`Redeem: Error from relayer: ${res.error}`);
-      }
-
-      if (!res.result) {
-        return Err('Redeem: No transaction hash returned from relayer');
       }
 
       const txHash = res.result;
@@ -403,17 +390,70 @@ export class SolanaRelay implements ISolanaHTLC {
       return isConfirmed
         ? Ok(txHash)
         : Err('Redeem: Timed out waiting for confirmation');
-    } catch (e) {
-      console.error('Redeem: Caught exception:', e);
-      return Err(
-        `Error redeeming: ${e instanceof Error ? e.message : String(e)}`,
-      );
+    } catch (error) {
+      console.error('Redeem: Caught exception:', error);
+      return Err(`Error redeeming: ${error}`);
     }
   }
+
   async initiateWithCreateOrderResponse(
     order: SolanaOrderResponse,
   ): AsyncResult<string, string> {
-    return Ok(order.order_id);
+    if (!this.relayer) return Err('No relayer address');
+    const { versioned_tx, order_id } = order;
+
+    try {
+      const orderResult = await this.orderbook.getOrder(order_id);
+      if (orderResult.error || !orderResult.val) {
+        return Err(`Failed to fetch order by id: ${orderResult.error}`);
+      }
+
+      if (this.isNativeToken(orderResult.val)) {
+        return await this.initiateNativeSwap(orderResult.val);
+      }
+
+      const transaction = web3.VersionedTransaction.deserialize(
+        Buffer.from(versioned_tx, 'base64'),
+      );
+
+      const signedTx = await this.provider.wallet.signTransaction(transaction);
+
+      const signatureBuffer = signedTx.signatures[0];
+      if (!signatureBuffer) {
+        return Err('No signature found after signing transaction');
+      }
+      const signatureBase64 = Buffer.from(signedTx.serialize()).toString(
+        'base64',
+      );
+      const headers = {
+        'Content-Type': 'application/json',
+        'garden-app-id':
+          'f242ea49332293424c96c562a6ef575a819908c878134dcb4fce424dc84ec796',
+      };
+
+      const res = await Fetcher.patch<APIResponse<string>>(
+        this.url
+          .endpoint('/v2/orders')
+          .endpoint(order.order_id)
+          .addSearchParams({ action: 'initiate' }),
+        {
+          body: JSON.stringify({ serialized_tx: signatureBase64 }),
+          headers,
+        },
+      );
+
+      if (res.error) {
+        return Err(`Initiate: Error from relayer: ${res.error}`);
+      }
+
+      if (!res.result) {
+        return Err('Initiate: No transaction hash returned from relayer');
+      }
+
+      return Ok(res.result);
+    } catch (error) {
+      return Err(`Error initiating with create order response: ${error}`);
+    }
   }
   /**
    * DO NOT CALL THIS FUNCTION. Refund is automatically taken care of by the relayer!

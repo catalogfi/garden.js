@@ -11,17 +11,17 @@ import { CreateOrderRequest, Order } from './orderbook.types';
 // } from './orderbook.types';
 
 describe('orders provider', async () => {
-  const orderbookApi = 'https://api.garden.finance';
-  const authUrl = 'https://api.garden.finance/auth';
+  const orderbookApi = 'https://testnet.api.garden.finance';
+  const authUrl = 'https://testnet.api.garden.finance/auth';
   const address = '0xdF4E5212cC36428504712d7E75a9922762FeD28A';
-  const id = 'd461a0c760948f07f972bdaa379f503cb7ef10cac84d059646a755e83905f4c5';
+  const id = '3b8f735673ee94822c4fa0f2265e90f105349cf2ef8d0cc854f5b7192ffa3b7b';
 
   const orderbook = new Orderbook(new Url(orderbookApi));
   const auth = Siwe.fromDigestKey(
     new Url(authUrl),
     DigestKey.generateRandom().val!,
   );
-  test('should get order', async () => {
+  test.only('should get order', async () => {
     const order = await orderbook.getOrder(id);
     console.log('order.error :', order.error);
     console.log('order.val :', order.val);
@@ -33,7 +33,7 @@ describe('orders provider', async () => {
   });
 
   test('should get orders of a address', async () => {
-    const orders = await orderbook.getOrders(undefined, address);
+    const orders = await orderbook.getOrders({}, undefined, address);
     console.log('orders.error :', orders.error);
     console.log('orders.val :', orders.val);
     expect(orders.error).toBeUndefined();
@@ -44,7 +44,7 @@ describe('orders provider', async () => {
   });
 
   test('should get all orders', async () => {
-    const orders = await orderbook.getOrders();
+    const orders = await orderbook.getOrders({});
     expect(orders.error).toBeUndefined();
     console.log('all orders here orders.val :', orders.val);
     console.log('orders.val.data :', orders.val?.data);
@@ -67,7 +67,7 @@ describe('orders provider', async () => {
     expectTypeOf(unsubscribe).toEqualTypeOf<() => void>();
   }, 10000);
 
-  test.only('should create an order', async () => {
+  test('should create an order', async () => {
     const CreateOrderRequest: CreateOrderRequest = {
       source: {
         asset: 'arbitrum:wbtc',

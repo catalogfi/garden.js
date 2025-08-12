@@ -6,6 +6,7 @@ import {
   PaginationConfig,
   Status,
   CreateOrderRequest,
+  OrderStatus,
 } from './orderbook.types';
 import {
   APIResponse,
@@ -83,7 +84,7 @@ export class Orderbook implements IOrderbook {
     request?: UtilsRequest,
   ): AsyncResult<Order, string> {
     try {
-      const url = this.Url.endpoint(`/v2/orders/${id}`);
+      const url = this.Url.endpoint(`/v2/orders`).endpoint(id);
       const res = await Fetcher.get<APIResponse<Order>>(url, { ...request });
 
       if (res.error) return Err(res.error);
@@ -139,21 +140,23 @@ export class Orderbook implements IOrderbook {
 
   /**
    * Get all orders
+   * @param filters - The filters for the orders
    * @param paginationConfig - The pagination configuration
-   * @param address - The address of the order
-   * @param tx_hash - The transaction hash of the order
-   * @param fromChain - The chain of the order
-   * @param toChain - The chain of the order
    * @returns {AsyncResult<PaginatedData<Order>, string>} A promise that resolves to the orders.
    */
   async getOrders(
+    filters: {
+      address?: string;
+      tx_hash?: string;
+      fromChain?: Chain;
+      toChain?: Chain;
+      status?: OrderStatus;
+      [key: string]: string | undefined;
+    },
     paginationConfig?: PaginationConfig,
     address?: string,
     tx_hash?: string,
-    fromChain?: Chain,
-    toChain?: Chain,
   ): AsyncResult<PaginatedData<Order>, string> {
-    // ?per_page=500&status=pending
     const endpoint = '/v2/orders';
     const params = {
       ...(paginationConfig?.page && { page: paginationConfig.page }),
@@ -162,8 +165,11 @@ export class Orderbook implements IOrderbook {
       }),
       ...(address && { address }),
       ...(tx_hash && { tx_hash }),
-      ...(fromChain && { from_chain: fromChain }),
-      ...(toChain && { to_chain: toChain }),
+      ...(filters.fromChain && { from_chain: filters.fromChain }),
+      ...(filters.toChain && { to_chain: filters.toChain }),
+      ...(filters.status && { status: filters.status }),
+      ...(filters.address && { address: filters.address }),
+      ...(filters.tx_hash && { tx_hash: filters.tx_hash }),
     };
 
     const url = ConstructUrl(this.Url, endpoint, params);

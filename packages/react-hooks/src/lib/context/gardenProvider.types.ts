@@ -1,8 +1,8 @@
 import { OrderWithStatus, QuoteParamsForAssets } from '@gardenfi/core';
 import { IGardenJS, QuoteResponse, SwapParams } from '@gardenfi/core';
-import { IOrderbook, MatchedOrder } from '@gardenfi/orderbook';
+import { IOrderbook, Order } from '@gardenfi/orderbook';
 import { GardenConfigWithHTLCs, GardenConfigWithWallets } from '@gardenfi/core';
-import { AsyncResult, Result } from '@gardenfi/utils';
+import { AsyncResult } from '@gardenfi/utils';
 
 export type GardenContextType = {
   /**
@@ -15,11 +15,11 @@ export type GardenContextType = {
    * @params {SwapParams} - The parameters for creating the order.
    * @returns {AsyncResult<string, string>} - create order ID.
    */
-  swapAndInitiate?: (params: SwapParams) => AsyncResult<MatchedOrder, string>;
+  swapAndInitiate?: (params: SwapParams) => AsyncResult<Order, string>;
   /**
    * Get all the pending orders of the user. This will return all the orders that are yet to be initiated, redeemed, or refunded.
    * It will not return orders that have expired (deadline expiry).
-   * @returns {MatchedOrder[]} - The pending orders of the user.
+   * @returns {Order[]} - The pending orders of the user.
    */
   pendingOrders: OrderWithStatus[];
   /**
@@ -29,7 +29,7 @@ export type GardenContextType = {
    */
   getQuote?: (
     params: QuoteParamsForAssets,
-  ) => Promise<Result<QuoteResponse, string> | undefined>;
+  ) => AsyncResult<QuoteResponse[], string> | undefined;
   /**
    * The garden instance.
    * @returns {IGardenJS}

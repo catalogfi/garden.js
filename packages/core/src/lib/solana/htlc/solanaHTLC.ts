@@ -3,7 +3,7 @@ import idl from '../idl/native/solana_native_swaps.json';
 import { SolanaNativeSwaps } from '../idl/native/solana_native_swaps';
 import { SwapConfig, validateSecret } from '../solanaTypes';
 import { ISolanaHTLC } from './ISolanaHTLC';
-import { Order } from '@gardenfi/orderbook';
+import { Order, SolanaOrderResponse } from '@gardenfi/orderbook';
 import { AsyncResult, Err, Ok } from '@gardenfi/utils';
 
 /**
@@ -172,5 +172,11 @@ export class SolanaHTLC implements ISolanaHTLC {
         }`,
       );
     }
+  }
+
+  async initiateWithCreateOrderResponse(
+    order: SolanaOrderResponse,
+  ): AsyncResult<string, string> {
+    return Ok(order.order_id);
   }
 }
