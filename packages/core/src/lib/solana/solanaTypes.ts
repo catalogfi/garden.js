@@ -27,8 +27,8 @@ export class SwapConfig {
     expiresIn: number,
   ) {
     try {
-      this.swapId = [...hex.decode(swapId)];
-      this.secretHash = [...hex.decode(secretHash)];
+      this.swapId = Array.from(Buffer.from(swapId, 'hex'));
+      this.secretHash = Array.from(Buffer.from(secretHash, 'hex'));
     } catch (cause) {
       throw new Error('Error decoding swapId or secretHash', { cause });
     }

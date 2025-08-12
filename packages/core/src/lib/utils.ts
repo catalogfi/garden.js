@@ -242,7 +242,7 @@ export const waitForSolanaTxConfirmation = async (
     );
 
     if (confirmation.value && confirmation.value.err == null) {
-      console.log('Tx Confirmed ✅');
+      console.log('Tx Confirmed ✅', txHash);
       return true;
     }
 
