@@ -23,6 +23,7 @@ import {
   isMainnet,
   Order,
   Orderbook,
+  StarknetOrderResponse,
   toFormattedAssetString,
 } from '@gardenfi/orderbook';
 import {
@@ -302,12 +303,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       affiliate_fees: this.withDefaultAffiliateFees(params.affiliateFee),
       slippage: 50,
     };
-
     const createOrderRes = await this._orderbook.createOrder(
       orderRequest,
       this._auth,
     );
-    console.log('createOrderRes', createOrderRes.error);
     if (!createOrderRes.ok) return Err(createOrderRes.error);
 
     const orderRes = await this.pollOrder(createOrderRes.val.order_id);
@@ -331,6 +330,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
             await this._evmHTLC.initiateWithCreateOrderResponse(
               createOrderRes.val,
             );
+          console.log('evmInitRes :', evmInitRes);
           if (!evmInitRes.ok)
             return Err(`EVM HTLC initiation failed: ${evmInitRes.error}`);
         }
@@ -338,7 +338,8 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       case BlockchainType.Solana:
         if (
           !this._solanaHTLC ||
-          typeof this._solanaHTLC.initiate !== 'function' ||
+          typeof this._solanaHTLC.initiateWithCreateOrderResponse !==
+            'function' ||
           createOrderRes.val.type !== BlockchainType.Solana
         ) {
           return Err(
@@ -346,7 +347,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           );
         }
         {
-          const solanaInitRes = await this._solanaHTLC.initiate(orderRes.val);
+          const solanaInitRes =
+            await this._solanaHTLC.initiateWithCreateOrderResponse(
+              createOrderRes.val,
+            );
           if (!solanaInitRes.ok)
             return Err(`Solana HTLC initiation failed: ${solanaInitRes.error}`);
         }
@@ -354,7 +358,8 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       case BlockchainType.Starknet:
         if (
           !this._starknetHTLC ||
-          typeof this._starknetHTLC.initiate !== 'function' ||
+          typeof this._starknetHTLC.initiateWithCreateOrderResponse !==
+            'function' ||
           createOrderRes.val.type !== BlockchainType.Starknet
         ) {
           return Err(
@@ -504,12 +509,13 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   async execute(interval: number = 5000): Promise<() => void> {
     return await this._orderbook.subscribeOrders(
-      this._digestKey.userId,
+      '0xA39ABb978cfd2ba459163ad1EaB6E8940Fbf4359',
       interval,
       async (pendingOrders) => {
         const ordersWithStatus = await this.assignStatus(pendingOrders.data);
+        console.log('digestkey', this._digestKey.userId);
         if (!ordersWithStatus.ok) return;
-
+        console.log('orders with status', ordersWithStatus);
         this.emit('onPendingOrdersChanged', ordersWithStatus.val);
         if (pendingOrders.data.length === 0) return;
 

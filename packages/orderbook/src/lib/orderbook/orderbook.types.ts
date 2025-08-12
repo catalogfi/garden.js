@@ -331,8 +331,8 @@ export type EvmOrderResponse = WithTypedData<
 
 export type StarknetOrderResponse = WithTypedData<
   BaseCreateOrderResponse & {
-    approval_call?: StarknetCall;
-    initiate_call?: StarknetCall;
+    approval_transaction: StarknetCall;
+    initiate_transaction: StarknetCall;
   },
   TypedData
 >;

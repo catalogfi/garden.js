@@ -51,11 +51,13 @@ export class Orderbook implements IOrderbook {
         {
           body: JSON.stringify(order),
           headers: {
-            ...headers.val,
+            'garden-app-id':
+              'f242ea49332293424c96c562a6ef575a819908c878134dcb4fce424dc84ec796',
             'Content-Type': 'application/json',
           },
         },
       );
+      console.log('response', res);
       if (res.error) return Err(res.error);
       if (!res.result)
         return Err('CreateOrder: Unexpected error, result is undefined');

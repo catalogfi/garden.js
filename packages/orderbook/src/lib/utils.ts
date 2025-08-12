@@ -32,29 +32,48 @@ export const ConstructUrl = (
 export function withDiscriminatedType(
   response: BaseCreateOrderResponse,
 ): CreateOrderResponse | null {
-  if ('typed_data' in response && 'initiate_transaction' in response) {
-    return {
-      type: BlockchainType.EVM,
-      ...response,
-    } as CreateOrderResponse;
+  // Helper to check if an object has all keys
+  const hasKeys = (obj: any, keys: string[]) =>
+    obj && typeof obj === 'object' && keys.every((k) => k in obj);
+
+  // EVM: has typed_data and initiate_transaction with EVM fields
+  if (
+    'typed_data' in response &&
+    hasKeys((response as any).initiate_transaction, [
+      'to',
+      'value',
+      'data',
+      'gas_limit',
+      'chain_id',
+    ])
+  ) {
+    return { type: BlockchainType.EVM, ...response } as CreateOrderResponse;
   }
-  if ('typed_data' in response && 'initiate_call' in response) {
+
+  // Starknet: has typed_data and initiate_transaction with Starknet fields
+  if (
+    'typed_data' in response &&
+    hasKeys((response as any).initiate_transaction, [
+      'to',
+      'selector',
+      'calldata',
+    ])
+  ) {
     return {
       type: BlockchainType.Starknet,
       ...response,
     } as CreateOrderResponse;
   }
-  if ('to' in response && 'amount' in response) {
-    return {
-      type: BlockchainType.Bitcoin,
-      ...response,
-    } as CreateOrderResponse;
+
+  // Bitcoin: has 'to' and 'amount'
+  if (hasKeys(response, ['to', 'amount'])) {
+    return { type: BlockchainType.Bitcoin, ...response } as CreateOrderResponse;
   }
+
+  // Solana: has 'versioned_tx'
   if ('versioned_tx' in response) {
-    return {
-      type: BlockchainType.Solana,
-      ...response,
-    } as CreateOrderResponse;
+    return { type: BlockchainType.Solana, ...response } as CreateOrderResponse;
   }
+
   return null;
 }

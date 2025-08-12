@@ -21,13 +21,13 @@ export const API: Record<Environment, Api> = {
     starknetRelay: 'https://api.garden.finance/starknet',
   },
   testnet: {
-    orderbook: 'https://testnet.api.garden.finance/orders',
+    orderbook: 'https://testnet.api.garden.finance',
     auth: 'https://testnet.api.garden.finance/auth',
     quote: 'https://testnet.api.garden.finance/quote',
     info: 'https://testnet.api.garden.finance/info',
-    evmRelay: 'https://testnet.api.garden.finance/relayer',
+    evmRelay: 'https://testnet.api.garden.finance',
     solanaRelay: 'https://solana-relay.garden.finance',
-    starknetRelay: 'https://testnet.api.garden.finance/starknet',
+    starknetRelay: 'https://testnet.api.garden.finance',
   },
   localnet: {
     orderbook: '',

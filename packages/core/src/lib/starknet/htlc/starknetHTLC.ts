@@ -152,7 +152,6 @@ export class StarknetHTLC implements IStarknetHTLC {
   async initiateWithCreateOrderResponse(
     order: StarknetOrderResponse,
   ): AsyncResult<string, string> {
-    console.log(order);
-    return Ok('initiateWithCreateOrderResponse');
+    return Ok(order.order_id);
   }
 }

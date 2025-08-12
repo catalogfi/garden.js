@@ -184,13 +184,14 @@ export class StarknetRelay implements IStarknetHTLC {
         return Err(formattedSignature.error);
       }
 
-      const res = await Fetcher.post<APIResponse<string>>(
-        this.url.endpoint('initiate'),
+      const res = await Fetcher.patch<APIResponse<string>>(
+        this.url
+          .endpoint('/v2/orders')
+          .endpoint(order.order_id)
+          .addSearchParams({ action: 'initiate' }),
         {
           body: JSON.stringify({
-            order_id: order.order_id,
             signature: formattedSignature.val,
-            perform_on: 'Source',
           }),
           headers: {
             'Content-Type': 'application/json',
@@ -236,21 +237,19 @@ export class StarknetRelay implements IStarknetHTLC {
   ): AsyncResult<string, string> {
     if (!this.account.address) return Err('No account address');
 
-    if (!order.approval_call) {
+    if (!order.approval_transaction) {
       return Ok('No approval transaction required');
     }
 
     try {
-      const approvalTx = order.approval_call;
-
+      const approvalTx = order.approval_transaction;
       const txHash = await this.account.execute([
         {
           contractAddress: with0x(approvalTx.to),
-          entrypoint: approvalTx.selector as string,
+          entrypoint: with0x(approvalTx.selector as string),
           calldata: approvalTx.calldata,
         },
       ]);
-
       await this.starknetProvider.waitForTransaction(txHash.transaction_hash, {
         retryInterval: 2000,
         successStates: [TransactionExecutionStatus.SUCCEEDED],
@@ -269,13 +268,19 @@ export class StarknetRelay implements IStarknetHTLC {
     order: StarknetOrderResponse,
   ): AsyncResult<string, string> {
     if (!this.account.address) return Err('No account address');
+    const approvalRes = await this.executeApprovalTransaction(order);
+    if (approvalRes.error) return Err(approvalRes.error);
     const { typed_data } = order;
     const signature = await this.account.signMessage(typed_data);
     const formattedSignature = formatStarknetSignature(signature);
     if (formattedSignature.error) {
       return Err(formattedSignature.error);
     }
-
+    const headers: Record<string, string> = {
+      'garden-app-id':
+        'f242ea49332293424c96c562a6ef575a819908c878134dcb4fce424dc84ec796',
+      'Content-Type': 'application/json',
+    };
     const res = await Fetcher.patch<APIResponse<string>>(
       this.url
         .endpoint('/v2/orders')
@@ -283,8 +288,11 @@ export class StarknetRelay implements IStarknetHTLC {
         .addSearchParams({ action: 'initiate' }),
       {
         body: JSON.stringify({
-          signature: formattedSignature.val,
+          signature: Array.isArray(formattedSignature.val)
+            ? formattedSignature.val.join(',')
+            : formattedSignature.val,
         }),
+        headers,
       },
     );
     if (res.error) return Err(res.error);

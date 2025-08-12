@@ -30,7 +30,7 @@ export class EvmRelay implements IEVMHTLC {
   private wallet: WalletClient;
 
   constructor(url: string | Url, wallet: WalletClient, auth: IAuth) {
-    this.url = new Url('/relayer', url);
+    this.url = new Url('', url);
     this.auth = auth;
     this.wallet = wallet;
   }
@@ -207,14 +207,14 @@ export class EvmRelay implements IEVMHTLC {
         ...auth.val,
         'Content-Type': 'application/json',
       };
-      console.log('headers', headers);
-      const res = await Fetcher.post<APIResponse<string>>(
-        this.url.endpoint('initiate'),
+      const res = await Fetcher.patch<APIResponse<string>>(
+        this.url
+          .endpoint('/v2/orders')
+          .endpoint(orderId)
+          .addSearchParams({ action: 'initiate' }),
         {
           body: JSON.stringify({
-            order_id: orderId,
             signature,
-            perform_on: 'Source',
           }),
           headers,
         },
@@ -310,10 +310,11 @@ export class EvmRelay implements IEVMHTLC {
         },
       );
       if (res.error) return Err(res.error);
-      return Ok(res.result as string);
-    } catch (error: any) {
+      if (!res.result) return Err('Initiate failed: Result is undefined');
+      return Ok(res.result);
+    } catch (error) {
       console.error('initiateWithCreateOrderResponse error:', error);
-      return Err('Failed to initiate: ' + (error?.message || String(error)));
+      return Err('Failed to initiate: ' + String(error));
     }
   }
 
@@ -321,8 +322,6 @@ export class EvmRelay implements IEVMHTLC {
     try {
       const headers = await this.auth.getAuthHeaders();
       if (!headers.ok) return Err(headers.error);
-      console.log('headers', headers);
-
       const res = await Fetcher.patch<APIResponse<string>>(
         this.url
           .endpoint('/v2/orders')
@@ -333,7 +332,8 @@ export class EvmRelay implements IEVMHTLC {
             secret: trim0x(secret),
           }),
           headers: {
-            ...headers.val,
+            'garden-app-id':
+              'f242ea49332293424c96c562a6ef575a819908c878134dcb4fce424dc84ec796',
             'Content-Type': 'application/json',
           },
         },

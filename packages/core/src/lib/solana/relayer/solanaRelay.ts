@@ -11,7 +11,11 @@ import {
   Url,
 } from '@gardenfi/utils';
 import { ISolanaHTLC } from '../htlc/ISolanaHTLC';
-import { isSolanaNativeToken, Order } from '@gardenfi/orderbook';
+import {
+  isSolanaNativeToken,
+  Order,
+  SolanaOrderResponse,
+} from '@gardenfi/orderbook';
 import { waitForSolanaTxConfirmation } from '../../utils';
 
 /**
@@ -271,6 +275,11 @@ export class SolanaRelay implements ISolanaHTLC {
         `Error redeeming: ${e instanceof Error ? e.message : String(e)}`,
       );
     }
+  }
+  async initiateWithCreateOrderResponse(
+    order: SolanaOrderResponse,
+  ): AsyncResult<string, string> {
+    return Ok(order.order_id);
   }
   /**
    * DO NOT CALL THIS FUNCTION. Refund is automatically taken care of by the relayer!
