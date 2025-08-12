@@ -109,7 +109,7 @@ describe('AbortController functionality', () => {
     expect(orders.val?.data).toBeDefined();
   });
 
-  test.only('should accept AbortController in getUnMatchedOrders request', async () => {
+  test('should accept AbortController in getUnMatchedOrders request', async () => {
     const abortController = new AbortController();
     const request: UtilsRequest = {
       signal: abortController.signal,
@@ -275,6 +275,36 @@ describe('AbortController functionality', () => {
     expect(request.method).toBe('GET');
   });
 });
+
+test.only('should search orders', async () => {
+  const orderbookApi = 'https://testnet.api.garden.finance/orders';
+  const orderbook = new Orderbook(new Url(orderbookApi));
+  const controller = new AbortController();
+  const signal = controller.signal;
+  const now = performance.now();
+  setTimeout(() => {
+    controller.abort();
+    console.log('aborted');
+  }, 1000);
+
+  const result = await orderbook.getOrders(
+    true,
+    { page: 1, per_page: 10 },
+    '0xccF3d872b01762ABA74b41B1958A9A86EE8f34A3',
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    { signal, retryCount: 0 }
+  );
+
+  console.log('time taken :', performance.now() - now);
+  console.log('result :', result);
+  return {
+    type: 'none',
+    orders: [],
+  };
+}, 10000)
 
 // describe('orderbook', async () => {
 //   const OrderbookApi = 'orderbook.garden.finance';
