@@ -185,10 +185,7 @@ export const isSolanaNativeToken = (chain: Chain, tokenAddress: string) => {
 };
 
 export const isSuiNativeToken = (chain: Chain, tokenAddress: string) => {
-  return (
-    (isSui(chain) && tokenAddress.toLowerCase() === 'primary') ||
-    tokenAddress.toLowerCase() === '0x2::sui::SUI'
-  );
+  return isSui(chain) && tokenAddress.toLowerCase() === '0x2::sui::sui';
 };
 
 export const isNativeToken = (asset: Asset) => {
