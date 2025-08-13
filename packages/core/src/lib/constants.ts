@@ -94,7 +94,7 @@ export const SUI_CONFIG: Record<
   },
   [Network.MAINNET]: {
     packageId:
-      '0x9f1a9894237645834ed8830ef9884c334b352b3d9de852ff463825c02f76f855',
+      '0xbfb5728aab0dd117747ef4574af6d3540ea6093109c22856e3ae201dfd58c0fc',
     moduleName: 'AtomicSwap',
   },
   [Network.LOCALNET]: { packageId: '', moduleName: '' },

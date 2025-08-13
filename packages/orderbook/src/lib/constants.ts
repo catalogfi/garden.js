@@ -432,5 +432,15 @@ export const SupportedAssets = {
       tokenAddress: '0xD8a6E3FCA403d79b6AD6216b60527F51cc967D39',
       atomicSwapAddress: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
     },
+    sui_SUI: {
+      name: 'Sui',
+      decimals: 9,
+      symbol: 'SUI',
+      chain: Chains.sui,
+      logo: 'https://garden-finance.imgix.net/token-images/sui.svg',
+      tokenAddress: '0x2::sui::SUI',
+      atomicSwapAddress:
+        '0xa4f4e653547e98d4b541378e14db2393a09aff4b829f158b133d2eb3c3a942b5',
+    },
   },
 } as const;
