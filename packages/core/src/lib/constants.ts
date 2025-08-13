@@ -30,7 +30,7 @@ export const API: Record<Environment, Api> = {
     evmRelay: 'https://testnet.api.garden.finance/relayer',
     solanaRelay: 'https://solana-relay.garden.finance',
     starknetRelay: 'https://testnet.api.garden.finance/starknet',
-    suiRelay: '',
+    suiRelay: 'https://testnet.api.garden.finance/sui',
   },
   localnet: {
     orderbook: '',
@@ -89,7 +89,7 @@ export const SUI_CONFIG: Record<
 > = {
   [Network.TESTNET]: {
     packageId:
-      '0x9bc40081ec0a6e04d90b3c4db23b7daf6f5ae75e57d2779e70c210d803a39e6b',
+      '0x99865b03dd1bc03d0a6a805c454ea257c464f7abcccae9cd4b621b91e7ca04de',
     moduleName: 'AtomicSwap',
   },
   [Network.MAINNET]: {
