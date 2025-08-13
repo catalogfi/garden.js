@@ -140,7 +140,7 @@ export interface IOrderbook {
   /**
    * Get all orders from the orderbook based on the match status.
    * @param matched - If true, returns matched orders, else returns unmatched orders.
-   * @param filters - Object containing filter parameters like: `address`, `tx_hash`, `fromChain`, `toChain`, `status` and any additional key-value pairs for query parameters.
+   * @param filters - Object containing filter parameters like: `address`, `tx_hash`, `from_chain`, `to_chain`, `status` and any additional key-value pairs for query parameters.
    * @param paginationConfig - The configuration for the pagination.
    * @param request - Optional request configuration.
    * @returns {AsyncResult<PaginatedData<T extends true ? MatchedOrder : CreateOrder>, string>} A promise that resolves to the orders.
@@ -150,8 +150,8 @@ export interface IOrderbook {
     filters: {
       address?: string;
       tx_hash?: string;
-      fromChain?: Chain;
-      toChain?: Chain;
+      from_chain?: Chain;
+      to_chain?: Chain;
       status?: OrderStatus;
       [key: string]: string | undefined;
     },
