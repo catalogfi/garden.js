@@ -1,11 +1,6 @@
-import {
-  APIResponse,
-  AsyncResult,
-  IAuth,
-  IStore,
-  Request as UtilsRequest,
-} from '@gardenfi/utils';
-import { Asset, Chain } from '../asset';
+import { AsyncResult, IAuth, IStore } from '@gardenfi/utils';
+import { Asset, BlockchainType, Chain } from '../asset';
+import type { Calldata, RawArgs, TypedData } from 'starknet';
 
 /**
  * Configuration for creating an order
@@ -98,55 +93,43 @@ export interface IOrderbook {
    * @returns {number} The create order ID.
    */
   createOrder(
-    order: CreateOrderReqWithStrategyId,
+    order: CreateOrderRequest,
     auth: IAuth,
-  ): AsyncResult<MatchedOrder, string>;
+  ): AsyncResult<CreateOrderResponse, string>;
 
   /**
    * Get the order from orderbook based on provided Id and match status.
    * @param id - The create Id of the order
    * @template T - If true, returns matched order, else returns create order (unmatched Order).
-   * @returns {AsyncResult<T extends true ? MatchedOrder : CreateOrder, string>} A promise that resolves to the order.
+   * @returns {AsyncResult<T extends true ? Order : CreateOrder, string>} A promise that resolves to the order.
    */
-  getOrder<T extends boolean>(
-    id: string,
-    matched: T,
-  ): AsyncResult<T extends true ? MatchedOrder : CreateOrder, string>;
+  getOrder(id: string): AsyncResult<Order, string>;
 
   /**
-   * Get all matched orders from the orderbook associated with the `address`.
-   * @param address The address to get the orders for.
-   * @param pending If true, returns pending orders, else returns all matched orders.
-   * @param paginationConfig - The configuration for the pagination.
-   * @returns {AsyncResult<PaginatedData<MatchedOrder>, string>} A promise that resolves to the orders.
+   * Get orders by status
+   * @param address - The address of the order
+   * @param status - The status of the order
+   * @param paginationConfig - The pagination configuration
+   * @returns {AsyncResult<PaginatedData<Order>, string>} A promise that resolves to the orders.
    */
-  getMatchedOrders(
+  getOrdersByStatus(
     address: string,
     status: Status,
     paginationConfig?: PaginationConfig,
-  ): AsyncResult<PaginatedData<MatchedOrder>, string>;
-
-  /**
-   * Get all unmatched orders from the orderbook associated with the `address`.
-   * @param address The address to get the orders for.
-   * @param paginationConfig - The configuration for the pagination.
-   * @returns {AsyncResult<PaginatedData<CreateOrder>, string>} A promise that resolves to the orders.
-   */
-  getUnMatchedOrders(
-    address: string,
-    paginationConfig?: PaginationConfig,
-  ): AsyncResult<PaginatedData<CreateOrder>, string>;
+  ): AsyncResult<PaginatedData<Order>, string>;
 
   /**
    * Get all orders from the orderbook based on the match status.
    * @param matched - If true, returns matched orders, else returns unmatched orders.
    * @param filters - Object containing filter parameters like: `address`, `tx_hash`, `fromChain`, `toChain`, `status` and any additional key-value pairs for query parameters.
    * @param paginationConfig - The configuration for the pagination.
-   * @param request - Optional request configuration.
-   * @returns {AsyncResult<PaginatedData<T extends true ? MatchedOrder : CreateOrder>, string>} A promise that resolves to the orders.
+   * @param address - The address to get the orders for.
+   * @param tx_hash - The tx hash to get the orders for (initiate_tx_hash, redeem_tx_hash, refund_tx_hash).
+   * @param fromChain - The source chain to filter orders by.
+   * @param toChain - The destination chain to filter orders by.
+   * @returns {AsyncResult<PaginatedData<T extends true ? Order : CreateOrder>, string>} A promise that resolves to the orders.
    */
-  getOrders<T extends boolean>(
-    matched: T,
+  getOrders(
     filters: {
       address?: string;
       tx_hash?: string;
@@ -156,11 +139,9 @@ export interface IOrderbook {
       [key: string]: string | undefined;
     },
     paginationConfig?: PaginationConfig,
-    request?: UtilsRequest,
-  ): AsyncResult<
-    PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
-    string
-  >;
+    address?: string,
+    tx_hash?: string,
+  ): AsyncResult<PaginatedData<Order>, string>;
 
   /**
    * Polls for every provided interval and returns matched and unmatched orders associated on the account.
@@ -181,23 +162,13 @@ export interface IOrderbook {
    * }, 20000);
    * ```
    */
-  subscribeOrders<T extends boolean>(
+  subscribeOrders(
     account: string,
-    matched: T,
     interval: number,
-    cb: (
-      orders: PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
-    ) => Promise<void>,
+    cb: (orders: PaginatedData<Order>) => Promise<void>,
     status?: Status,
     paginationConfig?: PaginationConfig,
   ): Promise<() => void>;
-
-  /**
-   * Returns the current orders count associated with the provided address. Used to calculate nonce for secret generation.
-   * @param address The address to get the orders count for.
-   * @returns {AsyncResult<number, string>} A promise that resolves to the orders count.
-   */
-  getOrdersCount(address: string): AsyncResult<number, string>;
 }
 
 export type DecodedAuthToken = {
@@ -206,40 +177,10 @@ export type DecodedAuthToken = {
   iat: number;
 };
 
-export type Orders = {
-  unmatched: PaginatedData<CreateOrder[]>;
-  matched: PaginatedData<MatchedOrder[]>;
-};
-
-export type AdditionalData = {
-  additional_data: {
-    strategy_id: string;
-    sig: string;
-    input_token_price: number;
-    output_token_price: number;
-    deadline: number;
-    bitcoin_optional_recipient?: string;
-    [key: string]: any;
-  };
-};
-
-export type AdditionalDataWithStrategyId = {
-  additional_data: {
-    strategy_id: string;
-    bitcoin_optional_recipient?: string;
-    [key: string]: any;
-  };
-};
-
-export type CreateOrderReqWithStrategyId = CreateOrderRequest &
-  AdditionalDataWithStrategyId &
-  AffiliateFeeList<AffiliateFee>;
-
 export type AffiliateFee = {
-  fee: number; // fee in bps
   address: string;
-  chain: string;
-  asset: string;
+  asset: ChainAsset;
+  fee: number; // fee in bps
 };
 
 export type AffiliateFeeWithAmount = AffiliateFee & {
@@ -251,13 +192,10 @@ export type AffiliateFeeList<T extends AffiliateFee | AffiliateFeeWithAmount> =
     affiliate_fees?: T[];
   };
 
-export type AffiliateFeeOptionalChainAsset = Omit<
-  AffiliateFee,
-  'chain' | 'asset'
-> &
-  Partial<Pick<AffiliateFee, 'chain' | 'asset'>>;
+export type AffiliateFeeOptionalAsset = Omit<AffiliateFee, 'asset'> &
+  Partial<Pick<AffiliateFee, 'asset'>>;
 
-export type CreateOrderRequest = {
+export type OldCreateOrderRequest = {
   source_chain: string;
   destination_chain: string;
   source_asset: string;
@@ -270,19 +208,25 @@ export type CreateOrderRequest = {
   secret_hash?: string;
 };
 
-export type CreateOrderRequestWithAdditionalData = CreateOrderRequest &
-  AdditionalData &
-  AffiliateFeeList<AffiliateFeeWithAmount>;
+export type ChainAsset = `${Chain}:${string}`;
 
-export type CreateOrder = CreateOrderRequestWithAdditionalData & {
-  fee: string; // BigDecimal as string
-  min_destination_confirmations: number;
-  timelock: number;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
-  create_id: string;
-  block_number: string;
+export type CreateOrderRequest = {
+  source: {
+    asset: ChainAsset;
+    owner: string;
+    delegate: string | null;
+    amount: string;
+  };
+  destination: {
+    asset: ChainAsset;
+    owner: string;
+    delegate: string | null;
+    amount: string;
+  };
+  slippage?: number;
+  secret_hash?: string;
+  nonce: number;
+  affiliate_fees?: AffiliateFee[];
 };
 
 export type Swap = {
@@ -308,19 +252,35 @@ export type Swap = {
   redeem_block_number: string | null;
   refund_block_number: string | null;
   required_confirmations: number;
+  delegate: string;
+  asset_price: number;
+  instant_refund_tx: string;
+  initiate_timestamp: string;
+  redeem_timestamp: string;
+  refund_timestamp: string;
   current_confirmations: number;
-  initiate_timestamp: string | null;
-  redeem_timestamp: string | null;
-  refund_timestamp: string | null;
 };
 
-export type MatchedOrder = {
+export type Order = {
+  order_id: string;
   created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
   source_swap: Swap;
   destination_swap: Swap;
-  create_order: CreateOrder;
+  slippage: number;
+  nonce: string;
+  affiliate_fees: AffiliateFee[];
+  integrator: string;
+  version: string;
+};
+
+export type AssetHTLCInfo = {
+  id: string;
+  htlc: { address: string; schema: string } | null;
+  token: { address: string; schema: string } | null;
+  decimals: number;
+  min_amount: string;
+  max_amount: string;
+  price: number;
 };
 
 export type PaginatedData<T> = {
@@ -331,14 +291,70 @@ export type PaginatedData<T> = {
   per_page: number;
 };
 
-export type CreateOrderResponse = APIResponse<MatchedOrder>;
-
 export type PaginationConfig = {
   page?: number;
   per_page?: number;
 };
 
 export type Status = 'all' | 'pending' | 'fulfilled';
+
+export type EVMTransaction = {
+  to: string;
+  value: string;
+  data: string;
+  gas_limit: string;
+  chain_id: number;
+};
+
+export type StarknetCall = {
+  to: string;
+  calldata?: RawArgs | Calldata;
+  selector?: string;
+};
+
+export type BaseCreateOrderResponse = {
+  order_id: string;
+};
+
+export type BitcoinOrderResponse = BaseCreateOrderResponse & {
+  to: string;
+  amount: number;
+};
+
+type WithTypedData<T, D> = T & { typed_data: D };
+
+type EvmTypedData = {
+  domain: Record<string, unknown>;
+  types: Record<string, unknown>;
+  primaryType: string;
+  message: Record<string, unknown>;
+};
+
+export type EvmOrderResponse = WithTypedData<
+  BaseCreateOrderResponse & {
+    approval_transaction: EVMTransaction | null;
+    initiate_transaction: EVMTransaction;
+  },
+  EvmTypedData
+>;
+
+export type StarknetOrderResponse = WithTypedData<
+  BaseCreateOrderResponse & {
+    approval_transaction: StarknetCall;
+    initiate_transaction: StarknetCall;
+  },
+  TypedData
+>;
+
+export type SolanaOrderResponse = BaseCreateOrderResponse & {
+  versioned_tx: string;
+};
+
+export type CreateOrderResponse =
+  | ({ type: BlockchainType.EVM } & EvmOrderResponse)
+  | ({ type: BlockchainType.Bitcoin } & BitcoinOrderResponse)
+  | ({ type: BlockchainType.Starknet } & StarknetOrderResponse)
+  | ({ type: BlockchainType.Solana } & SolanaOrderResponse);
 export type OrderStatus =
   | 'refunded'
   | 'expired'

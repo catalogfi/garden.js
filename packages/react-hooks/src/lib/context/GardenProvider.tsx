@@ -16,7 +16,7 @@ import {
   BlockchainType,
   getBlockchainType,
   isBitcoin,
-  MatchedOrder,
+  Order,
 } from '@gardenfi/orderbook';
 import { hasAnyValidValue } from '../utils';
 import { useDigestKey } from '../hooks/useDigestKey';
@@ -109,7 +109,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         return Err('Unsupported chain');
     }
 
-    const updatedOrder: MatchedOrder = {
+    const updatedOrder: Order = {
       ...order.val,
       source_swap: {
         ...order.val.source_swap,

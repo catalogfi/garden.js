@@ -1,11 +1,18 @@
 import {
-  AffiliateFeeOptionalChainAsset,
+  AffiliateFee,
   Asset,
+  ChainAsset,
   IOrderbook,
-  MatchedOrder,
+  Order,
 } from '@gardenfi/orderbook';
 import { OrderStatus } from '../orderStatus/status';
-import { AsyncResult, Environment, EventBroker, IAuth } from '@gardenfi/utils';
+import {
+  ApiKey,
+  AsyncResult,
+  Environment,
+  EventBroker,
+  IAuth,
+} from '@gardenfi/utils';
 import { ISecretManager } from '../secretManager/secretManager.types';
 import { IQuote } from '../quote/quote.types';
 import { IBlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
@@ -24,11 +31,13 @@ export type SwapParams = {
   /**
    * Asset to be sent.
    */
-  fromAsset: Asset;
+  // fromAsset: ChainAsset;
+  fromAsset: Asset | ChainAsset;
   /**
    * Asset to be received.
    */
-  toAsset: Asset;
+  // toAsset: ChainAsset;
+  toAsset: Asset | ChainAsset;
   /**
    * Amount in lowest denomination of the sendAsset.
    */
@@ -38,25 +47,13 @@ export type SwapParams = {
    */
   receiveAmount: string;
   /**
-   * Time lock for the swap.
+   * Slippage for the order.
    */
-  timelock?: number;
-  /**
-   * This will wait for the specified number of confirmations before redeeming the funds.
-   */
-  minDestinationConfirmations?: number;
-  /**
-   * Unique nonce for generating secret and secret hashes. If not provided, it will be generated as the total order count until now + 1.
-   */
-  nonce?: number;
+  slippage?: number;
   /**
    * Additional data for the order.
    */
   additionalData: {
-    /**
-     * Get strategy id from the quote
-     */
-    strategyId: string;
     /**
      * Provide btcAddress if the destination or source chain is bitcoin. This address is used as refund address if source chain is bitcoin, and as redeem address if destination chain is bitcoin.
      */
@@ -65,19 +62,19 @@ export type SwapParams = {
   /**
    * Integrator fee for the order.
    */
-  affiliateFee?: AffiliateFeeOptionalChainAsset[];
+  affiliateFee?: AffiliateFee[];
 };
 
-export type OrderWithStatus = MatchedOrder & {
+export type OrderWithStatus = Order & {
   status: OrderStatus;
 };
 
 export type GardenEvents = {
-  error: (order: MatchedOrder, error: string) => void;
-  success: (order: MatchedOrder, action: OrderActions, result: string) => void;
+  error: (order: Order, error: string) => void;
+  success: (order: Order, action: OrderActions, result: string) => void;
   onPendingOrdersChanged: (orders: OrderWithStatus[]) => void;
   log: (id: string, message: string) => void;
-  rbf: (order: MatchedOrder, result: string) => void;
+  rbf: (order: Order, result: string) => void;
 };
 
 export type EventCallback = (...args: any[]) => void;
@@ -89,9 +86,9 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
   /**
    * Create Order
    * @param {SwapParams} params - The parameters for creating the order.
-   * @returns {AsyncResult<MatchedOrder, string>} The result of the swap operation.
+   * @returns {AsyncResult<Order, string>} The result of the swap operation.
    */
-  swap(params: SwapParams): AsyncResult<MatchedOrder, string>;
+  swap(params: SwapParams): AsyncResult<Order, string>;
 
   /**
    * Execute an action.
@@ -167,14 +164,9 @@ export type OrderCacheValue = {
 };
 
 export interface IOrderExecutorCache {
-  set(
-    order: MatchedOrder,
-    action: OrderActions,
-    txHash: string,
-    utxo?: string,
-  ): void;
-  get(order: MatchedOrder, action: OrderActions): OrderCacheValue | null;
-  remove(order: MatchedOrder, action: OrderActions): void;
+  set(order: Order, action: OrderActions, txHash: string, utxo?: string): void;
+  get(order: Order, action: OrderActions): OrderCacheValue | null;
+  remove(order: Order, action: OrderActions): void;
 }
 
 export type ApiConfig =
@@ -184,13 +176,17 @@ export type ApiConfig =
 export type GardenCoreConfig = {
   environment: ApiConfig;
   digestKey: string | DigestKey;
+  apiKey?: string | ApiKey;
   secretManager?: ISecretManager;
   auth?: IAuth;
   orderbook?: IOrderbook;
   quote?: IQuote;
   blockNumberFetcher?: IBlockNumberFetcher;
   btcWallet?: IBitcoinWallet;
-  solanaProgramAddress?: string;
+  solanaProgramAddress?: {
+    native?: string;
+    spl?: string;
+  }
 };
 
 export type GardenHTLCModules = {

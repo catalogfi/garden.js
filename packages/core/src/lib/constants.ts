@@ -1,4 +1,4 @@
-import { SupportedAssets } from '@gardenfi/orderbook';
+import { SupportedAssets, toFormattedAssetString } from '@gardenfi/orderbook';
 import { Environment, Network } from '@gardenfi/utils';
 
 export type Api = {
@@ -21,13 +21,13 @@ export const API: Record<Environment, Api> = {
     starknetRelay: 'https://api.garden.finance/starknet',
   },
   testnet: {
-    orderbook: 'https://testnet.api.garden.finance/orders',
+    orderbook: 'https://testnet.api.garden.finance',
     auth: 'https://testnet.api.garden.finance/auth',
     quote: 'https://testnet.api.garden.finance/quote',
     info: 'https://testnet.api.garden.finance/info',
-    evmRelay: 'https://testnet.api.garden.finance/relayer',
-    solanaRelay: 'https://solana-relay.garden.finance',
-    starknetRelay: 'https://testnet.api.garden.finance/starknet',
+    evmRelay: 'https://testnet.api.garden.finance',
+    solanaRelay: 'https://testnet.api.garden.finance',
+    starknetRelay: 'https://testnet.api.garden.finance',
   },
   localnet: {
     orderbook: '',
@@ -68,11 +68,16 @@ export const SolanaRelayerAddress: Record<Network, string> = {
 } as const;
 
 export const solanaProgramAddress = {
-  mainnet: '2bag6xpshpvPe7SJ9nSDLHpxqhEAoHPGpEkjNSv7gxoF',
-  staging: '6eksgdCnSjUaGQWZ6iYvauv1qzvYPF33RTGTM1ZuyENx',
+  mainnet: {
+    native: '2bag6xpshpvPe7SJ9nSDLHpxqhEAoHPGpEkjNSv7gxoF',
+    spl: 'gdnvdMCHJgnidtU7SL8RkRshHPvDJU1pdfZEpoLvqdU',
+  },
+  staging: {
+    native: '6eksgdCnSjUaGQWZ6iYvauv1qzvYPF33RTGTM1ZuyENx',
+    spl: '2WXpY8havGjfRxme9LUxtjFHTh1EfU3ur4v6wiK4KdNC',
+  },
 };
 
 export const DEFAULT_AFFILIATE_ASSET = {
-  chain: SupportedAssets.mainnet.base_cbBTC.chain,
-  asset: SupportedAssets.mainnet.base_cbBTC.atomicSwapAddress,
+  asset: toFormattedAssetString(SupportedAssets.mainnet.base_cbBTC),
 };

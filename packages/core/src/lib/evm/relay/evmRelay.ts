@@ -8,7 +8,13 @@ import {
   waitForTransactionReceipt,
 } from '@gardenfi/utils';
 import { WalletClient, createPublicClient, getContract, http } from 'viem';
-import { isEVM, isEvmNativeToken, MatchedOrder } from '@gardenfi/orderbook';
+import {
+  AssetHTLCInfo,
+  EvmOrderResponse,
+  isEVM,
+  isEvmNativeToken,
+  Order,
+} from '@gardenfi/orderbook';
 import { APIResponse, IAuth, Url, with0x } from '@gardenfi/utils';
 import { AtomicSwapABI } from '../abi/atomicSwap';
 import { IEVMHTLC } from '../htlc.types';
@@ -24,7 +30,7 @@ export class EvmRelay implements IEVMHTLC {
   private wallet: WalletClient;
 
   constructor(url: string | Url, wallet: WalletClient, auth: IAuth) {
-    this.url = new Url('/relayer', url);
+    this.url = new Url('', url);
     this.auth = auth;
     this.wallet = wallet;
   }
@@ -34,7 +40,7 @@ export class EvmRelay implements IEVMHTLC {
     return this.wallet.account.address;
   }
 
-  async initiate(order: MatchedOrder): AsyncResult<string, string> {
+  async initiate(order: Order): AsyncResult<string, string> {
     if (!this.wallet.account) return Err('No account found');
     if (
       this.wallet.account.address.toLowerCase() !==
@@ -52,31 +58,51 @@ export class EvmRelay implements IEVMHTLC {
     this.wallet = _walletClient.val.walletClient;
     if (!this.wallet.account) return Err('No account found');
 
-    const { create_order, source_swap } = order;
+    const { source_swap } = order;
 
     if (
       !source_swap.amount ||
       !source_swap.redeemer ||
-      !create_order.timelock ||
-      !create_order.secret_hash
+      !source_swap.timelock ||
+      !source_swap.secret_hash
     )
       return Err('Invalid order');
 
-    const secretHash = with0x(create_order.secret_hash);
-    const timelock = BigInt(create_order.timelock);
+    const secretHash = with0x(source_swap.secret_hash);
+    const timelock = BigInt(source_swap.timelock);
     const redeemer = with0x(source_swap.redeemer);
     const amount = BigInt(source_swap.amount);
 
-    const tokenAddress = await this.getTokenAddress(order.source_swap.asset);
-    if (!tokenAddress.ok ) return Err(tokenAddress.error);
+    const assetInfoRes = await Fetcher.get<APIResponse<AssetHTLCInfo[]>>(
+      this.url.origin + '/v2/assets',
+    );
+    if (assetInfoRes.error)
+      return Err('Failed to fetch asset info: ' + assetInfoRes.error);
 
-    if (isEvmNativeToken(order.source_swap.chain, tokenAddress.val)) {
+    const assetList = assetInfoRes.result || [];
+    const assetInfo = assetList.find((a) => a.id === order.source_swap.asset);
+
+    if (!assetInfo) {
+      return Err(
+        `Asset info not found for asset id: ${order.source_swap.asset}`,
+      );
+    }
+    if (!assetInfo.htlc || !assetInfo.htlc.address) {
+      return Err(
+        `HTLC address not found for asset id: ${order.source_swap.asset}`,
+      );
+    }
+
+    const htlcAddress = assetInfo.htlc.address;
+    const tokenAddress = assetInfo.token?.address || '';
+
+    if (isEvmNativeToken(order.source_swap.chain, tokenAddress)) {
       return this._initiateOnNativeHTLC(
         secretHash,
         timelock,
         amount,
         redeemer,
-        order.source_swap.asset,
+        htlcAddress,
       );
     } else {
       return this._initiateOnErc20HTLC(
@@ -84,25 +110,10 @@ export class EvmRelay implements IEVMHTLC {
         timelock,
         amount,
         redeemer,
-        order.source_swap.asset,
-        tokenAddress.val,
-        create_order.create_id,
+        htlcAddress,
+        tokenAddress,
+        order.order_id,
       );
-    }
-  }
-
-  private async getTokenAddress(asset: string): AsyncResult<string, string> {
-    try {
-      const atomicSwap = getContract({
-        address: with0x(asset),
-        abi: AtomicSwapABI,
-        client: this.wallet,
-      });
-
-      const token = await atomicSwap.read.token();
-      return Ok(token);
-    } catch (error) {
-      return Err('Failed to get token address', String(error));
     }
   }
 
@@ -192,19 +203,18 @@ export class EvmRelay implements IEVMHTLC {
           secretHash,
         },
       });
-
       const headers: Record<string, string> = {
         ...auth.val,
         'Content-Type': 'application/json',
       };
-
-      const res = await Fetcher.post<APIResponse<string>>(
-        this.url.endpoint('initiate'),
+      const res = await Fetcher.patch<APIResponse<string>>(
+        this.url
+          .endpoint('/v2/orders')
+          .endpoint(orderId)
+          .addSearchParams({ action: 'initiate' }),
         {
           body: JSON.stringify({
-            order_id: orderId,
             signature,
-            perform_on: 'Source',
           }),
           headers,
         },
@@ -225,24 +235,105 @@ export class EvmRelay implements IEVMHTLC {
     }
   }
 
-  async redeem(
-    order: MatchedOrder,
-    secret: string,
+  async executeApprovalTransaction(
+    order: EvmOrderResponse,
   ): AsyncResult<string, string> {
+    if (!this.wallet.account) return Err('No account found');
+
+    if (!order.approval_transaction) {
+      return Ok('No approval transaction required');
+    }
+
+    try {
+      const approvalTx = order.approval_transaction;
+
+      const txHash = await this.wallet.sendTransaction({
+        account: this.wallet.account,
+        to: with0x(approvalTx.to),
+        value: BigInt(approvalTx.value),
+        data: with0x(approvalTx.data),
+        gas: BigInt(approvalTx.gas_limit),
+        chain: this.wallet.chain,
+      });
+
+      const receipt = await waitForTransactionReceipt(this.wallet, txHash);
+
+      if (receipt.val?.status !== 'success') {
+        return Err('Approval transaction failed');
+      }
+
+      return Ok(txHash);
+    } catch (error: any) {
+      console.error('executeApprovalTransaction error:', error);
+      return Err(
+        'Failed to execute approval: ' + (error?.message || String(error)),
+      );
+    }
+  }
+
+  async initiateWithCreateOrderResponse(
+    order: EvmOrderResponse,
+  ): AsyncResult<string, string> {
+    if (!this.wallet.account) return Err('No account found');
+
+    try {
+      if (order.approval_transaction) {
+        const approvalResult = await this.executeApprovalTransaction(order);
+        if (approvalResult.error) {
+          return Err(`Approval failed: ${approvalResult.error}`);
+        }
+        console.log('Approval transaction completed:', approvalResult.val);
+      }
+      const { typed_data } = order;
+
+      const signature = await this.wallet.signTypedData({
+        account: this.wallet.account,
+        domain: typed_data.domain,
+        types: typed_data.types,
+        primaryType: typed_data.primaryType,
+        message: typed_data.message,
+      });
+      const headers: Record<string, string> = {
+        ...(await this.auth.getAuthHeaders()).val,
+        'Content-Type': 'application/json',
+      };
+      const res = await Fetcher.patch<APIResponse<string>>(
+        this.url
+          .endpoint('/v2/orders')
+          .endpoint(order.order_id)
+          .addSearchParams({ action: 'initiate' }),
+        {
+          body: JSON.stringify({
+            signature,
+          }),
+          headers,
+        },
+      );
+      if (res.error) return Err(res.error);
+      if (!res.result) return Err('Initiate failed: Result is undefined');
+      return Ok(res.result);
+    } catch (error) {
+      console.error('initiateWithCreateOrderResponse error:', error);
+      return Err('Failed to initiate: ' + String(error));
+    }
+  }
+
+  async redeem(order: Order, secret: string): AsyncResult<string, string> {
     try {
       const headers = await this.auth.getAuthHeaders();
       if (!headers.ok) return Err(headers.error);
-
-      const res = await Fetcher.post<APIResponse<string>>(
-        this.url.endpoint('redeem'),
+      const res = await Fetcher.patch<APIResponse<string>>(
+        this.url
+          .endpoint('/v2/orders')
+          .endpoint(order.order_id)
+          .addSearchParams({ action: 'redeem' }),
         {
           body: JSON.stringify({
-            order_id: order.create_order.create_id,
             secret: trim0x(secret),
-            perform_on: 'Destination',
           }),
           headers: {
-            ...headers.val,
+            'garden-app-id':
+              'f242ea49332293424c96c562a6ef575a819908c878134dcb4fce424dc84ec796',
             'Content-Type': 'application/json',
           },
         },

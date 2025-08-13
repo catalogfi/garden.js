@@ -1,0 +1,631 @@
+{
+  "address": "2WXpY8havGjfRxme9LUxtjFHTh1EfU3ur4v6wiK4KdNC",
+  "metadata": {
+    "name": "solana_spl_swaps",
+    "version": "0.4.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "initiate",
+      "docs": [
+        "Initiates the atomic swap. Funds are transferred from the initiator to the token vault.",
+        "As such, the initiator's signature is required for this instruction.",
+        "A sponsor may be involved, who pays PDA rent and transaction fees in SOL, allowing for the",
+        "initiator to participate without holding SOL. As such, the sponsor must also sign this transaction.",
+        "`swap_amount` represents the quantity of tokens to be transferred through this atomic swap",
+        "in base units of the token mint.",
+        "E.g: A quantity of $1 represented by the token \"USDC\" with \"6\" decimals",
+        "must be provided as 1,000,000.",
+        "`expires_in_slots` represents the number of slots after which (non-instant) refunds are allowed.",
+        "`destination_data` can hold optional information regarding the destination chain",
+        "in the atomic swap, to be emitted in the logs as-is."
+      ],
+      "discriminator": [
+        5,
+        63,
+        123,
+        113,
+        153,
+        75,
+        148,
+        14
+      ],
+      "accounts": [
+        {
+          "name": "identity_pda",
+          "docs": [
+            "the token transfers of the `token_vault` PDA.",
+            "This PDA will be created during the first most invocation of the `initiate()` function",
+            "using the `init_if_needed` attribute, and be reused for all succeeding instructions."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": []
+          }
+        },
+        {
+          "name": "swap_data",
+          "docs": [
+            "A PDA that maintains the on-chain state of the atomic swap throughout its lifecycle.",
+            "The choice of seeds ensure that any swap with equal `initiator` and",
+            "`secret_hash` wont be created until an existing one completes.",
+            "This PDA will be deleted upon completion of the swap."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "initiator"
+              },
+              {
+                "kind": "arg",
+                "path": "secret_hash"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_vault",
+          "docs": [
+            "A permanent PDA that is controlled by the program through the `identity_pda`, as implied",
+            "by the value of the `authority` field below. As such, it serves as the \"vault\" by escrowing tokens",
+            "of type `mint` for the atomic swap.",
+            "It is intended to be reused for all swaps involving the same mint.",
+            "Just like `identity_pda`, it will be created during the first most invocation of `initiate()`",
+            "of every distinct mint using the `init_if_needed` attribute."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "initiator",
+          "docs": [
+            "The initiator of the atomic swap. They must sign this transaction."
+          ],
+          "signer": true
+        },
+        {
+          "name": "initiator_token_account",
+          "docs": [
+            "The token account of the initiator"
+          ],
+          "writable": true
+        },
+        {
+          "name": "mint",
+          "docs": [
+            "The mint of the tokens involved in this swap. As this is a parameter, this program can thus be reused",
+            "for atomic swaps with different mints."
+          ]
+        },
+        {
+          "name": "sponsor",
+          "docs": [
+            "Any entity that pays the PDA rent.",
+            "Upon completion of the swap, the PDA rent refund resulting from the",
+            "deletion of `swap_data` will be refunded to this address."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "expires_in_slots",
+          "type": "u64"
+        },
+        {
+          "name": "redeemer",
+          "type": "pubkey"
+        },
+        {
+          "name": "secret_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "swap_amount",
+          "type": "u64"
+        },
+        {
+          "name": "destination_data",
+          "type": {
+            "option": "bytes"
+          }
+        }
+      ]
+    },
+    {
+      "name": "instant_refund",
+      "docs": [
+        "Funds are returned to the initiator, with the redeemer's consent.",
+        "As such, the redeemer's signature is required for this instruction.",
+        "This allows for refunds before the expiry slot."
+      ],
+      "discriminator": [
+        211,
+        202,
+        103,
+        41,
+        183,
+        147,
+        59,
+        251
+      ],
+      "accounts": [
+        {
+          "name": "identity_pda",
+          "pda": {
+            "seeds": []
+          }
+        },
+        {
+          "name": "swap_data",
+          "docs": [
+            "The PDA holding the state information of the atomic swap. Will be closed upon successful execution",
+            "and the resulting rent refund will be sent to the sponsor."
+          ],
+          "writable": true
+        },
+        {
+          "name": "token_vault",
+          "docs": [
+            "A token account controlled by the program, escrowing the tokens for this atomic swap"
+          ],
+          "writable": true
+        },
+        {
+          "name": "initiator_token_account",
+          "writable": true
+        },
+        {
+          "name": "redeemer",
+          "docs": [
+            "The redeemer of the atomic swap. They must sign this transaction."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "sponsor",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "redeem",
+      "docs": [
+        "Funds are transferred to the redeemer. This instruction does not require any signatures."
+      ],
+      "discriminator": [
+        184,
+        12,
+        86,
+        149,
+        70,
+        196,
+        97,
+        225
+      ],
+      "accounts": [
+        {
+          "name": "identity_pda",
+          "pda": {
+            "seeds": []
+          }
+        },
+        {
+          "name": "swap_data",
+          "docs": [
+            "The PDA holding the state information of the atomic swap. Will be closed upon successful execution",
+            "and the resulting rent refund will be sent to the sponsor."
+          ],
+          "writable": true
+        },
+        {
+          "name": "token_vault",
+          "docs": [
+            "A token account controlled by the program, escrowing the tokens for this atomic swap"
+          ],
+          "writable": true
+        },
+        {
+          "name": "redeemer_token_account",
+          "writable": true
+        },
+        {
+          "name": "sponsor",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "secret",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "refund",
+      "docs": [
+        "Funds are returned to the initiator, given that no redeems have occured",
+        "and the expiry slot has been reached.",
+        "This instruction does not require any signatures."
+      ],
+      "discriminator": [
+        2,
+        96,
+        183,
+        251,
+        63,
+        208,
+        46,
+        46
+      ],
+      "accounts": [
+        {
+          "name": "identity_pda",
+          "pda": {
+            "seeds": []
+          }
+        },
+        {
+          "name": "swap_data",
+          "docs": [
+            "The PDA holding the state information of the atomic swap. Will be closed upon successful execution",
+            "and the resulting rent refund will be sent to the sponsor."
+          ],
+          "writable": true
+        },
+        {
+          "name": "token_vault",
+          "docs": [
+            "A token account controlled by the program, escrowing the tokens for this atomic swap"
+          ],
+          "writable": true
+        },
+        {
+          "name": "initiator_token_account",
+          "writable": true
+        },
+        {
+          "name": "sponsor",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "SwapAccount",
+      "discriminator": [
+        53,
+        126,
+        9,
+        14,
+        14,
+        197,
+        105,
+        182
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "Initiated",
+      "discriminator": [
+        6,
+        108,
+        212,
+        91,
+        67,
+        60,
+        207,
+        221
+      ]
+    },
+    {
+      "name": "InstantRefunded",
+      "discriminator": [
+        220,
+        50,
+        18,
+        207,
+        183,
+        232,
+        218,
+        25
+      ]
+    },
+    {
+      "name": "Redeemed",
+      "discriminator": [
+        14,
+        29,
+        183,
+        71,
+        31,
+        165,
+        107,
+        38
+      ]
+    },
+    {
+      "name": "Refunded",
+      "discriminator": [
+        35,
+        103,
+        149,
+        246,
+        196,
+        123,
+        221,
+        99
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidRedeemer",
+      "msg": "The provider redeemer is not the original redeemer of this swap"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidSecret",
+      "msg": "The provided secret does not correspond to the secret hash of this swap"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidSponsor",
+      "msg": "The provided sponsor is not the original sponsor of this swap"
+    },
+    {
+      "code": 6003,
+      "name": "RefundBeforeExpiry",
+      "msg": "Attempt to perform a refund before expiry time"
+    }
+  ],
+  "types": [
+    {
+      "name": "Initiated",
+      "docs": [
+        "Represents the initiated state of the swap where the initiator has deposited funds into the vault"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "swap_amount",
+            "docs": [
+              "The quantity of tokens transferred through this atomic swap in base units of the token mint.",
+              "E.g: A quantity of $1 represented by the token \"USDC\" with \"6\" decimals will be represented as 1,000,000."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "expires_in_slots",
+            "docs": [
+              "`expires_in_slots` represents the number of slots after which (non-instant) refunds are allowed"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "initiator",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "redeemer",
+            "type": "pubkey"
+          },
+          {
+            "name": "secret_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "destination_data",
+            "docs": [
+              "Information regarding the destination chain in the atomic swap"
+            ],
+            "type": {
+              "option": "bytes"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "InstantRefunded",
+      "docs": [
+        "Represents the instant refund state of the swap, where the initiator has withdrawn funds the vault",
+        "with the redeemer's consent"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "initiator",
+            "type": "pubkey"
+          },
+          {
+            "name": "secret_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Redeemed",
+      "docs": [
+        "Represents the redeemed state of the swap, where the redeemer has withdrawn funds from the vault"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "initiator",
+            "type": "pubkey"
+          },
+          {
+            "name": "secret",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Refunded",
+      "docs": [
+        "Represents the refund state of the swap, where the initiator has withdrawn funds from the vault past expiry"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "initiator",
+            "type": "pubkey"
+          },
+          {
+            "name": "secret_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "SwapAccount",
+      "docs": [
+        "Stores the state information of the atomic swap on-chain"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "expiry_slot",
+            "docs": [
+              "The exact slot after which (non-instant) refunds are allowed"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "initiator",
+            "docs": [
+              "The initiator of the atomic swap"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "redeemer",
+            "docs": [
+              "The redeemer of the atomic swap"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "secret_hash",
+            "docs": [
+              "The secret hash associated with the atomic swap"
+            ],
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "swap_amount",
+            "docs": [
+              "The quantity tokens to be transferred through this atomic swap",
+              "in base units of the token mint.",
+              "E.g: A quantity of $1 represented by the token \"USDC\" with \"6\" decimals",
+              "must be provided as 1,000,000."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "identity_pda_bump",
+            "docs": [
+              "The bump associated with the identity pda.",
+              "This is needed by the program to authorize token transfers via the token vault."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "sponsor",
+            "docs": [
+              "The entity that paid the rent fees for the creation of this PDA.",
+              "This will be referenced during the refund of the same upon closing this PDA."
+            ],
+            "type": "pubkey"
+          }
+        ]
+      }
+    }
+  ]
+}

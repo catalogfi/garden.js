@@ -1,21 +1,7 @@
 export { Orderbook } from './lib/orderbook/orderbook';
 export type * from './lib/orderbook/orderbook.types';
-export type { Chain, EvmChain, Asset } from './lib/asset';
-export {
-  Chains,
-  BlockchainType,
-  isMainnet,
-  isBitcoin,
-  isEVM,
-  isStarknet,
-  isSolana,
-  getBlockchainType,
-  NetworkType,
-  NativeTokenAddress,
-  isEvmNativeToken,
-  isSolanaNativeToken,
-  isNativeToken,
-} from './lib/asset';
+export type * from './lib/asset';
+export * from './lib/asset';
 
 export {
   WBTCArbitrumLocalnetAsset,

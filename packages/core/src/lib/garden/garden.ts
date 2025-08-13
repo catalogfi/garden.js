@@ -11,16 +11,19 @@ import {
 } from './garden.types';
 import {
   AffiliateFee,
-  AffiliateFeeOptionalChainAsset,
+  Asset,
   BlockchainType,
-  Chain,
-  CreateOrderReqWithStrategyId,
+  ChainAsset,
+  CreateOrderRequest,
   getBlockchainType,
+  getChain,
+  getChainTypeFromAssetChain,
   IOrderbook,
   isBitcoin,
   isMainnet,
-  MatchedOrder,
+  Order,
   Orderbook,
+  toFormattedAssetString,
 } from '@gardenfi/orderbook';
 import {
   APIResponse,
@@ -36,6 +39,8 @@ import {
   AsyncResult,
   Ok,
   Fetcher,
+  ApiKey,
+  sleep,
 } from '@gardenfi/utils';
 import { IQuote } from '../quote/quote.types';
 import {
@@ -94,6 +99,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     redeemTxHash: string;
   }>();
   private _digestKey: DigestKey;
+  private _apiKey: ApiKey | undefined;
   private _api: Api | undefined;
   private isSecretManagementEnabled: boolean = false;
 
@@ -109,10 +115,16 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     } else {
       this._digestKey = config.digestKey;
     }
+    if (typeof config.apiKey === 'string') {
+      this._apiKey = new ApiKey(config.apiKey);
+    } else {
+      this._apiKey = config.apiKey;
+    }
     this._quote = config.quote ?? new Quote(this._api.quote);
     this._auth =
       config.auth ??
-      Siwe.fromDigestKey(new Url(this._api.auth), this._digestKey);
+      Siwe.fromDigestKey(new Url(this._api.auth), this._digestKey) ??
+      this._apiKey;
     this._orderbook =
       config.orderbook ?? new Orderbook(new Url(this._api.orderbook));
     this._evmHTLC = config.htlc.evm;
@@ -139,12 +151,18 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   static fromWallets(config: GardenConfigWithWallets) {
     let digestKey: DigestKey;
+    let apiKey: ApiKey | undefined;
     if (typeof config.digestKey === 'string') {
       const _digestKey = DigestKey.from(config.digestKey);
       if (!_digestKey.ok) throw new Error(_digestKey.error);
       digestKey = _digestKey.val;
     } else {
       digestKey = config.digestKey;
+    }
+    if (typeof config.apiKey === 'string') {
+      apiKey = new ApiKey(config.apiKey);
+    } else {
+      apiKey = config.apiKey;
     }
     const { api } = resolveApiConfig(config.environment);
 
@@ -158,7 +176,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         ? new EvmRelay(
             api.evmRelay,
             config.wallets.evm,
-            Siwe.fromDigestKey(new Url(api.auth), digestKey),
+            apiKey ? apiKey : Siwe.fromDigestKey(new Url(api.auth), digestKey),
           )
         : undefined,
       starknet: config.wallets.starknet
@@ -168,6 +186,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
             config.environment === Environment.MAINNET
               ? Network.MAINNET
               : Network.TESTNET,
+            apiKey ? apiKey : Siwe.fromDigestKey(new Url(api.auth), digestKey),
           )
         : undefined,
       solana: config.wallets.solana
@@ -177,9 +196,18 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
             config.environment === Environment.MAINNET
               ? SolanaRelayerAddress.mainnet
               : SolanaRelayerAddress.testnet,
-            config.solanaProgramAddress
-              ? config.solanaProgramAddress
-              : solanaProgramAddress.mainnet,
+            {
+              native:
+                config.solanaProgramAddress &&
+                config.solanaProgramAddress.native
+                  ? config.solanaProgramAddress.native
+                  : solanaProgramAddress.mainnet.native,
+              spl:
+                config.solanaProgramAddress && config.solanaProgramAddress.spl
+                  ? config.solanaProgramAddress.spl
+                  : solanaProgramAddress.mainnet.spl,
+            },
+            apiKey ? apiKey : Siwe.fromDigestKey(new Url(api.auth), digestKey),
           )
         : undefined,
     };
@@ -232,15 +260,21 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   /**
    * This method takes in the `SwapParams` and returns a placed order
-   * It internally calls `getAttestedQuote`, `createOrder` and `pollOrder`
+   * It internally calls `createOrder` and `pollOrder`
    * @param swapParams
-   * @returns MatchedOrder
+   * @returns Order
    */
-  async swap(params: SwapParams): AsyncResult<MatchedOrder, string> {
-    const validate = await this.validateAndFillParams(params);
-    if (!validate.ok) return Err(validate.error);
+  /**
+   * Executes a swap operation by creating and polling an order, and optionally initiating the HTLC
+   * on the appropriate chain. Handles all error cases robustly and ensures proper flow.
+   * @param params SwapParams
+   * @returns AsyncResult<Order, string>
+   */
+  async swap(params: SwapParams): AsyncResult<Order, string> {
+    const validation = await this.validateAndFillParams(params);
+    if (!validation.ok) return Err(validation.error);
 
-    const { sendAddress, receiveAddress } = validate.val;
+    const { sendAddress, receiveAddress } = validation.val;
 
     const nonce = Date.now().toString();
     let secretHash: string | undefined;
@@ -251,83 +285,133 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       secretHash = secrets.val.secretHash;
     }
 
-    const { strategyId, btcAddress } = params.additionalData;
+    const { btcAddress } = params.additionalData || {};
 
-    const isSourceBitcoin = isBitcoin(params.fromAsset.chain);
-    const isDestBitcoin = isBitcoin(params.toAsset.chain);
-    const isAnyChainBitcoin = isSourceBitcoin || isDestBitcoin;
+    const isSourceBitcoin = isBitcoin(getChain(params.fromAsset));
+    const isDestinationBitcoin = isBitcoin(getChain(params.toAsset));
 
-    if (!this.isSecretManagementEnabled && isAnyChainBitcoin && !btcAddress) {
-      return Err(
-        'Bitcoin optional recipient is mandatory when secret management is enabled and any chain is Bitcoin',
-      );
-    }
-
-    const additionalData = {
-      strategy_id: strategyId,
-      ...(btcAddress && {
-        bitcoin_optional_recipient: btcAddress,
-      }),
-    };
-
-    const initiatorAndDestinationAddress = {
-      ...(!this.isSecretManagementEnabled && isSourceBitcoin
-        ? {}
-        : { initiator_source_address: sendAddress }),
-
-      ...(!this.isSecretManagementEnabled && isDestBitcoin
-        ? {}
-        : { initiator_destination_address: receiveAddress }),
+    const orderRequest: CreateOrderRequest = {
+      source: {
+        asset: toFormattedAssetString(params.fromAsset),
+        owner: sendAddress,
+        delegate: isSourceBitcoin ? btcAddress ?? null : null,
+        amount: params.sendAmount,
+      },
+      destination: {
+        asset: toFormattedAssetString(params.toAsset),
+        owner: receiveAddress,
+        delegate: isDestinationBitcoin ? btcAddress ?? null : null,
+        amount: params.receiveAmount,
+      },
+      nonce: Number(nonce),
       ...(this.isSecretManagementEnabled && secretHash
-        ? { secret_hash: trim0x(secretHash) }
+        ? {
+            secret_hash: trim0x(secretHash),
+          }
         : {}),
-    };
-
-    const order: CreateOrderReqWithStrategyId = {
-      source_chain: params.fromAsset.chain,
-      destination_chain: params.toAsset.chain,
-      source_asset: params.fromAsset.atomicSwapAddress,
-      destination_asset: params.toAsset.atomicSwapAddress,
-      source_amount: params.sendAmount,
-      destination_amount: params.receiveAmount,
-      nonce: nonce,
-      ...initiatorAndDestinationAddress,
-      additional_data: additionalData,
       affiliate_fees: this.withDefaultAffiliateFees(params.affiliateFee),
+      slippage: 50,
     };
-    console.log('Creating order', order);
-    const createOrderRes = await this._orderbook.createOrder(order, this.auth);
+    const createOrderRes = await this._orderbook.createOrder(
+      orderRequest,
+      this._auth,
+    );
     if (!createOrderRes.ok) return Err(createOrderRes.error);
 
-    return Ok(createOrderRes.val);
+    const orderRes = await this.pollOrder(createOrderRes.val.order_id);
+    if (!orderRes.ok) return Err(orderRes.error);
+
+    const chainType = getChainTypeFromAssetChain(orderRequest.source.asset);
+
+    switch (chainType) {
+      case BlockchainType.EVM:
+        if (
+          !this._evmHTLC ||
+          typeof this._evmHTLC.initiateWithCreateOrderResponse !== 'function' ||
+          createOrderRes.val.type !== BlockchainType.EVM
+        ) {
+          return Err(
+            'EVM HTLC is not initialized, does not support initiation, or order type is not EVM',
+          );
+        }
+        {
+          const evmInitRes =
+            await this._evmHTLC.initiateWithCreateOrderResponse(
+              createOrderRes.val,
+            );
+          console.log('evmInitRes :', evmInitRes);
+          if (!evmInitRes.ok)
+            return Err(`EVM HTLC initiation failed: ${evmInitRes.error}`);
+        }
+        break;
+      case BlockchainType.Solana:
+        if (
+          !this._solanaHTLC ||
+          typeof this._solanaHTLC.initiateWithCreateOrderResponse !==
+            'function' ||
+          createOrderRes.val.type !== BlockchainType.Solana
+        ) {
+          return Err(
+            'Solana HTLC is not initialized or does not support initiation',
+          );
+        }
+        {
+          const solanaInitRes =
+            await this._solanaHTLC.initiateWithCreateOrderResponse(
+              createOrderRes.val,
+            );
+          if (!solanaInitRes.ok)
+            return Err(`Solana HTLC initiation failed: ${solanaInitRes.error}`);
+        }
+        break;
+      case BlockchainType.Starknet:
+        if (
+          !this._starknetHTLC ||
+          typeof this._starknetHTLC.initiateWithCreateOrderResponse !==
+            'function' ||
+          createOrderRes.val.type !== BlockchainType.Starknet
+        ) {
+          return Err(
+            'Starknet HTLC is not initialized or does not support initiation',
+          );
+        }
+        {
+          const starknetInitRes =
+            await this._starknetHTLC.initiateWithCreateOrderResponse(
+              createOrderRes.val,
+            );
+          if (!starknetInitRes.ok)
+            return Err(
+              `Starknet HTLC initiation failed: ${starknetInitRes.error}`,
+            );
+        }
+        break;
+      default:
+        return Err(`Unsupported chain type: ${chainType}`);
+    }
+
+    return Ok(orderRes.val);
   }
 
   private withDefaultAffiliateFees(
-    list: AffiliateFeeOptionalChainAsset[] | undefined,
+    list: AffiliateFee[] | undefined,
   ): AffiliateFee[] {
     return (list ?? []).map((fee) => ({
       fee: fee.fee,
       address: fee.address,
-      chain: fee.chain ?? DEFAULT_AFFILIATE_ASSET.chain,
       asset: fee.asset ?? DEFAULT_AFFILIATE_ASSET.asset,
     }));
   }
 
   private async validateAndFillParams(params: SwapParams) {
-    if (!params.additionalData.strategyId) return Err('StrategyId is required');
-
     if (!params.fromAsset || !params.toAsset)
       return Err('Source and destination assets are required for swap');
 
     if (
-      params.fromAsset.chain === params.toAsset.chain &&
-      params.fromAsset.atomicSwapAddress === params.toAsset.atomicSwapAddress
-    )
-      return Err('Source and destination assets cannot be the same');
-
-    if (
-      (isMainnet(params.fromAsset.chain) && !isMainnet(params.toAsset.chain)) ||
-      (!isMainnet(params.fromAsset.chain) && isMainnet(params.toAsset.chain))
+      (isMainnet(getChain(params.fromAsset)) &&
+        !isMainnet(getChain(params.toAsset))) ||
+      (!isMainnet(getChain(params.fromAsset)) &&
+        isMainnet(getChain(params.toAsset)))
     )
       return Err(
         'Both assets should be on the same network (either mainnet or testnet)',
@@ -342,17 +426,20 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     if (inputAmount < outputAmount)
       return Err('Send amount should be greater than receive amount');
 
-    if (isBitcoin(params.fromAsset.chain) || isBitcoin(params.toAsset.chain)) {
+    if (
+      isBitcoin(getChain(params.fromAsset)) ||
+      isBitcoin(getChain(params.toAsset))
+    ) {
       if (!params.additionalData.btcAddress)
         return Err(
           'btcAddress in additionalData is required if source or destination chain is bitcoin, it is used as refund or redeem address.',
         );
     }
 
-    const sendAddress = await this.getAddresses(params.fromAsset.chain);
+    const sendAddress = await this.getAddresses(params.fromAsset);
     if (!sendAddress.ok) return Err(sendAddress.error);
 
-    const receiveAddress = await this.getAddresses(params.toAsset.chain);
+    const receiveAddress = await this.getAddresses(params.toAsset);
     if (!receiveAddress.ok) return Err(receiveAddress.error);
 
     return Ok({
@@ -361,7 +448,8 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     });
   }
 
-  private async getAddresses(chain: Chain) {
+  private async getAddresses(asset: Asset | ChainAsset) {
+    const chain = getChain(asset);
     const blockChianType = getBlockchainType(chain);
     switch (blockChianType) {
       case BlockchainType.EVM:
@@ -403,15 +491,40 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     return Ok(amountBigInt);
   }
 
+  private async pollOrder(createOrderID: string) {
+    let orderRes = await this._orderbook.getOrder(createOrderID);
+    let attempts = 0;
+
+    while (attempts < this.getOrderThreshold) {
+      await sleep(1000);
+      attempts++;
+
+      if (!orderRes.ok) {
+        if (!orderRes.error.includes('result is undefined')) {
+          return Err(orderRes.error);
+        }
+      } else if (
+        orderRes.val &&
+        orderRes.val.order_id.toLowerCase() === createOrderID.toLowerCase()
+      ) {
+        return Ok(orderRes.val);
+      }
+
+      orderRes = await this._orderbook.getOrder(createOrderID);
+    }
+
+    return Err(`Order not found, createOrder id: ${createOrderID}`);
+  }
+
   async execute(interval: number = 5000): Promise<() => void> {
     return await this._orderbook.subscribeOrders(
-      this._digestKey.userId,
-      true,
+      '0xA39ABb978cfd2ba459163ad1EaB6E8940Fbf4359',
       interval,
       async (pendingOrders) => {
         const ordersWithStatus = await this.assignStatus(pendingOrders.data);
+        console.log('digestkey', this._digestKey.userId);
         if (!ordersWithStatus.ok) return;
-
+        console.log('orders with status', ordersWithStatus);
         this.emit('onPendingOrdersChanged', ordersWithStatus.val);
         if (pendingOrders.data.length === 0) return;
 
@@ -466,7 +579,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           switch (orderAction) {
             case OrderActions.Redeem: {
               const secrets = await this._secretManager.generateSecret(
-                order.create_order.nonce,
+                order.nonce,
               );
               if (!secrets.ok) {
                 this.emit('error', order, secrets.error);
@@ -557,11 +670,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     );
   }
 
-  private async solRedeem(order: MatchedOrder, secret: string) {
-    this.emit('log', order.create_order.create_id, 'executing sol redeem');
+  private async solRedeem(order: Order, secret: string) {
+    this.emit('log', order.order_id, 'executing sol redeem');
     const cache = this.orderExecutorCache.get(order, OrderActions.Redeem);
     if (cache) {
-      this.emit('log', order.create_order.create_id, 'already redeemed');
+      this.emit('log', order.order_id, 'already redeemed');
       return;
     }
 
@@ -591,11 +704,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     }
   }
 
-  private async evmRedeem(order: MatchedOrder, secret: string): Promise<void> {
-    this.emit('log', order.create_order.create_id, 'executing evm redeem');
+  private async evmRedeem(order: Order, secret: string): Promise<void> {
+    this.emit('log', order.order_id, 'executing evm redeem');
     const cache = this.orderExecutorCache.get(order, OrderActions.Redeem);
     if (cache) {
-      this.emit('log', order.create_order.create_id, 'already redeemed');
+      this.emit('log', order.order_id, 'already redeemed');
       return;
     }
 
@@ -622,11 +735,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this.emit('success', order, OrderActions.Redeem, res.val);
   }
 
-  private async starknetRedeem(order: MatchedOrder, secret: string) {
-    this.emit('log', order.create_order.create_id, 'executing starknet redeem');
+  private async starknetRedeem(order: Order, secret: string) {
+    this.emit('log', order.order_id, 'executing starknet redeem');
     const cache = this.orderExecutorCache.get(order, OrderActions.Redeem);
     if (cache) {
-      this.emit('log', order.create_order.create_id, 'already redeemed');
+      this.emit('log', order.order_id, 'already redeemed');
       return;
     }
     if (!this._starknetHTLC) {
@@ -654,10 +767,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   private async btcRedeem(
     wallet: IBitcoinWallet,
-    order: MatchedOrder,
+    order: Order,
     secret: string,
   ) {
-    const _cache = this.bitcoinRedeemCache.get(order.create_order.create_id);
+    const _cache = this.bitcoinRedeemCache.get(order.order_id);
     const fillerInitTx = order.destination_swap.initiate_tx_hash
       .split(',')
       .at(-1)
@@ -672,23 +785,19 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     if (_cache) {
       if (_cache.redeemedFromUTXO && _cache.redeemedFromUTXO !== fillerInitTx) {
         rbf = true;
-        this.emit('log', order.create_order.create_id, 'rbf btc redeem');
+        this.emit('log', order.order_id, 'rbf btc redeem');
       } else if (
         _cache.redeemedAt &&
         Date.now() - _cache.redeemedAt > 1000 * 60 * 15 // 15 minutes
       ) {
         this.emit(
           'log',
-          order.create_order.create_id,
+          order.order_id,
           'redeem not confirmed in last 15 minutes',
         );
         rbf = true;
       } else {
-        this.emit(
-          'log',
-          order.create_order.create_id,
-          'btcRedeem: already redeemed',
-        );
+        this.emit('log', order.order_id, 'btcRedeem: already redeemed');
         return;
       }
     } else if (
@@ -709,11 +818,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           }
         }
         if (isValidRedeem) {
-          this.emit(
-            'log',
-            order.create_order.create_id,
-            'already a valid redeem',
-          );
+          this.emit('log', order.order_id, 'already a valid redeem');
           let redeemedAt = 0;
           try {
             const [_redeemedAt] = await (
@@ -725,7 +830,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
             redeemedAt = Date.now();
           }
 
-          this.bitcoinRedeemCache.set(order.create_order.create_id, {
+          this.bitcoinRedeemCache.set(order.order_id, {
             redeemedFromUTXO: fillerInitTx,
             redeemedAt,
             redeemTxHash: order.destination_swap.redeem_tx_hash,
@@ -743,39 +848,35 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       }
     }
 
-    this.emit('log', order.create_order.create_id, 'executing btc redeem');
+    this.emit('log', order.order_id, 'executing btc redeem');
     try {
       const bitcoinExecutor = await GardenHTLC.from(
         wallet as IBitcoinWallet,
         Number(order.destination_swap.amount),
-        order.create_order?.secret_hash || '',
+        order.source_swap.secret_hash,
         toXOnly(order.destination_swap.initiator),
         toXOnly(order.destination_swap.redeemer),
         order.destination_swap.timelock,
         rbf ? [fillerInitTx] : [],
       );
+      const isSourceBitcoin = isBitcoin(order.source_swap.chain);
       const redeemHex = await bitcoinExecutor.getRedeemHex(
         trim0x(secret),
-        order.create_order.additional_data?.bitcoin_optional_recipient,
+        isSourceBitcoin
+          ? order.source_swap.delegate
+          : order.destination_swap.delegate,
       );
-      const res = await this.broadcastRedeemTx(
-        redeemHex,
-        order.create_order.create_id,
-      );
+      const res = await this.broadcastRedeemTx(redeemHex, order.order_id);
       if (!res.ok) {
         this.emit('error', order, res.error || 'Failed to broadcast redeem tx');
         return;
       }
 
       if (rbf) {
-        this.emit(
-          'log',
-          order.create_order.create_id,
-          'rbf: btc redeem success',
-        );
+        this.emit('log', order.order_id, 'rbf: btc redeem success');
         this.emit('rbf', order, res.val);
       } else this.emit('success', order, OrderActions.Redeem, res.val);
-      this.bitcoinRedeemCache.set(order.create_order.create_id, {
+      this.bitcoinRedeemCache.set(order.order_id, {
         redeemedFromUTXO: fillerInitTx,
         redeemedAt: Date.now(),
         redeemTxHash: res.val,
@@ -785,25 +886,23 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     }
   }
 
-  private async btcRefund(wallet: IBitcoinWallet, order: MatchedOrder) {
+  private async btcRefund(wallet: IBitcoinWallet, order: Order) {
     if (this.orderExecutorCache.get(order, OrderActions.Refund)) {
       return;
     }
 
-    this.emit('log', order.create_order.create_id, 'executing btc refund');
+    this.emit('log', order.order_id, 'executing btc refund');
 
     try {
       const bitcoinExecutor = await GardenHTLC.from(
         wallet as IBitcoinWallet,
         Number(order.source_swap.amount),
-        order.create_order?.secret_hash || '',
+        order.source_swap.secret_hash,
         toXOnly(order.source_swap.initiator),
         toXOnly(order.source_swap.redeemer),
         order.source_swap.timelock,
       );
-      const res = await bitcoinExecutor.refund(
-        order.create_order.additional_data?.bitcoin_optional_recipient,
-      );
+      const res = await bitcoinExecutor.refund(order.source_swap.delegate);
       this.orderExecutorCache.set(order, OrderActions.Refund, res);
       this.emit('success', order, OrderActions.Refund, res);
     } catch (error) {
@@ -811,20 +910,19 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     }
   }
 
-  private async postRefundSACP(order: MatchedOrder, wallet: IBitcoinWallet) {
-    const cachedOrder = this.refundSacpCache.get(order.create_order.create_id);
+  private async postRefundSACP(order: Order, wallet: IBitcoinWallet) {
+    const cachedOrder = this.refundSacpCache.get(order.order_id);
     if (cachedOrder?.initTxHash === order.source_swap.initiate_tx_hash) return;
 
     const bitcoinExecutor = await GardenHTLC.from(
       wallet,
       Number(order.source_swap.amount),
-      order.create_order?.secret_hash || '',
+      order.source_swap.secret_hash,
       toXOnly(order.source_swap.initiator),
       toXOnly(order.source_swap.redeemer),
       order.source_swap.timelock,
     );
-    const userBTCAddress =
-      order.create_order.additional_data.bitcoin_optional_recipient;
+    const userBTCAddress = order.source_swap.delegate;
     if (!userBTCAddress) return;
 
     try {
@@ -845,7 +943,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         ),
         {
           body: JSON.stringify({
-            order_id: order.create_order.create_id,
+            order_id: order.order_id,
           }),
           headers: {
             'Content-Type': 'application/json',
@@ -866,7 +964,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         await bitcoinExecutor.generateInstantRefundSACPWithHash(hash.result);
 
       const url = new Url(this._api.orderbook).endpoint(
-        'relayer/bitcoin/instant-refund',
+        'orders/bitcoin/' + order.order_id + '/instant-refund',
       );
 
       const res = await Fetcher.post<APIResponse<string>>(url, {
@@ -875,12 +973,12 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           ...authHeaders.val,
         },
         body: JSON.stringify({
-          order_id: order.create_order.create_id,
+          order_id: order.order_id,
           signatures: signatures,
         }),
       });
       if (res.status === 'Ok') {
-        this.refundSacpCache.set(order.create_order.create_id, {
+        this.refundSacpCache.set(order.order_id, {
           initTxHash: order.source_swap.initiate_tx_hash,
         });
       }
@@ -890,7 +988,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     }
   }
 
-  private async assignStatus(orders: MatchedOrder[]) {
+  private async assignStatus(orders: Order[]) {
     if (orders.length === 0) return Ok([]);
 
     const blockNumbers = await this._blockNumberFetcher?.fetchBlockNumbers();

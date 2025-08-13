@@ -1,6 +1,6 @@
 import { web3, BN } from '@coral-xyz/anchor';
 import { hex } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
-import { MatchedOrder } from '@gardenfi/orderbook';
+import { Order } from '@gardenfi/orderbook';
 
 /**
  * A Swap configuration in Solana
@@ -27,8 +27,8 @@ export class SwapConfig {
     expiresIn: number,
   ) {
     try {
-      this.swapId = [...hex.decode(swapId)];
-      this.secretHash = [...hex.decode(secretHash)];
+      this.swapId = Array.from(Buffer.from(swapId, 'hex'));
+      this.secretHash = Array.from(Buffer.from(secretHash, 'hex'));
     } catch (cause) {
       throw new Error('Error decoding swapId or secretHash', { cause });
     }
@@ -58,9 +58,9 @@ export class SwapConfig {
 
   /**
    * Constructs a SwapConfig from a matched order object with Solana as a source swap
-   * @param order - The MatchedOrder with a Solana as source swap
+   * @param order - The Order with a Solana as source swap
    */
-  static from(order: MatchedOrder): SwapConfig {
+  static from(order: Order): SwapConfig {
     let swap;
     if (order.source_swap.chain.includes('solana')) swap = order.source_swap;
     else if (order.destination_swap.chain.includes('solana'))
