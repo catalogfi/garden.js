@@ -154,14 +154,6 @@ export const isStarknet = (chain: Chain) => {
   );
 };
 
-export const getBlockchainType = (chain: Chain) => {
-  if (isBitcoin(chain)) return BlockchainType.Bitcoin;
-  if (isEVM(chain)) return BlockchainType.EVM;
-  if (isSolana(chain)) return BlockchainType.Solana;
-  if (isStarknet(chain)) return BlockchainType.Starknet;
-  throw new Error('Invalid or unsupported chain');
-};
-
 export const NativeTokenAddress = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
 
 export const isEvmNativeToken = (chain: Chain, tokenAddress: string) => {
@@ -205,6 +197,14 @@ export const fromFormattedAssetString = (
     chain: chain as Chain,
     symbol,
   };
+};
+
+export const getBlockchainType = (chain: Chain) => {
+  if (isBitcoin(chain)) return BlockchainType.Bitcoin;
+  if (isEVM(chain)) return BlockchainType.EVM;
+  if (isSolana(chain)) return BlockchainType.Solana;
+  if (isStarknet(chain)) return BlockchainType.Starknet;
+  throw new Error('Invalid or unsupported chain');
 };
 
 export const getChainsFromOrder = (
