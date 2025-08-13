@@ -56,13 +56,13 @@ export const ParseOrderStatus = (
   if (destSwapStatus === SwapStatus.InitiateDetected)
     return OrderStatus.CounterPartyInitiateDetected;
 
-  // Should be confirmed 12 hours before the deadline
-  if (isExpired(attestedDeadlineUnixTime, 12))
+  // Initiate should be confirmed before the deadline
+  if (isExpired(attestedDeadlineUnixTime, 0))
     return OrderStatus.DeadLineExceeded;
   if (sourceSwapStatus === SwapStatus.Initiated) return OrderStatus.Initiated;
 
-  //should initiate before 1 hour of deadline in attested quote
-  if (isExpired(attestedDeadlineUnixTime, 1))
+  //Initiate detection should be before the deadline in attested quote. Deadline is one hour after the order is created.
+  if (isExpired(attestedDeadlineUnixTime, 0))
     return OrderStatus.DeadLineExceeded;
   if (sourceSwapStatus === SwapStatus.InitiateDetected)
     return OrderStatus.InitiateDetected;
