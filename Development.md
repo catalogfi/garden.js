@@ -1,19 +1,23 @@
-
 ## Development Workflow
 
 ### Quick Start
 
 #### Setup Development Environment
+
 ```bash
 cd /path/to/garden.js
 yarn link:all /path/to/your/project
 ```
 
+**Note**: If no target project path is provided, the script will default to `../garden-kiosk` relative to the current directory.
+
 #### Development
+
 - Make changes in garden.js source files
 - Changes immediately reflect in your project
 
 #### Cleanup
+
 ```bash
 cd /path/to/garden.js
 yarn unlink:all
@@ -24,30 +28,37 @@ yarn unlink:all
 ### Detailed Workflow
 
 #### Step 1: Set Up Development Environment (One Command)
+
 ```bash
 cd /path/to/garden.js
 yarn link:all /path/to/your/project
 ```
 
+**Default Target**: If no target project path is specified, the script defaults to `../garden-kiosk` relative to the current directory.
+
 This single command will:
+
 - Automatically detect all packages in `packages/` directory (excluding `test`)
 - Link all packages in garden.js
 - Set up portal links in your project
 - Install dependencies in your project
 
 #### Step 2: Development Workflow
+
 - Make changes in garden.js source files
 - Save files
 - Changes immediately reflect in your project
 - No need to run `yarn install` or rebuild packages
 
 #### Step 3: Clean Up Development Environment (One Command)
+
 ```bash
 cd /path/to/garden.js
 yarn unlink:all
 ```
 
 This single command will:
+
 - Unlink all packages globally
 - Restore garden.js to production mode
 - Revert portal resolutions in your project
@@ -59,7 +70,9 @@ This single command will:
 
 **What the scripts do:**
 
-1. **`yarn link:all /path/to/project`** (Dynamic script):
+1. **`yarn link:all [path/to/project]`** (Dynamic script):
+
+   - **Target Project**: Accepts an optional target project path. If not provided, defaults to `../garden-kiosk`
    - Automatically detects all packages in `packages/` directory
    - Reads package names from each package's `package.json`
    - Modifies each package's `package.json` to point to `./src/index.ts` (source files)
@@ -78,6 +91,7 @@ This single command will:
    - Cleans up all backup files
 
 **Key Features:**
+
 - **Dynamic Package Detection**: Automatically finds all packages (excluding `test`)
 - **Flexible Naming**: Supports any package directory name
 - **Automatic Setup**: One command handles everything
