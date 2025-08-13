@@ -43,18 +43,17 @@ export class Orderbook implements IOrderbook {
     order: CreateOrderRequest,
     auth: IAuth,
   ): AsyncResult<CreateOrderResponse, string> {
-    const headers = await auth.getAuthHeaders();
-    if (headers.error) {
-      return Err(headers.error);
-    }
     try {
+      const headers = await auth.getAuthHeaders();
+      if (headers.error) {
+        return Err(headers.error);
+      }
       const res = await Fetcher.post<APIResponse<CreateOrderResponse>>(
         this.Url.endpoint('/v2/orders'),
         {
           body: JSON.stringify(order),
           headers: {
-            'garden-app-id':
-              'f242ea49332293424c96c562a6ef575a819908c878134dcb4fce424dc84ec796',
+            ...headers.val,
             'Content-Type': 'application/json',
           },
         },

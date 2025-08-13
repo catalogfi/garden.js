@@ -356,10 +356,10 @@ export class SolanaRelay implements ISolanaHTLC {
    */
   async redeem(order: Order, secret: string): AsyncResult<string, string> {
     try {
-      const _secret = validateSecret(secret);
-
       const headers = await this.auth.getAuthHeaders();
       if (!headers.ok) return Err(headers.error);
+
+      const _secret = validateSecret(secret);
       const res: APIResponse<string> = await Fetcher.patch<APIResponse<string>>(
         this.url
           .endpoint('/v2/orders')
@@ -370,8 +370,7 @@ export class SolanaRelay implements ISolanaHTLC {
             secret: Buffer.from(_secret).toString('hex'),
           }),
           headers: {
-            'garden-app-id':
-              'f242ea49332293424c96c562a6ef575a819908c878134dcb4fce424dc84ec796',
+            ...headers.val,
             'Content-Type': 'application/json',
           },
         },
@@ -402,6 +401,9 @@ export class SolanaRelay implements ISolanaHTLC {
     if (!this.relayer) return Err('No relayer address');
     const { versioned_tx, order_id } = order;
 
+    const headers = await this.auth.getAuthHeaders();
+    if (!headers.ok) return Err(headers.error);
+
     try {
       const orderResult = await this.orderbook.getOrder(order_id);
       if (orderResult.error || !orderResult.val) {
@@ -425,11 +427,6 @@ export class SolanaRelay implements ISolanaHTLC {
       const signatureBase64 = Buffer.from(signedTx.serialize()).toString(
         'base64',
       );
-      const headers = {
-        'Content-Type': 'application/json',
-        'garden-app-id':
-          'f242ea49332293424c96c562a6ef575a819908c878134dcb4fce424dc84ec796',
-      };
 
       const res = await Fetcher.patch<APIResponse<string>>(
         this.url
@@ -438,7 +435,10 @@ export class SolanaRelay implements ISolanaHTLC {
           .addSearchParams({ action: 'initiate' }),
         {
           body: JSON.stringify({ serialized_tx: signatureBase64 }),
-          headers,
+          headers: {
+            ...headers.val,
+            'Content-Type': 'application/json',
+          },
         },
       );
 

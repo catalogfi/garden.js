@@ -1,12 +1,6 @@
 import { Garden } from '../garden';
 import { Order, SupportedAssets } from '@gardenfi/orderbook';
-import {
-  Environment,
-  with0x,
-  Network,
-  DigestKey,
-  sleep,
-} from '@gardenfi/utils';
+import { Environment, with0x, Network, sleep } from '@gardenfi/utils';
 import { RpcProvider, Account } from 'starknet';
 import { describe, expect, it } from 'vitest';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -25,9 +19,9 @@ describe('StarkNet Integration Tests', () => {
     '0x03eb1a8fc77eac663580829c3cfc3c3f8d495f16366af1cf42a7f4460cfbcd97';
   const STARKNET_ADDRESS =
     '0x035c50625822eab248eb63f9198a0e4bdd02627526a4edc47d89ce678fe47b16';
-  // const DIGEST_KEY =
-  //   '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857';
-  const DIGEST_KEY = DigestKey.generateRandom().val;
+  const DIGEST_KEY =
+    '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857';
+  // const DIGEST_KEY = DigestKey.generateRandom().val;
   const TEST_RPC_URL = 'https://api.devnet.solana.com';
   const PRIV = [
     232, 233, 3, 253, 26, 253, 143, 149, 62, 236, 184, 209, 212, 87, 145, 32,
@@ -72,7 +66,7 @@ describe('StarkNet Integration Tests', () => {
       starknet: starknetWallet,
       solana: userProvider,
     },
-  }).handleSecretManagement(true);
+  }).handleSecretManagement(false);
 
   const setupEventListeners = (garden: IGardenJS) => {
     garden.on('error', (order, error) => {
@@ -116,66 +110,11 @@ describe('StarkNet Integration Tests', () => {
 
   describe.only('strk-evm swap', async () => {
     it('should create and execute a StarkNet-ETH swap', async () => {
-      // const quoteRes = await garden.quote.getQuote(
-      //   'ethereum_sepolia:0x29C9C37D0Fec7E64AFab0f806c8049d9e2f9B0b6::arbitrum_sepolia:0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
-      //   100000,
-      //   false,
-      //   {
-      //     affiliateFee: 30,
-      //   },
-      // );
-      // console.log('Quote :', quoteRes.val);
-      // console.log('Quote :', quoteRes.error);
-      // console.log('now running attested quote');
-      // const attId: CreateOrderReqWithStrategyId = {
-      //   source_chain: 'arbitrum_sepolia',
-      //   destination_chain: 'starknet_sepolia',
-      //   source_asset: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
-      //   destination_asset:
-      //     '0x2448040b22b27f5a814756e67da005701e525658b162d4f0343d2e011bc6dad',
-      //   initiator_source_address: '0x004Cc75ACF4132Fc08cB6a252E767804F303F729',
-      //   initiator_destination_address:
-      //     '0x004Cc75ACF4132Fc08cB6a252E767804F303F729',
-      //   source_amount: '10000',
-      //   destination_amount: '9920',
-      //   fee: '1',
-      //   nonce: '1745237807667',
-      //   timelock: 7200,
-      //   secret_hash:
-      //     '3bc8a2174da66a351ec0342003e537c8f87ab910b0c9f096962fc77acc7a2a47',
-      //   min_destination_confirmations: 0,
-      //   integrator_fees: [
-      //     {
-      //       address: '0x004Cc75ACF4132Fc08cB6a252E767804F303F729',
-      //       chain: 'arbitrum_sepolia',
-      //       asset: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
-      //       fee: 30,
-      //     },
-      //     {
-      //       address: '0x004Cc75ACF4132Fc08cB6a252E767804F303F729',
-      //       chain: 'arbitrum_sepolia',
-      //       asset: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
-      //       fee: 20,
-      //     },
-      //   ],
-      //   additional_data: {
-      //     strategy_id: 'ssabasae',
-      //   },
-      // };
-
-      // const attRes = await garden.quote.getAttestedQuote(attId);
-      // console.log('Attested Quote :', attRes.val);
-      // console.log('Attested Quote :', attRes.error);
-
-      // console.log("now it's time to create order");
-      // const createRes = await garden.orderbook.createOrder(attRes.val, auth);
-      // console.log('Order created :', createRes.val);
-      // console.log('Order created :', createRes.error);
       const order: SwapParams = {
         fromAsset: {
           name: 'Wrapped Bitcoin',
           decimals: 8,
-          symbol: 'SOL',
+          symbol: 'USDC',
           chain: 'solana_testnet',
           logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
           tokenAddress: '0xD8a6E3FCA403d79b6AD6216b60527F51cc967D39',

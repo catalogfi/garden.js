@@ -216,6 +216,7 @@ export class StarknetRelay implements IStarknetHTLC {
     try {
       const headers = await this.auth.getAuthHeaders();
       if (!headers.ok) return Err(headers.error);
+
       const res = await Fetcher.patch<APIResponse<string>>(
         this.url
           .endpoint('/v2/orders')
@@ -226,8 +227,7 @@ export class StarknetRelay implements IStarknetHTLC {
             secret: trim0x(secret),
           }),
           headers: {
-            'garden-app-id':
-              'f242ea49332293424c96c562a6ef575a819908c878134dcb4fce424dc84ec796',
+            ...headers.val,
             'Content-Type': 'application/json',
           },
           retryCount: 10,
@@ -277,6 +277,8 @@ export class StarknetRelay implements IStarknetHTLC {
   async initiateWithCreateOrderResponse(
     order: StarknetOrderResponse,
   ): AsyncResult<string, string> {
+    const headers = await this.auth.getAuthHeaders();
+    if (!headers.ok) return Err(headers.error);
     if (!this.account.address) return Err('No account address');
     const approvalRes = await this.executeApprovalTransaction(order);
     if (approvalRes.error) return Err(approvalRes.error);
@@ -286,11 +288,7 @@ export class StarknetRelay implements IStarknetHTLC {
     if (formattedSignature.error) {
       return Err(formattedSignature.error);
     }
-    const headers: Record<string, string> = {
-      'garden-app-id':
-        'f242ea49332293424c96c562a6ef575a819908c878134dcb4fce424dc84ec796',
-      'Content-Type': 'application/json',
-    };
+
     const res = await Fetcher.patch<APIResponse<string>>(
       this.url
         .endpoint('/v2/orders')
@@ -302,7 +300,10 @@ export class StarknetRelay implements IStarknetHTLC {
             ? formattedSignature.val.join(',')
             : formattedSignature.val,
         }),
-        headers,
+        headers: {
+          ...headers.val,
+          'Content-Type': 'application/json',
+        },
       },
     );
     if (res.error) return Err(res.error);

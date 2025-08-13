@@ -332,8 +332,7 @@ export class EvmRelay implements IEVMHTLC {
             secret: trim0x(secret),
           }),
           headers: {
-            'garden-app-id':
-              'f242ea49332293424c96c562a6ef575a819908c878134dcb4fce424dc84ec796',
+            ...headers.val,
             'Content-Type': 'application/json',
           },
         },

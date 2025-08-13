@@ -518,13 +518,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   async execute(interval: number = 5000): Promise<() => void> {
     return await this._orderbook.subscribeOrders(
-      '0xA39ABb978cfd2ba459163ad1EaB6E8940Fbf4359',
+      this.digestKey.userId,
       interval,
       async (pendingOrders) => {
         const ordersWithStatus = await this.assignStatus(pendingOrders.data);
-        console.log('digestkey', this._digestKey.userId);
         if (!ordersWithStatus.ok) return;
-        console.log('orders with status', ordersWithStatus);
         this.emit('onPendingOrdersChanged', ordersWithStatus.val);
         if (pendingOrders.data.length === 0) return;
 
