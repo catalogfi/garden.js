@@ -2,7 +2,7 @@
 
 # Garden SDK
 
-The Garden SDK is a set of typescript packages that allow you to bridge Bitcoin to EVM-based chains. It is an abstraction over the Garden APIs, allowing developers to easily integrate Garden components into their dApps.
+The Garden SDK is a set of typescript packages that allow you to bridge Bitcoin across multiple blockchain networks including EVM-based chains, Solana, Starknet, and Sui. It is an abstraction over the Garden APIs, allowing developers to easily integrate Garden components into their dApps.
 
 ## Packages
 
@@ -62,7 +62,7 @@ yarn add @gardenfi/<package_name>
 
     | Type | Purpose | Example |
     |------|---------|---------|
-    | `feat/` | Introducing a new feature | feat/add-wallet-modal |
+    | `feat/` | Introducing a new feature | feat/secret-manager |
     | `fix/` | Bug fix or patch | fix/order-expiry-bug |
     | `chore/` | Minor update, refactor, or cleanup | chore/update-readme |
 
