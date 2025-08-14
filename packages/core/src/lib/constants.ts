@@ -20,7 +20,7 @@ export const API: Record<Environment, Api> = {
     evmRelay: 'https://api.garden.finance/relayer',
     solanaRelay: 'https://solana-relayer.garden.finance/',
     starknetRelay: 'https://api.garden.finance/starknet',
-    suiRelay: '',
+    suiRelay: 'https://sui-relayer-mainnet.garden.finance/',
   },
   testnet: {
     orderbook: 'https://testnet.api.garden.finance/orders',
