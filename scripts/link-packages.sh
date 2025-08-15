@@ -275,7 +275,6 @@ unlink_packages() {
     remove_portal_resolutions
 
     yarn install
-
     print_success "All packages unlinked and restored to production mode!"
 }
 

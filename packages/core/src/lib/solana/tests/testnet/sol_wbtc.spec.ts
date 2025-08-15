@@ -22,83 +22,24 @@ import { SwapParams } from '../../../garden/garden.types';
 // import { SolanaRelayerAddress } from "../../constants";
 // import { skip } from 'node:test';
 import { SolanaRelay } from '../../relayer/solanaRelay';
+import { Asset } from 'gardenfi/orderbook';
 
 // Shared constants
 const TEST_RPC_URL = 'https://api.devnet.solana.com';
-const TEST_ORDERBOOK_STAGE = 'https://testnet.api.garden.finance';
-const TEST_STAGE_AUTH = 'https://testnet.api.garden.finance/auth';
+const TEST_ORDERBOOK_STAGE = 'https://testnet.api.hashira.io';
+const TEST_STAGE_AUTH = 'https://testnet.api.hashira.io/auth';
 // const TEST_BLOCKFETCHER_URL = 'https://info-stage.hashira.io';
-const TEST_STAGE_QUOTE = 'https://testnet.api.garden.finance/quote';
-const TEST_STAGE_EVM_RELAY = 'https://testnet.api.garden.finance/relayer';
-const TEST_SOLANA_RELAY = 'https://solana-relay.garden.finance';
+const TEST_STAGE_QUOTE = 'https://quote-staging.hashira.io/';
+const TEST_STAGE_EVM_RELAY = 'https://testnet.api.hashira.io/relayer';
+const TEST_SOLANA_RELAY = 'https://solana-relayer-staging.hashira.io/';
 
 const TEST_PRIVATE_KEY =
   '9c1508f9071bf5fefc69fbb71c98cd3150a323e953c6979ef8b508f1461dd2e1';
 const PRIV = [
-  73,
-  87,
-  221,
-  5,
-  63,
-  180,
-  104,
-  26,
-  64,
-  41,
-  225,
-  50,
-  165,
-  84,
-  157,
-  74,
-  187,
-  105,
-  53,
-  112,
-  214,
-  236,
-  175,
-  55,
-  86,
-  247,
-  214,
-  120,
-  101,
-  90,
-  62,
-  178,
-  103,
-  156,
-  200,
-  13,
-  24,
-  181,
-  121,
-  93,
-  15,
-  85,
-  202,
-  164,
-  4,
-  30,
-  165,
-  77,
-  244,
-  66,
-  207,
-  78,
-  179,
-  255,
-  45,
-  233,
-  17,
-  131,
-  203,
-  187,
-  120,
-  110,
-  176,
-  172,
+  73, 87, 221, 5, 63, 180, 104, 26, 64, 41, 225, 50, 165, 84, 157, 74, 187, 105,
+  53, 112, 214, 236, 175, 55, 86, 247, 214, 120, 101, 90, 62, 178, 103, 156,
+  200, 13, 24, 181, 121, 93, 15, 85, 202, 164, 4, 30, 165, 77, 244, 66, 207, 78,
+  179, 255, 45, 233, 17, 131, 203, 187, 120, 110, 176, 172,
 ];
 
 // Timeout constants
@@ -131,7 +72,10 @@ function setupGarden(
         solanaProvider,
         new Url(TEST_SOLANA_RELAY),
         'ANUVKxeqaec3bf4DVPqLTnG1PT3Fng56wPcE7LXAb46Q',
-        '6eksgdCnSjUaGQWZ6iYvauv1qzvYPF33RTGTM1ZuyENx',
+        {
+          native: '6eksgdCnSjUaGQWZ6iYvauv1qzvYPF33RTGTM1ZuyENx',
+          spl: '2WXpY8havGjfRxme9LUxtjFHTh1EfU3ur4v6wiK4KdNC',
+        },
       ),
       evm: new EvmRelay(TEST_STAGE_EVM_RELAY, evmClient, auth),
     },
@@ -261,33 +205,46 @@ describe('Swap Tests', () => {
       // Setup Garden instance
       garden = setupGarden(arbitrumWalletClient, userProvider);
     });
-
+    console.log('done garden setup');
     it(
       'should create and execute a SOL->wBTC swap order',
       async () => {
-        // 1. Create order
+        const fromAsset: Asset = {
+          name: 'primary',
+          decimals: 9,
+          symbol: 'SOL',
+          logo: 'https://garden.imgix.net/token-images/wbtc.svg',
+          tokenAddress: 'primary',
+          atomicSwapAddress: '6eksgdCnSjUaGQWZ6iYvauv1qzvYPF33RTGTM1ZuyENx',
+          chain: 'solana_testnet',
+        };
+
+        const toAsset: Asset = {
+          name: 'USD Coin',
+          decimals: 6,
+          symbol: 'USDC',
+          logo: 'https://garden-finance.imgix.net/chain_images/solana.png',
+          tokenAddress: '5JbWjyLdYKTuykpq2itWbdRcZkhK3hs6fiH62pkmLYZi',
+          atomicSwapAddress: '2WXpY8havGjfRxme9LUxtjFHTh1EfU3ur4v6wiK4KdNC',
+          chain: 'solana_testnet',
+        };
+
+        const quote = await garden.quote.getQuoteFromAssets({
+          fromAsset: toAsset,
+          toAsset: fromAsset,
+          amount: 100000000,
+        });
+        console.log('quote response', quote.val?.quotes);
+        console.log('quote error response', quote.error);
+        if (!quote.val) {
+          return Err('Quote response error found');
+        }
         const orderObj: SwapParams = {
-          toAsset: {
-            name: 'Wrapped Bitcoin',
-            decimals: 8,
-            symbol: 'WBTC',
-            logo: 'https://garden.imgix.net/token-images/wbtc.svg',
-            tokenAddress: '0x00ab86f54F436CfE15253845F139955ae0C00bAf',
-            atomicSwapAddress: '0x34ac1D7e13Cc993f76E63e265dcfB31dFE9CF9a4',
-            chain: 'arbitrum_sepolia',
-          },
-          fromAsset: {
-            name: 'primary',
-            decimals: 9,
-            symbol: 'SOL',
-            logo: 'https://garden-finance.imgix.net/chain_images/solana.png',
-            tokenAddress: 'primary',
-            atomicSwapAddress: 'primary',
-            chain: 'solana_testnet',
-          },
-          receiveAmount: '1373',
-          sendAmount: '10000000',
-          additionalData: { strategyId: 'styraa4a' }, //styraa4a //aa4astyr
+          fromAsset: toAsset,
+          toAsset: fromAsset,
+          sendAmount: '100000000',
+          receiveAmount: quote.val.quotes[Object.keys(quote.val.quotes)[0]],
+          additionalData: { strategyId: Object.keys(quote.val.quotes)[0] },
           minDestinationConfirmations: 1,
         };
         console.log('Creating order...', orderObj);
@@ -301,8 +258,9 @@ describe('Swap Tests', () => {
         expect(result.error).toBeFalsy();
         expect(result.val).toBeTruthy();
 
-        order = result.val;
+        order = result.val!;
         console.log('✅ Order created:', order.create_order.create_id);
+        console.log(order);
         if (!garden.solanaHTLC) {
           return Err('EVM Wallet not provided!');
         }
@@ -352,7 +310,7 @@ describe('Swap Tests', () => {
         expect(createResult.error).toBeFalsy();
         expect(createResult.val).toBeTruthy();
 
-        order = createResult.val;
+        order = createResult.val!;
         console.log('✅ Order created:', order.create_order.create_id);
 
         if (!garden.evmHTLC) {

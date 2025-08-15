@@ -102,6 +102,15 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         init_tx_hash = solanaInitRes.val;
         break;
       }
+      case BlockchainType.Sui: {
+        if (!garden.suiHTLC)
+          return Err('Sui HTLC not initialized: Please provide suiHTLC');
+
+        const suiInitRes = await garden.suiHTLC.initiate(order.val);
+        if (!suiInitRes.ok) return Err(suiInitRes.error);
+        init_tx_hash = suiInitRes.val;
+        break;
+      }
       case BlockchainType.Bitcoin:
         init_tx_hash = order.val.source_swap.initiate_tx_hash;
         break;
