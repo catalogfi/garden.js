@@ -18,6 +18,8 @@ import { UnisatProvider } from './providers/unisat/provider';
 import { PhantomProvider } from './providers/phantom/provider';
 import { XverseProvider } from './providers/xverse/provider';
 import { KeplrProvider } from './providers/keplr/provider';
+import { LeapBitcoinProvider } from './providers/leap/leap.types';
+import { LeapProvider } from './providers/leap/provider';
 // import { XdefiProvider } from './providers/xdefi/provider';
 import {
   AvailableWallets,
@@ -44,7 +46,8 @@ declare global {
     };
     keplr?: {
       bitcoin: KeplrBitcoinProvider;
-    }
+    };
+    leapBitcoin?:  LeapBitcoinProvider;
   }
 }
 
@@ -162,6 +165,13 @@ export const BTCWalletProvider = ({
     ) {
       const keplrProvider = new KeplrProvider(window.keplr.bitcoin);
       addToWalletList(keplrProvider);
+    }
+    if (
+      network === Network.MAINNET && 
+      window.leapBitcoin
+    ) {
+      const leapProvider = new LeapProvider(window.leapBitcoin);
+      addToWalletList(leapProvider);
     }
     // if (window.xfi && window.xfi.bitcoin) {
     //   const xdefiProvider = new XdefiProvider(window.xfi.bitcoin);
