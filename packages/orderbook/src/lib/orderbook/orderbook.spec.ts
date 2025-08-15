@@ -73,7 +73,7 @@ describe('orders provider', async () => {
     expectTypeOf(unsubscribe).toEqualTypeOf<() => void>();
   }, 10000);
 
-  test.only('should get orders with options', async () => {
+  test('should get orders with options', async () => {
     const orderResponse = await orderbook.getOrders(
       true,
       {
@@ -88,6 +88,19 @@ describe('orders provider', async () => {
     expect(orderResponse.ok).toBeTruthy();
     const orders = orderResponse.val!.data;
     console.log('orders :', orders[0]);
+  });
+
+  test('should get orders with multiple status filter', async () => {
+    const orderResponse = await orderbook.getOrders(
+      true,
+      {
+        status: ['expired', 'not-initiated'],
+      },
+      undefined,
+    );
+    expect(orderResponse.ok).toBeTruthy();
+    const orders = orderResponse.val!.data;
+    console.log('orders :', orders);
   });
 
   test('order count', async () => {
@@ -231,9 +244,9 @@ test('should search orders', async () => {
 
   const result = await orderbook.getOrders(
     true,
-    {address: '0xccF3d872b01762ABA74b41B1958A9A86EE8f34A3'},
+    { address: '0xccF3d872b01762ABA74b41B1958A9A86EE8f34A3' },
     { page: 1, per_page: 10 },
-    { signal, retryCount: 0 }
+    { signal, retryCount: 0 },
   );
 
   console.log('time taken :', performance.now() - now);
@@ -242,7 +255,7 @@ test('should search orders', async () => {
     type: 'none',
     orders: [],
   };
-}, 10000)
+}, 10000);
 
 // describe('orderbook', async () => {
 //   const OrderbookApi = 'orderbook.garden.finance';
