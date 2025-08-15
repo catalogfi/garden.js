@@ -18,6 +18,7 @@ export enum BlockchainType {
   EVM = 'EVM',
   Solana = 'Solana',
   Starknet = 'Starknet',
+  Sui = 'Sui',
 }
 
 export enum NetworkType {
@@ -66,6 +67,8 @@ export const Chains = {
   botanix: 'botanix',
   bnbchain: 'bnbchain',
   bnbchain_testnet: 'bnbchain_testnet',
+  sui: 'sui',
+  sui_testnet: 'sui_testnet',
 } as const;
 
 export type Chain = keyof typeof Chains;
@@ -81,6 +84,8 @@ export type EvmChain = keyof Omit<
   | 'starknet'
   | 'starknet_devnet'
   | 'starknet_sepolia'
+  | 'sui'
+  | 'sui_testnet'
 >;
 
 export const isMainnet = (chain: Chain) => {
@@ -100,7 +105,8 @@ export const isMainnet = (chain: Chain) => {
     chain === Chains.starknet_devnet ||
     chain === Chains.starknet_sepolia ||
     chain === Chains.hyperliquid_testnet ||
-    chain === Chains.bnbchain_testnet
+    chain === Chains.bnbchain_testnet ||
+    chain === Chains.sui_testnet
   );
 };
 
@@ -152,11 +158,16 @@ export const isStarknet = (chain: Chain) => {
   );
 };
 
+export const isSui = (chain: Chain) => {
+  return chain === Chains.sui || chain === Chains.sui_testnet;
+};
+
 export const getBlockchainType = (chain: Chain) => {
   if (isBitcoin(chain)) return BlockchainType.Bitcoin;
   if (isEVM(chain)) return BlockchainType.EVM;
   if (isSolana(chain)) return BlockchainType.Solana;
   if (isStarknet(chain)) return BlockchainType.Starknet;
+  if (isSui(chain)) return BlockchainType.Sui;
   throw new Error('Invalid or unsupported chain');
 };
 
@@ -173,11 +184,16 @@ export const isSolanaNativeToken = (chain: Chain, tokenAddress: string) => {
   return isSolana(chain) && tokenAddress.toLowerCase() === 'primary';
 };
 
+export const isSuiNativeToken = (chain: Chain, tokenAddress: string) => {
+  return isSui(chain) && tokenAddress.toLowerCase() === '0x2::sui::sui';
+};
+
 export const isNativeToken = (asset: Asset) => {
   return (
     isEvmNativeToken(asset.chain, asset.tokenAddress) ||
     isSolanaNativeToken(asset.chain, asset.tokenAddress) ||
     isBitcoin(asset.chain) ||
+    isSuiNativeToken(asset.chain, asset.tokenAddress) ||
     // Starknet doesn't have a native token
     !isStarknet(asset.chain)
   );

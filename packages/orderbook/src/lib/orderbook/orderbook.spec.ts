@@ -25,14 +25,14 @@ import {
 } from './orderbook.types';
 // import { Asset, Chains } from '../asset';
 
-describe.only('orders provider', async () => {
+describe('orders provider', async () => {
   const orderbookApi = 'https://testnet.api.garden.finance/orders';
   const address = '0xE1CA48fcaFBD42Da402352b645A9855E33C716BE';
   const id = '1d93c7cccbbb5bea0b1f8072e357185780efb5dcbf74e4d8f675219778e1a8b9';
 
   const orderbook = new Orderbook(new Url(orderbookApi));
 
-  test.skip('should get order', async () => {
+  test('should get order', async () => {
     const order = await orderbook.getOrder(id, true);
     console.log('order.val :', order.val);
     expect(order.error).toBeUndefined();
@@ -42,7 +42,7 @@ describe.only('orders provider', async () => {
     }
   });
 
-  test.skip('should get pending orders of a address', async () => {
+  test('should get pending orders of a address', async () => {
     const orders = await orderbook.getMatchedOrders(address, 'pending');
     expect(orders.error).toBeUndefined();
     expect(orders.val?.data.length).toBeGreaterThan(0);
@@ -60,7 +60,7 @@ describe.only('orders provider', async () => {
     }
   });
 
-  test.skip('should subscribe to orders', async () => {
+  test('should subscribe to orders', async () => {
     const unsubscribe = await orderbook.subscribeOrders(
       address,
       true,
@@ -77,10 +77,10 @@ describe.only('orders provider', async () => {
     const orderResponse = await orderbook.getOrders(
       true,
       {
-        address: '0x41154d8D32dA87A7c565e964CD191243B728EDF7',
-        fromChain: 'bitcoin_testnet',
-        status: 'in-progress',
-        toChain: undefined,
+        address: undefined,
+        from_chain: 'bitcoin_testnet',
+        status: undefined,
+        to_chain: undefined,
         tx_hash: undefined,
       },
       undefined,
@@ -124,105 +124,13 @@ describe('AbortController functionality', () => {
     vi.restoreAllMocks();
   });
 
-  test.skip('should accept AbortController in getOrder request', async () => {
-    const abortController = new AbortController();
-    const request: UtilsRequest = {
-      signal: abortController.signal,
-    };
-
-    const order = await orderbook.getOrder(id, true, request);
-    expect(order.error).toBeUndefined();
-    expect(order.val?.create_order.create_id).toEqual(id);
-  });
-
-  test.skip('should accept AbortController in getMatchedOrders request', async () => {
+  test('should handle aborted requests gracefully', async () => {
     const abortController = new AbortController();
     const request: UtilsRequest = {
       signal: abortController.signal,
       retryCount: 0,
     };
 
-    const orders = await orderbook.getMatchedOrders(
-      address,
-      'pending',
-      undefined,
-      request,
-    );
-    expect(orders.error).toBeUndefined();
-    expect(orders.val?.data).toBeDefined();
-  });
-
-  test.skip('should accept AbortController in getUnMatchedOrders request', async () => {
-    const abortController = new AbortController();
-    const request: UtilsRequest = {
-      signal: abortController.signal,
-      retryCount: 0,
-    };
-
-    const orders = await orderbook.getUnMatchedOrders(
-      address,
-      undefined,
-      request,
-    );
-    expect(orders.error).toBeUndefined();
-    expect(orders.val?.data).toBeDefined();
-  });
-
-  test.only('should accept AbortController in getOrders request', async () => {
-    const abortController = new AbortController();
-    const request: UtilsRequest = {
-      signal: abortController.signal,
-      retryCount: 0,
-    };
-
-    const orders = await orderbook.getOrders(true, {}, undefined, request);
-    expect(orders.error).toBeUndefined();
-    expect(orders.val?.data).toBeDefined();
-  });
-
-  test.skip('should accept AbortController in getOrdersCount request', async () => {
-    const abortController = new AbortController();
-    const request: UtilsRequest = {
-      signal: abortController.signal,
-      retryCount: 0,
-    };
-
-    const count = await orderbook.getOrdersCount(address, request);
-    expect(count.error).toBeUndefined();
-    expect(typeof count.val).toBe('number');
-  });
-
-  test.skip('should accept AbortController in subscribeOrders request', async () => {
-    const abortController = new AbortController();
-    const request: UtilsRequest = {
-      signal: abortController.signal,
-      retryCount: 0,
-    };
-
-    const unsubscribe = await orderbook.subscribeOrders(
-      address,
-      true,
-      1000,
-      async (orders) => {
-        expect(orders.data).toBeDefined();
-      },
-      'all',
-      undefined,
-      request,
-    );
-
-    expectTypeOf(unsubscribe).toEqualTypeOf<() => void>();
-    unsubscribe(); // Clean up
-  });
-
-  test.skip('should handle aborted requests gracefully', async () => {
-    const abortController = new AbortController();
-    const request: UtilsRequest = {
-      signal: abortController.signal,
-      retryCount: 0,
-    };
-
-    // Abort the request immediately
     abortController.abort();
 
     const order = await orderbook.getOrder(id, true, request);
@@ -230,7 +138,7 @@ describe('AbortController functionality', () => {
     expect(order.error).toContain('aborted');
   });
 
-  test.skip('should handle custom retry configuration with AbortController', async () => {
+  test('should handle custom retry configuration with AbortController', async () => {
     const abortController = new AbortController();
     const request: UtilsRequest = {
       signal: abortController.signal,
@@ -248,10 +156,9 @@ describe('AbortController functionality', () => {
     expect(orders.val?.data).toBeDefined();
   });
 
-  test.skip('should work with partial request configuration', async () => {
+  test('should work with partial request configuration', async () => {
     const request: UtilsRequest = {
       retryCount: 0,
-      // No signal provided
     };
 
     const order = await orderbook.getOrder(id, true, request);
@@ -299,19 +206,15 @@ describe('AbortController functionality', () => {
       retryCount: 0,
     };
 
-    // Set a timeout to abort the request
     setTimeout(() => {
       abortController.abort();
     }, 100);
 
     const order = await orderbook.getOrder(id, true, request);
-    // The request might complete before timeout or be aborted
-    // Both scenarios should be handled gracefully
     expect(order).toBeDefined();
   });
 
   test('should validate Request type compatibility', () => {
-    // Test that UtilsRequest is compatible with the expected interface
     const request: UtilsRequest = {
       signal: new AbortController().signal,
       retryCount: 0,
@@ -327,6 +230,32 @@ describe('AbortController functionality', () => {
     expect(request.method).toBe('GET');
   });
 });
+
+test('should search orders', async () => {
+  const orderbookApi = 'https://testnet.api.garden.finance/orders';
+  const orderbook = new Orderbook(new Url(orderbookApi));
+  const controller = new AbortController();
+  const signal = controller.signal;
+  const now = performance.now();
+  setTimeout(() => {
+    controller.abort();
+    console.log('aborted');
+  }, 1000);
+
+  const result = await orderbook.getOrders(
+    true,
+    {address: '0xccF3d872b01762ABA74b41B1958A9A86EE8f34A3'},
+    { page: 1, per_page: 10 },
+    { signal, retryCount: 0 }
+  );
+
+  console.log('time taken :', performance.now() - now);
+  console.log('result :', result);
+  return {
+    type: 'none',
+    orders: [],
+  };
+}, 10000)
 
 // describe('orderbook', async () => {
 //   const OrderbookApi = 'orderbook.garden.finance';

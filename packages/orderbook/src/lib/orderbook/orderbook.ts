@@ -105,7 +105,7 @@ export class Orderbook implements IOrderbook {
     try {
       const res = await Fetcher.get<APIResponse<PaginatedData<MatchedOrder>>>(
         url,
-        { ...request },
+        {...request },
       );
 
       if (res.error) return Err(res.error);
@@ -131,7 +131,7 @@ export class Orderbook implements IOrderbook {
     try {
       const res = await Fetcher.get<APIResponse<PaginatedData<CreateOrder>>>(
         url,
-        { ...request },
+        {...request },
       );
 
       if (res.error) return Err(res.error);
@@ -169,7 +169,7 @@ export class Orderbook implements IOrderbook {
     try {
       const res = await Fetcher.get<
         APIResponse<PaginatedData<T extends true ? MatchedOrder : CreateOrder>>
-      >(url, { ...request });
+      >(url, {...request });
 
       if (res.error) return Err(res.error);
       return res.result
@@ -237,7 +237,7 @@ export class Orderbook implements IOrderbook {
     const url = this.Url.endpoint(`/user/${address}/count`);
 
     try {
-      const res = await Fetcher.get<APIResponse<number>>(url, { ...request });
+      const res = await Fetcher.get<APIResponse<number>>(url, {...request });
 
       if (res.error) return Err(res.error);
       return res.status === ApiStatus.Ok && res.result !== undefined

@@ -119,8 +119,17 @@ export const SupportedAssets = {
       symbol: 'SOL',
       chain: Chains.solana_testnet,
       logo: 'https://garden-finance.imgix.net/chain_images/solana.png',
-      atomicSwapAddress: 'primary',
+      atomicSwapAddress: '2bag6xpshpvPe7SJ9nSDLHpxqhEAoHPGpEkjNSv7gxoF',
       tokenAddress: 'primary',
+    },
+    solana_testnet_USDC: {
+      name: 'USD Coin',
+      decimals: 6,
+      symbol: 'USDC',
+      chain: Chains.solana_testnet,
+      logo: 'https://garden-finance.imgix.net/token-images/usdc.svg',
+      atomicSwapAddress: 'gdnvdMCHJgnidtU7SL8RkRshHPvDJU1pdfZEpoLvqdU',
+      tokenAddress: '5JbWjyLdYKTuykpq2itWbdRcZkhK3hs6fiH62pkmLYZi',
     },
     bitcoin_testnet_BTC: {
       name: 'BTC',
@@ -248,6 +257,16 @@ export const SupportedAssets = {
       logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
       tokenAddress: '0x39f3294352208905fc6ebf033954E6c6455CdB4C',
       atomicSwapAddress: '0xD8a6E3FCA403d79b6AD6216b60527F51cc967D39',
+    },
+    sui_testnet_SUI: {
+      name: 'Sui',
+      decimals: 9,
+      symbol: 'SUI',
+      chain: Chains.sui_testnet,
+      logo: 'https://garden-finance.imgix.net/token-images/sui.svg',
+      tokenAddress: '0x2::sui::SUI',
+      atomicSwapAddress:
+        '0x5c438715b7dcc02d12ab92449153a1e5ade2301620d5bf60aa748f006726d369',
     },
   },
   mainnet: {
@@ -412,6 +431,16 @@ export const SupportedAssets = {
       logo: 'https://garden-finance.imgix.net/token-images/usdc.svg',
       tokenAddress: '0xD8a6E3FCA403d79b6AD6216b60527F51cc967D39',
       atomicSwapAddress: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+    },
+    sui_SUI: {
+      name: 'Sui',
+      decimals: 9,
+      symbol: 'SUI',
+      chain: Chains.sui,
+      logo: 'https://garden-finance.imgix.net/token-images/sui.svg',
+      tokenAddress: '0x2::sui::SUI',
+      atomicSwapAddress:
+        '0xa4f4e653547e98d4b541378e14db2393a09aff4b829f158b133d2eb3c3a942b5',
     },
   },
 } as const;
