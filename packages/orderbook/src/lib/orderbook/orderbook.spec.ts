@@ -73,7 +73,7 @@ describe.only('orders provider', async () => {
     expectTypeOf(unsubscribe).toEqualTypeOf<() => void>();
   }, 10000);
 
-  test.only('should get orders with options', async () => {
+  test('should get orders with options', async () => {
     const orderResponse = await orderbook.getOrders(
       true,
       {
@@ -88,6 +88,19 @@ describe.only('orders provider', async () => {
     expect(orderResponse.ok).toBeTruthy();
     const orders = orderResponse.val!.data;
     console.log('orders :', orders[0]);
+  });
+
+  test('should get orders with status array filter', async () => {
+    const orderResponse = await orderbook.getOrders(
+      true,
+      {
+        status: ['completed', 'in-progress'],
+      },
+      undefined,
+    );
+    expect(orderResponse.ok).toBeTruthy();
+    const orders = orderResponse.val!.data;
+    console.log('orders :', orders);
   });
 
   test.skip('order count', async () => {

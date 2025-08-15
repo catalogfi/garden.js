@@ -150,8 +150,8 @@ export class Orderbook implements IOrderbook {
       tx_hash?: string;
       fromChain?: Chain;
       toChain?: Chain;
-      status?: OrderStatus;
-      [key: string]: string | undefined;
+      status?: OrderStatus | OrderStatus[];
+      [key: string]: string | string[] | undefined;
     },
     paginationConfig?: PaginationConfig,
     request?: UtilsRequest,
