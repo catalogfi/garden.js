@@ -1,5 +1,5 @@
 import { STARKNET_CONFIG } from './../../constants';
-import { Order, StarknetOrderResponse } from '@gardenfi/orderbook';
+import { Order } from '@gardenfi/orderbook';
 import { Account, cairo, Contract, num, CallData, RpcProvider } from 'starknet';
 import { AsyncResult, Err, hexToU32Array, Network, Ok } from '@gardenfi/utils';
 import { TokenABI } from '../abi/starknetTokenABI';
@@ -148,10 +148,5 @@ export class StarknetHTLC implements IStarknetHTLC {
     } catch (error) {
       return Err(`HTLC Refund Error`);
     }
-  }
-  async initiateWithCreateOrderResponse(
-    order: StarknetOrderResponse,
-  ): AsyncResult<string, string> {
-    return Ok(order.order_id);
   }
 }

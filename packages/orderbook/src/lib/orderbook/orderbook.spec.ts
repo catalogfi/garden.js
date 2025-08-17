@@ -21,7 +21,7 @@ describe('orders provider', async () => {
     new Url(authUrl),
     DigestKey.generateRandom().val!,
   );
-  test.only('should get order', async () => {
+  test('should get order', async () => {
     const order = await orderbook.getOrder(id);
     console.log('order.error :', order.error);
     console.log('order.val :', order.val);

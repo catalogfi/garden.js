@@ -11,7 +11,7 @@ export interface IStarknetHTLC {
    * @param order - The matched order.
    * @returns A promise resolving to the transaction hash of the initiation.
    */
-  initiate(order: Order): AsyncResult<string, string>;
+  initiate(order: Order | StarknetOrderResponse): AsyncResult<string, string>;
 
   /**
    * Redeems funds from the HTLC contract to the actor's address.
@@ -27,13 +27,4 @@ export interface IStarknetHTLC {
    * @returns A promise resolving to the transaction hash of the refund.
    */
   refund(order: Order): AsyncResult<string, string>;
-
-  /**
-   * Initiates the HTLC with the create order response.
-   * @param order - The create order response.
-   * @returns A promise resolving to the transaction hash of the initiation.
-   */
-  initiateWithCreateOrderResponse(
-    order: StarknetOrderResponse,
-  ): AsyncResult<string, string>;
 }

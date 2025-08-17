@@ -62,7 +62,6 @@ import {
 } from '../blockNumberFetcher/blockNumber';
 import { OrderStatus } from '../orderStatus/status';
 import {
-  Api,
   DEFAULT_AFFILIATE_ASSET,
   solanaProgramAddress,
   SolanaRelayerAddress,
@@ -100,7 +99,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   }>();
   private _digestKey: DigestKey;
   private _apiKey: ApiKey | undefined;
-  private _api: Api | undefined;
+  private _api: string | undefined;
   private isSecretManagementEnabled: boolean = false;
 
   constructor(config: GardenConfigWithHTLCs) {
@@ -120,13 +119,15 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     } else {
       this._apiKey = config.apiKey;
     }
-    this._quote = config.quote ?? new Quote(this._api.quote);
+    this._quote = config.quote ?? new Quote(this._api);
     this._auth =
       config.auth ??
-      Siwe.fromDigestKey(new Url(this._api.auth), this._digestKey) ??
+      Siwe.fromDigestKey(
+        new Url('https://testnet.api.garden.finance/auth'),
+        this._digestKey,
+      ) ??
       this._apiKey;
-    this._orderbook =
-      config.orderbook ?? new Orderbook(new Url(this._api.orderbook));
+    this._orderbook = config.orderbook ?? new Orderbook(new Url(this._api));
     this._evmHTLC = config.htlc.evm;
     this._starknetHTLC = config.htlc.starknet;
     this._solanaHTLC = config.htlc.solana;
@@ -136,7 +137,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this.orderExecutorCache = new ExecutorCache();
     this._blockNumberFetcher =
       config.blockNumberFetcher ??
-      new BlockNumberFetcher(this._api.info, this.environment);
+      new BlockNumberFetcher(
+        'https://testnet.api.garden.finance/info',
+        this.environment,
+      );
 
     const provider = new BitcoinProvider(getBitcoinNetwork(this.environment));
     this._btcWallet = BitcoinWallet.fromPrivateKey(
@@ -144,6 +148,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       provider,
     );
   }
+
   handleSecretManagement(enabled: boolean): this {
     this.isSecretManagementEnabled = enabled;
     return this;
@@ -174,25 +179,25 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     const htlc = {
       evm: config.wallets.evm
         ? new EvmRelay(
-            api.evmRelay,
+            api,
             config.wallets.evm,
-            apiKey ? apiKey : Siwe.fromDigestKey(new Url(api.auth), digestKey),
+            apiKey ? apiKey : Siwe.fromDigestKey(new Url(api), digestKey),
           )
         : undefined,
       starknet: config.wallets.starknet
         ? new StarknetRelay(
-            api.starknetRelay,
+            api,
             config.wallets.starknet,
             config.environment === Environment.MAINNET
               ? Network.MAINNET
               : Network.TESTNET,
-            apiKey ? apiKey : Siwe.fromDigestKey(new Url(api.auth), digestKey),
+            apiKey ? apiKey : Siwe.fromDigestKey(new Url(api), digestKey),
           )
         : undefined,
       solana: config.wallets.solana
         ? new SolanaRelay(
             config.wallets.solana,
-            new Url(api.solanaRelay),
+            new Url(api),
             config.environment === Environment.MAINNET
               ? SolanaRelayerAddress.mainnet
               : SolanaRelayerAddress.testnet,
@@ -207,7 +212,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                   ? config.solanaProgramAddress.spl
                   : solanaProgramAddress.mainnet.spl,
             },
-            apiKey ? apiKey : Siwe.fromDigestKey(new Url(api.auth), digestKey),
+            apiKey ? apiKey : Siwe.fromDigestKey(new Url(api), digestKey),
           )
         : undefined,
     };
@@ -327,7 +332,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       case BlockchainType.EVM:
         if (
           !this._evmHTLC ||
-          typeof this._evmHTLC.initiateWithCreateOrderResponse !== 'function' ||
+          typeof this._evmHTLC.initiate !== 'function' ||
           createOrderRes.val.type !== BlockchainType.EVM
         ) {
           return Err(
@@ -335,11 +340,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           );
         }
         {
-          const evmInitRes =
-            await this._evmHTLC.initiateWithCreateOrderResponse(
-              createOrderRes.val,
-            );
-          console.log('evmInitRes :', evmInitRes);
+          const evmInitRes = await this._evmHTLC.initiate(createOrderRes.val);
           if (!evmInitRes.ok)
             return Err(`EVM HTLC initiation failed: ${evmInitRes.error}`);
         }
@@ -347,8 +348,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       case BlockchainType.Solana:
         if (
           !this._solanaHTLC ||
-          typeof this._solanaHTLC.initiateWithCreateOrderResponse !==
-            'function' ||
+          typeof this._solanaHTLC.initiate !== 'function' ||
           createOrderRes.val.type !== BlockchainType.Solana
         ) {
           return Err(
@@ -356,10 +356,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           );
         }
         {
-          const solanaInitRes =
-            await this._solanaHTLC.initiateWithCreateOrderResponse(
-              createOrderRes.val,
-            );
+          const solanaInitRes = await this._solanaHTLC.initiate(
+            createOrderRes.val,
+          );
           if (!solanaInitRes.ok)
             return Err(`Solana HTLC initiation failed: ${solanaInitRes.error}`);
         }
@@ -367,8 +366,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       case BlockchainType.Starknet:
         if (
           !this._starknetHTLC ||
-          typeof this._starknetHTLC.initiateWithCreateOrderResponse !==
-            'function' ||
+          typeof this._starknetHTLC.initiate !== 'function' ||
           createOrderRes.val.type !== BlockchainType.Starknet
         ) {
           return Err(
@@ -376,10 +374,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           );
         }
         {
-          const starknetInitRes =
-            await this._starknetHTLC.initiateWithCreateOrderResponse(
-              createOrderRes.val,
-            );
+          const starknetInitRes = await this._starknetHTLC.initiate(
+            createOrderRes.val,
+          );
           if (!starknetInitRes.ok)
             return Err(
               `Starknet HTLC initiation failed: ${starknetInitRes.error}`,
@@ -936,13 +933,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       }
 
       const hash = await Fetcher.post<APIResponse<string[]>>(
-        new Url(this._api.orderbook).endpoint(
-          'relayer/bitcoin/instant-refund-hash',
-        ),
+        new Url(this._api)
+          .endpoint('orders')
+          .endpoint(order.order_id)
+          .endpoint('instant-refund-hash'),
         {
-          body: JSON.stringify({
-            order_id: order.order_id,
-          }),
           headers: {
             'Content-Type': 'application/json',
             ...authHeaders.val,
@@ -961,19 +956,17 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       const signatures =
         await bitcoinExecutor.generateInstantRefundSACPWithHash(hash.result);
 
-      const url = new Url(this._api.orderbook).endpoint(
-        'orders/bitcoin/' + order.order_id + '/instant-refund',
-      );
+      const url = new Url(this._api)
+        .endpoint('orders')
+        .endpoint(order.order_id)
+        .addSearchParams({ action: 'instant-refund' });
 
-      const res = await Fetcher.post<APIResponse<string>>(url, {
+      const res = await Fetcher.patch<APIResponse<string>>(url, {
         headers: {
           'Content-Type': 'application/json',
           ...authHeaders.val,
         },
-        body: JSON.stringify({
-          order_id: order.order_id,
-          signatures: signatures,
-        }),
+        body: JSON.stringify({ signatures }),
       });
       if (res.status === 'Ok') {
         this.refundSacpCache.set(order.order_id, {
@@ -1026,26 +1019,23 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private async broadcastRedeemTx(redeemTx: string, orderId: string) {
     try {
       if (!this._api) return Err('API not found');
-      const url = new Url(this._api.evmRelay).endpoint('/bitcoin/redeem ');
+      const url = new Url(this._api)
+        .endpoint('orders')
+        .endpoint(orderId)
+        .addSearchParams({ action: 'redeem' });
       const authHeaders = await this._auth.getAuthHeaders();
-      const res = await fetch(url, {
-        method: 'POST',
+      const res = await Fetcher.patch<APIResponse<string>>(url, {
         headers: {
           'Content-Type': 'application/json',
           ...authHeaders.val,
         },
-        body: JSON.stringify({
-          redeem_tx_bytes: redeemTx,
-          order_id: orderId,
-        }),
+        body: JSON.stringify({ redeem_tx_bytes: redeemTx }),
       });
 
-      const resJson: APIResponse<string> = await res.json();
-
-      if (resJson.status === 'Ok' && resJson.result) {
-        return Ok(resJson.result);
+      if (res.status === 'Ok' && res.result) {
+        return Ok(res.result);
       }
-      return Err(resJson.error);
+      return Err(res.error);
     } catch (error) {
       return Err('Failed to broadcast redeem tx: ' + error);
     }

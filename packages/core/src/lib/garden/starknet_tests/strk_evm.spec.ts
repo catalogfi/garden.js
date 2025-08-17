@@ -66,7 +66,7 @@ describe('StarkNet Integration Tests', () => {
       starknet: starknetWallet,
       solana: userProvider,
     },
-  }).handleSecretManagement(false);
+  }).handleSecretManagement(true);
 
   const setupEventListeners = (garden: IGardenJS) => {
     garden.on('error', (order, error) => {
@@ -114,8 +114,8 @@ describe('StarkNet Integration Tests', () => {
         fromAsset: {
           name: 'Wrapped Bitcoin',
           decimals: 8,
-          symbol: 'USDC',
-          chain: 'solana_testnet',
+          symbol: 'USDT',
+          chain: 'base_sepolia',
           logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
           tokenAddress: '0xD8a6E3FCA403d79b6AD6216b60527F51cc967D39',
           atomicSwapAddress: '0x795Dcb58d1cd4789169D5F938Ea05E17ecEB68cA',
@@ -123,16 +123,16 @@ describe('StarkNet Integration Tests', () => {
         toAsset: {
           name: 'Starknet ETH',
           decimals: 8,
-          symbol: 'USDT',
-          chain: 'base_sepolia',
+          symbol: 'WBTC',
+          chain: 'starknet_sepolia',
           logo: 'https://garden-finance.imgix.net/token-images/wbtc.svg',
           tokenAddress:
             '0x496bef3ed20371382fbe0ca6a5a64252c5c848f9f1f0cccf8110fc4def912d5',
           atomicSwapAddress:
             '0x06579d255314109429a4477d89629bc2b94f529ae01979c2f8014f9246482603',
         },
-        sendAmount: '50000000',
-        receiveAmount: '99200',
+        sendAmount: '25000000',
+        receiveAmount: '992',
         additionalData: {
           btcAddress: 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru',
         },

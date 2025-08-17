@@ -11,7 +11,11 @@ import {
   num,
   shortString,
 } from 'starknet';
-import { Order, StarknetOrderResponse } from '@gardenfi/orderbook';
+import {
+  isStarknetOrderResponse,
+  Order,
+  StarknetOrderResponse,
+} from '@gardenfi/orderbook';
 import {
   APIResponse,
   AsyncResult,
@@ -73,7 +77,12 @@ export class StarknetRelay implements IStarknetHTLC {
     return this.account.address;
   }
 
-  async initiate(order: Order): AsyncResult<string, string> {
+  async initiate(
+    order: Order | StarknetOrderResponse,
+  ): AsyncResult<string, string> {
+    if (isStarknetOrderResponse(order)) {
+      return this.initiateWithCreateOrderResponse(order);
+    }
     if (!this.account.address) return Err('No account address');
     const { source_swap } = order;
     const { redeemer, amount } = source_swap;

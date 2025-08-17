@@ -14,6 +14,7 @@ import {
   isEVM,
   isEvmNativeToken,
   Order,
+  isEvmOrderResponse,
 } from '@gardenfi/orderbook';
 import { APIResponse, IAuth, Url, with0x } from '@gardenfi/utils';
 import { AtomicSwapABI } from '../abi/atomicSwap';
@@ -40,7 +41,10 @@ export class EvmRelay implements IEVMHTLC {
     return this.wallet.account.address;
   }
 
-  async initiate(order: Order): AsyncResult<string, string> {
+  async initiate(order: Order | EvmOrderResponse): AsyncResult<string, string> {
+    if (isEvmOrderResponse(order)) {
+      return this.initiateWithCreateOrderResponse(order);
+    }
     if (!this.wallet.account) return Err('No account found');
     if (
       this.wallet.account.address.toLowerCase() !==
@@ -271,7 +275,7 @@ export class EvmRelay implements IEVMHTLC {
     }
   }
 
-  async initiateWithCreateOrderResponse(
+  private async initiateWithCreateOrderResponse(
     order: EvmOrderResponse,
   ): AsyncResult<string, string> {
     if (!this.wallet.account) return Err('No account found');

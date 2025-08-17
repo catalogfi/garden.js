@@ -27,10 +27,10 @@ import { Chain } from '../asset';
  * @implements {IOrderbook}
  */
 export class Orderbook implements IOrderbook {
-  private Url: Url;
+  private url: Url;
 
   constructor(url: Url) {
-    this.Url = url;
+    this.url = url;
   }
 
   /**
@@ -49,7 +49,7 @@ export class Orderbook implements IOrderbook {
         return Err(headers.error);
       }
       const res = await Fetcher.post<APIResponse<CreateOrderResponse>>(
-        this.Url.endpoint('/v2/orders'),
+        this.url.endpoint('/v2/orders'),
         {
           body: JSON.stringify(order),
           headers: {
@@ -58,11 +58,14 @@ export class Orderbook implements IOrderbook {
           },
         },
       );
-      console.log('response', res);
+
       if (res.error) return Err(res.error);
+
       if (!res.result)
         return Err('CreateOrder: Unexpected error, result is undefined');
+
       const createOrderResponse = withDiscriminatedType(res.result);
+
       if (!createOrderResponse) {
         return Err('CreateOrder: Unable to determine order type from response');
       }
@@ -83,7 +86,7 @@ export class Orderbook implements IOrderbook {
     request?: UtilsRequest,
   ): AsyncResult<Order, string> {
     try {
-      const url = this.Url.endpoint(`/v2/orders`).endpoint(id);
+      const url = this.url.endpoint(`/v2/orders`).endpoint(id);
       const res = await Fetcher.get<APIResponse<Order>>(url, { ...request });
 
       if (res.error) return Err(res.error);
@@ -112,6 +115,7 @@ export class Orderbook implements IOrderbook {
   ): AsyncResult<PaginatedData<Order>, string> {
     try {
       const endpoint = '/v2/orders';
+
       const params = {
         ...(paginationConfig?.page && { page: paginationConfig.page }),
         ...(paginationConfig?.per_page && {
@@ -120,13 +124,18 @@ export class Orderbook implements IOrderbook {
         ...(address && { address }),
         ...(status && { status }),
       };
-      const url = ConstructUrl(this.Url, endpoint, params);
+
+      const url = ConstructUrl(this.url, endpoint, params);
+
       const res = await Fetcher.get<APIResponse<PaginatedData<Order>>>(url, {
         ...request,
       });
+
       if (res.error) return Err(res.error);
+
       if (!res.result)
         return Err('GetOrdersByStatus: Unexpected error, result is undefined');
+
       return Ok(res.result);
     } catch (error: any) {
       return Err(
@@ -171,14 +180,16 @@ export class Orderbook implements IOrderbook {
       ...(filters.tx_hash && { tx_hash: filters.tx_hash }),
     };
 
-    const url = ConstructUrl(this.Url, endpoint, params);
+    const url = ConstructUrl(this.url, endpoint, params);
 
     try {
       const res = await Fetcher.get<APIResponse<PaginatedData<Order>>>(url);
 
       if (res.error) return Err(res.error);
+
       if (!res.result)
         return Err('GetAllOrders: Unexpected error, result is undefined');
+
       return Ok(res.result);
     } catch (error: any) {
       return Err(

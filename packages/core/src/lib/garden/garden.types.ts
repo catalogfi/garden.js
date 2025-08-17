@@ -22,7 +22,6 @@ import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { DigestKey } from '@gardenfi/utils';
 import { AccountInterface } from 'starknet';
 import { WalletClient } from 'viem';
-import { Api } from '../constants';
 import { IBitcoinWallet } from '../bitcoin/wallet/wallet.interface';
 import { ISolanaHTLC } from '../solana/htlc/ISolanaHTLC';
 import { AnchorProvider } from '@coral-xyz/anchor';
@@ -169,9 +168,7 @@ export interface IOrderExecutorCache {
   remove(order: Order, action: OrderActions): void;
 }
 
-export type ApiConfig =
-  | Environment
-  | (Partial<Api> & { environment: Environment });
+export type ApiConfig = Environment | { environment: Environment; api: string };
 
 export type GardenCoreConfig = {
   environment: ApiConfig;
@@ -186,7 +183,7 @@ export type GardenCoreConfig = {
   solanaProgramAddress?: {
     native?: string;
     spl?: string;
-  }
+  };
 };
 
 export type GardenHTLCModules = {

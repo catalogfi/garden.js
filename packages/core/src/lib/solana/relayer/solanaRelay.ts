@@ -20,6 +20,7 @@ import {
   SolanaOrderResponse,
   Orderbook,
   IOrderbook,
+  isSolanaOrderResponse,
 } from '@gardenfi/orderbook';
 import { waitForSolanaTxConfirmation } from '../../utils';
 import * as Spl from '@solana/spl-token';
@@ -127,19 +128,6 @@ export class SolanaRelay implements ISolanaHTLC {
     if (!this.provider.publicKey)
       throw new Error('No provider public key found');
     return this.provider.publicKey.toBase58();
-  }
-
-  /**
-   * Determines if the given order is for a native Solana token (SOL).
-   * @param {Order} order - The matched order to check
-   * @returns {boolean} True if it's a native token, false if it's an SPL token
-   * @private
-   */
-  private isNativeToken(order: Order): boolean {
-    return isSolanaNativeToken(
-      order.source_swap.chain,
-      order.source_swap.token_address,
-    );
   }
 
   /**
@@ -320,14 +308,22 @@ export class SolanaRelay implements ISolanaHTLC {
    *   - Ok with the transaction ID on success
    *   - Err with an error message on failure
    */
-  async initiate(order: Order): AsyncResult<string, string> {
+  async initiate(
+    order: Order | SolanaOrderResponse,
+  ): AsyncResult<string, string> {
     if (!order) {
       return Err('Order is required');
     }
 
+    if (isSolanaOrderResponse(order)) {
+      return this.initiateWithCreateOrderResponse(order);
+    }
+
     try {
-      // Determine token type and route to appropriate handler
-      const isNative = this.isNativeToken(order);
+      const isNative = isSolanaNativeToken(
+        order.source_swap.chain,
+        order.source_swap.token_address,
+      );
 
       if (isNative) {
         if (!this.nativeProgram)
@@ -395,7 +391,7 @@ export class SolanaRelay implements ISolanaHTLC {
     }
   }
 
-  async initiateWithCreateOrderResponse(
+  private async initiateWithCreateOrderResponse(
     order: SolanaOrderResponse,
   ): AsyncResult<string, string> {
     if (!this.relayer) return Err('No relayer address');
@@ -410,7 +406,8 @@ export class SolanaRelay implements ISolanaHTLC {
         return Err(`Failed to fetch order by id: ${orderResult.error}`);
       }
 
-      if (this.isNativeToken(orderResult.val)) {
+      const asset = orderResult.val.source_swap.asset?.toLowerCase?.() ?? '';
+      if (asset.endsWith(':sol')) {
         return await this.initiateNativeSwap(orderResult.val);
       }
 

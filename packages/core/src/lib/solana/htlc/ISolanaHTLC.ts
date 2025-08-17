@@ -11,16 +11,7 @@ export interface ISolanaHTLC {
    * @param order - The matched order.
    * @returns A promise resolving to the transaction hash of the initiation.
    */
-  initiate(order: Order): AsyncResult<string, string>;
-
-  /**
-   * Initiates the HTLC by sending funds to the HTLC contract.
-   * @param order - The matched order.
-   * @returns A promise resolving to the transaction hash of the initiation.
-   */
-  initiateWithCreateOrderResponse(
-    order: SolanaOrderResponse,
-  ): AsyncResult<string, string>;
+  initiate(order: Order | SolanaOrderResponse): AsyncResult<string, string>;
 
   /**
    * Redeems funds from the HTLC contract to the actor's address.

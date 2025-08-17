@@ -2,6 +2,11 @@ import { Url } from '@gardenfi/utils';
 import {
   BaseCreateOrderResponse,
   CreateOrderResponse,
+  Order,
+  StarknetOrderResponse,
+  EvmOrderResponse,
+  BitcoinOrderResponse,
+  SolanaOrderResponse,
 } from './orderbook/orderbook.types';
 import { BlockchainType } from './asset';
 
@@ -22,58 +27,126 @@ export const ConstructUrl = (
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
-        url.searchParams.append(key, value.toString());
+        url.addSearchParams({ [key]: value.toString() });
       }
     });
   }
   return url;
 };
 
-export function withDiscriminatedType(
-  response: BaseCreateOrderResponse,
-): CreateOrderResponse | null {
-  // Helper to check if an object has all keys
-  const hasKeys = (obj: any, keys: string[]) =>
-    obj && typeof obj === 'object' && keys.every((k) => k in obj);
+const hasKeys = (obj: any, keys: string[]) =>
+  obj && typeof obj === 'object' && keys.every((k) => k in obj);
 
-  // EVM: has typed_data and initiate_transaction with EVM fields
-  if (
-    'typed_data' in response &&
-    hasKeys((response as any).initiate_transaction, [
+type OrderResponseTypeGuard<T> = (response: any) => response is T;
+
+/**
+ * Type guard for EVM order responses
+ */
+export const isEvmOrderResponse: OrderResponseTypeGuard<EvmOrderResponse> = (
+  response: any,
+): response is EvmOrderResponse => {
+  return (
+    hasKeys(response, ['typed_data', 'initiate_transaction']) &&
+    typeof response.initiate_transaction === 'object' &&
+    response.initiate_transaction &&
+    hasKeys(response.initiate_transaction, [
       'to',
       'value',
       'data',
       'gas_limit',
       'chain_id',
     ])
-  ) {
+  );
+};
+
+/**
+ * Type guard for Starknet order responses
+ */
+export const isStarknetOrderResponse: OrderResponseTypeGuard<
+  StarknetOrderResponse
+> = (response: any): response is StarknetOrderResponse => {
+  return (
+    hasKeys(response, ['typed_data', 'initiate_transaction']) &&
+    typeof response.initiate_transaction === 'object' &&
+    response.initiate_transaction &&
+    hasKeys(response.initiate_transaction, ['to', 'selector', 'calldata'])
+  );
+};
+
+/**
+ * Type guard for Bitcoin order responses
+ */
+export const isBitcoinOrderResponse: OrderResponseTypeGuard<
+  BitcoinOrderResponse
+> = (response: any): response is BitcoinOrderResponse => {
+  return (
+    hasKeys(response, ['to', 'amount']) &&
+    typeof response.to === 'string' &&
+    typeof response.amount === 'number'
+  );
+};
+
+/**
+ * Type guard for Solana order responses
+ */
+export const isSolanaOrderResponse: OrderResponseTypeGuard<
+  SolanaOrderResponse
+> = (response: any): response is SolanaOrderResponse => {
+  return (
+    hasKeys(response, ['versioned_tx']) &&
+    typeof response.versioned_tx === 'string'
+  );
+};
+
+/**
+ * Type guard for Order objects (matched orders)
+ */
+export const isOrder: OrderResponseTypeGuard<Order> = (
+  response: any,
+): response is Order => {
+  return (
+    hasKeys(response, ['source_swap', 'destination_swap']) &&
+    typeof response.source_swap === 'object' &&
+    typeof response.destination_swap === 'object'
+  );
+};
+
+/**
+ * Discriminated union type guard that determines the specific order response type
+ * and returns the appropriate typed response
+ */
+export function withDiscriminatedType(
+  response: BaseCreateOrderResponse,
+): CreateOrderResponse | null {
+  if (isEvmOrderResponse(response)) {
     return { type: BlockchainType.EVM, ...response } as CreateOrderResponse;
   }
 
-  // Starknet: has typed_data and initiate_transaction with Starknet fields
-  if (
-    'typed_data' in response &&
-    hasKeys((response as any).initiate_transaction, [
-      'to',
-      'selector',
-      'calldata',
-    ])
-  ) {
+  if (isStarknetOrderResponse(response)) {
     return {
       type: BlockchainType.Starknet,
       ...response,
     } as CreateOrderResponse;
   }
 
-  // Bitcoin: has 'to' and 'amount'
-  if (hasKeys(response, ['to', 'amount'])) {
+  if (isBitcoinOrderResponse(response)) {
     return { type: BlockchainType.Bitcoin, ...response } as CreateOrderResponse;
   }
 
-  // Solana: has 'versioned_tx'
-  if ('versioned_tx' in response) {
+  if (isSolanaOrderResponse(response)) {
     return { type: BlockchainType.Solana, ...response } as CreateOrderResponse;
   }
 
+  return null;
+}
+
+/**
+ * Utility function to get the blockchain type from an order response
+ */
+export function getOrderResponseType(response: any): BlockchainType | null {
+  if (isEvmOrderResponse(response)) return BlockchainType.EVM;
+  if (isStarknetOrderResponse(response)) return BlockchainType.Starknet;
+  if (isBitcoinOrderResponse(response)) return BlockchainType.Bitcoin;
+  if (isSolanaOrderResponse(response)) return BlockchainType.Solana;
   return null;
 }

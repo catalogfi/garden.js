@@ -1,96 +1,13 @@
-import { AsyncResult, IAuth, IStore } from '@gardenfi/utils';
-import { Asset, BlockchainType, Chain } from '../asset';
+import { AsyncResult, IAuth } from '@gardenfi/utils';
+import { BlockchainType, Chain } from '../asset';
 import type { Calldata, RawArgs, TypedData } from 'starknet';
-
-/**
- * Configuration for creating an order
- */
-export interface CreateOrderConfig {
-  /**
-   * The asset the user wants to send.
-   */
-  fromAsset: Asset;
-  /**
-   * The asset the user wants to receive.
-   */
-  toAsset: Asset;
-  /**
-   * The address from the which the user is sending funds from.
-   */
-  sendAddress: string;
-  /**
-   * The address at which the user wants to receive funds.
-   */
-  receiveAddress: string;
-  /**
-   * The input amount the user wants to send in it's lowest denomination
-   */
-  sendAmount: string;
-  /**
-   * The amount you receive amount
-   */
-  receiveAmount: string;
-  /**
-   * The hash of the secret the user wants to use for the swap.
-   */
-  secretHash: string;
-  /**
-   * The time lock for the swap. (current blocknumber + 48 hours)
-   * @NOTE 7200 blocks per day in ethereum.
-   * @NOTE 144 blocks per day in bitcoin.
-   */
-  timelock: number;
-  /**
-   * The nonce for the order.
-   * This is used for secret generation.
-   */
-  nonce: string;
-  /**
-   * The address of the user's btc wallet. The funds will be sent to this address in case of a redeem or refund.
-   * @NOTE This is only required if the destination chain is bitcoin.
-   */
-  btcInputAddress?: string;
-  /**
-   * The min number of confirmations required for the user before redeeming in the destination chain.
-   * @default 0
-   */
-  minDestinationConfirmations?: number;
-}
-
-/**
- * Additional configuration options for the orderbook
- *
- */
-export type OrderbookOpts = {
-  /**
-   * The domain of your dApp. Optional.
-   */
-  domain?: string;
-  /**
-   * The store used for storing the auth token. Optional.
-   */
-  store?: IStore;
-};
-
-/**
- * Configuration for the orders you want to receive
- */
-export type OrderConfig = {
-  isPending: boolean;
-  pagination?: {
-    page?: number;
-    /**
-     * default is 10
-     */
-    per_page?: number;
-  };
-};
 
 export interface IOrderbook {
   /**
    * Creates an order
-   * @param {CreateOrderConfig} orderConfig - The configuration for the creating the order.
-   * @returns {number} The create order ID.
+   * @param {CreateOrderRequest} order - The configuration for the creating the order.
+   * @param {IAuth} auth - The auth object.
+   * @returns {CreateOrderResponse} The create order ID.
    */
   createOrder(
     order: CreateOrderRequest,
@@ -194,19 +111,6 @@ export type AffiliateFeeList<T extends AffiliateFee | AffiliateFeeWithAmount> =
 
 export type AffiliateFeeOptionalAsset = Omit<AffiliateFee, 'asset'> &
   Partial<Pick<AffiliateFee, 'asset'>>;
-
-export type OldCreateOrderRequest = {
-  source_chain: string;
-  destination_chain: string;
-  source_asset: string;
-  destination_asset: string;
-  source_amount: string; // BigDecimal as string
-  destination_amount: string; // BigDecimal as string
-  nonce: string; // BigDecimal as string
-  initiator_source_address?: string;
-  initiator_destination_address?: string;
-  secret_hash?: string;
-};
 
 export type ChainAsset = `${Chain}:${string}`;
 
@@ -355,6 +259,7 @@ export type CreateOrderResponse =
   | ({ type: BlockchainType.Bitcoin } & BitcoinOrderResponse)
   | ({ type: BlockchainType.Starknet } & StarknetOrderResponse)
   | ({ type: BlockchainType.Solana } & SolanaOrderResponse);
+
 export type OrderStatus =
   | 'refunded'
   | 'expired'
