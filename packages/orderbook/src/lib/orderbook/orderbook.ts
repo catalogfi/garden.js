@@ -18,7 +18,7 @@ import {
   Url,
   Request as UtilsRequest,
 } from '@gardenfi/utils';
-import { ConstructUrl, withDiscriminatedType } from '../utils';
+import { ConstructUrl, discriminateOrderResponse } from '../utils';
 import { Chain } from '../asset';
 
 /**
@@ -64,7 +64,7 @@ export class Orderbook implements IOrderbook {
       if (!res.result)
         return Err('CreateOrder: Unexpected error, result is undefined');
 
-      const createOrderResponse = withDiscriminatedType(res.result);
+      const createOrderResponse = discriminateOrderResponse(res.result);
 
       if (!createOrderResponse) {
         return Err('CreateOrder: Unable to determine order type from response');

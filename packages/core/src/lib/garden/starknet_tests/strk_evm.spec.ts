@@ -13,22 +13,14 @@ import { web3 } from '@coral-xyz/anchor';
 
 describe('StarkNet Integration Tests', () => {
   // Wallet configurations
-  const EVM_PRIVATE_KEY =
-    '9c1508f9071bf5fefc69fbb71c98cd3150a323e953c6979ef8b508f1461dd2e1';
-  const STARKNET_PRIVATE_KEY =
-    '0x03eb1a8fc77eac663580829c3cfc3c3f8d495f16366af1cf42a7f4460cfbcd97';
-  const STARKNET_ADDRESS =
-    '0x035c50625822eab248eb63f9198a0e4bdd02627526a4edc47d89ce678fe47b16';
+  const EVM_PRIVATE_KEY = '';
+  const STARKNET_PRIVATE_KEY = '';
+  const STARKNET_ADDRESS = '';
   const DIGEST_KEY =
     '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857';
   // const DIGEST_KEY = DigestKey.generateRandom().val;
   const TEST_RPC_URL = 'https://api.devnet.solana.com';
-  const PRIV = [
-    232, 233, 3, 253, 26, 253, 143, 149, 62, 236, 184, 209, 212, 87, 145, 32,
-    228, 83, 130, 93, 222, 115, 125, 121, 216, 244, 58, 68, 31, 107, 176, 51,
-    197, 191, 130, 99, 215, 91, 65, 186, 187, 112, 43, 136, 122, 80, 136, 164,
-    246, 74, 62, 58, 37, 23, 48, 219, 158, 63, 241, 235, 233, 158, 249, 127,
-  ];
+  const PRIV = [];
   const connection = new web3.Connection(TEST_RPC_URL, {
     commitment: 'confirmed',
   });

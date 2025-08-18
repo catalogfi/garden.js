@@ -1,11 +1,29 @@
 import { SupportedAssets, toFormattedAssetString } from '@gardenfi/orderbook';
 import { Environment, Network } from '@gardenfi/utils';
 
-export const API: Record<Environment, string> = {
-  mainnet: 'https://api.garden.finance',
-  testnet: 'https://testnet.api.garden.finance',
-  localnet: '',
+export type Api = {
+  baseurl: string;
+  auth: string;
+  info: string;
 };
+
+export const API: Record<Environment, Api> = {
+  mainnet: {
+    baseurl: 'https://api.garden.finance',
+    auth: 'https://api.garden.finance/auth',
+    info: 'https://api.garden.finance/info',
+  },
+  testnet: {
+    baseurl: 'https://testnet.api.garden.finance',
+    auth: 'https://testnet.api.garden.finance/auth',
+    info: 'https://testnet.api.garden.finance/info',
+  },
+  localnet: {
+    baseurl: '',
+    auth: '',
+    info: '',
+  },
+} as const;
 
 export const STARKNET_CONFIG: Record<
   Network,

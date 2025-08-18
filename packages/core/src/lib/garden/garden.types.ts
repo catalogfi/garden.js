@@ -25,6 +25,7 @@ import { WalletClient } from 'viem';
 import { IBitcoinWallet } from '../bitcoin/wallet/wallet.interface';
 import { ISolanaHTLC } from '../solana/htlc/ISolanaHTLC';
 import { AnchorProvider } from '@coral-xyz/anchor';
+import { Api } from '../constants';
 
 export type SwapParams = {
   /**
@@ -168,7 +169,9 @@ export interface IOrderExecutorCache {
   remove(order: Order, action: OrderActions): void;
 }
 
-export type ApiConfig = Environment | { environment: Environment; api: string };
+export type ApiConfig =
+  | Environment
+  | (Partial<Api> & { environment: Environment });
 
 export type GardenCoreConfig = {
   environment: ApiConfig;

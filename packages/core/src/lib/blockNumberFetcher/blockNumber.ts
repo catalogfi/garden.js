@@ -13,8 +13,8 @@ export interface IBlockNumberFetcher {
 export class BlockNumberFetcher implements IBlockNumberFetcher {
   private url: Url;
 
-  constructor(url: string, network: Environment) {
-    this.url = new Url(url).endpoint('blocknumbers').endpoint(network);
+  constructor(url: Url, network: Environment) {
+    this.url = url.endpoint('blocknumbers').endpoint(network);
   }
 
   async fetchBlockNumbers(): AsyncResult<Response, string> {

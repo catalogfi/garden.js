@@ -38,7 +38,7 @@ export const GardenProvider: FC<GardenProviderProps> = ({
 
   const quote = useMemo(() => {
     const { api } = resolveApiConfig(config.environment);
-    return config.quote ?? new Quote(api);
+    return config.quote ?? new Quote(api.baseurl);
   }, [config.environment, config.quote]);
 
   const getQuote = useMemo(

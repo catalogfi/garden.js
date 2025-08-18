@@ -6,14 +6,14 @@ import * as secp256k1 from 'tiny-secp256k1';
 import * as bitcoin from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
 import { Signature } from 'starknet';
-import { API } from './constants';
+import { API, Api } from './constants';
 import { ApiConfig } from './garden/garden.types';
 import { BitcoinNetwork } from './bitcoin/provider/provider.interface';
 import { IBaseWallet } from './bitcoin/wallet/baseWallet';
 import { web3 } from '@coral-xyz/anchor';
 
 export function resolveApiConfig(env: ApiConfig): {
-  api: string;
+  api: Api;
   environment: Environment;
 } {
   const environment = typeof env === 'string' ? env : env.environment;
@@ -25,7 +25,13 @@ export function resolveApiConfig(env: ApiConfig): {
       ? API.testnet
       : API.localnet;
 
-  const api: string = typeof env === 'string' ? baseApi : env.api;
+  const api: Api =
+    typeof env === 'string'
+      ? baseApi
+      : {
+          ...baseApi,
+          ...env,
+        };
 
   return { api, environment };
 }

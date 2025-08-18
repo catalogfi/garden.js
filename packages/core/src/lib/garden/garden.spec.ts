@@ -1,5 +1,5 @@
 import { Garden } from './garden';
-import { Environment, sleep, with0x } from '@gardenfi/utils';
+import { Environment, Siwe, sleep, Url, with0x } from '@gardenfi/utils';
 import {
   createWalletClient,
   http,
@@ -8,10 +8,11 @@ import {
 import { privateKeyToAccount } from 'viem/accounts';
 import { describe, expect, it } from 'vitest';
 import {
+  ChainAsset,
   // Chain,
   // Chains,
   isBitcoin,
-  MatchedOrder,
+  Order,
   SupportedAssets,
 
   // SupportedAssets,
@@ -26,6 +27,8 @@ import {
 import { DigestKey } from '@gardenfi/utils';
 import { switchOrAddNetwork } from '../switchOrAddNetwork';
 import { SwapParams } from './garden.types';
+import { Quote } from '../quote/quote';
+import { EvmRelay } from '../evm/relay/evmRelay';
 // import { SecretManager } from '../secretManager/secretManager';
 // import { DigestKey } from './digestKey/digestKey';
 // import { Quote } from './../quote/quote';
@@ -65,7 +68,7 @@ describe('checking garden initialisation', async () => {
   const garden = Garden.fromWallets({
     environment: {
       environment: Environment.TESTNET,
-      orderbook: 'https://api.garden.finance',
+      baseurl: 'https://api.garden.finance',
     },
     digestKey:
       '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
@@ -77,7 +80,6 @@ describe('checking garden initialisation', async () => {
   console.log('garden :', garden);
   const order = await garden.orderbook.getOrder(
     'df4d18a3f4d8754d17c831b491b375f8b925625fa8b389b4b671325a66bdc176',
-    true,
   );
   console.log('this is an order fetched', order.val);
 });
@@ -117,7 +119,7 @@ describe('swap and execute using garden', () => {
   );
   console.log('digestKey :', digestKey.userId);
 
-  const garden = Garden.fromWallets({
+  const garden = new Garden({
     environment: Environment.TESTNET,
     digestKey:
       '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
@@ -128,7 +130,9 @@ describe('swap and execute using garden', () => {
         arbitrumWalletClient,
         Siwe.fromDigestKey(
           new Url(api),
-          '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
+          DigestKey.from(
+            '7fb6d160fccb337904f2c630649950cc974a24a2931c3fdd652d3cd43810a857',
+          ).val!,
         ),
       ),
     },
@@ -145,7 +149,7 @@ describe('swap and execute using garden', () => {
     });
   });
 
-  let order: MatchedOrder;
+  let order: Order;
 
   it('should create an order', async () => {
     // const orderObj = {
@@ -184,7 +188,7 @@ describe('swap and execute using garden', () => {
     }
 
     order = result.val;
-    console.log('orderCreated and matched ✅ ', order.create_order.create_id);
+    console.log('orderCreated and matched ✅ ', order.order_id);
     if (!order) {
       throw new Error('Order id not found');
     }
@@ -213,7 +217,7 @@ describe('swap and execute using garden', () => {
     garden.on('error', (order, error) => {
       console.log(
         'error while executing ❌, orderId :',
-        order.create_order.create_id,
+        order.order_id,
         'error :',
         error,
       );
@@ -221,7 +225,7 @@ describe('swap and execute using garden', () => {
     garden.on('success', (order, action, result) => {
       console.log(
         'executed ✅, orderId :',
-        order.create_order.create_id,
+        order.order_id,
         'action :',
         action,
         'result :',
@@ -234,11 +238,11 @@ describe('swap and execute using garden', () => {
     garden.on('onPendingOrdersChanged', (orders) => {
       console.log('pending orders :', orders.length);
       orders.forEach((order) => {
-        console.log('pending order :', order.create_order.create_id);
+        console.log('pending order :', order.order_id);
       });
     });
     garden.on('rbf', (order, result) => {
-      console.log('rbf :', order.create_order.create_id, result);
+      console.log('rbf :', order.order_id, result);
     });
     await garden.execute();
     await sleep(150000);
@@ -294,7 +298,8 @@ describe.only('switch network with http transport', () => {
       }
       const { randomKey, strategy } = response;
       const quote = await garden.quote.getQuote(
-        randomKey,
+        randomKey as ChainAsset,
+        randomKey as ChainAsset,
         Number(strategy.minAmount),
         false,
       );
@@ -316,15 +321,13 @@ describe.only('switch network with http transport', () => {
       }
       const fromAsset = getAssetByAtomicSwapAddress(sourceChain, sourceAsset)!;
       const toAsset = getAssetByAtomicSwapAddress(destChain, destAsset)!;
-      const receiveAmount = Object.values(quote.val.quotes)[0];
+      const receiveAmount = quote.val[0].destination.amount;
       const swapData: SwapParams = {
         fromAsset,
         toAsset,
         sendAmount: strategy.minAmount,
         receiveAmount,
-        additionalData: {
-          strategyId: strategy.id,
-        },
+        additionalData: {},
       };
       const order = await garden.swap(swapData);
       if (!order.ok) {

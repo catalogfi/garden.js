@@ -115,7 +115,7 @@ export const isOrder: OrderResponseTypeGuard<Order> = (
  * Discriminated union type guard that determines the specific order response type
  * and returns the appropriate typed response
  */
-export function withDiscriminatedType(
+export function discriminateOrderResponse(
   response: BaseCreateOrderResponse,
 ): CreateOrderResponse | null {
   if (isEvmOrderResponse(response)) {

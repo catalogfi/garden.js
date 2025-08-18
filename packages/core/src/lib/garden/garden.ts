@@ -62,6 +62,7 @@ import {
 } from '../blockNumberFetcher/blockNumber';
 import { OrderStatus } from '../orderStatus/status';
 import {
+  Api,
   DEFAULT_AFFILIATE_ASSET,
   solanaProgramAddress,
   SolanaRelayerAddress,
@@ -99,7 +100,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   }>();
   private _digestKey: DigestKey;
   private _apiKey: ApiKey | undefined;
-  private _api: string | undefined;
+  private _api: Api | undefined;
   private isSecretManagementEnabled: boolean = false;
 
   constructor(config: GardenConfigWithHTLCs) {
@@ -119,15 +120,13 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     } else {
       this._apiKey = config.apiKey;
     }
-    this._quote = config.quote ?? new Quote(this._api);
+    this._quote = config.quote ?? new Quote(this._api.baseurl);
     this._auth =
       config.auth ??
-      Siwe.fromDigestKey(
-        new Url('https://testnet.api.garden.finance/auth'),
-        this._digestKey,
-      ) ??
+      Siwe.fromDigestKey(new Url(this._api.auth), this._digestKey) ??
       this._apiKey;
-    this._orderbook = config.orderbook ?? new Orderbook(new Url(this._api));
+    this._orderbook =
+      config.orderbook ?? new Orderbook(new Url(this._api.baseurl));
     this._evmHTLC = config.htlc.evm;
     this._starknetHTLC = config.htlc.starknet;
     this._solanaHTLC = config.htlc.solana;
@@ -137,10 +136,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this.orderExecutorCache = new ExecutorCache();
     this._blockNumberFetcher =
       config.blockNumberFetcher ??
-      new BlockNumberFetcher(
-        'https://testnet.api.garden.finance/info',
-        this.environment,
-      );
+      new BlockNumberFetcher(new Url(this._api.info), this.environment);
 
     const provider = new BitcoinProvider(getBitcoinNetwork(this.environment));
     this._btcWallet = BitcoinWallet.fromPrivateKey(
@@ -179,25 +175,29 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     const htlc = {
       evm: config.wallets.evm
         ? new EvmRelay(
-            api,
+            api.baseurl,
             config.wallets.evm,
-            apiKey ? apiKey : Siwe.fromDigestKey(new Url(api), digestKey),
+            apiKey
+              ? apiKey
+              : Siwe.fromDigestKey(new Url(api.baseurl), digestKey),
           )
         : undefined,
       starknet: config.wallets.starknet
         ? new StarknetRelay(
-            api,
+            api.baseurl,
             config.wallets.starknet,
             config.environment === Environment.MAINNET
               ? Network.MAINNET
               : Network.TESTNET,
-            apiKey ? apiKey : Siwe.fromDigestKey(new Url(api), digestKey),
+            apiKey
+              ? apiKey
+              : Siwe.fromDigestKey(new Url(api.baseurl), digestKey),
           )
         : undefined,
       solana: config.wallets.solana
         ? new SolanaRelay(
             config.wallets.solana,
-            new Url(api),
+            new Url(api.baseurl),
             config.environment === Environment.MAINNET
               ? SolanaRelayerAddress.mainnet
               : SolanaRelayerAddress.testnet,
@@ -212,7 +212,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                   ? config.solanaProgramAddress.spl
                   : solanaProgramAddress.mainnet.spl,
             },
-            apiKey ? apiKey : Siwe.fromDigestKey(new Url(api), digestKey),
+            apiKey
+              ? apiKey
+              : Siwe.fromDigestKey(new Url(api.baseurl), digestKey),
           )
         : undefined,
     };
@@ -933,7 +935,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       }
 
       const hash = await Fetcher.post<APIResponse<string[]>>(
-        new Url(this._api)
+        new Url(this._api.baseurl)
           .endpoint('orders')
           .endpoint(order.order_id)
           .endpoint('instant-refund-hash'),
@@ -956,7 +958,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       const signatures =
         await bitcoinExecutor.generateInstantRefundSACPWithHash(hash.result);
 
-      const url = new Url(this._api)
+      const url = new Url(this._api.baseurl)
         .endpoint('orders')
         .endpoint(order.order_id)
         .addSearchParams({ action: 'instant-refund' });
@@ -1019,7 +1021,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private async broadcastRedeemTx(redeemTx: string, orderId: string) {
     try {
       if (!this._api) return Err('API not found');
-      const url = new Url(this._api)
+      const url = new Url(this._api.baseurl)
         .endpoint('orders')
         .endpoint(orderId)
         .addSearchParams({ action: 'redeem' });
