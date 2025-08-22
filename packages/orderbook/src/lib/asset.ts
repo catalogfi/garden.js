@@ -69,6 +69,7 @@ export const Chains = {
   bnbchain_testnet: 'bnbchain_testnet',
   sui: 'sui',
   sui_testnet: 'sui_testnet',
+  core: 'core',
 } as const;
 
 export type Chain = keyof typeof Chains;
@@ -138,7 +139,8 @@ export const isEVM = (chain: Chain) => {
     chain === Chains.corn ||
     chain === Chains.botanix ||
     chain === Chains.bnbchain ||
-    chain === Chains.bnbchain_testnet
+    chain === Chains.bnbchain_testnet ||
+    chain === Chains.core
   );
 };
 
