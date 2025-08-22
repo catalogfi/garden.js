@@ -19,6 +19,8 @@ import { Api } from '../constants';
 import { IBitcoinWallet } from '../bitcoin/wallet/wallet.interface';
 import { ISolanaHTLC } from '../solana/htlc/ISolanaHTLC';
 import { AnchorProvider } from '@coral-xyz/anchor';
+import { ISuiHTLC } from '../sui/suiHTLC.types';
+import { WalletWithRequiredFeatures } from '@mysten/wallet-standard';
 
 export type SwapParams = {
   /**
@@ -118,6 +120,12 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
   get solanaHTLC(): ISolanaHTLC | undefined;
 
   /**
+   * The Sui relay.
+   * @readonly
+   */
+  get suiHTLC(): ISuiHTLC | undefined;
+
+  /**
    * The current quote.
    * @readonly
    */
@@ -190,7 +198,10 @@ export type GardenCoreConfig = {
   quote?: IQuote;
   blockNumberFetcher?: IBlockNumberFetcher;
   btcWallet?: IBitcoinWallet;
-  solanaProgramAddress?: string;
+  solanaProgramAddress?: {
+    native?: string;
+    spl?: string;
+  }
 };
 
 export type GardenHTLCModules = {
@@ -198,6 +209,7 @@ export type GardenHTLCModules = {
     evm?: IEVMHTLC;
     starknet?: IStarknetHTLC;
     solana?: ISolanaHTLC;
+    sui?: ISuiHTLC;
   };
 };
 
@@ -206,6 +218,7 @@ export type GardenWalletModules = {
     evm?: WalletClient;
     starknet?: AccountInterface;
     solana?: AnchorProvider;
+    sui?: WalletWithRequiredFeatures;
   };
 };
 

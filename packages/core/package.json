@@ -1,6 +1,6 @@
 {
   "name": "@gardenfi/core",
-  "version": "2.4.6",
+  "version": "2.5.0",
   "type": "module",
   "scripts": {
     "build": "vite build",
@@ -30,6 +30,10 @@
     "@coral-xyz/anchor": "^0.31.1",
     "@gardenfi/orderbook": "workspace:*",
     "@gardenfi/utils": "workspace:*",
+    "@mysten/signers": "^0.3.4",
+    "@mysten/sui": "^1.37.1",
+    "@mysten/wallet-standard": "^0.16.9",
+    "@solana/spl-token": "^0.4.13",
     "bignumber.js": "^9.1.2",
     "bip32": "^4.0.0",
     "bip39": "^3.1.0",
