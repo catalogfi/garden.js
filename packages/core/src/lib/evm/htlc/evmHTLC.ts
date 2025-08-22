@@ -3,7 +3,7 @@ import {
   EVMHTLCErrors,
   EVMSwapConfig,
 } from './evmHTLC.types';
-import { with0x } from '@gardenfi/utils';
+import { waitForTransactionReceipt, with0x } from '@gardenfi/utils';
 import {
   Address,
   encodeAbiParameters,
@@ -83,10 +83,16 @@ export class EVMHTLC implements IHTLCWallet {
       this.swap.contractAddress,
     ]);
     if (allowance < this.swap.amount) {
-      await erc20.write.approve([this.swap.contractAddress, maxUint256], {
-        account,
-        chain: this.wallet.chain,
-      });
+      const tx = await erc20.write.approve([this.swap.contractAddress, maxUint256], { account, chain: this.wallet.chain });
+      const r = await waitForTransactionReceipt(this.wallet, tx);
+      if (!r.ok) throw new Error(r.error);
+
+      const updatedAllowance = await erc20.read.allowance([initiatorAddress, this.swap.contractAddress]);
+      if (updatedAllowance < this.swap.amount) {
+        throw new Error(
+          `Insufficient allowance after approval. Needed ${this.swap.amount.toString()}, got ${updatedAllowance.toString()}.`,
+        );
+      }
     }
 
     return (await this.getHTLCContract()).write.initiate(

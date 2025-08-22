@@ -24,24 +24,28 @@ export const checkAllowanceAndApprove = async (
   });
 
   try {
-    const allowance = await erc20Contract.read.allowance([
-      with0x(walletClient.account.address),
-      with0x(contractAddress),
-    ]);
+    const owner = with0x(walletClient.account.address);
+    const spender = with0x(contractAddress);
+    const allowance = await erc20Contract.read.allowance([owner, spender]);
 
     if (BigInt(allowance) < BigInt(amount)) {
-      const res = await erc20Contract.write.approve(
-        [with0x(contractAddress), maxUint256],
-        {
-          account: walletClient.account,
-          chain: walletClient.chain,
-        },
-      );
+
+      const res = await erc20Contract.write.approve([spender, maxUint256], {
+        account: walletClient.account,
+        chain: walletClient.chain,
+      });
 
       const receipt = await waitForTransactionReceipt(walletClient, res);
       if (!receipt.ok) return Err(receipt.error);
       if (!receipt.val || receipt.val.status !== 'success')
         return Err('Failed to approve');
+
+      const newAllowance = await erc20Contract.read.allowance([owner, spender]);
+      if (newAllowance < amount) {
+        return Err(
+          `Insufficient allowance after approval. Needed ${amount.toString()}, got ${newAllowance.toString()}.`,
+        );
+      }
 
       return Ok(res);
     }
