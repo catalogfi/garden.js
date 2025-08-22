@@ -1,6 +1,6 @@
 # @gardenfi/react-hooks
 
-The `@gardenfi/react-hooks` package provides React hooks and context providers for integrating Garden.fi's cross-chain atomic swap functionality into React applications. It includes a context provider for global state management and hooks that provide a unified interface for quote retrieval and atomic swap execution. The package handles automatic cleanup of subscriptions and provides real-time updates for order status changes.
+The `@gardenfi/react-hooks` package provides React hooks and context providers for integrating cross-chain atomic swap functionality into React applications. It includes a global context provider for state management and hooks that offer a unified interface for retrieving quotes and executing atomic swaps. The package automatically manages subscription cleanup and delivers real-time updates on order status changes.
 
 ## Installation
 
@@ -56,8 +56,6 @@ const nextConfig = {
 };
 module.exports = nextConfig;
 ```
-
-
 
 ## Usage
 
