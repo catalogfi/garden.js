@@ -1,27 +1,14 @@
-# @gardenfi/core
+# @gardenfi/react-hooks
 
-The `@gardenfi/core` package handles atomic swaps between different blockchains. It provides an interface for applications to integrate the Garden SDK. The Garden instance provides all required functionalities such as quote generation, swap initiation, HTLC interactions, and wallet operations.
+The `@gardenfi/react-hooks` package provides React hooks and context providers for integrating cross-chain atomic swap functionality into React applications. It includes a global context provider for state management and hooks that offer a unified interface for retrieving quotes and executing atomic swaps. The package automatically manages subscription cleanup and delivers real-time updates on order status changes.
 
 ## Installation
 
 ```
-yarn add `@gardenfi/core`
+yarn add @gardenfi/react-hooks
 ```
 
-## Usage
-
-1. Creating an atomic swap: ([should create an order with valid parameters](https://github.com/catalogfi/garden.js/blob/main/packages/core/src/lib/garden/garden.spec.ts#L150))
-2. Interacting with created orders: ([should initiate and redeem](https://github.com/catalogfi/garden.js/blob/main/packages/core/src/lib/garden/garden.spec.ts#L197))
-
 ## Setup
-
-### Node
-
-No extra setup is required as both `cjs` and `esm` modules are supported.
-
-### Browser
-
-Following cases only cover vite and webpack setups. For other bundlers, please refer to their respective documentation on how to add wasm and polyfills support.
 
 ### Vite
 
@@ -68,4 +55,30 @@ const nextConfig = {
   },
 };
 module.exports = nextConfig;
+```
+
+## Usage
+
+### Setup GardenProvider
+
+```tsx
+import { GardenProvider } from '@gardenfi/react-hooks';
+
+const gardenConfig = {
+  environment: 'testnet',
+  wallets: {
+    evm: {
+      // EVM wallet configuration
+    },
+    // Additional wallet configurations (bitcoin, starknet, solana) can be added as needed
+  },
+};
+
+function App() {
+  return (
+    <GardenProvider config={gardenConfig}>
+      <YourApp />
+    </GardenProvider>
+  );
+}
 ```
