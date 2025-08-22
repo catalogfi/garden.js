@@ -50,8 +50,16 @@ export const ParseOrderStatus = (
     order.create_order.additional_data.deadline,
   );
 
-  //initiate check
+  // this is an edge case where the BE drops all the redeem transactions of users and does a RBF.
+  if (
+    (sourceSwapStatus === SwapStatus.Redeemed ||
+      sourceSwapStatus === SwapStatus.RedeemDetected) &&
+    destSwapStatus === SwapStatus.Initiated
+  )
+    return OrderStatus.Redeemed;
+
   if (destSwapStatus === SwapStatus.Initiated)
+    //initiate check
     return OrderStatus.CounterPartyInitiated;
   if (destSwapStatus === SwapStatus.InitiateDetected)
     return OrderStatus.CounterPartyInitiateDetected;
