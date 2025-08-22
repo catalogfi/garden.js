@@ -41,6 +41,7 @@ export {
   filterDeadlineExpiredOrders,
   parseActionFromStatus,
 } from './lib/orderStatus/orderStatusParser';
+export { newOrderStatusParser, Status } from './lib/orderStatus/statusParser';
 
 export { SecretManager } from './lib/secretManager/secretManager';
 export type {
