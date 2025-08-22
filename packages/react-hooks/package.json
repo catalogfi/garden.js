@@ -1,6 +1,6 @@
 {
   "name": "@gardenfi/react-hooks",
-  "version": "2.3.1",
+  "version": "2.5.2",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -19,7 +19,8 @@
   "scripts": {
     "build": "vite build",
     "test": "vitest run",
-    "dev": "vite build --watch"
+    "dev": "vite build --watch",
+    "link": "yarn link"
   },
   "publishConfig": {
     "access": "public",
@@ -30,7 +31,7 @@
     "@gardenfi/orderbook": "workspace:*",
     "@gardenfi/utils": "workspace:*",
     "react": "^18.3.1",
-    "starknet": "6.23.1"
+    "starknet": "7.6.4"
   },
   "devDependencies": {
     "@types/react": "^18",

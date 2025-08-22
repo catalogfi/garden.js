@@ -29,6 +29,7 @@ export const GardenContext = createContext<GardenContextType>({
 export const GardenProvider: FC<GardenProviderProps> = ({
   children,
   config,
+  handleSecretManagement,
 }) => {
   const [garden, setGarden] = useState<IGardenJS>();
 
@@ -101,6 +102,15 @@ export const GardenProvider: FC<GardenProviderProps> = ({
         init_tx_hash = solanaInitRes.val;
         break;
       }
+      case BlockchainType.Sui: {
+        if (!garden.suiHTLC)
+          return Err('Sui HTLC not initialized: Please provide suiHTLC');
+
+        const suiInitRes = await garden.suiHTLC.initiate(order.val);
+        if (!suiInitRes.ok) return Err(suiInitRes.error);
+        init_tx_hash = suiInitRes.val;
+        break;
+      }
       case BlockchainType.Bitcoin:
         init_tx_hash = order.val.source_swap.initiate_tx_hash;
         break;
@@ -133,7 +143,9 @@ export const GardenProvider: FC<GardenProviderProps> = ({
       garden = Garden.fromWallets({
         ...config,
         digestKey: digestKey,
-      });
+      }).handleSecretManagement(
+        handleSecretManagement ? handleSecretManagement : false,
+      );
     } else if (
       'htlc' in config &&
       Object.keys(config.htlc).length > 0 &&
@@ -142,14 +154,16 @@ export const GardenProvider: FC<GardenProviderProps> = ({
       garden = new Garden({
         ...config,
         digestKey: digestKey,
-      });
+      }).handleSecretManagement(
+        handleSecretManagement ? handleSecretManagement : false,
+      );
     } else {
       // Handle case where neither wallets nor htlc is provided
       return;
     }
 
     setGarden(garden);
-  }, [config, digestKey]);
+  }, [config, digestKey, handleSecretManagement]);
 
   return (
     <GardenContext.Provider

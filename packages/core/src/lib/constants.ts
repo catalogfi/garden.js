@@ -9,25 +9,28 @@ export type Api = {
   evmRelay: string;
   starknetRelay: string;
   solanaRelay: string;
+  suiRelay: string;
 };
 export const API: Record<Environment, Api> = {
   mainnet: {
-    orderbook: 'https://api.garden.finance',
+    orderbook: 'https://api.garden.finance/orders',
     auth: 'https://api.garden.finance/auth',
     quote: 'https://api.garden.finance/quote',
     info: 'https://api.garden.finance/info',
     evmRelay: 'https://api.garden.finance/relayer',
     solanaRelay: 'https://solana-relayer.garden.finance/',
     starknetRelay: 'https://api.garden.finance/starknet',
+    suiRelay: 'https://sui-relayer-mainnet.garden.finance/',
   },
   testnet: {
-    orderbook: 'https://testnet.api.garden.finance',
+    orderbook: 'https://testnet.api.garden.finance/orders',
     auth: 'https://testnet.api.garden.finance/auth',
     quote: 'https://testnet.api.garden.finance/quote',
     info: 'https://testnet.api.garden.finance/info',
     evmRelay: 'https://testnet.api.garden.finance/relayer',
     solanaRelay: 'https://solana-relay.garden.finance',
     starknetRelay: 'https://testnet.api.garden.finance/starknet',
+    suiRelay: 'https://testnet.api.garden.finance/sui',
   },
   localnet: {
     orderbook: '',
@@ -37,6 +40,7 @@ export const API: Record<Environment, Api> = {
     evmRelay: '',
     starknetRelay: '',
     solanaRelay: '',
+    suiRelay: '',
   },
 } as const;
 
@@ -68,9 +72,33 @@ export const SolanaRelayerAddress: Record<Network, string> = {
 } as const;
 
 export const solanaProgramAddress = {
-  mainnet: '2bag6xpshpvPe7SJ9nSDLHpxqhEAoHPGpEkjNSv7gxoF',
-  staging: '6eksgdCnSjUaGQWZ6iYvauv1qzvYPF33RTGTM1ZuyENx',
+  mainnet: {
+    native: '2bag6xpshpvPe7SJ9nSDLHpxqhEAoHPGpEkjNSv7gxoF',
+    spl: 'gdnvdMCHJgnidtU7SL8RkRshHPvDJU1pdfZEpoLvqdU',
+  },
+  staging: {
+    native: '6eksgdCnSjUaGQWZ6iYvauv1qzvYPF33RTGTM1ZuyENx',
+    spl: '2WXpY8havGjfRxme9LUxtjFHTh1EfU3ur4v6wiK4KdNC',
+  },
 };
+
+// TODO: change mainnet and localnet packageIds
+export const SUI_CONFIG: Record<
+  Network,
+  { packageId: string; moduleName: string }
+> = {
+  [Network.TESTNET]: {
+    packageId:
+      '0x99865b03dd1bc03d0a6a805c454ea257c464f7abcccae9cd4b621b91e7ca04de',
+    moduleName: 'AtomicSwap',
+  },
+  [Network.MAINNET]: {
+    packageId:
+      '0xbfb5728aab0dd117747ef4574af6d3540ea6093109c22856e3ae201dfd58c0fc',
+    moduleName: 'AtomicSwap',
+  },
+  [Network.LOCALNET]: { packageId: '', moduleName: '' },
+} as const;
 
 export const DEFAULT_AFFILIATE_ASSET = {
   chain: SupportedAssets.mainnet.base_cbBTC.chain,

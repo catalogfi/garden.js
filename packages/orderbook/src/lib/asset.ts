@@ -18,6 +18,7 @@ export enum BlockchainType {
   EVM = 'EVM',
   Solana = 'Solana',
   Starknet = 'Starknet',
+  Sui = 'Sui',
 }
 
 export enum NetworkType {
@@ -64,6 +65,10 @@ export const Chains = {
   unichain: 'unichain',
   corn: 'corn',
   botanix: 'botanix',
+  bnbchain: 'bnbchain',
+  bnbchain_testnet: 'bnbchain_testnet',
+  sui: 'sui',
+  sui_testnet: 'sui_testnet',
 } as const;
 
 export type Chain = keyof typeof Chains;
@@ -79,6 +84,8 @@ export type EvmChain = keyof Omit<
   | 'starknet'
   | 'starknet_devnet'
   | 'starknet_sepolia'
+  | 'sui'
+  | 'sui_testnet'
 >;
 
 export const isMainnet = (chain: Chain) => {
@@ -97,7 +104,9 @@ export const isMainnet = (chain: Chain) => {
     chain === Chains.monad_testnet ||
     chain === Chains.starknet_devnet ||
     chain === Chains.starknet_sepolia ||
-    chain === Chains.hyperliquid_testnet
+    chain === Chains.hyperliquid_testnet ||
+    chain === Chains.bnbchain_testnet ||
+    chain === Chains.sui_testnet
   );
 };
 
@@ -127,7 +136,9 @@ export const isEVM = (chain: Chain) => {
     chain === Chains.hyperliquid ||
     chain === Chains.unichain ||
     chain === Chains.corn ||
-    chain === Chains.botanix
+    chain === Chains.botanix ||
+    chain === Chains.bnbchain ||
+    chain === Chains.bnbchain_testnet
   );
 };
 
@@ -147,33 +158,8 @@ export const isStarknet = (chain: Chain) => {
   );
 };
 
-export const TimeLocks: Record<Chain, number> = {
-  [Chains.bitcoin]: 144,
-  [Chains.bitcoin_testnet]: 144,
-  [Chains.bitcoin_regtest]: 200,
-  [Chains.ethereum]: 7200,
-  [Chains.arbitrum]: 7200,
-  [Chains.ethereum_sepolia]: 7200,
-  [Chains.arbitrum_localnet]: 7200,
-  [Chains.arbitrum_sepolia]: 7200,
-  [Chains.ethereum_localnet]: 7200,
-  [Chains.base_sepolia]: 43200,
-  [Chains.base]: 43200,
-  [Chains.bera_testnet]: 43200,
-  [Chains.citrea_testnet]: 43200,
-  [Chains.bera]: 43200,
-  [Chains.monad_testnet]: 172800,
-  [Chains.solana]: 432000, //In solana timeslots exist in chunks of 0.4s so, 48 hrs in terms of that would be 48hrs => sec / 0.4
-  [Chains.solana_localnet]: 432000,
-  [Chains.solana_testnet]: 432000,
-  [Chains.starknet]: 2880,
-  [Chains.starknet_devnet]: 2880,
-  [Chains.starknet_sepolia]: 2880,
-  [Chains.hyperliquid_testnet]: 43200,
-  [Chains.hyperliquid]: 43200,
-  [Chains.unichain]: 86400,
-  [Chains.corn]: 17136,
-  [Chains.botanix]: 34560,
+export const isSui = (chain: Chain) => {
+  return chain === Chains.sui || chain === Chains.sui_testnet;
 };
 
 export const getBlockchainType = (chain: Chain) => {
@@ -181,12 +167,8 @@ export const getBlockchainType = (chain: Chain) => {
   if (isEVM(chain)) return BlockchainType.EVM;
   if (isSolana(chain)) return BlockchainType.Solana;
   if (isStarknet(chain)) return BlockchainType.Starknet;
+  if (isSui(chain)) return BlockchainType.Sui;
   throw new Error('Invalid or unsupported chain');
-};
-
-export const getTimeLock = (chain: Chain) => {
-  if (!TimeLocks[chain]) throw new Error('Invalid or unsupported chain');
-  return TimeLocks[chain];
 };
 
 export const NativeTokenAddress = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
@@ -202,11 +184,16 @@ export const isSolanaNativeToken = (chain: Chain, tokenAddress: string) => {
   return isSolana(chain) && tokenAddress.toLowerCase() === 'primary';
 };
 
+export const isSuiNativeToken = (chain: Chain, tokenAddress: string) => {
+  return isSui(chain) && tokenAddress.toLowerCase() === '0x2::sui::sui';
+};
+
 export const isNativeToken = (asset: Asset) => {
   return (
     isEvmNativeToken(asset.chain, asset.tokenAddress) ||
     isSolanaNativeToken(asset.chain, asset.tokenAddress) ||
     isBitcoin(asset.chain) ||
+    isSuiNativeToken(asset.chain, asset.tokenAddress) ||
     // Starknet doesn't have a native token
     !isStarknet(asset.chain)
   );

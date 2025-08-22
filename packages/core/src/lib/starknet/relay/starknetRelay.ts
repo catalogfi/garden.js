@@ -71,16 +71,14 @@ export class StarknetRelay implements IStarknetHTLC {
   async initiate(order: MatchedOrder): AsyncResult<string, string> {
     if (!this.account.address) return Err('No account address');
     const { create_order, source_swap } = order;
-    const { redeemer, amount } = source_swap;
 
     if (
-      !amount ||
-      !redeemer ||
-      !create_order.secret_hash ||
-      !create_order.timelock
-    ) {
+      !source_swap.amount ||
+      !source_swap.redeemer ||
+      !create_order.timelock ||
+      !create_order.secret_hash
+    )
       return Err('Invalid order');
-    }
 
     try {
       const contract = new Contract(
@@ -96,7 +94,7 @@ export class StarknetRelay implements IStarknetHTLC {
         tokenHex,
         source_swap.asset,
         this.starknetProvider,
-        BigInt(amount),
+        BigInt(source_swap.amount),
       );
       if (_isAllowanceSufficient.error) {
         return Err(_isAllowanceSufficient.error);
@@ -116,6 +114,9 @@ export class StarknetRelay implements IStarknetHTLC {
     const { create_order, source_swap } = order;
     const { redeemer, amount } = source_swap;
     const { secret_hash, timelock } = create_order;
+    if (!secret_hash) {
+      return Err('Invalid order: secret_hash is undefined');
+    }
     const contractAddress = source_swap.asset;
 
     try {
@@ -158,7 +159,10 @@ export class StarknetRelay implements IStarknetHTLC {
   ): AsyncResult<string, string> {
     const { create_order, source_swap } = order;
     const { redeemer, amount } = source_swap;
-
+    if (!create_order.secret_hash) {
+      return Err('Invalid order: secret_hash is undefined');
+    }
+    const secretHash = with0x(create_order.secret_hash);
     const DOMAIN = {
       name: 'HTLC',
       version: shortString.encodeShortString('1'),
@@ -174,7 +178,7 @@ export class StarknetRelay implements IStarknetHTLC {
         redeemer: redeemer,
         amount: cairo.uint256(amount),
         timelock: create_order.timelock,
-        secretHash: hexToU32Array(create_order.secret_hash),
+        secretHash: hexToU32Array(secretHash),
       },
     };
     try {

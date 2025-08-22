@@ -1,4 +1,10 @@
-import { APIResponse, AsyncResult, IAuth, IStore } from '@gardenfi/utils';
+import {
+  APIResponse,
+  AsyncResult,
+  IAuth,
+  IStore,
+  Request as UtilsRequest,
+} from '@gardenfi/utils';
 import { Asset, Chain } from '../asset';
 
 /**
@@ -92,9 +98,9 @@ export interface IOrderbook {
    * @returns {number} The create order ID.
    */
   createOrder(
-    order: CreateOrderRequestWithAdditionalData,
+    order: CreateOrderReqWithStrategyId,
     auth: IAuth,
-  ): AsyncResult<string, string>;
+  ): AsyncResult<MatchedOrder, string>;
 
   /**
    * Get the order from orderbook based on provided Id and match status.
@@ -134,18 +140,23 @@ export interface IOrderbook {
   /**
    * Get all orders from the orderbook based on the match status.
    * @param matched - If true, returns matched orders, else returns unmatched orders.
+   * @param filters - Object containing filter parameters like: `address`, `tx_hash`, `from_chain`, `to_chain`, `status` and any additional key-value pairs for query parameters.
    * @param paginationConfig - The configuration for the pagination.
-   * @param address - The address to get the orders for.
-   * @param tx_hash - The tx hash to get the orders for (initiate_tx_hash, redeem_tx_hash, refund_tx_hash).
-   * @param fromChain - The source chain to filter orders by.
-   * @param toChain - The destination chain to filter orders by.
+   * @param request - Optional request configuration.
    * @returns {AsyncResult<PaginatedData<T extends true ? MatchedOrder : CreateOrder>, string>} A promise that resolves to the orders.
    */
   getOrders<T extends boolean>(
     matched: T,
+    filters: {
+      address?: string;
+      tx_hash?: string;
+      from_chain?: Chain;
+      to_chain?: Chain;
+      status?: OrderStatus;
+      [key: string]: string | undefined;
+    },
     paginationConfig?: PaginationConfig,
-    address?: string,
-    tx_hash?: string,
+    request?: UtilsRequest,
   ): AsyncResult<
     PaginatedData<T extends true ? MatchedOrder : CreateOrder>,
     string
@@ -235,11 +246,10 @@ export type AffiliateFeeWithAmount = AffiliateFee & {
   amount: string;
 };
 
-export type AffiliateFeeList<
-  T extends AffiliateFee | AffiliateFeeWithAmount
-> = {
-  affiliate_fees?: T[];
-};
+export type AffiliateFeeList<T extends AffiliateFee | AffiliateFeeWithAmount> =
+  {
+    affiliate_fees?: T[];
+  };
 
 export type AffiliateFeeOptionalChainAsset = Omit<
   AffiliateFee,
@@ -252,15 +262,12 @@ export type CreateOrderRequest = {
   destination_chain: string;
   source_asset: string;
   destination_asset: string;
-  initiator_source_address: string;
-  initiator_destination_address: string;
   source_amount: string; // BigDecimal as string
   destination_amount: string; // BigDecimal as string
-  fee: string; // BigDecimal as string
   nonce: string; // BigDecimal as string
-  min_destination_confirmations: number;
-  timelock: number;
-  secret_hash: string;
+  initiator_source_address?: string;
+  initiator_destination_address?: string;
+  secret_hash?: string;
 };
 
 export type CreateOrderRequestWithAdditionalData = CreateOrderRequest &
@@ -268,11 +275,15 @@ export type CreateOrderRequestWithAdditionalData = CreateOrderRequest &
   AffiliateFeeList<AffiliateFeeWithAmount>;
 
 export type CreateOrder = CreateOrderRequestWithAdditionalData & {
+  fee: string; // BigDecimal as string
+  min_destination_confirmations: number;
+  timelock: number;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
   create_id: string;
   block_number: string;
+  user_id: string;
 };
 
 export type Swap = {
@@ -282,6 +293,8 @@ export type Swap = {
   swap_id: string;
   chain: Chain;
   asset: string;
+  htlc_address: string;
+  token_address: string;
   initiator: string;
   redeemer: string;
   timelock: number;
@@ -296,6 +309,10 @@ export type Swap = {
   redeem_block_number: string | null;
   refund_block_number: string | null;
   required_confirmations: number;
+  current_confirmations: number;
+  initiate_timestamp: string | null;
+  redeem_timestamp: string | null;
+  refund_timestamp: string | null;
 };
 
 export type MatchedOrder = {
@@ -315,7 +332,7 @@ export type PaginatedData<T> = {
   per_page: number;
 };
 
-export type CreateOrderResponse = APIResponse<string>;
+export type CreateOrderResponse = APIResponse<MatchedOrder>;
 
 export type PaginationConfig = {
   page?: number;
@@ -323,3 +340,9 @@ export type PaginationConfig = {
 };
 
 export type Status = 'all' | 'pending' | 'fulfilled';
+export type OrderStatus =
+  | 'refunded'
+  | 'expired'
+  | 'completed'
+  | 'in-progress'
+  | 'not-initiated';
