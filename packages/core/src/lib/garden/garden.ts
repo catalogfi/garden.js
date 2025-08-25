@@ -78,6 +78,8 @@ import { BitcoinProvider } from '../bitcoin/provider/provider';
 import { BitcoinWallet } from '../bitcoin/wallet/wallet';
 import { ISolanaHTLC } from '../solana/htlc/ISolanaHTLC';
 import { SolanaRelay } from '../solana/relayer/solanaRelay';
+import { ISuiHTLC } from '../sui/suiHTLC.types';
+import { SuiRelay } from '../sui/relay/suiRelay';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment = Environment.TESTNET;
@@ -92,6 +94,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private _evmHTLC: IEVMHTLC | undefined;
   private _starknetHTLC: IStarknetHTLC | undefined;
   private _solanaHTLC: ISolanaHTLC | undefined;
+  private _suiHTLC: ISuiHTLC | undefined;
   private _btcWallet: IBitcoinWallet | undefined;
   private bitcoinRedeemCache = new Cache<{
     redeemedFromUTXO: string;
@@ -130,6 +133,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this._evmHTLC = config.htlc.evm;
     this._starknetHTLC = config.htlc.starknet;
     this._solanaHTLC = config.htlc.solana;
+    this._suiHTLC = config.htlc.sui;
     this._secretManager =
       config.secretManager ??
       SecretManager.fromDigestKey(this._digestKey.digestKey);
@@ -217,6 +221,15 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
               : Siwe.fromDigestKey(new Url(api.baseurl), digestKey),
           )
         : undefined,
+      sui: config.wallets.sui
+        ? new SuiRelay(
+            api.suiRelay,
+            config.wallets.sui,
+            config.environment === Environment.MAINNET
+              ? Network.MAINNET
+              : Network.TESTNET,
+          )
+        : undefined,
     };
 
     return new Garden({
@@ -235,6 +248,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   get solanaHTLC() {
     return this._solanaHTLC;
+  }
+
+  get suiHTLC() {
+    return this._suiHTLC;
   }
 
   get quote() {
@@ -471,6 +488,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           return Err('Please provide starknetHTLC when initializing garden');
         return Ok(this._starknetHTLC.htlcActorAddress);
       }
+      case BlockchainType.Sui: {
+        if (!this._suiHTLC)
+          return Err('Please provide suiHTLC when initializing garden');
+        return Ok(this._suiHTLC.htlcActorAddress);
+      }
       default:
         return Err('Unsupported chain');
     }
@@ -605,6 +627,10 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                   await this.solRedeem(order, secrets.val.secret);
                   break;
                 }
+                case BlockchainType.Sui: {
+                  await this.suiRedeem(order, secrets.val.secret);
+                  break;
+                }
                 default:
                   this.emit(
                     'error',
@@ -681,6 +707,40 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     }
 
     const res = await this._solanaHTLC.redeem(order, secret);
+
+    if (res.error) {
+      this.emit('error', order, res.error);
+
+      if (res.error.includes('Order already redeemed')) {
+        this.orderExecutorCache.set(
+          order,
+          OrderActions.Redeem,
+          order.destination_swap.redeem_tx_hash,
+        );
+      }
+      return;
+    }
+
+    if (res.val) {
+      this.orderExecutorCache.set(order, OrderActions.Redeem, res.val);
+      this.emit('success', order, OrderActions.Redeem, res.val);
+    }
+  }
+
+  private async suiRedeem(order: Order, secret: string) {
+    this.emit('log', order.order_id, 'executing sui redeem');
+    const cache = this.orderExecutorCache.get(order, OrderActions.Redeem);
+    if (cache) {
+      this.emit('log', order.order_id, 'already redeemed');
+      return;
+    }
+
+    if (!this._suiHTLC) {
+      this.emit('error', order, 'Sui HTLC is required');
+      return;
+    }
+
+    const res = await this._suiHTLC.redeem(order, secret);
 
     if (res.error) {
       this.emit('error', order, res.error);

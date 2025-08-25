@@ -54,7 +54,7 @@ describe('orders provider', async () => {
     }
   });
 
-  test.skip('should subscribe to orders', async () => {
+  test('should subscribe to orders', async () => {
     const unsubscribe = await orderbook.subscribeOrders(
       address,
       1000,
@@ -92,6 +92,32 @@ describe('orders provider', async () => {
     console.log('order :', order.val);
   }, 5000000);
 });
+
+test('should search orders', async () => {
+  const orderbookApi = 'https://testnet.api.garden.finance/orders';
+  const orderbook = new Orderbook(new Url(orderbookApi));
+  const controller = new AbortController();
+  const signal = controller.signal;
+  const now = performance.now();
+  setTimeout(() => {
+    controller.abort();
+    console.log('aborted');
+  }, 1000);
+
+  const result = await orderbook.getOrders(
+    true,
+    { address: '0xccF3d872b01762ABA74b41B1958A9A86EE8f34A3' },
+    { page: 1, per_page: 10 },
+    { signal, retryCount: 0 },
+  );
+
+  console.log('time taken :', performance.now() - now);
+  console.log('result :', result);
+  return {
+    type: 'none',
+    orders: [],
+  };
+}, 10000);
 
 // describe('orderbook', async () => {
 //   const OrderbookApi = 'orderbook.garden.finance';

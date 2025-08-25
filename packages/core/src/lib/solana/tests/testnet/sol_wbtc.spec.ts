@@ -72,8 +72,10 @@ function setupGarden(
         solanaProvider,
         new Url(TEST_SOLANA_RELAY),
         'ANUVKxeqaec3bf4DVPqLTnG1PT3Fng56wPcE7LXAb46Q',
-        '6eksgdCnSjUaGQWZ6iYvauv1qzvYPF33RTGTM1ZuyENx',
-        '2WXpY8havGjfRxme9LUxtjFHTh1EfU3ur4v6wiK4KdNC'
+        {
+          native: '6eksgdCnSjUaGQWZ6iYvauv1qzvYPF33RTGTM1ZuyENx',
+          spl: '2WXpY8havGjfRxme9LUxtjFHTh1EfU3ur4v6wiK4KdNC',
+        },
       ),
       evm: new EvmRelay(TEST_STAGE_EVM_RELAY, evmClient, auth),
     },
@@ -203,11 +205,11 @@ describe('Swap Tests', () => {
       // Setup Garden instance
       garden = setupGarden(arbitrumWalletClient, userProvider);
     });
-    console.log('done garden setup')
+    console.log('done garden setup');
     it(
       'should create and execute a SOL->wBTC swap order',
       async () => {
-        const fromAsset : Asset =  {
+        const fromAsset: Asset = {
           name: 'primary',
           decimals: 9,
           symbol: 'SOL',
@@ -215,9 +217,9 @@ describe('Swap Tests', () => {
           tokenAddress: 'primary',
           atomicSwapAddress: '6eksgdCnSjUaGQWZ6iYvauv1qzvYPF33RTGTM1ZuyENx',
           chain: 'solana_testnet',
-        }
+        };
 
-        const toAsset : Asset =  {
+        const toAsset: Asset = {
           name: 'USD Coin',
           decimals: 6,
           symbol: 'USDC',
@@ -225,7 +227,7 @@ describe('Swap Tests', () => {
           tokenAddress: '5JbWjyLdYKTuykpq2itWbdRcZkhK3hs6fiH62pkmLYZi',
           atomicSwapAddress: '2WXpY8havGjfRxme9LUxtjFHTh1EfU3ur4v6wiK4KdNC',
           chain: 'solana_testnet',
-        }
+        };
 
         const quote = await garden.quote.getQuoteFromAssets({
           fromAsset: toAsset,
@@ -258,7 +260,7 @@ describe('Swap Tests', () => {
 
         order = result.val!;
         console.log('✅ Order created:', order.create_order.create_id);
-        console.log(order)
+        console.log(order);
         if (!garden.solanaHTLC) {
           return Err('EVM Wallet not provided!');
         }

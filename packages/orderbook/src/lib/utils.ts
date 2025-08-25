@@ -20,14 +20,15 @@ export const ConstructUrl = (
   baseUrl: Url,
   endPoint: string,
   params?: {
-    [key: string]: string | number | boolean | undefined;
+    [key: string]: string | string[] | number | boolean | undefined;
   },
 ): URL => {
   const url = baseUrl.endpoint(endPoint);
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
-        url.addSearchParams({ [key]: value.toString() });
+        if (Array.isArray(value)) url.searchParams.append(key, value.join(','));
+        else url.searchParams.append(key, value.toString());
       }
     });
   }
