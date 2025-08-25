@@ -15,7 +15,7 @@ env:
 
 jobs:
   decide-job:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-amd64
     outputs:
       run_beta_release: ${{ steps.set.outputs.run_beta_release }}
       run_individual_beta: ${{ steps.set.outputs.run_individual_beta }}
@@ -43,7 +43,7 @@ jobs:
   beta-release:
     needs: decide-job
     if: needs.decide-job.outputs.run_beta_release == 'true'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-amd64
     permissions:
       contents: write
       packages: write
@@ -113,7 +113,7 @@ jobs:
   individual-beta-release:
     needs: decide-job
     if: needs.decide-job.outputs.run_individual_beta == 'true'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-amd64
     permissions:
       contents: write
       packages: write
@@ -185,7 +185,7 @@ jobs:
   release:
     needs: decide-job
     if: needs.decide-job.outputs.run_main_release == 'true'
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-amd64
     permissions:
       contents: write
       packages: write
