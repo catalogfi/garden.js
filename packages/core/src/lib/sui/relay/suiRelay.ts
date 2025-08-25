@@ -1,4 +1,4 @@
-import { MatchedOrder } from '@gardenfi/orderbook';
+import { Order } from '@gardenfi/orderbook';
 import {
   APIResponse,
   AsyncResult,
@@ -47,7 +47,7 @@ export class SuiRelay implements ISuiHTLC {
       : this.account.toSuiAddress();
   }
 
-  async initiate(order: MatchedOrder): AsyncResult<string, string> {
+  async initiate(order: Order): AsyncResult<string, string> {
     try {
       const { source_swap } = order;
 
@@ -128,16 +128,13 @@ export class SuiRelay implements ISuiHTLC {
     }
   }
 
-  async redeem(
-    order: MatchedOrder,
-    secret: string,
-  ): AsyncResult<string, string> {
+  async redeem(order: Order, secret: string): AsyncResult<string, string> {
     try {
       const res = await Fetcher.post<APIResponse<string>>(
         this.url.endpoint('redeem'),
         {
           body: JSON.stringify({
-            order_id: order.create_order.create_id,
+            order_id: order.order_id,
             secret: secret,
             perform_on: 'Destination',
           }),

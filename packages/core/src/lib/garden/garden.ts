@@ -223,7 +223,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         : undefined,
       sui: config.wallets.sui
         ? new SuiRelay(
-            api.suiRelay,
+            api.baseurl,
             config.wallets.sui,
             config.environment === Environment.MAINNET
               ? Network.MAINNET
