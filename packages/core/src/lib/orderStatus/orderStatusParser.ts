@@ -1,4 +1,4 @@
-import { MatchedOrder } from '@gardenfi/orderbook';
+import { Order } from '@gardenfi/orderbook';
 import { Swap } from '@gardenfi/orderbook';
 import { OrderActions } from '../garden/garden.types';
 import { OrderStatus, SwapStatus } from './status';
@@ -12,7 +12,7 @@ import { OrderStatus, SwapStatus } from './status';
  * @returns {OrderStatus} The status of the order
  */
 export const ParseOrderStatus = (
-  order: MatchedOrder,
+  order: Order,
   sourceChainCurrentBlockNumber: number,
   destChainCurrentBlockNumber: number,
 ): OrderStatus => {
@@ -46,9 +46,8 @@ export const ParseOrderStatus = (
   if (destSwapStatus === SwapStatus.RefundDetected)
     return OrderStatus.CounterPartyRefundDetected;
 
-  const attestedDeadlineUnixTime = Number(
-    order.create_order.additional_data.deadline,
-  );
+  const attestedDeadlineUnixTime =
+    Math.floor(new Date(order.created_at).getTime() / 1000) + 3600;
 
   //initiate check
   if (destSwapStatus === SwapStatus.Initiated)
@@ -118,7 +117,7 @@ export const ParseSwapStatus = (swap: Swap, currentBlockNumber: number) => {
  * @returns {OrderActions} The action to be performed on the order
  */
 export const parseAction = (
-  order: MatchedOrder,
+  order: Order,
   sourceChainCurrentBlockNumber: number,
   destChainCurrentBlockNumber: number,
 ): OrderActions => {
@@ -157,28 +156,29 @@ export const isExpired = (unixTime: number, tillHours = 0): boolean => {
   return currentTime >= expiryTime;
 };
 
-export const filterDeadlineExpiredOrders = (
-  orders: MatchedOrder[],
-): MatchedOrder[] => {
+export const filterDeadlineExpiredOrders = (orders: Order[]): Order[] => {
   return orders.filter((order) => {
     return !isOrderExpired(order);
   });
 };
 
-export const isOrderExpired = (order: MatchedOrder): boolean => {
-  const { source_swap, create_order } = order;
+export const isOrderExpired = (order: Order): boolean => {
+  const { source_swap, created_at } = order;
   const { initiate_tx_hash, initiate_block_number } = source_swap;
-  const { deadline } = create_order.additional_data;
+
+  // Parse created_at as a Date and get the unix timestamp in seconds
+  const createdAtDate = new Date(created_at);
+  const createdAtUnix = Math.floor(createdAtDate.getTime() / 1000);
 
   // Initiated and confirmed
   if (initiate_tx_hash && Number(initiate_block_number)) return false;
 
   // Initiated but not confirmed yet, check for 12-hour deadline
   if (initiate_tx_hash && !Number(initiate_block_number))
-    return isExpired(Number(deadline), 12);
+    return isExpired(createdAtUnix, 12);
 
   // Not initiated yet, check for 1-hour deadline
-  if (!initiate_tx_hash) return isExpired(Number(deadline), 1);
+  if (!initiate_tx_hash) return isExpired(createdAtUnix, 1);
 
   return false;
 };

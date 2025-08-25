@@ -1,4 +1,4 @@
-import { MatchedOrder } from '@gardenfi/orderbook';
+import { Order } from '@gardenfi/orderbook';
 import { AsyncResult, Err, Ok } from '@gardenfi/utils';
 import { ISuiHTLC } from '../suiHTLC.types';
 import {
@@ -42,7 +42,7 @@ export class SuiHTLC implements ISuiHTLC {
    * @param order Order to initiate HTLC for
    * @returns Transaction ID
    */
-  async initiate(order: MatchedOrder): AsyncResult<string, string> {
+  async initiate(order: Order): AsyncResult<string, string> {
     try {
       const { source_swap } = order;
 
@@ -131,10 +131,7 @@ export class SuiHTLC implements ISuiHTLC {
    * @param secret Secret to redeem HTLC with
    * @returns Transaction ID
    */
-  async redeem(
-    order: MatchedOrder,
-    secret: string,
-  ): AsyncResult<string, string> {
+  async redeem(order: Order, secret: string): AsyncResult<string, string> {
     try {
       const { destination_swap } = order;
 
@@ -212,7 +209,7 @@ export class SuiHTLC implements ISuiHTLC {
    * @param order Order to refund HTLC for
    * @returns Refund transaction ID
    */
-  async refund(order: MatchedOrder): AsyncResult<string, string> {
+  async refund(order: Order): AsyncResult<string, string> {
     try {
       const { source_swap } = order;
 

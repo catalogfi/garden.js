@@ -1,3 +1,5 @@
+import { ChainAsset, CreateOrderRequest } from './orderbook/orderbook.types';
+
 export type AssetCommon = {
   name: string;
   decimals: number;
@@ -197,4 +199,68 @@ export const isNativeToken = (asset: Asset) => {
     // Starknet doesn't have a native token
     !isStarknet(asset.chain)
   );
+};
+
+export const toFormattedAssetString = (
+  asset: Asset | ChainAsset,
+): ChainAsset => {
+  if (typeof asset === 'string') {
+    return asset as ChainAsset;
+  }
+  return `${asset.chain}:${asset.symbol.toLowerCase()}` as ChainAsset;
+};
+
+export const fromFormattedAssetString = (
+  formatted: ChainAsset,
+): { chain: Chain; symbol: string } => {
+  const [chain, symbol] = formatted.split(':');
+  if (!(chain in Chains)) {
+    throw new Error(`Invalid chain in asset string: ${chain}`);
+  }
+  return {
+    chain: chain as Chain,
+    symbol,
+  };
+};
+
+export const getChainsFromOrder = (
+  order: CreateOrderRequest,
+): { sourceChain: Chain; destinationChain: Chain } => {
+  const [sourceChain] = order.source.asset.split(':');
+  const [destinationChain] = order.destination.asset.split(':');
+
+  if (!(sourceChain in Chains)) {
+    throw new Error(`Invalid source chain: ${sourceChain}`);
+  }
+  if (!(destinationChain in Chains)) {
+    throw new Error(`Invalid destination chain: ${destinationChain}`);
+  }
+
+  return {
+    sourceChain: sourceChain as Chain,
+    destinationChain: destinationChain as Chain,
+  };
+};
+
+export const getChain = (asset: Asset | ChainAsset): Chain => {
+  if (typeof asset === 'string') {
+    return asset.split(':')[0] as Chain;
+  }
+  return asset.chain;
+};
+
+/**
+ * Determines the blockchain type from a formatted asset string.
+ * @param assetChain - The formatted asset string (e.g., "bitcoin:btc", "ethereum:eth")
+ * @returns The chain type as a string: "bitcoin", "evm", "solana", or "starknet"
+ */
+export const getChainTypeFromAssetChain = (
+  assetChain: string,
+): BlockchainType => {
+  const [chain] = assetChain.split(':');
+  if (isBitcoin(chain as Chain)) return BlockchainType.Bitcoin;
+  if (isEVM(chain as Chain)) return BlockchainType.EVM;
+  if (isSolana(chain as Chain)) return BlockchainType.Solana;
+  if (isStarknet(chain as Chain)) return BlockchainType.Starknet;
+  throw new Error('Invalid or unsupported chain');
 };
