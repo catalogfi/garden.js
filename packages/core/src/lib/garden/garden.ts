@@ -23,6 +23,7 @@ import {
   isMainnet,
   Order,
   Orderbook,
+  OrderLifecycle,
   toFormattedAssetString,
 } from '@gardenfi/orderbook';
 import {
@@ -548,8 +549,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   async execute(interval: number = 5000): Promise<() => void> {
     return await this._orderbook.subscribeOrders(
-      this.digestKey.userId,
-      interval,
+      {
+        address: this.digestKey.userId,
+        status: OrderLifecycle.pending,
+        per_page: 500,
+      },
       async (pendingOrders) => {
         const ordersWithStatus = await this.assignStatus(pendingOrders.data);
         if (!ordersWithStatus.ok) return;
@@ -697,8 +701,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         }
         return;
       },
-      'pending',
-      { per_page: 500 },
+      interval,
     );
   }
 

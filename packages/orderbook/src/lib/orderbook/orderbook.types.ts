@@ -1,5 +1,5 @@
 import { AsyncResult, IAuth } from '@gardenfi/utils';
-import { BlockchainType, Chain } from '../asset';
+import { BlockchainType, Chain, OrderLifecycle } from '../asset';
 import type { Calldata, RawArgs, TypedData } from 'starknet';
 
 export interface IOrderbook {
@@ -52,7 +52,7 @@ export type GetOrdersFilters = {
   from_chain?: Chain;
   to_chain?: Chain;
   status?: OrderLifecycle | OrderLifecycle[];
-  [key: string]: string | string[] | undefined;
+  [key: string]: string | string[] | number | undefined;
 };
 
 export type GetOrderQueryParams = GetOrdersFilters & PaginationConfig;
@@ -144,18 +144,6 @@ export type PaginationConfig = {
   page?: number;
   per_page?: number;
 };
-
-export enum OrderLifecycle {
-  refunded = 'refunded',
-  expired = 'expired',
-  completed = 'completed',
-  inProgress = 'in-progress',
-  notInitiated = 'not-initiated',
-  all = 'all',
-  pending = 'pending',
-  fulfilled = 'fulfilled',
-}
-
 // ------------------------------------------------------------
 // Affiliate Fees
 // ------------------------------------------------------------

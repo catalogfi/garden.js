@@ -10,6 +10,17 @@ export type AssetCommon = {
   atomicSwapAddress: string;
 };
 
+export enum OrderLifecycle {
+  refunded = 'refunded',
+  expired = 'expired',
+  completed = 'completed',
+  inProgress = 'in-progress',
+  notInitiated = 'not-initiated',
+  all = 'all',
+  pending = 'pending',
+  fulfilled = 'fulfilled',
+}
+
 export type AssetToken = AssetCommon & {
   tokenAddress: string;
 };
