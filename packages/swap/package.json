@@ -1,0 +1,45 @@
+{
+  "name": "@gardenfi/swap",
+  "version": "2.5.2",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "typings": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js",
+      "types": "./dist/src/index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run",
+    "dev": "vite build --watch",
+    "link": "yarn link"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@gardenfi/core": "workspace:*",
+    "@gardenfi/orderbook": "workspace:*",
+    "@gardenfi/react-hooks": "workspace:*",
+    "@gardenfi/utils": "workspace:*",
+    "react": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18",
+    "typescript": "^5.2.2",
+    "vite": "^5.1.6",
+    "vite-plugin-dts": "^3.7.3",
+    "vite-plugin-eslint": "^1.8.1",
+    "vitest": "^1.6.0"
+  },
+  "sideEffects": false
+}
