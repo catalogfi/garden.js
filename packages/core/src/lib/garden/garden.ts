@@ -929,8 +929,8 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       const redeemHex = await bitcoinExecutor.getRedeemHex(
         trim0x(secret),
         isSourceBitcoin
-          ? order.source_swap.delegate
-          : order.destination_swap.delegate,
+          ? order.source_swap.redeemer
+          : order.destination_swap.redeemer,
       );
       const res = await this.broadcastRedeemTx(redeemHex, order.order_id);
       if (!res.ok) {
