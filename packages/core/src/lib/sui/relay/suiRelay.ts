@@ -51,11 +51,14 @@ export class SuiRelay implements ISuiHTLC {
       : this.account.toSuiAddress();
   }
 
-  async initiate(order: Order): AsyncResult<string, string> {
+  async initiate(order: Order | SuiOrderResponse): AsyncResult<string, string> {
+    if (!order) {
+      return Err('Order is required');
+    }
+    if (isSuiOrderResponse(order)) {
+      return this.initiateWithCreateOrderResponse(order);
+    }
     try {
-      if (isSuiOrderResponse(order)) {
-        return this.initiateWithCreateOrderResponse(order);
-      }
       const { source_swap } = order;
 
       const amount = BigInt(source_swap.amount);
@@ -168,7 +171,7 @@ export class SuiRelay implements ISuiHTLC {
     const gasPrice = await client.getReferenceGasPrice();
     const estimatedGasBudget = 10000000;
 
-    let transaction = Transaction.fromKind(new Uint8Array(ptb_bytes));
+    const transaction = Transaction.fromKind(new Uint8Array(ptb_bytes));
     transaction.setSender(this.htlcActorAddress);
     transaction.setGasPrice(gasPrice);
     transaction.setGasBudget(estimatedGasBudget);

@@ -349,11 +349,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
     switch (chainType) {
       case BlockchainType.EVM:
-        if (
-          !this._evmHTLC ||
-          typeof this._evmHTLC.initiate !== 'function' ||
-          createOrderRes.val.type !== BlockchainType.EVM
-        ) {
+        if (!this._evmHTLC || createOrderRes.val.type !== BlockchainType.EVM) {
           return Err(
             'EVM HTLC is not initialized, does not support initiation, or order type is not EVM',
           );
@@ -367,7 +363,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       case BlockchainType.Solana:
         if (
           !this._solanaHTLC ||
-          typeof this._solanaHTLC.initiate !== 'function' ||
           createOrderRes.val.type !== BlockchainType.Solana
         ) {
           return Err(
@@ -385,7 +380,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       case BlockchainType.Starknet:
         if (
           !this._starknetHTLC ||
-          typeof this._starknetHTLC.initiate !== 'function' ||
           createOrderRes.val.type !== BlockchainType.Starknet
         ) {
           return Err(
@@ -400,6 +394,18 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
             return Err(
               `Starknet HTLC initiation failed: ${starknetInitRes.error}`,
             );
+        }
+        break;
+      case BlockchainType.Sui:
+        if (!this._suiHTLC || createOrderRes.val.type !== BlockchainType.Sui) {
+          return Err(
+            'Sui HTLC is not initialized or does not support initiation',
+          );
+        }
+        {
+          const suiInitRes = await this._suiHTLC.initiate(createOrderRes.val);
+          if (!suiInitRes.ok)
+            return Err(`Sui HTLC initiation failed: ${suiInitRes.error}`);
         }
         break;
       default:

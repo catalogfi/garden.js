@@ -21,6 +21,7 @@ import { AtomicSwapABI } from '../abi/atomicSwap';
 import { IEVMHTLC } from '../htlc.types';
 import {
   evmToViemChainMap,
+  getChainNameFromChainId,
   switchOrAddNetwork,
 } from './../../switchOrAddNetwork';
 import { nativeHTLCAbi } from '../abi/nativeHTLC';
@@ -248,14 +249,14 @@ export class EvmRelay implements IEVMHTLC {
     order: EvmOrderResponse,
   ): AsyncResult<string, string> {
     if (!this.wallet.account) return Err('No account found');
-
+    console.log('executing approval transaction');
     if (!order.approval_transaction) {
       return Ok('No approval transaction required');
     }
 
     try {
       const approvalTx = order.approval_transaction;
-
+      console.log('approval tx', approvalTx);
       const txHash = await this.wallet.sendTransaction({
         account: this.wallet.account,
         to: with0x(approvalTx.to),
@@ -264,9 +265,9 @@ export class EvmRelay implements IEVMHTLC {
         gas: BigInt(approvalTx.gas_limit),
         chain: this.wallet.chain,
       });
-
+      console.log('tx hash', txHash);
       const receipt = await waitForTransactionReceipt(this.wallet, txHash);
-
+      console.log('receipt', receipt);
       if (receipt.val?.status !== 'success') {
         return Err('Approval transaction failed');
       }
@@ -283,8 +284,18 @@ export class EvmRelay implements IEVMHTLC {
   private async initiateWithCreateOrderResponse(
     order: EvmOrderResponse,
   ): AsyncResult<string, string> {
-    if (!this.wallet.account) return Err('No account found');
+    const chainId = order.initiate_transaction.chain_id;
 
+    const chainName = getChainNameFromChainId(chainId);
+    if (!chainName) {
+      return Err(`Unsupported chain ID: ${chainId}`);
+    }
+
+    const _walletClient = await switchOrAddNetwork(chainName, this.wallet);
+    if (!_walletClient.ok) return Err(_walletClient.error);
+    this.wallet = _walletClient.val.walletClient;
+
+    if (!this.wallet.account) return Err('No account found');
     try {
       if (order.approval_transaction) {
         const approvalResult = await this.executeApprovalTransaction(order);

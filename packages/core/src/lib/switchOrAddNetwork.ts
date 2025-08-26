@@ -125,6 +125,15 @@ export const evmToViemChainMap: Record<EvmChain, viemChain> = {
   bnbchain_testnet: bscTestnet,
 };
 
+export const getChainNameFromChainId = (chainId: number): EvmChain | null => {
+  for (const [chainName, viemChain] of Object.entries(evmToViemChainMap)) {
+    if (viemChain.id === chainId) {
+      return chainName as EvmChain;
+    }
+  }
+  return null;
+};
+
 /**
  * Switches or adds a network to the wallet
  * @param chain Garden supported chain

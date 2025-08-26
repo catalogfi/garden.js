@@ -1,4 +1,4 @@
-import { Order } from '@gardenfi/orderbook';
+import { Order, SuiOrderResponse } from '@gardenfi/orderbook';
 import { AsyncResult } from '@gardenfi/utils';
 
 export interface ISuiHTLC {
@@ -11,7 +11,7 @@ export interface ISuiHTLC {
    * @param order - The matched order.
    * @returns A promise resolving to the transaction hash of the initiation.
    */
-  initiate(order: Order): AsyncResult<string, string>;
+  initiate(order: Order | SuiOrderResponse): AsyncResult<string, string>;
 
   /**
    * Redeems funds from the HTLC contract to the actor's address.
