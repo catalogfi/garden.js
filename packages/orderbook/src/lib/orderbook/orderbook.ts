@@ -3,10 +3,8 @@ import {
   CreateOrderResponse,
   Order,
   PaginatedData,
-  PaginationConfig,
-  Status,
   CreateOrderRequest,
-  OrderStatus,
+  GetOrderQueryParams,
 } from './orderbook.types';
 import {
   APIResponse,
@@ -19,7 +17,6 @@ import {
   Request as UtilsRequest,
 } from '@gardenfi/utils';
 import { ConstructUrl, discriminateOrderResponse } from '../utils';
-import { Chain } from '../asset';
 
 /**
  * A class that allows you to create and manage orders with the orderbook url.
@@ -33,12 +30,6 @@ export class Orderbook implements IOrderbook {
     this.url = url;
   }
 
-  /**
-   * Creates an order
-   * @param {CreateOrderRequest} order - The configuration for the creating the order.
-   * @param {IAuth} auth - The auth object.
-   * @returns {CreateOrderResponse} The create order ID.
-   */
   async createOrder(
     order: CreateOrderRequest,
     auth: IAuth,
@@ -76,11 +67,6 @@ export class Orderbook implements IOrderbook {
     }
   }
 
-  /**
-   * Get an order by its ID
-   * @param id - The ID of the order
-   * @returns {AsyncResult<Order, string>} A promise that resolves to the order.
-   */
   async getOrder(
     id: string,
     request?: UtilsRequest,
@@ -100,87 +86,11 @@ export class Orderbook implements IOrderbook {
     }
   }
 
-  /**
-   * Get orders by status
-   * @param address - The address of the order
-   * @param status - The status of the order
-   * @param paginationConfig - The pagination configuration
-   * @returns {AsyncResult<PaginatedData<Order>, string>} A promise that resolves to the orders.
-   */
-  async getOrdersByStatus(
-    address: string,
-    status: Status,
-    paginationConfig?: PaginationConfig,
-    request?: UtilsRequest,
-  ): AsyncResult<PaginatedData<Order>, string> {
-    try {
-      const endpoint = '/v2/orders';
-
-      const params = {
-        ...(paginationConfig?.page && { page: paginationConfig.page }),
-        ...(paginationConfig?.per_page && {
-          per_page: paginationConfig.per_page,
-        }),
-        ...(address && { address }),
-        ...(status && { status }),
-      };
-
-      const url = ConstructUrl(this.url, endpoint, params);
-
-      const res = await Fetcher.get<APIResponse<PaginatedData<Order>>>(url, {
-        ...request,
-      });
-
-      if (res.error) return Err(res.error);
-
-      if (!res.result)
-        return Err('GetOrdersByStatus: Unexpected error, result is undefined');
-
-      return Ok(res.result);
-    } catch (error: any) {
-      return Err(
-        `GetOrdersByStatus: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      );
-    }
-  }
-
-  /**
-   * Get all orders
-   * @param filters - The filters for the orders
-   * @param paginationConfig - The pagination configuration
-   * @returns {AsyncResult<PaginatedData<Order>, string>} A promise that resolves to the orders.
-   */
   async getOrders(
-    filters: {
-      address?: string;
-      tx_hash?: string;
-      from_chain?: Chain;
-      to_chain?: Chain;
-      status?: OrderStatus | OrderStatus[];
-      [key: string]: string | string[] | undefined;
-    },
-    paginationConfig?: PaginationConfig,
-    address?: string,
-    tx_hash?: string,
+    queryParams: GetOrderQueryParams,
   ): AsyncResult<PaginatedData<Order>, string> {
     const endpoint = '/v2/orders';
-    const params = {
-      ...(paginationConfig?.page && { page: paginationConfig.page }),
-      ...(paginationConfig?.per_page && {
-        per_page: paginationConfig.per_page,
-      }),
-      ...(address && { address }),
-      ...(tx_hash && { tx_hash }),
-      ...(filters.from_chain && { from_chain: filters.from_chain }),
-      ...(filters.to_chain && { to_chain: filters.to_chain }),
-      ...(filters.status && { status: filters.status }),
-      ...(filters.address && { address: filters.address }),
-      ...(filters.tx_hash && { tx_hash: filters.tx_hash }),
-    };
-
-    const url = ConstructUrl(this.url, endpoint, params);
+    const url = ConstructUrl(this.url, endpoint, queryParams);
 
     try {
       const res = await Fetcher.get<APIResponse<PaginatedData<Order>>>(url);
@@ -210,23 +120,18 @@ export class Orderbook implements IOrderbook {
    * @returns {Promise<() => void>} A promise that resolves to the unsubscribe function.
    */
   async subscribeOrders(
-    account: string,
-    interval: number,
+    queryParams: GetOrderQueryParams,
     cb: (orders: PaginatedData<Order>) => Promise<void>,
-    status: Status = 'all',
-    paginationConfig?: PaginationConfig,
+    interval?: number,
   ): Promise<() => void> {
     let isProcessing = false;
+
     const fetchOrders = async () => {
       if (isProcessing) return;
       isProcessing = true;
 
       try {
-        const result = await this.getOrdersByStatus(
-          account,
-          status,
-          paginationConfig,
-        );
+        const result = await this.getOrders(queryParams);
         if (result.ok) {
           await cb(result.val);
         } else {

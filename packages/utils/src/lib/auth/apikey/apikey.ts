@@ -12,13 +12,13 @@ export class ApiKey implements IAuth {
     const verify = this.verifyToken();
     if (verify.error) return Err(verify.error);
 
-    if (verify.val) return Ok(this.apiKey);
+    if (verify.val) return Ok(this._apiKey);
 
     return Err('Token verification failed');
   }
 
   verifyToken(): Result<boolean, string> {
-    if (this.apiKey.length === 64) {
+    if (this._apiKey.length === 64) {
       return Ok(true);
     }
     return Err('Invalid API key length');
@@ -72,9 +72,5 @@ export class ApiKey implements IAuth {
     if (token.ok) return Ok({ [AuthHeaderEnum.ApiKey]: token.val });
 
     return Err(token.error ?? 'Failed to get auth token');
-  }
-
-  get apiKey() {
-    return this._apiKey;
   }
 }

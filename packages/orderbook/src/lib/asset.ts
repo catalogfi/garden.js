@@ -1,3 +1,4 @@
+import { Network } from '@gardenfi/utils';
 import { ChainAsset, CreateOrderRequest } from './orderbook/orderbook.types';
 
 export type AssetCommon = {
@@ -29,149 +30,160 @@ export enum NetworkType {
   localnet = 'localnet',
 }
 
-export type Network = {
-  [networkName: string]: {
-    chainId: number;
-    fillerAddresses: string[];
-    networkLogo: string;
-    explorer: string;
-    networkType: NetworkType;
-    assets?: Asset[];
-  };
-};
-
-export const Chains = {
-  bitcoin: 'bitcoin',
-  bitcoin_testnet: 'bitcoin_testnet',
-  bitcoin_regtest: 'bitcoin_regtest',
-  ethereum: 'ethereum',
-  base: 'base',
-  arbitrum: 'arbitrum',
-  ethereum_sepolia: 'ethereum_sepolia',
-  arbitrum_localnet: 'arbitrum_localnet',
-  arbitrum_sepolia: 'arbitrum_sepolia',
-  ethereum_localnet: 'ethereum_localnet',
-  base_sepolia: 'base_sepolia',
-  solana: 'solana',
-  solana_testnet: 'solana_testnet',
-  solana_localnet: 'solana_localnet',
-  bera_testnet: 'bera_testnet',
-  citrea_testnet: 'citrea_testnet',
-  bera: 'bera',
-  monad_testnet: 'monad_testnet',
-  starknet: 'starknet',
-  starknet_sepolia: 'starknet_sepolia',
-  starknet_devnet: 'starknet_devnet',
-  hyperliquid_testnet: 'hyperliquid_testnet',
-  hyperliquid: 'hyperliquid',
-  unichain: 'unichain',
-  corn: 'corn',
-  botanix: 'botanix',
-  bnbchain: 'bnbchain',
-  bnbchain_testnet: 'bnbchain_testnet',
-  sui: 'sui',
-  sui_testnet: 'sui_testnet',
+export const ChainsConfig = {
+  bitcoin: {
+    type: BlockchainType.Bitcoin,
+    network: Network.MAINNET,
+  },
+  bitcoin_testnet: {
+    type: BlockchainType.Bitcoin,
+    network: Network.TESTNET,
+  },
+  bitcoin_regtest: {
+    type: BlockchainType.Bitcoin,
+    network: Network.LOCALNET,
+  },
+  ethereum: {
+    type: BlockchainType.EVM,
+    network: Network.MAINNET,
+  },
+  base: {
+    type: BlockchainType.EVM,
+    network: Network.MAINNET,
+  },
+  arbitrum: {
+    type: BlockchainType.EVM,
+    network: Network.MAINNET,
+  },
+  ethereum_sepolia: {
+    type: BlockchainType.EVM,
+    network: Network.TESTNET,
+  },
+  arbitrum_localnet: {
+    type: BlockchainType.EVM,
+    network: Network.LOCALNET,
+  },
+  arbitrum_sepolia: {
+    type: BlockchainType.EVM,
+    network: Network.TESTNET,
+  },
+  ethereum_localnet: {
+    type: BlockchainType.EVM,
+    network: Network.LOCALNET,
+  },
+  base_sepolia: {
+    type: BlockchainType.EVM,
+    network: Network.TESTNET,
+  },
+  solana: {
+    type: BlockchainType.Solana,
+    network: Network.MAINNET,
+  },
+  solana_testnet: {
+    type: BlockchainType.Solana,
+    network: Network.TESTNET,
+  },
+  solana_localnet: {
+    type: BlockchainType.Solana,
+    network: Network.LOCALNET,
+  },
+  bera_testnet: {
+    type: BlockchainType.EVM,
+    network: Network.TESTNET,
+  },
+  citrea_testnet: {
+    type: BlockchainType.EVM,
+    network: Network.TESTNET,
+  },
+  bera: {
+    type: BlockchainType.EVM,
+    network: Network.MAINNET,
+  },
+  monad_testnet: {
+    type: BlockchainType.EVM,
+    network: Network.TESTNET,
+  },
+  starknet: {
+    type: BlockchainType.Starknet,
+    network: Network.MAINNET,
+  },
+  starknet_sepolia: {
+    type: BlockchainType.Starknet,
+    network: Network.TESTNET,
+  },
+  starknet_devnet: {
+    type: BlockchainType.Starknet,
+    network: Network.LOCALNET,
+  },
+  hyperliquid_testnet: {
+    type: BlockchainType.EVM,
+    network: Network.TESTNET,
+  },
+  hyperliquid: {
+    type: BlockchainType.EVM,
+    network: Network.MAINNET,
+  },
+  unichain: {
+    type: BlockchainType.EVM,
+    network: Network.MAINNET,
+  },
+  corn: {
+    type: BlockchainType.EVM,
+    network: Network.MAINNET,
+  },
+  botanix: {
+    type: BlockchainType.EVM,
+    network: Network.MAINNET,
+  },
+  bnbchain: { type: BlockchainType.EVM, network: Network.MAINNET },
+  bnbchain_testnet: {
+    type: BlockchainType.EVM,
+    network: Network.TESTNET,
+  },
+  sui: {
+    type: BlockchainType.Sui,
+    network: Network.MAINNET,
+  },
+  sui_testnet: {
+    type: BlockchainType.Sui,
+    network: Network.TESTNET,
+  },
 } as const;
 
-export type Chain = keyof typeof Chains;
+export const Chains = Object.keys(ChainsConfig).reduce((acc, key) => {
+  acc[key as Chain] = key as Chain;
+  return acc;
+}, {} as Record<Chain, Chain>);
 
-export type EvmChain = keyof Omit<
-  typeof Chains,
-  | 'bitcoin'
-  | 'bitcoin_testnet'
-  | 'bitcoin_regtest'
-  | 'solana'
-  | 'solana_testnet'
-  | 'solana_localnet'
-  | 'starknet'
-  | 'starknet_devnet'
-  | 'starknet_sepolia'
-  | 'sui'
-  | 'sui_testnet'
->;
+export type Chain = keyof typeof ChainsConfig;
 
-export const isMainnet = (chain: Chain) => {
-  return !(
-    chain === Chains.ethereum_sepolia ||
-    chain === Chains.bitcoin_testnet ||
-    chain === Chains.bitcoin_regtest ||
-    chain === Chains.arbitrum_localnet ||
-    chain === Chains.ethereum_localnet ||
-    chain === Chains.arbitrum_sepolia ||
-    chain === Chains.base_sepolia ||
-    chain === Chains.solana_testnet ||
-    chain === Chains.solana_localnet ||
-    chain === Chains.bera_testnet ||
-    chain === Chains.citrea_testnet ||
-    chain === Chains.monad_testnet ||
-    chain === Chains.starknet_devnet ||
-    chain === Chains.starknet_sepolia ||
-    chain === Chains.hyperliquid_testnet ||
-    chain === Chains.bnbchain_testnet ||
-    chain === Chains.sui_testnet
-  );
-};
+export type EvmChain = {
+  [K in Chain]: (typeof ChainsConfig)[K] extends {
+    type: BlockchainType.EVM;
+  }
+    ? K
+    : never;
+}[Chain];
 
-export const isBitcoin = (chain: Chain) => {
-  return (
-    chain === Chains.bitcoin ||
-    chain === Chains.bitcoin_testnet ||
-    chain === Chains.bitcoin_regtest
-  );
-};
+export const isMainnet = (chain: Chain) =>
+  ChainsConfig[chain].network === Network.MAINNET;
 
-export const isEVM = (chain: Chain) => {
-  return (
-    chain === Chains.ethereum ||
-    chain === Chains.arbitrum ||
-    chain === Chains.ethereum_sepolia ||
-    chain === Chains.ethereum_localnet ||
-    chain === Chains.arbitrum_localnet ||
-    chain === Chains.arbitrum_sepolia ||
-    chain === Chains.base_sepolia ||
-    chain === Chains.base ||
-    chain === Chains.bera_testnet ||
-    chain === Chains.citrea_testnet ||
-    chain === Chains.bera ||
-    chain === Chains.monad_testnet ||
-    chain === Chains.hyperliquid_testnet ||
-    chain === Chains.hyperliquid ||
-    chain === Chains.unichain ||
-    chain === Chains.corn ||
-    chain === Chains.botanix ||
-    chain === Chains.bnbchain ||
-    chain === Chains.bnbchain_testnet
-  );
-};
+export const isBitcoin = (chain: Chain) =>
+  ChainsConfig[chain].type === BlockchainType.Bitcoin;
 
-export const isSolana = (chain: Chain) => {
-  return (
-    chain === Chains.solana ||
-    chain === Chains.solana_testnet ||
-    chain === Chains.solana_localnet
-  );
-};
+export const isEVM = (chain: Chain) =>
+  ChainsConfig[chain].type === BlockchainType.EVM;
 
-export const isStarknet = (chain: Chain) => {
-  return (
-    chain === Chains.starknet ||
-    chain === Chains.starknet_devnet ||
-    chain === Chains.starknet_sepolia
-  );
-};
+export const isSolana = (chain: Chain) =>
+  ChainsConfig[chain].type === BlockchainType.Solana;
 
-export const isSui = (chain: Chain) => {
-  return chain === Chains.sui || chain === Chains.sui_testnet;
-};
+export const isStarknet = (chain: Chain) =>
+  ChainsConfig[chain].type === BlockchainType.Starknet;
 
-export const getBlockchainType = (chain: Chain) => {
-  if (isBitcoin(chain)) return BlockchainType.Bitcoin;
-  if (isEVM(chain)) return BlockchainType.EVM;
-  if (isSolana(chain)) return BlockchainType.Solana;
-  if (isStarknet(chain)) return BlockchainType.Starknet;
-  if (isSui(chain)) return BlockchainType.Sui;
-  throw new Error('Invalid or unsupported chain');
-};
+export const isSui = (chain: Chain) =>
+  ChainsConfig[chain].type === BlockchainType.Sui;
+
+export const getBlockchainType = (chain: Chain) => ChainsConfig[chain].type;
 
 export const NativeTokenAddress = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
 
@@ -228,7 +240,7 @@ export const fromFormattedAssetString = (
   formatted: ChainAsset,
 ): { chain: Chain; symbol: string } => {
   const [chain, symbol] = formatted.split(':');
-  if (!(chain in Chains)) {
+  if (!(chain in ChainsConfig)) {
     throw new Error(`Invalid chain in asset string: ${chain}`);
   }
   return {
@@ -243,10 +255,10 @@ export const getChainsFromOrder = (
   const [sourceChain] = order.source.asset.split(':');
   const [destinationChain] = order.destination.asset.split(':');
 
-  if (!(sourceChain in Chains)) {
+  if (!(sourceChain in ChainsConfig)) {
     throw new Error(`Invalid source chain: ${sourceChain}`);
   }
-  if (!(destinationChain in Chains)) {
+  if (!(destinationChain in ChainsConfig)) {
     throw new Error(`Invalid destination chain: ${destinationChain}`);
   }
 

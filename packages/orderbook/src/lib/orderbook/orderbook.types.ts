@@ -15,102 +15,47 @@ export interface IOrderbook {
   ): AsyncResult<CreateOrderResponse, string>;
 
   /**
-   * Get the order from orderbook based on provided Id and match status.
+   * Get the order from orderbook based on provided Id.
    * @param id - The create Id of the order
-   * @template T - If true, returns matched order, else returns create order (unmatched Order).
-   * @returns {AsyncResult<T extends true ? Order : CreateOrder, string>} A promise that resolves to the order.
+   * @returns {AsyncResult<Order, string>} A promise that resolves to the order.
    */
   getOrder(id: string): AsyncResult<Order, string>;
 
   /**
-   * Get orders by status
-   * @param address - The address of the order
-   * @param status - The status of the order
-   * @param paginationConfig - The pagination configuration
+   * Get all orders from the orderbook based on the provided filters.
+   * @param {GetOrdersFilters} filters - Object containing filter parameters like: `address`, `tx_hash`, `from_chain`, `to_chain`, `status` and any additional key-value pairs for query parameters.
+   * @param paginationConfig - The configuration for the pagination.
    * @returns {AsyncResult<PaginatedData<Order>, string>} A promise that resolves to the orders.
    */
-  getOrdersByStatus(
-    address: string,
-    status: Status,
-    paginationConfig?: PaginationConfig,
-  ): AsyncResult<PaginatedData<Order>, string>;
-
-  /**
-   * Get all orders from the orderbook based on the match status.
-   * @param matched - If true, returns matched orders, else returns unmatched orders.
-   * @param filters - Object containing filter parameters like: `address`, `tx_hash`, `from_chain`, `to_chain`, `status` and any additional key-value pairs for query parameters.
-   * @param paginationConfig - The configuration for the pagination.
-   * @param address - The address to get the orders for.
-   * @param tx_hash - The tx hash to get the orders for (initiate_tx_hash, redeem_tx_hash, refund_tx_hash).
-   * @param fromChain - The source chain to filter orders by.
-   * @param toChain - The destination chain to filter orders by.
-   * @returns {AsyncResult<PaginatedData<T extends true ? Order : CreateOrder>, string>} A promise that resolves to the orders.
-   */
   getOrders(
-    filters: {
-      address?: string;
-      tx_hash?: string;
-      from_chain?: Chain;
-      to_chain?: Chain;
-      status?: OrderStatus;
-      [key: string]: string | undefined;
-    },
-    paginationConfig?: PaginationConfig,
-    address?: string,
-    tx_hash?: string,
+    queryParams: GetOrderQueryParams,
   ): AsyncResult<PaginatedData<Order>, string>;
 
   /**
-   * Polls for every provided interval and returns matched and unmatched orders associated on the account.
-   * @param account The account to subscribe to
-   * @param matched If true, returns matched orders, else returns unmatched orders
-   * @param cb Th ack to be called when the orders are updated
-   * @param interval The interval to poll for updates
-   *
-   * Example usage:
-   *
-   * ```js
-   * const unsubscribe =await orderbook.subscribeOrders(account, matched, interval, handleOrders, paginationConfig);
-   *
-   * // Unsubscribe after 20 seconds
-   * setTimeout(() => {
-   *   unsubscribe();
-   *   console.log('Unsubscribed from orders');
-   * }, 20000);
-   * ```
+   * A wrapper around getOrders that polls for every provided interval and returns orders based on the provided filters.
+   * @param {GetOrdersFilters} filters - The filters to get the orders for.
+   * @param {function} cb - The callback to be called when the orders are updated.
+   * @param {number} interval - The interval to poll for updates. Default is 5000ms.
+   * @param {PaginationConfig} paginationConfig - The configuration for the pagination.
+   * @returns {Promise<() => void>} A promise that resolves to a function to unsubscribe from the orders.
    */
   subscribeOrders(
-    account: string,
-    interval: number,
+    queryParams: GetOrderQueryParams,
     cb: (orders: PaginatedData<Order>) => Promise<void>,
-    status?: Status,
-    paginationConfig?: PaginationConfig,
+    interval?: number,
   ): Promise<() => void>;
 }
 
-export type DecodedAuthToken = {
-  userWallet: string;
-  exp: number;
-  iat: number;
+export type GetOrdersFilters = {
+  address?: string;
+  tx_hash?: string;
+  from_chain?: Chain;
+  to_chain?: Chain;
+  status?: OrderLifecycle | OrderLifecycle[];
+  [key: string]: string | string[] | undefined;
 };
 
-export type AffiliateFee = {
-  address: string;
-  asset: ChainAsset;
-  fee: number; // fee in bps
-};
-
-export type AffiliateFeeWithAmount = AffiliateFee & {
-  amount: string;
-};
-
-export type AffiliateFeeList<T extends AffiliateFee | AffiliateFeeWithAmount> =
-  {
-    affiliate_fees?: T[];
-  };
-
-export type AffiliateFeeOptionalAsset = Omit<AffiliateFee, 'asset'> &
-  Partial<Pick<AffiliateFee, 'asset'>>;
+export type GetOrderQueryParams = GetOrdersFilters & PaginationConfig;
 
 export type ChainAsset = `${Chain}:${string}`;
 
@@ -200,7 +145,42 @@ export type PaginationConfig = {
   per_page?: number;
 };
 
-export type Status = 'all' | 'pending' | 'fulfilled';
+export enum OrderLifecycle {
+  refunded = 'refunded',
+  expired = 'expired',
+  completed = 'completed',
+  inProgress = 'in-progress',
+  notInitiated = 'not-initiated',
+  all = 'all',
+  pending = 'pending',
+  fulfilled = 'fulfilled',
+}
+
+// ------------------------------------------------------------
+// Affiliate Fees
+// ------------------------------------------------------------
+
+export type AffiliateFee = {
+  address: string;
+  asset: ChainAsset;
+  fee: number; // fee in bps
+};
+
+export type AffiliateFeeWithAmount = AffiliateFee & {
+  amount: string;
+};
+
+export type AffiliateFeeList<T extends AffiliateFee | AffiliateFeeWithAmount> =
+  {
+    affiliate_fees?: T[];
+  };
+
+export type AffiliateFeeOptionalAsset = Omit<AffiliateFee, 'asset'> &
+  Partial<Pick<AffiliateFee, 'asset'>>;
+
+// ------------------------------------------------------------
+// Order Response
+// ------------------------------------------------------------
 
 export type EVMTransaction = {
   to: string;
@@ -264,10 +244,3 @@ export type CreateOrderResponse =
   | ({ type: BlockchainType.Starknet } & StarknetOrderResponse)
   | ({ type: BlockchainType.Solana } & SolanaOrderResponse)
   | ({ type: BlockchainType.Sui } & SuiOrderResponse);
-
-export type OrderStatus =
-  | 'refunded'
-  | 'expired'
-  | 'completed'
-  | 'in-progress'
-  | 'not-initiated';
