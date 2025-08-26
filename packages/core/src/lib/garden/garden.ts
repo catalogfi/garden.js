@@ -919,9 +919,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       const bitcoinExecutor = await GardenHTLC.from(
         wallet as IBitcoinWallet,
         Number(order.destination_swap.amount),
-        order.source_swap.secret_hash,
+        order.destination_swap.secret_hash,
         toXOnly(order.destination_swap.initiator),
-        toXOnly(order.destination_swap.redeemer),
+        toXOnly(order.destination_swap.delegate),
         order.destination_swap.timelock,
         rbf ? [fillerInitTx] : [],
       );
@@ -965,7 +965,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         Number(order.source_swap.amount),
         order.source_swap.secret_hash,
         toXOnly(order.source_swap.initiator),
-        toXOnly(order.source_swap.redeemer),
+        toXOnly(order.source_swap.delegate),
         order.source_swap.timelock,
       );
       const res = await bitcoinExecutor.refund(order.source_swap.delegate);
@@ -1090,17 +1090,19 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private async broadcastRedeemTx(redeemTx: string, orderId: string) {
     try {
       if (!this._api) return Err('API not found');
-      const url = new Url(this._api.baseurl)
-        .endpoint('orders')
-        .endpoint(orderId)
-        .addSearchParams({ action: 'redeem' });
+      const url = new Url(this._api.evmRelay)
+        .endpoint('bitcoin')
+        .endpoint('redeem');
       const authHeaders = await this._auth.getAuthHeaders();
-      const res = await Fetcher.patch<APIResponse<string>>(url, {
+      const res = await Fetcher.post<APIResponse<string>>(url, {
         headers: {
           'Content-Type': 'application/json',
           ...authHeaders.val,
         },
-        body: JSON.stringify({ redeem_tx_bytes: redeemTx }),
+        body: JSON.stringify({
+          redeem_tx_bytes: redeemTx,
+          order_id: orderId,
+        }),
       });
 
       if (res.status === 'Ok' && res.result) {
