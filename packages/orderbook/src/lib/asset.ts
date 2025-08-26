@@ -175,29 +175,43 @@ export const getBlockchainType = (chain: Chain) => {
 
 export const NativeTokenAddress = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
 
+export const NATIVE_TOKENS = {
+  [BlockchainType.EVM]: 'eth',
+  [BlockchainType.Solana]: 'sol',
+  [BlockchainType.Sui]: 'sui',
+};
+
 export const isEvmNativeToken = (chain: Chain, tokenAddress: string) => {
   return (
     isEVM(chain) &&
-    tokenAddress.toLowerCase() === NativeTokenAddress.toLowerCase()
+    tokenAddress.toLowerCase() === NATIVE_TOKENS[BlockchainType.EVM]
   );
 };
 
 export const isSolanaNativeToken = (chain: Chain, tokenAddress: string) => {
-  return isSolana(chain) && tokenAddress.toLowerCase() === 'primary';
+  return (
+    isSolana(chain) &&
+    tokenAddress.toLowerCase() === NATIVE_TOKENS[BlockchainType.Solana]
+  );
 };
 
 export const isSuiNativeToken = (chain: Chain, tokenAddress: string) => {
-  return isSui(chain) && tokenAddress.toLowerCase() === '0x2::sui::sui';
+  return (
+    isSui(chain) &&
+    tokenAddress.toLowerCase() === NATIVE_TOKENS[BlockchainType.Sui]
+  );
 };
 
-export const isNativeToken = (asset: Asset) => {
+export const isNativeToken = (asset: ChainAsset) => {
+  const chain = asset.split(':')[0] as Chain;
+  const tokenAddress = asset.split(':')[1];
   return (
-    isEvmNativeToken(asset.chain, asset.tokenAddress) ||
-    isSolanaNativeToken(asset.chain, asset.tokenAddress) ||
-    isBitcoin(asset.chain) ||
-    isSuiNativeToken(asset.chain, asset.tokenAddress) ||
+    isEvmNativeToken(chain, tokenAddress) ||
+    isSolanaNativeToken(chain, tokenAddress) ||
+    isBitcoin(chain) ||
+    isSuiNativeToken(chain, tokenAddress) ||
     // Starknet doesn't have a native token
-    !isStarknet(asset.chain)
+    !isStarknet(chain)
   );
 };
 
@@ -262,5 +276,6 @@ export const getChainTypeFromAssetChain = (
   if (isEVM(chain as Chain)) return BlockchainType.EVM;
   if (isSolana(chain as Chain)) return BlockchainType.Solana;
   if (isStarknet(chain as Chain)) return BlockchainType.Starknet;
+  if (isSui(chain as Chain)) return BlockchainType.Sui;
   throw new Error('Invalid or unsupported chain');
 };

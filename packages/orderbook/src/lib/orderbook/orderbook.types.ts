@@ -254,11 +254,16 @@ export type SolanaOrderResponse = BaseCreateOrderResponse & {
   versioned_tx: string;
 };
 
+export type SuiOrderResponse = BaseCreateOrderResponse & {
+  ptb_bytes: number[];
+};
+
 export type CreateOrderResponse =
   | ({ type: BlockchainType.EVM } & EvmOrderResponse)
   | ({ type: BlockchainType.Bitcoin } & BitcoinOrderResponse)
   | ({ type: BlockchainType.Starknet } & StarknetOrderResponse)
-  | ({ type: BlockchainType.Solana } & SolanaOrderResponse);
+  | ({ type: BlockchainType.Solana } & SolanaOrderResponse)
+  | ({ type: BlockchainType.Sui } & SuiOrderResponse);
 
 export type OrderStatus =
   | 'refunded'

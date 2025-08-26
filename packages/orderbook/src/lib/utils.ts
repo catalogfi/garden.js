@@ -7,6 +7,7 @@ import {
   EvmOrderResponse,
   BitcoinOrderResponse,
   SolanaOrderResponse,
+  SuiOrderResponse,
 } from './orderbook/orderbook.types';
 import { BlockchainType } from './asset';
 
@@ -100,6 +101,19 @@ export const isSolanaOrderResponse: OrderResponseTypeGuard<
 };
 
 /**
+ * Type guard for Sui order responses
+ */
+export const isSuiOrderResponse: OrderResponseTypeGuard<SuiOrderResponse> = (
+  response: any,
+): response is SuiOrderResponse => {
+  return (
+    hasKeys(response, ['ptb_bytes']) &&
+    Array.isArray(response.ptb_bytes) &&
+    response.ptb_bytes.every((byte: number) => typeof byte === 'number')
+  );
+};
+
+/**
  * Type guard for Order objects (matched orders)
  */
 export const isOrder: OrderResponseTypeGuard<Order> = (
@@ -138,6 +152,10 @@ export function discriminateOrderResponse(
     return { type: BlockchainType.Solana, ...response } as CreateOrderResponse;
   }
 
+  if (isSuiOrderResponse(response)) {
+    return { type: BlockchainType.Sui, ...response } as CreateOrderResponse;
+  }
+
   return null;
 }
 
@@ -149,5 +167,6 @@ export function getOrderResponseType(response: any): BlockchainType | null {
   if (isStarknetOrderResponse(response)) return BlockchainType.Starknet;
   if (isBitcoinOrderResponse(response)) return BlockchainType.Bitcoin;
   if (isSolanaOrderResponse(response)) return BlockchainType.Solana;
+  if (isSuiOrderResponse(response)) return BlockchainType.Sui;
   return null;
 }

@@ -322,7 +322,7 @@ export class SolanaRelay implements ISolanaHTLC {
     try {
       const isNative = isSolanaNativeToken(
         order.source_swap.chain,
-        order.source_swap.token_address,
+        order.source_swap.asset.split(':')[1],
       );
 
       if (isNative) {
@@ -406,8 +406,12 @@ export class SolanaRelay implements ISolanaHTLC {
         return Err(`Failed to fetch order by id: ${orderResult.error}`);
       }
 
-      const asset = orderResult.val.source_swap.asset?.toLowerCase?.() ?? '';
-      if (asset.endsWith(':sol')) {
+      if (
+        isSolanaNativeToken(
+          orderResult.val.source_swap.chain,
+          orderResult.val.source_swap.asset.split(':')[1],
+        )
+      ) {
         return await this.initiateNativeSwap(orderResult.val);
       }
 

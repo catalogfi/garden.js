@@ -100,7 +100,12 @@ export class EvmRelay implements IEVMHTLC {
     const htlcAddress = assetInfo.htlc.address;
     const tokenAddress = assetInfo.token?.address || '';
 
-    if (isEvmNativeToken(order.source_swap.chain, tokenAddress)) {
+    if (
+      isEvmNativeToken(
+        order.source_swap.chain,
+        order.source_swap.asset.split(':')[1],
+      )
+    ) {
       return this._initiateOnNativeHTLC(
         secretHash,
         timelock,
@@ -157,7 +162,7 @@ export class EvmRelay implements IEVMHTLC {
     timelock: bigint,
     amount: bigint,
     redeemer: `0x${string}`,
-    asset: string,
+    htlcAddress: string,
     tokenAddress: string,
     orderId: string,
   ): AsyncResult<string, string> {
@@ -168,7 +173,7 @@ export class EvmRelay implements IEVMHTLC {
       if (!auth.ok) return Err(auth.error);
 
       const atomicSwap = getContract({
-        address: with0x(asset),
+        address: with0x(htlcAddress),
         abi: AtomicSwapABI,
         client: this.wallet,
       });
@@ -176,7 +181,7 @@ export class EvmRelay implements IEVMHTLC {
       const approval = await checkAllowanceAndApprove(
         Number(amount),
         tokenAddress,
-        asset,
+        htlcAddress,
         this.wallet,
       );
       if (!approval.ok) return Err(approval.error);

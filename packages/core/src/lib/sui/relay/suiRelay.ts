@@ -1,4 +1,8 @@
-import { Order } from '@gardenfi/orderbook';
+import {
+  isSuiOrderResponse,
+  Order,
+  SuiOrderResponse,
+} from '@gardenfi/orderbook';
 import {
   APIResponse,
   AsyncResult,
@@ -49,6 +53,9 @@ export class SuiRelay implements ISuiHTLC {
 
   async initiate(order: Order): AsyncResult<string, string> {
     try {
+      if (isSuiOrderResponse(order)) {
+        return this.initiateWithCreateOrderResponse(order);
+      }
       const { source_swap } = order;
 
       const amount = BigInt(source_swap.amount);
@@ -148,6 +155,62 @@ export class SuiRelay implements ISuiHTLC {
 
       if (res.error) return Err(res.error);
       return res.result ? Ok(res.result) : Err('Redeem: No result found');
+    } catch (error) {
+      return Err(String(error));
+    }
+  }
+
+  private async initiateWithCreateOrderResponse(
+    order: SuiOrderResponse,
+  ): AsyncResult<string, string> {
+    const { ptb_bytes } = order;
+    const client = new SuiClient({ url: getFullnodeUrl('testnet') });
+    const gasPrice = await client.getReferenceGasPrice();
+    const estimatedGasBudget = 10000000;
+
+    let transaction = Transaction.fromKind(new Uint8Array(ptb_bytes));
+    transaction.setSender(this.htlcActorAddress);
+    transaction.setGasPrice(gasPrice);
+    transaction.setGasBudget(estimatedGasBudget);
+
+    try {
+      let initResult:
+        | SuiSignAndExecuteTransactionOutput
+        | SuiTransactionBlockResponse
+        | undefined;
+      if ('features' in this.account) {
+        initResult = await this.account.features[
+          SuiSignAndExecuteTransaction
+        ]?.signAndExecuteTransaction({
+          transaction: transaction,
+          account: this.account.accounts[0],
+          chain: `sui:${this.network}`,
+        });
+      } else {
+        initResult = await this.client.signAndExecuteTransaction({
+          signer: this.account,
+          transaction: transaction,
+          options: {
+            showEffects: true,
+          },
+        });
+      }
+
+      if (!initResult) {
+        return Err('Failed to initiate');
+      }
+
+      const tx = await this.client.waitForTransaction({
+        digest: initResult.digest,
+        options: {
+          showEffects: true,
+        },
+      });
+      if (tx.effects?.status.status === 'failure') {
+        return Err(`Failed to initiate: ${tx.effects?.status.error}`);
+      }
+
+      return Ok(tx.digest);
     } catch (error) {
       return Err(String(error));
     }
