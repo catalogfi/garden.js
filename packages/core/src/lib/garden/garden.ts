@@ -317,14 +317,16 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     const orderRequest: CreateOrderRequest = {
       source: {
         asset: toFormattedAssetString(params.fromAsset),
-        owner: sendAddress,
-        delegate: isSourceBitcoin ? btcAddress ?? null : null,
+        owner: isSourceBitcoin ? btcAddress ?? sendAddress : sendAddress,
+        delegate: isSourceBitcoin ? sendAddress : null,
         amount: params.sendAmount,
       },
       destination: {
         asset: toFormattedAssetString(params.toAsset),
-        owner: receiveAddress,
-        delegate: isDestinationBitcoin ? btcAddress ?? null : null,
+        owner: isDestinationBitcoin
+          ? btcAddress ?? receiveAddress
+          : receiveAddress,
+        delegate: isDestinationBitcoin ? receiveAddress : null,
         amount: params.receiveAmount,
       },
       nonce: Number(nonce),
@@ -336,6 +338,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       affiliate_fees: this.withDefaultAffiliateFees(params.affiliateFee),
       slippage: 50,
     };
+    console.log('req', JSON.stringify(orderRequest, null, 2));
     const createOrderRes = await this._orderbook.createOrder(
       orderRequest,
       this._auth,
