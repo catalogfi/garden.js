@@ -1,5 +1,15 @@
-import { Environment, Err, Ok, trim0x, with0x } from '@gardenfi/utils';
-import { Chain } from '@gardenfi/orderbook';
+import {
+  APIResponse,
+  AsyncResult,
+  Environment,
+  Err,
+  Fetcher,
+  Ok,
+  trim0x,
+  Url,
+  with0x,
+} from '@gardenfi/utils';
+import { AssetHTLCInfo, Chain } from '@gardenfi/orderbook';
 import { sha256 } from 'viem';
 import * as varuint from 'varuint-bitcoin';
 import * as secp256k1 from 'tiny-secp256k1';
@@ -251,4 +261,31 @@ export const waitForSolanaTxConfirmation = async (
   }
 
   return false;
+};
+
+export const getAssetInfoFromOrder = async (
+  order: string,
+  url: Url,
+): Promise<
+  AsyncResult<{ htlcAddress: string; tokenAddress: string }, string>
+> => {
+  const assetInfoRes = await Fetcher.get<APIResponse<AssetHTLCInfo[]>>(
+    url + '/v2/assets',
+  );
+
+  if (assetInfoRes.error) {
+    return Err('Failed to fetch asset info: ' + assetInfoRes.error);
+  }
+
+  const assetList = assetInfoRes.result || [];
+  const assetInfo = assetList.find((a) => a.id === order);
+
+  if (!assetInfo) {
+    return Err(`Asset info not found for asset id: ${order}`);
+  }
+
+  const htlcAddress = assetInfo.htlc?.address || '';
+  const tokenAddress = assetInfo.token?.address || '';
+
+  return Ok({ htlcAddress, tokenAddress });
 };

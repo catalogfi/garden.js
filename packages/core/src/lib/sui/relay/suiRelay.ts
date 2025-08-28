@@ -27,6 +27,7 @@ import {
   WalletWithRequiredFeatures,
 } from '@mysten/wallet-standard';
 import { SUI_CONFIG } from '../../constants';
+import { getAssetInfoFromOrder } from '../../utils';
 
 export class SuiRelay implements ISuiHTLC {
   private client: SuiClient;
@@ -66,6 +67,17 @@ export class SuiRelay implements ISuiHTLC {
       const solverAddress = source_swap.redeemer;
       const secretHash = source_swap.secret_hash;
 
+      const assetInfo = await getAssetInfoFromOrder(
+        source_swap.asset,
+        this.url,
+      );
+
+      if (!assetInfo.ok) {
+        return Err(assetInfo.error);
+      }
+
+      const { tokenAddress } = assetInfo.val;
+
       const tx = new Transaction();
       tx.setSender(this.htlcActorAddress);
 
@@ -75,7 +87,7 @@ export class SuiRelay implements ISuiHTLC {
         target: `${SUI_CONFIG[this.network].packageId}::${
           SUI_CONFIG[this.network].moduleName
         }::initiate`,
-        typeArguments: [source_swap.token_address],
+        typeArguments: [tokenAddress],
         arguments: [
           tx.object(registryId),
           tx.pure.address(this.htlcActorAddress),

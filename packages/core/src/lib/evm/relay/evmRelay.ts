@@ -9,7 +9,6 @@ import {
 } from '@gardenfi/utils';
 import { WalletClient, createPublicClient, getContract, http } from 'viem';
 import {
-  AssetHTLCInfo,
   EvmOrderResponse,
   isEVM,
   isEvmNativeToken,
@@ -26,6 +25,7 @@ import {
   switchOrAddNetwork,
 } from './../../switchOrAddNetwork';
 import { nativeHTLCAbi } from '../abi/nativeHTLC';
+import { getAssetInfoFromOrder } from '../../utils';
 
 export class EvmRelay implements IEVMHTLC {
   private url: Url;
@@ -77,28 +77,12 @@ export class EvmRelay implements IEVMHTLC {
     const redeemer = with0x(source_swap.redeemer);
     const amount = BigInt(source_swap.amount);
 
-    const assetInfoRes = await Fetcher.get<APIResponse<AssetHTLCInfo[]>>(
-      this.url.origin + '/v2/assets',
+    const assetInfo = await getAssetInfoFromOrder(
+      order.source_swap.asset,
+      this.url,
     );
-    if (assetInfoRes.error)
-      return Err('Failed to fetch asset info: ' + assetInfoRes.error);
-
-    const assetList = assetInfoRes.result || [];
-    const assetInfo = assetList.find((a) => a.id === order.source_swap.asset);
-
-    if (!assetInfo) {
-      return Err(
-        `Asset info not found for asset id: ${order.source_swap.asset}`,
-      );
-    }
-    if (!assetInfo.htlc || !assetInfo.htlc.address) {
-      return Err(
-        `HTLC address not found for asset id: ${order.source_swap.asset}`,
-      );
-    }
-
-    const htlcAddress = assetInfo.htlc.address;
-    const tokenAddress = assetInfo.token?.address || '';
+    if (!assetInfo.ok) return Err(assetInfo.error);
+    const { htlcAddress, tokenAddress } = assetInfo.val;
 
     if (
       isEvmNativeToken(

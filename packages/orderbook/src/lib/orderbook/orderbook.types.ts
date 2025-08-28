@@ -85,8 +85,6 @@ export type Swap = {
   swap_id: string;
   chain: Chain;
   asset: string;
-  htlc_address: string;
-  token_address: string;
   initiator: string;
   redeemer: string;
   timelock: number;

@@ -22,7 +22,10 @@ import {
   IOrderbook,
   isSolanaOrderResponse,
 } from '@gardenfi/orderbook';
-import { waitForSolanaTxConfirmation } from '../../utils';
+import {
+  getAssetInfoFromOrder,
+  waitForSolanaTxConfirmation,
+} from '../../utils';
 import * as Spl from '@solana/spl-token';
 
 /**
@@ -249,7 +252,17 @@ export class SolanaRelay implements ISolanaHTLC {
         null,
       );
 
-      const mint = new web3.PublicKey(order.source_swap.token_address);
+      const assetInfo = await getAssetInfoFromOrder(
+        order.source_swap.asset,
+        this.url,
+      );
+
+      if (!assetInfo.ok) {
+        return Err(assetInfo.error);
+      }
+      const { tokenAddress } = assetInfo.val;
+
+      const mint = new web3.PublicKey(tokenAddress);
       const accounts = {
         initiator: this.provider.publicKey,
         mint,
