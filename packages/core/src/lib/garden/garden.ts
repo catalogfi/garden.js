@@ -44,17 +44,12 @@ import {
   sleep,
 } from '@gardenfi/utils';
 import { IQuote } from '../quote/quote.types';
-import {
-  getBitcoinNetwork,
-  isValidBitcoinPubKey,
-  resolveApiConfig,
-  toXOnly,
-} from '../utils';
+import { isValidBitcoinPubKey, resolveApiConfig, toXOnly } from '../utils';
 import {
   parseActionFromStatus,
   ParseOrderStatus,
 } from '../orderStatus/orderStatusParser';
-import { GardenHTLC } from '../bitcoin/htlc';
+import { BitcoinHTLC } from '../bitcoin/bitocinHtlc';
 import { Cache, ExecutorCache } from './cache/executorCache';
 import BigNumber from 'bignumber.js';
 import {
@@ -74,13 +69,11 @@ import { IEVMHTLC } from '../evm/htlc.types';
 import { EvmRelay } from '../evm/relay/evmRelay';
 import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { StarknetRelay } from '../starknet/relay/starknetRelay';
-import { IBitcoinWallet } from '../bitcoin/wallet/wallet.interface';
-import { BitcoinProvider } from '../bitcoin/provider/provider';
-import { BitcoinWallet } from '../bitcoin/wallet/wallet';
 import { ISolanaHTLC } from '../solana/htlc/ISolanaHTLC';
 import { SolanaRelay } from '../solana/relayer/solanaRelay';
 import { ISuiHTLC } from '../sui/suiHTLC.types';
 import { SuiRelay } from '../sui/relay/suiRelay';
+import { IBitcoinHTLC } from '../bitcoin/bitcoinhtlc.types';
 
 export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private environment: Environment = Environment.TESTNET;
@@ -96,7 +89,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private _starknetHTLC: IStarknetHTLC | undefined;
   private _solanaHTLC: ISolanaHTLC | undefined;
   private _suiHTLC: ISuiHTLC | undefined;
-  private _btcWallet: IBitcoinWallet | undefined;
+  private _btcHTLC: IBitcoinHTLC | undefined;
   private bitcoinRedeemCache = new Cache<{
     redeemedFromUTXO: string;
     redeemedAt: number;
@@ -135,6 +128,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this._starknetHTLC = config.htlc.starknet;
     this._solanaHTLC = config.htlc.solana;
     this._suiHTLC = config.htlc.sui;
+    this._btcHTLC = config.htlc.bitcoin;
     this._secretManager =
       config.secretManager ??
       SecretManager.fromDigestKey(this._digestKey.digestKey);
@@ -142,12 +136,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this._blockNumberFetcher =
       config.blockNumberFetcher ??
       new BlockNumberFetcher(new Url(this._api.info), this.environment);
-
-    const provider = new BitcoinProvider(getBitcoinNetwork(this.environment));
-    this._btcWallet = BitcoinWallet.fromPrivateKey(
-      this._digestKey.digestKey,
-      provider,
-    );
   }
 
   handleSecretManagement(enabled: boolean): this {
@@ -231,6 +219,9 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
               : Network.TESTNET,
           )
         : undefined,
+      bitcoin: config.wallets.bitcoin
+        ? new BitcoinHTLC(config.wallets.bitcoin)
+        : undefined,
     };
 
     return new Garden({
@@ -259,8 +250,8 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     return this._quote;
   }
 
-  get btcWallet() {
-    return this._btcWallet;
+  get btcHTLC() {
+    return this._btcHTLC;
   }
 
   get orderbook() {
@@ -483,7 +474,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           return Err('Please provide evmHTLC when initializing garden');
         return Ok(this._evmHTLC.htlcActorAddress);
       case BlockchainType.Bitcoin: {
-        const pubKey = await this._btcWallet?.getPublicKey();
+        const pubKey = await this._btcHTLC?.getPublicKey();
         if (!pubKey || !isValidBitcoinPubKey(pubKey))
           return Err('Invalid btc public key');
         return Ok(toXOnly(pubKey));
@@ -600,12 +591,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
               order.status === OrderStatus.Expired ||
               order.status === OrderStatus.DeadLineExceeded)
           ) {
-            const wallet = this._btcWallet;
-            if (!wallet) {
-              this.emit('error', order, 'BTC wallet not found');
-              continue;
-            }
-            await this.postRefundSACP(order, wallet);
+            await this.postRefundSACP(order);
           }
 
           switch (orderAction) {
@@ -624,12 +610,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                   await this.evmRedeem(order, secret);
                   break;
                 case BlockchainType.Bitcoin: {
-                  const destWallet = this.btcWallet;
-                  if (!destWallet) {
-                    this.emit('error', order, 'BTC wallet not found');
-                    return;
-                  }
-                  await this.btcRedeem(destWallet, order, secret);
+                  await this.btcRedeem(order, secret);
                   break;
                 }
                 case BlockchainType.Starknet: {
@@ -673,12 +654,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
                   break;
                 }
                 case BlockchainType.Bitcoin: {
-                  const sourceWallet = this.btcWallet;
-                  if (!sourceWallet) {
-                    this.emit('error', order, 'BTC wallet not found');
-                    continue;
-                  }
-                  await this.btcRefund(sourceWallet, order);
+                  await this.btcRefund(order);
                   break;
                 }
                 case BlockchainType.Starknet:
@@ -834,11 +810,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     }
   }
 
-  private async btcRedeem(
-    wallet: IBitcoinWallet,
-    order: Order,
-    secret: string,
-  ) {
+  private async btcRedeem(order: Order, secret: string) {
+    if (!this.btcHTLC) {
+      this.emit('error', order, 'BTC HTLC is required');
+      return;
+    }
     const _cache = this.bitcoinRedeemCache.get(order.order_id);
     const fillerInitTx = order.destination_swap.initiate_tx_hash
       .split(',')
@@ -876,7 +852,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     ) {
       try {
         const tx = await (
-          await wallet.getProvider()
+          await this.btcHTLC.getProvider()
         ).getTransaction(order.destination_swap.redeem_tx_hash);
 
         let isValidRedeem = false;
@@ -891,7 +867,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
           let redeemedAt = 0;
           try {
             const [_redeemedAt] = await (
-              await wallet.getProvider()
+              await this.btcHTLC.getProvider()
             ).getTransactionTimes([order.destination_swap.redeem_tx_hash]);
             if (_redeemedAt !== 0) redeemedAt = _redeemedAt;
           } catch {
@@ -919,23 +895,20 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
     this.emit('log', order.order_id, 'executing btc redeem');
     try {
-      const bitcoinExecutor = await GardenHTLC.from(
-        wallet as IBitcoinWallet,
-        Number(order.destination_swap.amount),
-        order.destination_swap.secret_hash,
-        toXOnly(order.destination_swap.initiator),
-        toXOnly(order.destination_swap.delegate),
-        order.destination_swap.timelock,
+      if (!this.btcHTLC) {
+        this.emit('error', order, 'BTC HTLC is required');
+        return;
+      }
+      const redeemHex = await this.btcHTLC.getRedeemHex(
+        order,
+        trim0x(secret),
         rbf ? [fillerInitTx] : [],
       );
-      const isSourceBitcoin = isBitcoin(order.source_swap.chain);
-      const redeemHex = await bitcoinExecutor.getRedeemHex(
-        trim0x(secret),
-        isSourceBitcoin
-          ? order.source_swap.redeemer
-          : order.destination_swap.redeemer,
-      );
-      const res = await this.broadcastRedeemTx(redeemHex, order.order_id);
+      if (!redeemHex.ok) {
+        this.emit('error', order, redeemHex.error);
+        return;
+      }
+      const res = await this.broadcastRedeemTx(redeemHex.val, order.order_id);
       if (!res.ok) {
         this.emit('error', order, res.error || 'Failed to broadcast redeem tx');
         return;
@@ -955,7 +928,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     }
   }
 
-  private async btcRefund(wallet: IBitcoinWallet, order: Order) {
+  private async btcRefund(order: Order) {
     if (this.orderExecutorCache.get(order, OrderActions.Refund)) {
       return;
     }
@@ -963,34 +936,26 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     this.emit('log', order.order_id, 'executing btc refund');
 
     try {
-      const bitcoinExecutor = await GardenHTLC.from(
-        wallet as IBitcoinWallet,
-        Number(order.source_swap.amount),
-        order.source_swap.secret_hash,
-        toXOnly(order.source_swap.initiator),
-        toXOnly(order.source_swap.delegate),
-        order.source_swap.timelock,
-      );
-      const res = await bitcoinExecutor.refund(order.source_swap.delegate);
-      this.orderExecutorCache.set(order, OrderActions.Refund, res);
-      this.emit('success', order, OrderActions.Refund, res);
+      if (!this.btcHTLC) {
+        this.emit('error', order, 'BTC HTLC is required');
+        return;
+      }
+      const res = await this.btcHTLC.refund(order);
+      if (!res.ok) {
+        this.emit('error', order, res.error);
+        return;
+      }
+      this.orderExecutorCache.set(order, OrderActions.Refund, res.val);
+      this.emit('success', order, OrderActions.Refund, res.val);
     } catch (error) {
       this.emit('error', order, 'Failed btc refund: ' + error);
     }
   }
 
-  private async postRefundSACP(order: Order, wallet: IBitcoinWallet) {
+  private async postRefundSACP(order: Order) {
     const cachedOrder = this.refundSacpCache.get(order.order_id);
     if (cachedOrder?.initTxHash === order.source_swap.initiate_tx_hash) return;
 
-    const bitcoinExecutor = await GardenHTLC.from(
-      wallet,
-      Number(order.source_swap.amount),
-      order.source_swap.secret_hash,
-      toXOnly(order.source_swap.initiator),
-      toXOnly(order.source_swap.redeemer),
-      order.source_swap.timelock,
-    );
     const userBTCAddress = order.source_swap.delegate;
     if (!userBTCAddress) return;
 
@@ -1026,9 +991,13 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         );
         return;
       }
-
-      const signatures =
-        await bitcoinExecutor.generateInstantRefundSACPWithHash(hash.result);
+      if (!this.btcHTLC) {
+        this.emit('error', order, 'BTC HTLC is required');
+        return;
+      }
+      const signatures = await this.btcHTLC.generateInstantRefundSACPWithHash(
+        hash.result,
+      );
 
       const url = new Url(this._api.baseurl)
         .endpoint('orders')

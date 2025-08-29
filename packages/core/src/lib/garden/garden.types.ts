@@ -28,6 +28,7 @@ import { AnchorProvider } from '@coral-xyz/anchor';
 import { Api } from '../constants';
 import { ISuiHTLC } from '../sui/suiHTLC.types';
 import { WalletWithRequiredFeatures } from '@mysten/wallet-standard';
+import { IBitcoinHTLC } from '../bitcoin/bitcoinhtlc.types';
 
 export type SwapParams = {
   /**
@@ -132,7 +133,7 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
    * The BTC wallet.
    * @readonly
    */
-  get btcWallet(): IBitcoinWallet | undefined;
+  get btcHTLC(): IBitcoinHTLC | undefined;
 
   /**
    * The orderbook.
@@ -190,7 +191,6 @@ export type GardenCoreConfig = {
   orderbook?: IOrderbook;
   quote?: IQuote;
   blockNumberFetcher?: IBlockNumberFetcher;
-  btcWallet?: IBitcoinWallet;
   solanaProgramAddress?: {
     native?: string;
     spl?: string;
@@ -203,6 +203,7 @@ export type GardenHTLCModules = {
     starknet?: IStarknetHTLC;
     solana?: ISolanaHTLC;
     sui?: ISuiHTLC;
+    bitcoin?: IBitcoinHTLC;
   };
 };
 
@@ -212,6 +213,7 @@ export type GardenWalletModules = {
     starknet?: AccountInterface;
     solana?: AnchorProvider;
     sui?: WalletWithRequiredFeatures;
+    bitcoin?: IBitcoinWallet;
   };
 };
 
