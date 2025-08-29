@@ -106,6 +106,11 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private _apiKey: ApiKey | undefined;
   private _api: Api | undefined;
   private isSecretManagementEnabled: boolean = false;
+  private executeInterval: number = 5000;
+  private executeStopFunction: (() => void) | null = null;
+  private isExecuting: boolean = false;
+  private backgroundService: NodeJS.Timeout | null = null;
+  private isBackgroundServiceRunning: boolean = false;
 
   constructor(config: GardenConfigWithHTLCs) {
     super();
@@ -152,7 +157,251 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
 
   handleSecretManagement(enabled: boolean): this {
     this.isSecretManagementEnabled = enabled;
+
+    if (enabled) {
+      this.startBackgroundService();
+    } else {
+      this.stopBackgroundService();
+    }
+
     return this;
+  }
+
+  private startBackgroundService(): void {
+    if (this.isBackgroundServiceRunning) {
+      this.emit('log', 'execute', 'Background service already running');
+      return;
+    }
+
+    this.isBackgroundServiceRunning = true;
+    this.emit(
+      'log',
+      'execute',
+      'Starting background service for secret management',
+    );
+
+    // Start the background service that runs continuously
+    this.backgroundService = setInterval(async () => {
+      try {
+        // Only run if secret management is still enabled
+        if (!this.isSecretManagementEnabled) {
+          this.stopBackgroundService();
+          return;
+        }
+
+        // Run the execute function for one iteration
+        await this.runExecuteIteration();
+      } catch (error) {
+        this.emit(
+          'log',
+          'execute',
+          `Background service iteration failed: ${error}`,
+        );
+        // Continue running even if one iteration fails
+      }
+    }, this.executeInterval);
+
+    this.emit('log', 'execute', 'Background service started successfully');
+  }
+
+  private stopBackgroundService(): void {
+    if (this.backgroundService) {
+      clearInterval(this.backgroundService);
+      this.backgroundService = null;
+    }
+    this.isBackgroundServiceRunning = false;
+    this.emit('log', 'execute', 'Background service stopped');
+  }
+
+  private async runExecuteIteration(): Promise<void> {
+    try {
+      // Get pending orders
+      const pendingOrders = await this._orderbook.getOrders({
+        address: this.digestKey.userId,
+        status: OrderLifecycle.pending,
+        per_page: 500,
+      });
+
+      if (!pendingOrders.ok) {
+        this.emit(
+          'log',
+          'execute',
+          `Failed to get pending orders: ${pendingOrders.error}`,
+        );
+        return;
+      }
+
+      if (pendingOrders.val.data.length === 0) {
+        this.emit('log', 'execute', 'No pending orders found');
+        return;
+      }
+
+      // Process orders with status
+      const ordersWithStatus = await this.assignStatus(pendingOrders.val.data);
+      if (!ordersWithStatus.ok) {
+        this.emit('log', 'execute', 'Failed to assign status to orders');
+        return;
+      }
+
+      this.emit('onPendingOrdersChanged', ordersWithStatus.val);
+      this.emit(
+        'log',
+        'execute',
+        `Processing ${ordersWithStatus.val.length} orders`,
+      );
+
+      // Process each order
+      for (const order of ordersWithStatus.val) {
+        await this.processOrder(order);
+      }
+    } catch (error) {
+      this.emit('log', 'execute', `Execute iteration error: ${error}`);
+    }
+  }
+
+  private async processOrder(order: OrderWithStatus): Promise<void> {
+    try {
+      const orderAction = parseActionFromStatus(order.status);
+
+      // Handle Bitcoin-specific refund SACP posting
+      if (
+        isBitcoin(order.source_swap.chain) &&
+        (order.status === OrderStatus.InitiateDetected ||
+          order.status === OrderStatus.Initiated ||
+          order.status === OrderStatus.CounterPartyInitiated ||
+          order.status === OrderStatus.CounterPartyInitiateDetected ||
+          order.status === OrderStatus.CounterPartyRefundDetected ||
+          order.status === OrderStatus.CounterPartyRefunded ||
+          order.status === OrderStatus.CounterPartySwapExpired ||
+          order.status === OrderStatus.Expired ||
+          order.status === OrderStatus.DeadLineExceeded)
+      ) {
+        const wallet = this._btcWallet;
+        if (wallet) {
+          await this.postRefundSACP(order, wallet);
+        }
+      }
+
+      // Process based on action
+      switch (orderAction) {
+        case OrderActions.Redeem: {
+          await this.handleRedeemAction(order);
+          break;
+        }
+        case OrderActions.Refund: {
+          await this.handleRefundAction(order);
+          break;
+        }
+        case OrderActions.Idle:
+        default: {
+          this.emit(
+            'log',
+            'execute',
+            `No action needed for order ${order.order_id} (status: ${order.status})`,
+          );
+          break;
+        }
+      }
+    } catch (error) {
+      this.emit('error', order, `Failed to process order: ${error}`);
+    }
+  }
+
+  private async handleRedeemAction(order: OrderWithStatus): Promise<void> {
+    try {
+      const secrets = await this._secretManager.generateSecret(order.nonce);
+      if (!secrets.ok) {
+        this.emit('error', order, secrets.error);
+        return;
+      }
+
+      const secret = secrets.val.secret;
+      const chainType = getBlockchainType(order.destination_swap.chain);
+
+      switch (chainType) {
+        case BlockchainType.EVM:
+          await this.evmRedeem(order, secret);
+          break;
+        case BlockchainType.Bitcoin: {
+          const destWallet = this.btcWallet;
+          if (!destWallet) {
+            this.emit('error', order, 'BTC wallet not found');
+            return;
+          }
+          await this.btcRedeem(destWallet, order, secret);
+          break;
+        }
+        case BlockchainType.Starknet: {
+          await this.starknetRedeem(order, secret);
+          break;
+        }
+        case BlockchainType.Solana: {
+          await this.solRedeem(order, secret);
+          break;
+        }
+        case BlockchainType.Sui: {
+          await this.suiRedeem(order, secret);
+          break;
+        }
+        default:
+          this.emit(
+            'error',
+            order,
+            'Unsupported chain: ' + order.destination_swap.chain,
+          );
+      }
+    } catch (error) {
+      this.emit('error', order, `Redeem action failed: ${error}`);
+    }
+  }
+
+  private async handleRefundAction(order: OrderWithStatus): Promise<void> {
+    try {
+      const chainType = getBlockchainType(order.source_swap.chain);
+
+      switch (chainType) {
+        case BlockchainType.Solana: {
+          this.emit(
+            'error',
+            order,
+            'Solana refund is automatically done by relay service',
+          );
+          break;
+        }
+        case BlockchainType.EVM: {
+          this.emit(
+            'error',
+            order,
+            'EVM refund is automatically done by relay service',
+          );
+          break;
+        }
+        case BlockchainType.Bitcoin: {
+          const sourceWallet = this.btcWallet;
+          if (!sourceWallet) {
+            this.emit('error', order, 'BTC wallet not found');
+            return;
+          }
+          await this.btcRefund(sourceWallet, order);
+          break;
+        }
+        case BlockchainType.Starknet:
+          this.emit(
+            'error',
+            order,
+            'Starknet refund is automatically done by relay service',
+          );
+          break;
+        default:
+          this.emit(
+            'error',
+            order,
+            'Unsupported chain: ' + order.source_swap.chain,
+          );
+      }
+    } catch (error) {
+      this.emit('error', order, `Refund action failed: ${error}`);
+    }
   }
 
   static fromWallets(config: GardenConfigWithWallets) {
@@ -547,162 +796,40 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
     return Err(`Order not found, createOrder id: ${createOrderID}`);
   }
 
-  async execute(interval: number = 5000): Promise<() => void> {
-    return await this._orderbook.subscribeOrders(
-      {
-        address: this.digestKey.userId,
-        status: OrderLifecycle.pending,
-        per_page: 500,
-      },
-      async (pendingOrders) => {
-        const ordersWithStatus = await this.assignStatus(pendingOrders.data);
-        if (!ordersWithStatus.ok) return;
-        this.emit('onPendingOrdersChanged', ordersWithStatus.val);
-        if (pendingOrders.data.length === 0) return;
+  /**
+   * Legacy execute method - now delegates to background service
+   * This method is kept for backward compatibility but the background service
+   * handles the continuous execution automatically when secret management is enabled
+   */
+  async execute(): Promise<() => void> {
+    if (!this.isSecretManagementEnabled) {
+      this.emit(
+        'log',
+        'execute',
+        'Secret management is disabled, execute function will not run',
+      );
+      return () => {
+        this.emit(
+          'log',
+          'execute',
+          'Execute function stopped (secret management disabled)',
+        );
+      };
+    }
 
-        for (const order of ordersWithStatus.val) {
-          if (!this.isSecretManagementEnabled) {
-            switch (order.status) {
-              case OrderStatus.Completed:
-              case OrderStatus.Redeemed:
-              case OrderStatus.CounterPartyRedeemed: {
-                if (!order.destination_swap.redeem_tx_hash) continue;
-
-                this.orderExecutorCache.set(
-                  order,
-                  OrderActions.Redeem,
-                  order.destination_swap.redeem_tx_hash,
-                );
-                this.emit(
-                  'success',
-                  order,
-                  OrderActions.Redeem,
-                  order.destination_swap.redeem_tx_hash,
-                );
-                break;
-              }
-            }
-            continue;
-          }
-
-          const orderAction = parseActionFromStatus(order.status);
-
-          if (
-            isBitcoin(order.source_swap.chain) &&
-            // post refund sacp for bitcoin orders only at relevent statuses
-            (order.status === OrderStatus.InitiateDetected ||
-              order.status === OrderStatus.Initiated ||
-              order.status === OrderStatus.CounterPartyInitiated ||
-              order.status === OrderStatus.CounterPartyInitiateDetected ||
-              order.status === OrderStatus.CounterPartyRefundDetected ||
-              order.status === OrderStatus.CounterPartyRefunded ||
-              order.status === OrderStatus.CounterPartySwapExpired ||
-              order.status === OrderStatus.Expired ||
-              order.status === OrderStatus.DeadLineExceeded)
-          ) {
-            const wallet = this._btcWallet;
-            if (!wallet) {
-              this.emit('error', order, 'BTC wallet not found');
-              continue;
-            }
-            await this.postRefundSACP(order, wallet);
-          }
-
-          switch (orderAction) {
-            case OrderActions.Redeem: {
-              const secrets = await this._secretManager.generateSecret(
-                order.nonce,
-              );
-              if (!secrets.ok) {
-                this.emit('error', order, secrets.error);
-                return;
-              }
-
-              const secret = secrets.val.secret;
-              switch (getBlockchainType(order.destination_swap.chain)) {
-                case BlockchainType.EVM:
-                  await this.evmRedeem(order, secret);
-                  break;
-                case BlockchainType.Bitcoin: {
-                  const destWallet = this.btcWallet;
-                  if (!destWallet) {
-                    this.emit('error', order, 'BTC wallet not found');
-                    return;
-                  }
-                  await this.btcRedeem(destWallet, order, secret);
-                  break;
-                }
-                case BlockchainType.Starknet: {
-                  await this.starknetRedeem(order, secret);
-                  break;
-                }
-                case BlockchainType.Solana: {
-                  await this.solRedeem(order, secrets.val.secret);
-                  break;
-                }
-                case BlockchainType.Sui: {
-                  await this.suiRedeem(order, secrets.val.secret);
-                  break;
-                }
-                default:
-                  this.emit(
-                    'error',
-                    order,
-                    'Unsupported chain: ' + order.destination_swap.chain,
-                  );
-              }
-              break;
-            }
-
-            case OrderActions.Refund: {
-              switch (getBlockchainType(order.source_swap.chain)) {
-                case BlockchainType.Solana: {
-                  this.emit(
-                    'error',
-                    order,
-                    'Solana refund is automatically done by relay service',
-                  );
-                  break;
-                }
-                case BlockchainType.EVM: {
-                  this.emit(
-                    'error',
-                    order,
-                    'EVM refund is automatically done by relay service',
-                  );
-                  break;
-                }
-                case BlockchainType.Bitcoin: {
-                  const sourceWallet = this.btcWallet;
-                  if (!sourceWallet) {
-                    this.emit('error', order, 'BTC wallet not found');
-                    continue;
-                  }
-                  await this.btcRefund(sourceWallet, order);
-                  break;
-                }
-                case BlockchainType.Starknet:
-                  this.emit(
-                    'error',
-                    order,
-                    'Starknet refund is automatically done by relay service',
-                  );
-                  break;
-                default:
-                  this.emit(
-                    'error',
-                    order,
-                    'Unsupported chain: ' + order.source_swap.chain,
-                  );
-              }
-              break;
-            }
-          }
-        }
-        return;
-      },
-      interval,
+    this.emit(
+      'log',
+      'execute',
+      'Execute method called - background service handles continuous execution',
     );
+
+    if (!this.isBackgroundServiceRunning) {
+      this.startBackgroundService();
+    }
+
+    return () => {
+      this.stopBackgroundService();
+    };
   }
 
   private async solRedeem(order: Order, secret: string) {
