@@ -2,6 +2,15 @@
   "name": "@gardenfi/swap",
   "version": "0.0.1",
   "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run",
+    "dev": "vite build --watch",
+    "link": "yarn link"
+  },
+  "files": [
+    "dist"
+  ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "typings": "./dist/src/index.d.ts",
@@ -12,15 +21,6 @@
       "types": "./dist/src/index.d.ts"
     },
     "./package.json": "./package.json"
-  },
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "build": "vite build",
-    "test": "vitest run",
-    "dev": "vite build --watch",
-    "link": "yarn link"
   },
   "publishConfig": {
     "access": "public",

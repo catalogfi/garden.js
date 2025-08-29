@@ -38,11 +38,16 @@ fi
 echo "Version bump type detected: $VERSION_BUMP"
 
 if [[ "$IS_PR" == "true" && -n "$PR_BRANCH" ]]; then
-  git fetch origin "$PR_BRANCH:$PR_BRANCH"
+  # Only fetch if we're not already on the PR branch
+  if [[ "$(git branch --show-current)" != "$PR_BRANCH" ]]; then
+    git fetch origin "$PR_BRANCH:$PR_BRANCH"
+  fi
   RAW_CHANGED=$(git diff --name-only origin/main..."$PR_BRANCH" | grep '^packages/' | awk -F/ '{print $2}' | sort -u)
 
   CHANGED=""
-  for DIR in $RAW_CHANGED; do
+  # Fix: Use while read to properly handle newlines in RAW_CHANGED
+  while IFS= read -r DIR; do
+    [[ -z "$DIR" ]] && continue
     PKG_JSON="packages/$DIR/package.json"
     if [[ -f "$PKG_JSON" ]]; then
       PKG_NAME=$(jq -r .name "$PKG_JSON")
@@ -50,7 +55,7 @@ if [[ "$IS_PR" == "true" && -n "$PR_BRANCH" ]]; then
         CHANGED+="$PKG_NAME"$'\n'
       fi
     fi
-  done
+  done < <(echo "$RAW_CHANGED")
 
   CHANGED=$(echo "$CHANGED" | sort -u)
 
@@ -63,7 +68,9 @@ elif [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
   fi
 
   CHANGED=""
-  for DIR in $RAW_CHANGED; do
+  # Fix: Use while read to properly handle newlines in RAW_CHANGED
+  while IFS= read -r DIR; do
+    [[ -z "$DIR" ]] && continue
     PKG_JSON="packages/$DIR/package.json"
     if [[ -f "$PKG_JSON" ]]; then
       PKG_NAME=$(jq -r .name "$PKG_JSON")
@@ -71,7 +78,7 @@ elif [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
         CHANGED+="$PKG_NAME"$'\n'
       fi
     fi
-  done
+  done < <(echo "$RAW_CHANGED")
 
   CHANGED=$(echo "$CHANGED" | sort -u)
 fi
