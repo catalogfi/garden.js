@@ -16,23 +16,15 @@ import { BitcoinNetwork } from '../../bitcoin/provider/provider.interface';
 
 describe('StarkNet Integration Tests', () => {
   // Wallet configurations
-  const EVM_PRIVATE_KEY =
-    '9c1508f9071bf5fefc69fbb71c98cd3150a323e953c6979ef8b508f1461dd2e1';
-  const STARKNET_PRIVATE_KEY =
-    '0x1e4d7e5232bdad0abe3b4e87941f2a6d3dd2620c900751e17339c71878e09b';
-  const STARKNET_ADDRESS =
-    '0x06873a9bbb239716b533f49ccb6775551f329263c3e13838d8f7b4788643983a';
+  const EVM_PRIVATE_KEY = '';
+  const STARKNET_PRIVATE_KEY = '';
+  const STARKNET_ADDRESS = '';
   const DIGEST_KEY =
-    '0614ee90901d011ec7bcfb7c582f25ca0c7546d01021812252f35e391252ca05';
+    '7d1928d5521b646130700bb2d9614409f8cc8e3d571fceb991b04b85c3c4ecfe';
   // const DIGEST_KEY = DigestKey.generateRandom().val;
   console.log('digest key', DIGEST_KEY);
   const TEST_RPC_URL = 'https://api.devnet.solana.com';
-  const PRIV = [
-    73, 87, 221, 5, 63, 180, 104, 26, 64, 41, 225, 50, 165, 84, 157, 74, 187,
-    105, 53, 112, 214, 236, 175, 55, 86, 247, 214, 120, 101, 90, 62, 178, 103,
-    156, 200, 13, 24, 181, 121, 93, 15, 85, 202, 164, 4, 30, 165, 77, 244, 66,
-    207, 78, 179, 255, 45, 233, 17, 131, 203, 187, 120, 110, 176, 172,
-  ];
+  const PRIV = [];
   const connection = new web3.Connection(TEST_RPC_URL, {
     commitment: 'confirmed',
   });
@@ -43,10 +35,7 @@ describe('StarkNet Integration Tests', () => {
   const userProvider = new anchor.AnchorProvider(connection, userWallet);
 
   const provider = new BitcoinProvider(BitcoinNetwork.Testnet);
-  const btcWallet = BitcoinWallet.fromPrivateKey(
-    'af530c3d2212740a8428193fce82bfddcf7e83bee29a2b9b2f25b5331bae1bf5',
-    provider,
-  );
+  const btcWallet = BitcoinWallet.fromPrivateKey('', provider);
 
   // Global variables
   const evmAccount = privateKeyToAccount(with0x(EVM_PRIVATE_KEY));
@@ -151,15 +140,15 @@ describe('StarkNet Integration Tests', () => {
         },
       };
       console.log(order);
-      // const result = await garden.swap(order);
-      // if (!result.ok) {
-      //   console.log('Error while creating order ❌:', result.error);
-      //   throw new Error(result.error);
-      // }
-      // console.log('Order created and matched ✅', result.val.order_id);
-      // matchedOrder = result.val;
-      // expect(result.error).toBeFalsy();
-      // expect(result.val).toBeTruthy();
+      const result = await garden.swap(order);
+      if (!result.ok) {
+        console.log('Error while creating order ❌:', result.error);
+        throw new Error(result.error);
+      }
+      console.log('Order created and matched ✅', result.val.order_id);
+      matchedOrder = result.val;
+      expect(result.error).toBeFalsy();
+      expect(result.val).toBeTruthy();
     }, 150000);
 
     // it('Initiate the swap', async () => {
