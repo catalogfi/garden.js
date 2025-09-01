@@ -178,6 +178,17 @@ export function validateBTCAddress(address: string, networkType: Environment) {
   }
 }
 
+/**
+ * We only have one output script aka scriptpubkey, hence we generate the same output for signing
+ */
+export function generateOutputs(output: Buffer, count: number): Buffer[] {
+  const outputs: Buffer[] = [];
+  for (let i = 0; i < count; i++) {
+    outputs.push(output);
+  }
+  return outputs;
+}
+
 export const getBitcoinNetwork = (network: Environment): BitcoinNetwork => {
   switch (network) {
     case Environment.MAINNET:
