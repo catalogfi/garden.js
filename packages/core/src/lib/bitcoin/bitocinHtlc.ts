@@ -89,12 +89,12 @@ export class BitcoinHTLC implements IBitcoinHTLC {
   private async _buildRawTx(
     order: Order,
     receiver: string,
+    addressType?: TxType,
     options?: {
       fee?: number;
       vSize?: number;
     },
     utxoHashes?: string[],
-    addressType?: TxType,
   ) {
     const tx = new bitcoin.Transaction();
     tx.version = 2;
@@ -194,9 +194,8 @@ export class BitcoinHTLC implements IBitcoinHTLC {
     const { tx, usedUtxos } = await this._buildRawTx(
       order,
       order.destination_swap.delegate,
-      { fee },
-      undefined,
       'redeem',
+      { fee },
     );
     const output = await this.getOutputScript(order, 'redeem');
 
@@ -240,11 +239,10 @@ export class BitcoinHTLC implements IBitcoinHTLC {
     } = await this._buildRawTx(
       order,
       order.destination_swap.delegate,
+      'instantRefund',
       {
         fee: 0,
       },
-      undefined,
-      'instantRefund',
     );
     tx.outs = [];
     const maxUtxoValue = Math.max(...usedUtxos.map((utxo) => utxo.value));
@@ -323,9 +321,8 @@ export class BitcoinHTLC implements IBitcoinHTLC {
     const { tx, usedUtxos } = await this._buildRawTx(
       order,
       await this.signer.getAddress(),
-      { fee },
-      undefined,
       'instantRefund',
+      { fee },
     );
 
     for (const utxo of usedUtxos) {
@@ -423,9 +420,9 @@ export class BitcoinHTLC implements IBitcoinHTLC {
     const { tx: tempTx, usedUtxos: utxos } = await this._buildRawTx(
       order,
       receiverAddress,
+      'redeem',
       { fee: 0 },
       utxoHashes,
-      'redeem',
     );
 
     const redeemLeafHash = this.leafHash(Leaf.REDEEM, order);
@@ -461,11 +458,11 @@ export class BitcoinHTLC implements IBitcoinHTLC {
     const { tx } = await this._buildRawTx(
       order,
       receiverAddress,
+      'redeem',
       {
         vSize: tempTx.virtualSize(),
       },
       utxoHashes,
-      'redeem',
     );
     // Sign final transaction
     for (let i = 0; i < tx.ins.length; i++) {
@@ -497,9 +494,8 @@ export class BitcoinHTLC implements IBitcoinHTLC {
     const { tx, usedUtxos } = await this._buildRawTx(
       order,
       order.source_swap.delegate ?? (await this.signer.getAddress()),
-      { fee },
-      undefined,
       'refund',
+      { fee },
     );
 
     const [canRefund, needMoreBlocks] = await this.canRefund(order, usedUtxos);
