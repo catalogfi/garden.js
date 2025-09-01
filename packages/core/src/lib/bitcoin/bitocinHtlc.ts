@@ -650,7 +650,7 @@ export class BitcoinHTLC implements IBitcoinHTLC {
       case Leaf.INSTANT_REFUND:
         leafScript = this.instantRefundLeaf(
           toXOnly(order.source_swap.initiator),
-          toXOnly(order.destination_swap.delegate),
+          toXOnly(order.destination_swap.redeemer),
         );
         break;
       default:
