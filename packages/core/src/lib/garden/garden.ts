@@ -834,7 +834,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       this.emit('error', order, 'Failed to get initiate_tx_hash');
       return;
     }
-    console.log('fillerInitTx', fillerInitTx);
 
     let rbf = false;
     if (_cache) {
@@ -855,7 +854,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         this.emit('log', order.order_id, 'btcRedeem: already redeemed');
         return;
       }
-      console.log('rbf', rbf);
     } else if (
       //check if redeem tx is valid if cache is not found.
       order.destination_swap.redeem_tx_hash &&
@@ -866,7 +864,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         const tx = await provider.getTransaction(
           order.destination_swap.redeem_tx_hash,
         );
-        console.log('tx recieved from provider', tx);
         let isValidRedeem = false;
         for (const input of tx.vin) {
           if (input.txid === fillerInitTx) {
@@ -911,9 +908,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         this.emit('error', order, 'BTC HTLC is required');
         return;
       }
-      console.log('-------------------');
-      console.log(rbf ? [fillerInitTx] : []);
-      console.log('-------------------');
       const redeemHex = await this.btcHTLC.getRedeemHex(
         order,
         trim0x(secret),
@@ -923,7 +917,6 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
         this.emit('error', order, redeemHex.error);
         return;
       }
-      console.log('redeemHex', redeemHex.val);
       const res = await this.broadcastRedeemTx(redeemHex.val, order.order_id);
       if (!res.ok) {
         this.emit('error', order, res.error || 'Failed to broadcast redeem tx');

@@ -10,7 +10,12 @@ import { BitcoinUTXO, IBitcoinProvider } from './provider/provider.interface';
 import { Urgency } from './provider/provider.interface';
 import { IBitcoinWallet } from './wallet/wallet.interface';
 import { IBitcoinHTLC } from './bitcoinhtlc.types';
-import { isBitcoin, Order } from '@gardenfi/orderbook';
+import {
+  BitcoinOrderResponse,
+  isBitcoin,
+  isOrder,
+  Order,
+} from '@gardenfi/orderbook';
 import { AsyncResult, Err, Ok, trim0x } from '@gardenfi/utils';
 
 export enum Leaf {
@@ -19,28 +24,14 @@ export enum Leaf {
   INSTANT_REFUND,
 }
 
-export type HTLCParams = {
-  /**
-   * Public key of the party initiating the swap (x-only, 32 bytes)
-   */
-  initiator_pubkey: Buffer;
-  /**
-   * Public key of the party redeeming the swap (x-only, 32 bytes)
-   */
-  redeemer_pubkey: Buffer;
-  /**
-   * Amount in satoshis
-   */
-  amount: number;
-  /**
-   * SHA256 hash of the secret (32 bytes)
-   */
-  secret_hash: Buffer;
-  /**
-   * Number of blocks before refund path becomes valid
-   */
-  timelock: number;
+export type TxType = 'redeem' | 'refund' | 'instantRefund';
+
+export type LeafScript = {
+  version: number;
+  output: Buffer;
 };
+
+export type LeafTree = LeafScript | [LeafScript, LeafScript];
 
 const LEAF_VERSION = 0xc0;
 
@@ -75,44 +66,21 @@ export class BitcoinHTLC implements IBitcoinHTLC {
     const network = await signer.getNetwork();
     return new BitcoinHTLC(signer, network);
   }
-  // redeems
 
-  // redeemerPubkey = destination_swap.delegate
-  // initiatorPubKey = destination_swap.initiator
   /**
    * Generates a taproot address for receiving the funds
+   * @param order The order object
+   * @param type The type of address to generate ('redeem' | 'refund' | 'instantRefund')
+   *   - 'redeem': uses destination_swap parameters (default)
+   *   - 'refund': uses source_swap parameters
+   *   - 'instantRefund': uses source_swap parameters with redeemer
    */
-  address(order: Order) {
-    const leaves1 = [
-      // most probable leaf (redeem)
-      {
-        version: LEAF_VERSION,
-        output: this.redeemLeaf(
-          order.destination_swap.secret_hash,
-          toXOnly(order.destination_swap.delegate),
-        ),
-      },
-      [
-        {
-          version: LEAF_VERSION,
-          output: this.refundLeaf(
-            order.destination_swap.timelock,
-            toXOnly(order.destination_swap.initiator),
-          ),
-        },
-        {
-          version: LEAF_VERSION,
-          output: this.instantRefundLeaf(
-            toXOnly(order.destination_swap.initiator),
-            toXOnly(order.destination_swap.delegate),
-          ),
-        },
-      ],
-    ];
+  address(order: Order, type: TxType) {
+    const leaves = this.generateLeaves(order, type);
     const { address } = bitcoin.payments.p2tr({
       internalPubkey: this.internalPubkey,
       network: this.network,
-      scriptTree: leaves1 as Taptree,
+      scriptTree: leaves as Taptree,
     });
     if (!address) throw new Error(htlcErrors.htlcAddressGenerationFailed);
     return address;
@@ -126,15 +94,13 @@ export class BitcoinHTLC implements IBitcoinHTLC {
       vSize?: number;
     },
     utxoHashes?: string[],
+    addressType?: TxType,
   ) {
-    console.log('hey hashes,', utxoHashes ? utxoHashes : 'no hashes');
     const tx = new bitcoin.Transaction();
     tx.version = 2;
 
-    const address = this.address(order);
-    console.log('address', address);
+    const address = this.address(order, addressType || 'redeem');
     const provider = await this.getProvider();
-    console.log('provider', provider);
 
     let utxos: BitcoinUTXO[] = [];
     if (utxoHashes && utxoHashes.length > 0) {
@@ -191,24 +157,36 @@ export class BitcoinHTLC implements IBitcoinHTLC {
   /**
    * prevout script for the BitcoinHTLC address
    */
-  private async getOutputScript(order: Order) {
-    return bitcoin.address.toOutputScript(this.address(order), this.network);
+  private async getOutputScript(order: Order, addressType?: TxType) {
+    return bitcoin.address.toOutputScript(
+      this.address(order, addressType || 'redeem'),
+      this.network,
+    );
   }
 
-  async initiate(order: Order, fee?: number): AsyncResult<string, string> {
-    fee ??= await (
-      await this.getProvider()
-    ).suggestFee(
-      await this.signer.getAddress(),
-      Number(order.destination_swap.amount),
-      Urgency.MEDIUM,
-    );
-    const txHash = await this.signer.send(
-      this.address(order),
-      Number(order.destination_swap.amount),
-      fee,
-    );
+  async initiate(
+    order: Order | BitcoinOrderResponse,
+    fee?: number,
+  ): AsyncResult<string, string> {
+    const provider = await this.getProvider();
+    const address = await this.signer.getAddress();
 
+    let to: string;
+    let amount: number;
+
+    if (isOrder(order)) {
+      to = order.destination_swap.swap_id;
+      amount = Number(order.destination_swap.amount);
+    } else {
+      to = order.to;
+      amount = Number(order.amount);
+    }
+
+    if (fee === undefined) {
+      fee = await provider.suggestFee(address, amount, Urgency.MEDIUM);
+    }
+
+    const txHash = await this.signer.send(to, amount, fee);
     return Ok(txHash);
   }
 
@@ -217,8 +195,10 @@ export class BitcoinHTLC implements IBitcoinHTLC {
       order,
       order.destination_swap.delegate,
       { fee },
+      undefined,
+      'redeem',
     );
-    const output = await this.getOutputScript(order);
+    const output = await this.getOutputScript(order, 'redeem');
 
     const hashType =
       bitcoin.Transaction.SIGHASH_SINGLE |
@@ -252,14 +232,20 @@ export class BitcoinHTLC implements IBitcoinHTLC {
   }
 
   async generateInstantRefundSACP(order: Order) {
-    const outputAddress = await this.getOutputScript(order);
+    const outputAddress = await this.getOutputScript(order, 'instantRefund');
     const {
       tx,
       usedUtxos,
       fee: txFee,
-    } = await this._buildRawTx(order, order.destination_swap.delegate, {
-      fee: 0,
-    });
+    } = await this._buildRawTx(
+      order,
+      order.destination_swap.delegate,
+      {
+        fee: 0,
+      },
+      undefined,
+      'instantRefund',
+    );
     tx.outs = [];
     const maxUtxoValue = Math.max(...usedUtxos.map((utxo) => utxo.value));
 
@@ -274,10 +260,8 @@ export class BitcoinHTLC implements IBitcoinHTLC {
       bitcoin.Transaction.SIGHASH_SINGLE |
       bitcoin.Transaction.SIGHASH_ANYONECANPAY;
     const instantRefundLeafHash = this.leafHash(Leaf.INSTANT_REFUND, order);
-    console.log('hashType', hashType);
     const values = usedUtxos.map((utxo) => utxo.value);
     const outputs = generateOutputs(outputAddress, usedUtxos.length);
-    console.log('outputs', outputs);
     for (let i = 0; i < tx.ins.length; i++) {
       const hash = tx.hashForWitnessV1(
         i,
@@ -340,6 +324,8 @@ export class BitcoinHTLC implements IBitcoinHTLC {
       order,
       await this.signer.getAddress(),
       { fee },
+      undefined,
+      'instantRefund',
     );
 
     for (const utxo of usedUtxos) {
@@ -348,7 +334,7 @@ export class BitcoinHTLC implements IBitcoinHTLC {
       }
     }
 
-    const output = await this.getOutputScript(order);
+    const output = await this.getOutputScript(order, 'instantRefund');
 
     const hashType = bitcoin.Transaction.SIGHASH_DEFAULT;
     const instantRefundLeafHash = this.leafHash(Leaf.INSTANT_REFUND, order);
@@ -432,19 +418,20 @@ export class BitcoinHTLC implements IBitcoinHTLC {
       : order.destination_swap.redeemer;
 
     const receiverAddress = reciever ?? (await this.signer.getAddress());
-    console.log('receiverAddress', receiverAddress);
+
     // First build and sign tx to calculate vSize
     const { tx: tempTx, usedUtxos: utxos } = await this._buildRawTx(
       order,
       receiverAddress,
       { fee: 0 },
       utxoHashes,
+      'redeem',
     );
 
     const redeemLeafHash = this.leafHash(Leaf.REDEEM, order);
     const values = utxos.map((utxo) => utxo.value);
     const outputs = generateOutputs(
-      await this.getOutputScript(order),
+      await this.getOutputScript(order, 'redeem'),
       utxos.length,
     );
     const hashType = bitcoin.Transaction.SIGHASH_DEFAULT;
@@ -470,7 +457,6 @@ export class BitcoinHTLC implements IBitcoinHTLC {
         await this.generateControlBlockFor(Leaf.REDEEM, order),
       ]);
     }
-    console.log('tempTx', tempTx.toHex());
     // Build final tx with correct fees
     const { tx } = await this._buildRawTx(
       order,
@@ -479,8 +465,8 @@ export class BitcoinHTLC implements IBitcoinHTLC {
         vSize: tempTx.virtualSize(),
       },
       utxoHashes,
+      'redeem',
     );
-    console.log('tx', tx.toHex());
     // Sign final transaction
     for (let i = 0; i < tx.ins.length; i++) {
       const hash = tx.hashForWitnessV1(
@@ -491,8 +477,6 @@ export class BitcoinHTLC implements IBitcoinHTLC {
         redeemLeafHash,
       );
       const signature = await this.signer.signSchnorr(hash);
-      console.log('hash', hash.toString('hex'));
-      console.log('signature', signature.toString('hex'));
       tx.setWitness(i, [
         signature,
         Buffer.from(secret, 'hex'),
@@ -503,7 +487,6 @@ export class BitcoinHTLC implements IBitcoinHTLC {
         await this.generateControlBlockFor(Leaf.REDEEM, order),
       ]);
     }
-    console.log('tx', tx.toHex());
     return Ok(tx.toHex());
   }
 
@@ -515,6 +498,8 @@ export class BitcoinHTLC implements IBitcoinHTLC {
       order,
       order.source_swap.delegate ?? (await this.signer.getAddress()),
       { fee },
+      undefined,
+      'refund',
     );
 
     const [canRefund, needMoreBlocks] = await this.canRefund(order, usedUtxos);
@@ -526,7 +511,7 @@ export class BitcoinHTLC implements IBitcoinHTLC {
 
     const values = usedUtxos.map((utxo) => utxo.value);
     const outputs = generateOutputs(
-      await this.getOutputScript(order),
+      await this.getOutputScript(order, 'refund'),
       usedUtxos.length,
     );
 
@@ -597,113 +582,43 @@ export class BitcoinHTLC implements IBitcoinHTLC {
    */
   private async generateControlBlockFor(leaf: Leaf, order: Order) {
     let redeemScript: Buffer;
-    console.log('leaf', leaf);
-    console.log('order', order.created_at);
+    let leaves: LeafTree[];
+
     switch (leaf) {
       case Leaf.REDEEM:
         redeemScript = this.redeemLeaf(
           trim0x(order.destination_swap.secret_hash),
           toXOnly(order.destination_swap.delegate),
         );
+        // For redeem, we need leaves that match the redeem script
+        leaves = this.generateLeaves(order, 'redeem');
         break;
       case Leaf.REFUND:
         redeemScript = this.refundLeaf(
           order.source_swap.timelock,
           toXOnly(order.source_swap.initiator),
         );
+        // For refund, we need leaves that match the refund script
+        leaves = this.generateLeaves(order, 'refund');
         break;
       case Leaf.INSTANT_REFUND:
         redeemScript = this.instantRefundLeaf(
           toXOnly(order.source_swap.initiator),
           toXOnly(order.destination_swap.delegate),
         );
+        // For instant refund, we need leaves that match the instant refund script
+        leaves = this.generateLeaves(order, 'instantRefund');
         break;
       default:
-        throw new Error(htlcErrors.invalidLeaf);
+        throw new Error(htlcErrors.controlBlockGenerationFailed);
     }
+
     const network = await this.signer.getNetwork();
-    console.log('network', network);
-    const leaves1 = [
-      {
-        version: LEAF_VERSION,
-        output: this.redeemLeaf(
-          order.destination_swap.secret_hash,
-          toXOnly(order.destination_swap.delegate),
-        ),
-      },
-      [
-        {
-          version: LEAF_VERSION,
-          output: this.refundLeaf(
-            order.destination_swap.timelock,
-            toXOnly(order.destination_swap.initiator),
-          ),
-        },
-        {
-          version: LEAF_VERSION,
-          output: this.instantRefundLeaf(
-            toXOnly(order.destination_swap.initiator),
-            toXOnly(order.destination_swap.delegate),
-          ),
-        },
-      ],
-    ];
 
-    const leavesforRefund = [
-      {
-        version: LEAF_VERSION,
-        output: this.redeemLeaf(
-          order.source_swap.secret_hash,
-          toXOnly(order.source_swap.delegate),
-        ),
-      },
-      [
-        {
-          version: LEAF_VERSION,
-          output: this.refundLeaf(
-            order.source_swap.timelock,
-            toXOnly(order.source_swap.initiator),
-          ),
-        },
-        {
-          version: LEAF_VERSION,
-          output: this.instantRefundLeaf(
-            toXOnly(order.source_swap.initiator),
-            toXOnly(order.source_swap.delegate),
-          ),
-        },
-      ],
-    ];
-
-    const leavesforInstantRefund = [
-      {
-        version: LEAF_VERSION,
-        output: this.redeemLeaf(
-          order.source_swap.secret_hash,
-          toXOnly(order.source_swap.redeemer),
-        ),
-      },
-      [
-        {
-          version: LEAF_VERSION,
-          output: this.refundLeaf(
-            order.source_swap.timelock,
-            toXOnly(order.source_swap.initiator),
-          ),
-        },
-        {
-          version: LEAF_VERSION,
-          output: this.instantRefundLeaf(
-            toXOnly(order.source_swap.initiator),
-            toXOnly(order.source_swap.redeemer),
-          ),
-        },
-      ],
-    ];
     const payment = bitcoin.payments.p2tr({
       internalPubkey: generateInternalkey(),
       network,
-      scriptTree: leaves1 as Taptree,
+      scriptTree: leaves as Taptree,
       redeem: {
         output: redeemScript,
         redeemVersion: LEAF_VERSION,
@@ -721,20 +636,31 @@ export class BitcoinHTLC implements IBitcoinHTLC {
    * @returns hash of the leaf script
    */
   leafHash(leaf: Leaf, order: Order): Buffer {
-    let leafScript = this.redeemLeaf(
-      trim0x(order.destination_swap.secret_hash),
-      toXOnly(order.destination_swap.delegate),
-    );
-    if (leaf === Leaf.REFUND)
-      leafScript = this.refundLeaf(
-        order.source_swap.timelock,
-        toXOnly(order.source_swap.initiator),
-      );
-    if (leaf === Leaf.INSTANT_REFUND)
-      leafScript = this.instantRefundLeaf(
-        toXOnly(order.source_swap.initiator),
-        toXOnly(order.destination_swap.delegate),
-      );
+    let leafScript: Buffer;
+
+    switch (leaf) {
+      case Leaf.REDEEM:
+        leafScript = this.redeemLeaf(
+          trim0x(order.destination_swap.secret_hash),
+          toXOnly(order.destination_swap.delegate),
+        );
+        break;
+      case Leaf.REFUND:
+        leafScript = this.refundLeaf(
+          order.source_swap.timelock,
+          toXOnly(order.source_swap.initiator),
+        );
+        break;
+      case Leaf.INSTANT_REFUND:
+        leafScript = this.instantRefundLeaf(
+          toXOnly(order.source_swap.initiator),
+          toXOnly(order.destination_swap.delegate),
+        );
+        break;
+      default:
+        throw new Error(htlcErrors.invalidLeaf);
+    }
+
     return bitcoin.crypto.taggedHash('TapLeaf', serializeScript(leafScript));
   }
 
@@ -784,35 +710,57 @@ export class BitcoinHTLC implements IBitcoinHTLC {
     );
   }
 
-  private leaves(order: Order) {
+  /**
+   * Generates leaves for a given action type (redeem, refund, instant refund)
+   * @param order The order object
+   * @param type 'redeem' | 'refund' | 'instantRefund'
+   *   - 'redeem': uses destination_swap for all params
+   *   - 'refund': uses source_swap for all params
+   *   - 'instantRefund': uses source_swap, but redeem/instantRefund use .redeemer
+   */
+  private generateLeaves(order: Order, type: TxType): LeafTree[] {
+    let swap, redeemPubKey, instantRefundPubKey;
+    switch (type) {
+      case 'redeem':
+        swap = order.destination_swap;
+        redeemPubKey = swap.delegate;
+        instantRefundPubKey = swap.delegate;
+        break;
+      case 'refund':
+        swap = order.source_swap;
+        redeemPubKey = swap.delegate;
+        instantRefundPubKey = swap.delegate;
+        break;
+      case 'instantRefund':
+        swap = order.source_swap;
+        redeemPubKey = swap.redeemer;
+        instantRefundPubKey = swap.redeemer;
+        break;
+      default:
+        throw new Error('Invalid leaf generation type');
+    }
+
+    // Generate dynamic leaves based on the actual parameters
     return [
-      // most probable leaf (redeem)
       {
         version: LEAF_VERSION,
-        output: this.redeemLeaf(
-          order.destination_swap.secret_hash,
-          toXOnly(order.destination_swap.redeemer),
-        ),
+        output: this.redeemLeaf(swap.secret_hash, toXOnly(redeemPubKey)),
       },
       [
         {
           version: LEAF_VERSION,
-          output: this.refundLeaf(
-            order.source_swap.timelock,
-            toXOnly(order.source_swap.initiator),
-          ),
+          output: this.refundLeaf(swap.timelock, toXOnly(swap.initiator)),
         },
         {
           version: LEAF_VERSION,
           output: this.instantRefundLeaf(
-            toXOnly(order.source_swap.initiator),
-            toXOnly(order.source_swap.redeemer),
+            toXOnly(swap.initiator),
+            toXOnly(instantRefundPubKey),
           ),
         },
       ],
     ];
   }
-
   /**
    * Generates the merkle proof for the leaf script
    */
