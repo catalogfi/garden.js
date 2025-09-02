@@ -22,10 +22,18 @@ fi
 
 increment_beta_version() {
   PACKAGE_NAME=$1
-  LATEST_STABLE_VERSION=$(npm view $PACKAGE_NAME version || jq -r .version package.json)
-  
+
+  # Check if package exists on npm
+  if npm view $PACKAGE_NAME version >/dev/null 2>&1; then
+    LATEST_STABLE_VERSION=$(npm view $PACKAGE_NAME version)
+  else
+    # Package doesn't exist yet, use version from package.json
+    LATEST_STABLE_VERSION=$(jq -r .version package.json)
+    echo "Package $PACKAGE_NAME not found on npm, using local version: $LATEST_STABLE_VERSION"
+  fi
+
   BETA_PATTERN="${LATEST_STABLE_VERSION}-beta."
-  LATEST_BETA_VERSION=$(npm view $PACKAGE_NAME versions --json | jq -r '[.[] | select(contains("'"$BETA_PATTERN"'"))] | last')
+  LATEST_BETA_VERSION=$(npm view $PACKAGE_NAME versions --json 2>/dev/null | jq -r '[.[] | select(contains("'"$BETA_PATTERN"'"))] | last')
 
   if [[ -n "$LATEST_BETA_VERSION" && "$LATEST_BETA_VERSION" != "null" ]]; then
       BETA_NUMBER=$(echo "$LATEST_BETA_VERSION" | sed -E "s/.*-beta\.([0-9]+)$/\1/")
