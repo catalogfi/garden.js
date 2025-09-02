@@ -15,7 +15,7 @@ env:
 
 jobs:
   decide-job:
-    runs-on: self-hosted-amd64
+    runs-on: self-hosted
     outputs:
       run_beta_release: ${{ steps.set.outputs.run_beta_release }}
       run_individual_beta: ${{ steps.set.outputs.run_individual_beta }}
@@ -43,7 +43,7 @@ jobs:
   beta-release:
     needs: decide-job
     if: needs.decide-job.outputs.run_beta_release == 'true'
-    runs-on: self-hosted-amd64
+    runs-on: self-hosted
     permissions:
       contents: write
       packages: write
@@ -66,7 +66,7 @@ jobs:
           COMMENTER=${{ github.event.comment.user.login }}
           RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
             "https://api.github.com/repos/${{ github.repository }}/collaborators/${COMMENTER}/permission")
-          
+
           PERMISSION=$(echo "$RESPONSE" | jq -r '.role_name')
           echo "Commenter's permission level: $PERMISSION"
 
@@ -113,7 +113,7 @@ jobs:
   individual-beta-release:
     needs: decide-job
     if: needs.decide-job.outputs.run_individual_beta == 'true'
-    runs-on: self-hosted-amd64
+    runs-on: self-hosted
     permissions:
       contents: write
       packages: write
@@ -136,7 +136,7 @@ jobs:
           COMMENTER=${{ github.event.comment.user.login }}
           RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GH_PAT }}" \
             "https://api.github.com/repos/${{ github.repository }}/collaborators/${COMMENTER}/permission")
-          
+
           PERMISSION=$(echo "$RESPONSE" | jq -r '.role_name')
           echo "Commenter's permission level: $PERMISSION"
 
@@ -179,13 +179,13 @@ jobs:
           echo "$PR_DATA" > pr.json
           echo "PR_BRANCH=$(jq -r '.head.ref' pr.json)" >> $GITHUB_ENV
           echo "PR_REPO=$(jq -r '.head.repo.full_name' pr.json)" >> $GITHUB_ENV
-        
+
       - name: Run Beta Release Script
         run: ./scripts/handle-beta-release.sh ${{ env.PACKAGE_NAMES }}
   release:
     needs: decide-job
     if: needs.decide-job.outputs.run_main_release == 'true'
-    runs-on: self-hosted-amd64
+    runs-on: self-hosted
     permissions:
       contents: write
       packages: write

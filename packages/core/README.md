@@ -10,8 +10,8 @@ yarn add `@gardenfi/core`
 
 ## Usage
 
-1. Creating an atomic swap: ([should create an order with valid parameters](https://github.com/catalogfi/garden.js/blob/main/packages/core/src/lib/garden/garden.spec.ts#L150))
-2. Interacting with created orders: ([should initiate and redeem](https://github.com/catalogfi/garden.js/blob/main/packages/core/src/lib/garden/garden.spec.ts#L197))
+1. Creating an atomic swap: ([should create an order with valid parameters](https://github.com/hashiraio/garden.js/blob/main/packages/core/src/lib/garden/garden.spec.ts#L150))
+2. Interacting with created orders: ([should initiate and redeem](https://github.com/hashiraio/garden.js/blob/main/packages/core/src/lib/garden/garden.spec.ts#L197))
 
 ## Setup
 
