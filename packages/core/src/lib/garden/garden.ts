@@ -26,13 +26,8 @@ import {
   Ok,
 } from '@gardenfi/utils';
 import { IQuote } from '../quote/quote.types';
-import {
-  getBitcoinNetwork,
-  isValidBitcoinPubKey,
-  resolveApiConfig,
-  toXOnly,
-} from '../utils';
-import { Cache, ExecutorCache } from './cache/executorCache';
+import { BitcoinHTLC } from '../bitcoin/bitocinHtlc';
+import { ExecutorCache } from './cache/executorCache';
 import BigNumber from 'bignumber.js';
 import {
   BlockNumberFetcher,
@@ -50,15 +45,20 @@ import { IEVMHTLC } from '../evm/htlc.types';
 import { EvmRelay } from '../evm/relay/evmRelay';
 import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { StarknetRelay } from '../starknet/relay/starknetRelay';
-import { IBitcoinWallet } from '../bitcoin/wallet/wallet.interface';
-import { BitcoinProvider } from '../bitcoin/provider/provider';
-import { BitcoinWallet } from '../bitcoin/wallet/wallet';
 import { ISolanaHTLC } from '../solana/htlc/ISolanaHTLC';
 import { SolanaRelay } from '../solana/relayer/solanaRelay';
 import { ISuiHTLC } from '../sui/suiHTLC.types';
 import { SuiRelay } from '../sui/relay/suiRelay';
 import { resolveApiKey, resolveDigestKey } from './utils';
 import { Executor } from './executor/executor';
+import { IBitcoinHTLC } from '../bitcoin/bitcoinhtlc.types';
+import {
+  getBitcoinNetworkFromEnvironment,
+  resolveApiConfig,
+  toXOnly,
+} from '../utils';
+import { isValidBitcoinPubKey } from '../utils';
+import { getBitcoinNetwork } from '../bitcoin/utils';
 
 export class Garden implements IGardenJS {
   private network: Network;
@@ -68,17 +68,11 @@ export class Garden implements IGardenJS {
   private _auth: IAuth;
   private orderExecutorCache: IOrderExecutorCache;
   private _blockNumberFetcher: IBlockNumberFetcher;
-  private refundSacpCache = new Map<string, any>();
   private _evmHTLC: IEVMHTLC | undefined;
   private _starknetHTLC: IStarknetHTLC | undefined;
   private _solanaHTLC: ISolanaHTLC | undefined;
   private _suiHTLC: ISuiHTLC | undefined;
-  private _btcWallet: IBitcoinWallet | undefined;
-  private bitcoinRedeemCache = new Cache<{
-    redeemedFromUTXO: string;
-    redeemedAt: number;
-    redeemTxHash: string;
-  }>();
+  private _btcHTLC: IBitcoinHTLC | undefined;
   private _api: Api | undefined;
 
   /**
@@ -129,11 +123,11 @@ export class Garden implements IGardenJS {
     this._secretManager = SecretManager.fromDigestKey(
       this._digestKey.digestKey,
     );
-    const provider = new BitcoinProvider(getBitcoinNetwork(this.network));
-    this._btcWallet = BitcoinWallet.fromPrivateKey(
-      this._digestKey.digestKey,
-      provider,
-    );
+    // const provider = new BitcoinProvider(getBitcoinNetwork(this.network));
+    // this._btcWallet = BitcoinWallet.fromPrivateKey(
+    //   this._digestKey.digestKey,
+    //   provider,
+    // );
 
     return this;
   }
@@ -187,6 +181,12 @@ export class Garden implements IGardenJS {
             network === Network.MAINNET ? Network.MAINNET : Network.TESTNET,
           )
         : undefined,
+      bitcoin: config.wallets.bitcoin
+        ? new BitcoinHTLC(
+            config.wallets.bitcoin,
+            getBitcoinNetwork(getBitcoinNetworkFromEnvironment(network)),
+          )
+        : undefined,
     };
 
     return new Garden({
@@ -215,8 +215,8 @@ export class Garden implements IGardenJS {
     return this._quote;
   }
 
-  get btcWallet() {
-    return this._btcWallet;
+  get btcHTLC() {
+    return this._btcHTLC;
   }
 
   get orderbook() {
@@ -431,7 +431,7 @@ export class Garden implements IGardenJS {
           return Err('Please provide evmHTLC when initializing garden');
         return Ok(this._evmHTLC.htlcActorAddress);
       case BlockchainType.Bitcoin: {
-        const pubKey = await this._btcWallet?.getPublicKey();
+        const pubKey = await this._btcHTLC?.getPublicKey();
         if (!pubKey || !isValidBitcoinPubKey(pubKey))
           return Err('Invalid btc public key');
         return Ok(toXOnly(pubKey));

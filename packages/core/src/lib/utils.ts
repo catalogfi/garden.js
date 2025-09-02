@@ -179,7 +179,17 @@ export function validateBTCAddress(address: string, networkType: Environment) {
   }
 }
 
-export const getBitcoinNetwork = (network: Network): BitcoinNetwork => {
+export function generateOutputs(output: Buffer, count: number): Buffer[] {
+  const outputs: Buffer[] = [];
+  for (let i = 0; i < count; i++) {
+    outputs.push(output);
+  }
+  return outputs;
+}
+
+export const getBitcoinNetworkFromEnvironment = (
+  network: Network,
+): BitcoinNetwork => {
   switch (network) {
     case Network.MAINNET:
       return BitcoinNetwork.Mainnet;
