@@ -1,5 +1,6 @@
 import { Network } from '@gardenfi/utils';
-import { ChainAsset, CreateOrderRequest } from './orderbook/orderbook.types';
+import { CreateOrderRequest } from './orderbook/orderbook.types';
+import { ChainAsset } from './chainAsset/chainAsset';
 
 export type AssetCommon = {
   name: string;
@@ -159,6 +160,10 @@ export const ChainsConfig = {
     type: BlockchainType.Sui,
     network: Network.TESTNET,
   },
+  core: {
+    type: BlockchainType.EVM,
+    network: Network.MAINNET,
+  },
 } as const;
 
 export const Chains = Object.keys(ChainsConfig).reduce((acc, key) => {
@@ -175,6 +180,22 @@ export type EvmChain = {
     ? K
     : never;
 }[Chain];
+
+export type ChainsByNetwork<T> = {
+  [K in Chain]: (typeof ChainsConfig)[K] extends {
+    network: T;
+  }
+    ? K
+    : never;
+}[Chain];
+
+export type Assets = {
+  [network in Network]: {
+    [chain in ChainsByNetwork<network>]: {
+      [symbol: string]: Asset;
+    };
+  };
+};
 
 export const isMainnet = (chain: Chain) =>
   ChainsConfig[chain].network === Network.MAINNET;
@@ -204,6 +225,7 @@ export const NATIVE_TOKENS = {
   [BlockchainType.Sui]: 'sui',
 };
 
+//TODO: Change these
 export const isEvmNativeToken = (chain: Chain, tokenAddress: string) => {
   return (
     isEVM(chain) &&
@@ -226,8 +248,8 @@ export const isSuiNativeToken = (chain: Chain, tokenAddress: string) => {
 };
 
 export const isNativeToken = (asset: ChainAsset) => {
-  const chain = asset.split(':')[0] as Chain;
-  const tokenAddress = asset.split(':')[1];
+  const chain = asset.getChain();
+  const tokenAddress = asset.getSymbol();
   return (
     isEvmNativeToken(chain, tokenAddress) ||
     isSolanaNativeToken(chain, tokenAddress) ||
@@ -236,28 +258,6 @@ export const isNativeToken = (asset: ChainAsset) => {
     // Starknet doesn't have a native token
     !isStarknet(chain)
   );
-};
-
-export const toFormattedAssetString = (
-  asset: Asset | ChainAsset,
-): ChainAsset => {
-  if (typeof asset === 'string') {
-    return asset as ChainAsset;
-  }
-  return `${asset.chain}:${asset.symbol.toLowerCase()}` as ChainAsset;
-};
-
-export const fromFormattedAssetString = (
-  formatted: ChainAsset,
-): { chain: Chain; symbol: string } => {
-  const [chain, symbol] = formatted.split(':');
-  if (!(chain in ChainsConfig)) {
-    throw new Error(`Invalid chain in asset string: ${chain}`);
-  }
-  return {
-    chain: chain as Chain,
-    symbol,
-  };
 };
 
 export const getChainsFromOrder = (
@@ -277,13 +277,6 @@ export const getChainsFromOrder = (
     sourceChain: sourceChain as Chain,
     destinationChain: destinationChain as Chain,
   };
-};
-
-export const getChain = (asset: Asset | ChainAsset): Chain => {
-  if (typeof asset === 'string') {
-    return asset.split(':')[0] as Chain;
-  }
-  return asset.chain;
 };
 
 /**

@@ -1,6 +1,7 @@
-import { AsyncResult, IAuth } from '@gardenfi/utils';
+import { AsyncResult, IAuth, Request } from '@gardenfi/utils';
 import { BlockchainType, Chain, OrderLifecycle } from '../asset';
 import type { Calldata, RawArgs, TypedData } from 'starknet';
+import { ChainAsset } from '../chainAsset/chainAsset';
 
 export interface IOrderbook {
   /**
@@ -19,7 +20,7 @@ export interface IOrderbook {
    * @param id - The create Id of the order
    * @returns {AsyncResult<Order, string>} A promise that resolves to the order.
    */
-  getOrder(id: string): AsyncResult<Order, string>;
+  getOrder(id: string, request?: Request): AsyncResult<Order, string>;
 
   /**
    * Get all orders from the orderbook based on the provided filters.
@@ -29,6 +30,7 @@ export interface IOrderbook {
    */
   getOrders(
     queryParams: GetOrderQueryParams,
+    request?: Request,
   ): AsyncResult<PaginatedData<Order>, string>;
 
   /**
@@ -43,6 +45,7 @@ export interface IOrderbook {
     queryParams: GetOrderQueryParams,
     cb: (orders: PaginatedData<Order>) => Promise<void>,
     interval?: number,
+    request?: Request,
   ): Promise<() => void>;
 }
 
@@ -57,7 +60,7 @@ export type GetOrdersFilters = {
 
 export type GetOrderQueryParams = GetOrdersFilters & PaginationConfig;
 
-export type ChainAsset = `${Chain}:${string}`;
+// export type ChainAsset = `${Chain}:${string}`;
 
 export type CreateOrderRequest = {
   source: {

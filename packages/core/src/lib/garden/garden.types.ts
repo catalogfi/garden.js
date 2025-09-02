@@ -2,17 +2,12 @@ import {
   AffiliateFee,
   Asset,
   ChainAsset,
+  ChainAssetString,
   IOrderbook,
   Order,
 } from '@gardenfi/orderbook';
-import { OrderStatus } from '../orderStatus/status';
-import {
-  ApiKey,
-  AsyncResult,
-  Environment,
-  EventBroker,
-  IAuth,
-} from '@gardenfi/utils';
+import { OrderAction, OrderStatus } from '../orderStatus/orderStatus';
+import { ApiKey, AsyncResult, IAuth, Network } from '@gardenfi/utils';
 import { ISecretManager } from '../secretManager/secretManager.types';
 import { IQuote } from '../quote/quote.types';
 import { IBlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
@@ -33,13 +28,11 @@ export type SwapParams = {
   /**
    * Asset to be sent.
    */
-  // fromAsset: ChainAsset;
-  fromAsset: Asset | ChainAsset;
+  fromAsset: Asset | ChainAsset | ChainAssetString;
   /**
    * Asset to be received.
    */
-  // toAsset: ChainAsset;
-  toAsset: Asset | ChainAsset;
+  toAsset: Asset | ChainAsset | ChainAssetString;
   /**
    * Amount in lowest denomination of the sendAsset.
    */
@@ -73,7 +66,7 @@ export type OrderWithStatus = Order & {
 
 export type GardenEvents = {
   error: (order: Order, error: string) => void;
-  success: (order: Order, action: OrderActions, result: string) => void;
+  success: (order: Order, action: OrderAction, result: string) => void;
   onPendingOrdersChanged: (orders: OrderWithStatus[]) => void;
   log: (id: string, message: string) => void;
   rbf: (order: Order, result: string) => void;
@@ -84,19 +77,19 @@ export type EventCallback = (...args: any[]) => void;
 /**
  * Interface representing the GardenJS library.
  */
-export interface IGardenJS extends EventBroker<GardenEvents> {
+export interface IGardenJS {
   /**
    * Create Order
    * @param {SwapParams} params - The parameters for creating the order.
-   * @returns {AsyncResult<Order, string>} The result of the swap operation.
+   * @returns {AsyncResult<string, string>} The result of the swap operation.
    */
-  swap(params: SwapParams): AsyncResult<Order, string>;
+  swap(params: SwapParams): AsyncResult<string, string>;
 
-  /**
-   * Execute an action.
-   * @returns {Promise<() => void>} A promise that resolves to a function to cancel the execution.
-   */
-  execute(): Promise<() => void>;
+  // /**
+  //  * Execute an action.
+  //  * @returns {Promise<() => void>} A promise that resolves to a function to cancel the execution.
+  //  */
+  // execute(): Promise<() => void>;
 
   /**
    * The EVM relay.
@@ -162,7 +155,7 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
    * The digest key.
    * @readonly
    */
-  get digestKey(): DigestKey;
+  get digestKey(): DigestKey | undefined;
 }
 
 export type OrderCacheValue = {
@@ -172,19 +165,17 @@ export type OrderCacheValue = {
 };
 
 export interface IOrderExecutorCache {
-  set(order: Order, action: OrderActions, txHash: string, utxo?: string): void;
-  get(order: Order, action: OrderActions): OrderCacheValue | null;
-  remove(order: Order, action: OrderActions): void;
+  set(order: Order, action: OrderAction, txHash: string, utxo?: string): void;
+  get(order: Order, action: OrderAction): OrderCacheValue | null;
+  remove(order: Order, action: OrderAction): void;
 }
 
-export type ApiConfig =
-  | Environment
-  | (Partial<Api> & { environment: Environment });
+export type ApiConfig = Network | (Partial<Api> & { network: Network });
 
 export type GardenCoreConfig = {
   environment: ApiConfig;
-  digestKey: string | DigestKey;
-  apiKey?: string | ApiKey;
+  apiKey: string | ApiKey;
+  digestKey?: string | DigestKey;
   secretManager?: ISecretManager;
   auth?: IAuth;
   orderbook?: IOrderbook;
@@ -198,32 +189,22 @@ export type GardenCoreConfig = {
 };
 
 export type GardenHTLCModules = {
-  htlc: {
-    evm?: IEVMHTLC;
-    starknet?: IStarknetHTLC;
-    solana?: ISolanaHTLC;
-    sui?: ISuiHTLC;
-  };
+  evm?: IEVMHTLC;
+  starknet?: IStarknetHTLC;
+  solana?: ISolanaHTLC;
+  sui?: ISuiHTLC;
 };
 
 export type GardenWalletModules = {
-  wallets: {
-    evm?: WalletClient;
-    starknet?: AccountInterface;
-    solana?: AnchorProvider;
-    sui?: WalletWithRequiredFeatures;
-  };
+  evm?: WalletClient;
+  starknet?: AccountInterface;
+  solana?: AnchorProvider;
+  sui?: WalletWithRequiredFeatures;
 };
 
-export type GardenConfigWithWallets = GardenCoreConfig & GardenWalletModules;
-export type GardenConfigWithHTLCs = GardenCoreConfig & GardenHTLCModules;
-
-/**
- * Actions that can be performed on the order.
- */
-export enum OrderActions {
-  Idle = 'Idle',
-  Initiate = 'Initiate',
-  Redeem = 'Redeem',
-  Refund = 'Refund',
-}
+export type GardenConfigWithWallets = GardenCoreConfig & {
+  wallets: GardenWalletModules;
+};
+export type GardenConfigWithHTLCs = GardenCoreConfig & {
+  htlc: GardenHTLCModules;
+};

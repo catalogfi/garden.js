@@ -8,6 +8,7 @@ import {
   trim0x,
   Url,
   with0x,
+  Network,
 } from '@gardenfi/utils';
 import { AssetHTLCInfo, Chain } from '@gardenfi/orderbook';
 import { sha256 } from 'viem';
@@ -24,14 +25,14 @@ import { web3 } from '@coral-xyz/anchor';
 
 export function resolveApiConfig(env: ApiConfig): {
   api: Api;
-  environment: Environment;
+  network: Network;
 } {
-  const environment = typeof env === 'string' ? env : env.environment;
+  const network = typeof env === 'string' ? env : env.network;
 
   const baseApi =
-    environment === Environment.MAINNET
+    network === Network.MAINNET
       ? API.mainnet
-      : Environment.TESTNET
+      : Network.TESTNET
       ? API.testnet
       : API.localnet;
 
@@ -43,7 +44,7 @@ export function resolveApiConfig(env: ApiConfig): {
           ...env,
         };
 
-  return { api, environment };
+  return { api, network };
 }
 
 export const computeSecret = async (
@@ -178,13 +179,13 @@ export function validateBTCAddress(address: string, networkType: Environment) {
   }
 }
 
-export const getBitcoinNetwork = (network: Environment): BitcoinNetwork => {
+export const getBitcoinNetwork = (network: Network): BitcoinNetwork => {
   switch (network) {
-    case Environment.MAINNET:
+    case Network.MAINNET:
       return BitcoinNetwork.Mainnet;
-    case Environment.TESTNET:
+    case Network.TESTNET:
       return BitcoinNetwork.Testnet;
-    case Environment.LOCALNET:
+    case Network.LOCALNET:
       return BitcoinNetwork.Regtest;
     default:
       throw new Error(`Invalid bitcoin network ${network}`);

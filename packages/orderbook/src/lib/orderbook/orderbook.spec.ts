@@ -2,6 +2,7 @@ import { describe, expect, expectTypeOf, test } from 'vitest';
 import { DigestKey, Siwe, Url } from '@gardenfi/utils';
 import { Orderbook } from './orderbook';
 import { CreateOrderRequest, Order } from './orderbook.types';
+import { ChainAsset } from '../chainAsset/chainAsset';
 // import { Order } from './orderbook.types';s
 // import {
 //   // CreateOrderConfig,
@@ -33,7 +34,7 @@ describe('orders provider', async () => {
   });
 
   test('should get orders of a address', async () => {
-    const orders = await orderbook.getOrders({}, undefined, address);
+    const orders = await orderbook.getOrders({});
     console.log('orders.error :', orders.error);
     console.log('orders.val :', orders.val);
     expect(orders.error).toBeUndefined();
@@ -56,13 +57,13 @@ describe('orders provider', async () => {
 
   test('should subscribe to orders', async () => {
     const unsubscribe = await orderbook.subscribeOrders(
-      address,
-      1000,
+      { address },
       async (orders) => {
         console.log('subscribe orders :', orders);
         expect(orders.data.length).toBeGreaterThan(0);
         expectTypeOf(orders.data).toEqualTypeOf<Order[]>();
       },
+      1000,
     );
     expectTypeOf(unsubscribe).toEqualTypeOf<() => void>();
   }, 10000);
@@ -70,13 +71,13 @@ describe('orders provider', async () => {
   test('should create an order', async () => {
     const CreateOrderRequest: CreateOrderRequest = {
       source: {
-        asset: 'arbitrum:wbtc',
+        asset: ChainAsset.from('arbitrum:wbtc'),
         owner: '0xdF4E5212cC36428504712d7E75a9922762FeD28A',
         delegate: null,
         amount: '50000',
       },
       destination: {
-        asset: 'unichain:usdc',
+        asset: ChainAsset.from('unichain:usdc'),
         owner: '0xdF4E5212cC36428504712d7E75a9922762FeD28A',
         delegate: null,
         amount: '58727337',
@@ -105,10 +106,13 @@ test('should search orders', async () => {
   }, 1000);
 
   const result = await orderbook.getOrders(
-    true,
-    { address: '0xccF3d872b01762ABA74b41B1958A9A86EE8f34A3' },
-    { page: 1, per_page: 10 },
-    { signal, retryCount: 0 },
+    {
+      address: '0xccF3d872b01762ABA74b41B1958A9A86EE8f34A3',
+      page: 1,
+      per_page: 10,
+      retryCount: 0,
+    },
+    { signal },
   );
 
   console.log('time taken :', performance.now() - now);
@@ -118,7 +122,6 @@ test('should search orders', async () => {
     orders: [],
   };
 }, 10000);
-w;
 
 // describe('orderbook', async () => {
 //   const OrderbookApi = 'orderbook.garden.finance';

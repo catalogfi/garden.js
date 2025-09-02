@@ -14,7 +14,7 @@ import {
   IAuth,
   Ok,
   Url,
-  Request as UtilsRequest,
+  Request,
 } from '@gardenfi/utils';
 import { ConstructUrl, discriminateOrderResponse } from '../utils';
 
@@ -67,10 +67,7 @@ export class Orderbook implements IOrderbook {
     }
   }
 
-  async getOrder(
-    id: string,
-    request?: UtilsRequest,
-  ): AsyncResult<Order, string> {
+  async getOrder(id: string, request?: Request): AsyncResult<Order, string> {
     try {
       const url = this.url.endpoint(`/v2/orders`).endpoint(id);
       const res = await Fetcher.get<APIResponse<Order>>(url, { ...request });
@@ -88,12 +85,15 @@ export class Orderbook implements IOrderbook {
 
   async getOrders(
     queryParams: GetOrderQueryParams,
+    request?: Request,
   ): AsyncResult<PaginatedData<Order>, string> {
     const endpoint = '/v2/orders';
     const url = ConstructUrl(this.url, endpoint, queryParams);
 
     try {
-      const res = await Fetcher.get<APIResponse<PaginatedData<Order>>>(url);
+      const res = await Fetcher.get<APIResponse<PaginatedData<Order>>>(url, {
+        ...request,
+      });
 
       if (res.error) return Err(res.error);
 
@@ -123,6 +123,7 @@ export class Orderbook implements IOrderbook {
     queryParams: GetOrderQueryParams,
     cb: (orders: PaginatedData<Order>) => Promise<void>,
     interval?: number,
+    request?: Request,
   ): Promise<() => void> {
     let isProcessing = false;
 
@@ -131,7 +132,7 @@ export class Orderbook implements IOrderbook {
       isProcessing = true;
 
       try {
-        const result = await this.getOrders(queryParams);
+        const result = await this.getOrders(queryParams, request);
         if (result.ok) {
           await cb(result.val);
         } else {

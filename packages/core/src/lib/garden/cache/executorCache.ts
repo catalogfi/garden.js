@@ -1,14 +1,11 @@
 import { Order } from '@gardenfi/orderbook';
-import {
-  IOrderExecutorCache,
-  OrderActions,
-  OrderCacheValue,
-} from '../garden.types';
+import { IOrderExecutorCache, OrderCacheValue } from '../garden.types';
+import { OrderAction } from 'src/lib/orderStatus/orderStatus';
 
 export class ExecutorCache implements IOrderExecutorCache {
   private cache: Record<string, OrderCacheValue> = {};
 
-  set(order: Order, action: OrderActions, txHash: string, utxo?: string): void {
+  set(order: Order, action: OrderAction, txHash: string, utxo?: string): void {
     const value: OrderCacheValue = {
       txHash,
       timeStamp: Date.now(),
@@ -18,11 +15,11 @@ export class ExecutorCache implements IOrderExecutorCache {
     return;
   }
 
-  get(order: Order, action: OrderActions): OrderCacheValue | null {
+  get(order: Order, action: OrderAction): OrderCacheValue | null {
     return this.cache[`${action}_${order.created_at}`] || null;
   }
 
-  remove(order: Order, action: OrderActions): void {
+  remove(order: Order, action: OrderAction): void {
     delete this.cache[`${action}_${order.created_at}`];
     return;
   }

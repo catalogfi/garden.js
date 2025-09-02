@@ -4,3 +4,4 @@ export type * from './lib/asset';
 export * from './lib/constants';
 export * from './lib/asset';
 export * from './lib/utils';
+export * from './lib/chainAsset/chainAsset';

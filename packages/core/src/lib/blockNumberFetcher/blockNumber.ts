@@ -1,5 +1,5 @@
 import { Chain } from '@gardenfi/orderbook';
-import { Environment, Fetcher, Url } from '@gardenfi/utils';
+import { Fetcher, Network, Url } from '@gardenfi/utils';
 import { AsyncResult, Err, Ok } from '@gardenfi/utils';
 
 type Response = {
@@ -13,7 +13,7 @@ export interface IBlockNumberFetcher {
 export class BlockNumberFetcher implements IBlockNumberFetcher {
   private url: Url;
 
-  constructor(url: Url, network: Environment) {
+  constructor(url: Url, network: Network) {
     this.url = url.endpoint('blocknumbers').endpoint(network);
   }
 
