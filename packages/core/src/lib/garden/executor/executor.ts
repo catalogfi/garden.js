@@ -1,16 +1,15 @@
 import {
   APIResponse,
   DigestKey,
+  Err,
   EventBroker,
   Fetcher,
+  IAuth,
+  Ok,
   trim0x,
   Url,
 } from '@gardenfi/utils';
-import {
-  GardenEvents,
-  GardenHTLCModules,
-  IOrderExecutorCache,
-} from './../garden.types';
+import { GardenEvents, GardenHTLCModules } from './../garden.types';
 import {
   BlockchainType,
   getBlockchainType,
@@ -24,35 +23,36 @@ import {
   OrderAction,
   parseAction,
   ParseOrderStatus,
-} from 'src/lib/orderStatus/orderStatus';
-import { ISecretManager } from 'src/lib/secretManager/secretManager.types';
-import { SecretManager } from 'src/lib/secretManager/secretManager';
-import { Cache, ExecutorCache } from '../cache/executorCache';
+} from '../../orderStatus/orderStatus';
+import { ISecretManager } from '../../secretManager/secretManager.types';
+import { SecretManager } from '../../secretManager/secretManager';
+import { GardenCache } from '../cache/GardenCache';
+import { Api } from '../../constants';
 
 export class Executor extends EventBroker<GardenEvents> {
   private htlcs: GardenHTLCModules;
   #digestKey: DigestKey;
   #orderbook: IOrderbook;
   #secretManager: ISecretManager;
-  #orderExecutorCache: IOrderExecutorCache;
-  private bitcoinRedeemCache = new Cache<{
-    redeemedFromUTXO: string;
-    redeemedAt: number;
-    redeemTxHash: string;
-  }>();
-  private refundSacpCache = new Map<string, any>();
+  #cacheManager: GardenCache;
+  #auth: IAuth;
+  #api: Api;
 
   constructor(
     digestKey: DigestKey,
     htlcs: GardenHTLCModules,
     orderbook: IOrderbook,
+    auth: IAuth,
+    api: Api,
   ) {
     super();
     this.htlcs = htlcs;
     this.#digestKey = digestKey;
     this.#orderbook = orderbook;
     this.#secretManager = SecretManager.fromDigestKey(digestKey.digestKey);
-    this.#orderExecutorCache = new ExecutorCache();
+    this.#cacheManager = new GardenCache();
+    this.#auth = auth;
+    this.#api = api;
   }
 
   async execute(interval: number = 5000): Promise<() => void> {
@@ -141,7 +141,11 @@ export class Executor extends EventBroker<GardenEvents> {
 
   private async evmRedeem(order: Order, secret: string): Promise<void> {
     this.emit('log', order.order_id, 'executing evm redeem');
-    const cache = this.#orderExecutorCache.get(order, OrderAction.Redeem);
+    // const cache = this.#orderExecutorCache.get(order, OrderAction.Redeem);
+    const cache = this.#cacheManager.getOrderExecution(
+      order,
+      OrderAction.Redeem,
+    );
     if (cache) {
       this.emit('log', order.order_id, 'already redeemed');
       return;
@@ -157,7 +161,7 @@ export class Executor extends EventBroker<GardenEvents> {
     if (!res.ok) {
       this.emit('error', order, res.error);
       if (res.error.includes('Order already redeemed')) {
-        this.#orderExecutorCache.set(
+        this.#cacheManager.setOrderExecution(
           order,
           OrderAction.Redeem,
           order.destination_swap.redeem_tx_hash,
@@ -166,13 +170,16 @@ export class Executor extends EventBroker<GardenEvents> {
       return;
     }
 
-    this.#orderExecutorCache.set(order, OrderAction.Redeem, res.val);
+    this.#cacheManager.setOrderExecution(order, OrderAction.Redeem, res.val);
     this.emit('success', order, OrderAction.Redeem, res.val);
   }
 
   private async starknetRedeem(order: Order, secret: string) {
     this.emit('log', order.order_id, 'executing starknet redeem');
-    const cache = this.#orderExecutorCache.get(order, OrderAction.Redeem);
+    const cache = this.#cacheManager.getOrderExecution(
+      order,
+      OrderAction.Redeem,
+    );
     if (cache) {
       this.emit('log', order.order_id, 'already redeemed');
       return;
@@ -186,7 +193,7 @@ export class Executor extends EventBroker<GardenEvents> {
     if (!res.ok) {
       this.emit('error', order, res.error);
       if (res.error.includes('Order already redeemed')) {
-        this.#orderExecutorCache.set(
+        this.#cacheManager.setOrderExecution(
           order,
           OrderAction.Redeem,
           order.destination_swap.redeem_tx_hash,
@@ -195,14 +202,17 @@ export class Executor extends EventBroker<GardenEvents> {
       return;
     }
     if (res.val) {
-      this.#orderExecutorCache.set(order, OrderAction.Redeem, res.val);
+      this.#cacheManager.setOrderExecution(order, OrderAction.Redeem, res.val);
       this.emit('success', order, OrderAction.Redeem, res.val);
     }
   }
 
   private async solRedeem(order: Order, secret: string) {
     this.emit('log', order.order_id, 'executing sol redeem');
-    const cache = this.#orderExecutorCache.get(order, OrderAction.Redeem);
+    const cache = this.#cacheManager.getOrderExecution(
+      order,
+      OrderAction.Redeem,
+    );
     if (cache) {
       this.emit('log', order.order_id, 'already redeemed');
       return;
@@ -219,7 +229,7 @@ export class Executor extends EventBroker<GardenEvents> {
       this.emit('error', order, res.error);
 
       if (res.error.includes('Order already redeemed')) {
-        this.#orderExecutorCache.set(
+        this.#cacheManager.setOrderExecution(
           order,
           OrderAction.Redeem,
           order.destination_swap.redeem_tx_hash,
@@ -229,14 +239,17 @@ export class Executor extends EventBroker<GardenEvents> {
     }
 
     if (res.val) {
-      this.#orderExecutorCache.set(order, OrderAction.Redeem, res.val);
+      this.#cacheManager.setOrderExecution(order, OrderAction.Redeem, res.val);
       this.emit('success', order, OrderAction.Redeem, res.val);
     }
   }
 
   private async suiRedeem(order: Order, secret: string) {
     this.emit('log', order.order_id, 'executing sui redeem');
-    const cache = this.#orderExecutorCache.get(order, OrderAction.Redeem);
+    const cache = this.#cacheManager.getOrderExecution(
+      order,
+      OrderAction.Redeem,
+    );
     if (cache) {
       this.emit('log', order.order_id, 'already redeemed');
       return;
@@ -253,7 +266,7 @@ export class Executor extends EventBroker<GardenEvents> {
       this.emit('error', order, res.error);
 
       if (res.error.includes('Order already redeemed')) {
-        this.#orderExecutorCache.set(
+        this.#cacheManager.setOrderExecution(
           order,
           OrderAction.Redeem,
           order.destination_swap.redeem_tx_hash,
@@ -263,7 +276,7 @@ export class Executor extends EventBroker<GardenEvents> {
     }
 
     if (res.val) {
-      this.#orderExecutorCache.set(order, OrderAction.Redeem, res.val);
+      this.#cacheManager.setOrderExecution(order, OrderAction.Redeem, res.val);
       this.emit('success', order, OrderAction.Redeem, res.val);
     }
   }
@@ -274,7 +287,7 @@ export class Executor extends EventBroker<GardenEvents> {
       this.emit('error', order, 'Bitcoin provider not found');
       return;
     }
-    const _cache = this.bitcoinRedeemCache.get(order.order_id);
+    const _cache = this.#cacheManager.getBitcoinRedeem(order.order_id);
     const fillerInitTx = order.destination_swap.initiate_tx_hash
       .split(',')
       .at(-1)
@@ -334,7 +347,7 @@ export class Executor extends EventBroker<GardenEvents> {
             redeemedAt = Date.now();
           }
 
-          this.bitcoinRedeemCache.set(order.order_id, {
+          this.#cacheManager.setBitcoinRedeem(order.order_id, {
             redeemedFromUTXO: fillerInitTx,
             redeemedAt,
             redeemTxHash: order.destination_swap.redeem_tx_hash,
@@ -363,10 +376,11 @@ export class Executor extends EventBroker<GardenEvents> {
         trim0x(secret),
         rbf ? [fillerInitTx] : [],
       );
-      const res = await this.htlcs.bitcoin.broadcastRedeemTx(
-        redeemHex,
-        order.order_id,
-      );
+      if (!redeemHex.ok) {
+        this.emit('error', order, 'Failed to get redeem hex');
+        return;
+      }
+      const res = await this.broadcastRedeemTx(redeemHex.val, order.order_id);
       if (!res.ok) {
         this.emit('error', order, res.error || 'Failed to broadcast redeem tx');
         return;
@@ -376,7 +390,7 @@ export class Executor extends EventBroker<GardenEvents> {
         this.emit('log', order.order_id, 'rbf: btc redeem success');
         this.emit('rbf', order, res.val);
       } else this.emit('success', order, OrderAction.Redeem, res.val);
-      this.bitcoinRedeemCache.set(order.order_id, {
+      this.#cacheManager.setBitcoinRedeem(order.order_id, {
         redeemedFromUTXO: fillerInitTx,
         redeemedAt: Date.now(),
         redeemTxHash: res.val,
@@ -387,17 +401,9 @@ export class Executor extends EventBroker<GardenEvents> {
   }
 
   private async postRefundSACP(order: Order) {
-    const cachedOrder = this.bitcoinRedeemCache.get(order.order_id);
+    const cachedOrder = this.#cacheManager.getSacpCache(order.order_id);
     if (cachedOrder?.initTxHash === order.source_swap.initiate_tx_hash) return;
 
-    // const bitcoinExecutor = await GardenHTLC.from(
-    //   wallet,
-    //   Number(order.source_swap.amount),
-    //   order.create_order?.secret_hash || '',
-    //   toXOnly(order.source_swap.initiator),
-    //   toXOnly(order.source_swap.redeemer),
-    //   order.source_swap.timelock,
-    // );
     const userBTCAddress = order.destination_swap.delegate;
     if (!userBTCAddress) return;
 
@@ -417,7 +423,7 @@ export class Executor extends EventBroker<GardenEvents> {
       }
 
       const hash = await Fetcher.post<APIResponse<string[]>>(
-        new Url(this._api.orderbook).endpoint(
+        new Url(this.#api.baseurl).endpoint(
           'relayer/bitcoin/instant-refund-hash',
         ),
         {
@@ -446,7 +452,7 @@ export class Executor extends EventBroker<GardenEvents> {
       const signatures =
         await this.htlcs.bitcoin.generateInstantRefundSACPWithHash(hash.result);
 
-      const url = new Url(this._api.orderbook).endpoint(
+      const url = new Url(this.#api.baseurl).endpoint(
         'relayer/bitcoin/instant-refund',
       );
 
@@ -461,13 +467,41 @@ export class Executor extends EventBroker<GardenEvents> {
         }),
       });
       if (res.status === 'Ok') {
-        this.refundSacpCache.set(order.order_id, {
+        this.#cacheManager.setSacpCache(order.order_id, {
           initTxHash: order.source_swap.initiate_tx_hash,
         });
       }
     } catch (error) {
       this.emit('error', order, 'Failed to generate and post SACP: ' + error);
       return;
+    }
+  }
+
+  private async broadcastRedeemTx(redeemTx: string, orderId: string) {
+    try {
+      if (!this.#api) return Err('API not found');
+      const url = new Url(this.#api.evmRelay).endpoint('/bitcoin/redeem ');
+      const authHeaders = await this.#auth.getAuthHeaders();
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders.val,
+        },
+        body: JSON.stringify({
+          redeem_tx_bytes: redeemTx,
+          order_id: orderId,
+        }),
+      });
+
+      const resJson: APIResponse<string> = await res.json();
+
+      if (resJson.status === 'Ok' && resJson.result) {
+        return Ok(resJson.result);
+      }
+      return Err(resJson.error);
+    } catch (error) {
+      return Err('Failed to broadcast redeem tx: ' + error);
     }
   }
 }

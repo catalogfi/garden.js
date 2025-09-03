@@ -6,7 +6,7 @@ import {
   Strategies,
   StrategiesResponse,
 } from './quote.types';
-import { toFormattedAssetString, ChainAsset } from '@gardenfi/orderbook';
+import { ChainAsset } from '@gardenfi/orderbook';
 import { APIResponse, Url } from '@gardenfi/utils';
 import { constructOrderPair } from '../utils';
 
@@ -24,8 +24,8 @@ export class Quote implements IQuote {
     isExactOut = false,
     options,
   }: QuoteParamsForAssets) {
-    const from = toFormattedAssetString(fromAsset);
-    const to = toFormattedAssetString(toAsset);
+    const from = ChainAsset.fromAsset(fromAsset);
+    const to = ChainAsset.fromAsset(toAsset);
 
     return this.getQuote(from, to, amount, isExactOut, options);
   }
@@ -42,8 +42,8 @@ export class Quote implements IQuote {
   ) {
     try {
       const params: Record<string, string> = {
-        from,
-        to,
+        from: from.toString(),
+        to: to.toString(),
         ...(isExactOut
           ? { to_amount: amount.toString() }
           : { from_amount: amount.toString() }),

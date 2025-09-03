@@ -50,7 +50,7 @@ import { SolanaRelay } from '../solana/relayer/solanaRelay';
 import { ISuiHTLC } from '../sui/suiHTLC.types';
 import { SuiRelay } from '../sui/relay/suiRelay';
 import { resolveApiKey, resolveDigestKey } from './utils';
-import { Executor } from './executor/executor';
+// import { Executor } from './executor/executor';
 import { IBitcoinHTLC } from '../bitcoin/bitcoinhtlc.types';
 import {
   getBitcoinNetworkFromEnvironment,

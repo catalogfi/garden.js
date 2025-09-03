@@ -1,6 +1,6 @@
 export { Garden } from './lib/garden/garden';
 export type * from './lib/garden/garden.types';
-export { OrderActions } from './lib/garden/garden.types';
+export { OrderAction } from './lib/orderStatus/orderStatus';
 
 export { EvmRelay } from './lib/evm/relay/evmRelay';
 export type { IEVMRelay, EVMRelayOpts } from './lib/evm/relay/evmRelay.types';
@@ -22,12 +22,12 @@ export { OrderStatus, SwapStatus } from './lib/orderStatus/status';
 export {
   parseAction,
   ParseOrderStatus,
-  ParseSwapStatus,
-  isExpired,
-  isOrderExpired,
-  filterDeadlineExpiredOrders,
-  parseActionFromStatus,
-} from './lib/orderStatus/orderStatusParser';
+  // ParseSwapStatus,
+  // isExpired,
+  // isOrderExpired,
+  // filterDeadlineExpiredOrders,
+  // parseActionFromStatus,
+} from './lib/orderStatus/orderStatus';
 
 export { SecretManager } from './lib/secretManager/secretManager';
 export type * from './lib/secretManager/secretManager.types';
