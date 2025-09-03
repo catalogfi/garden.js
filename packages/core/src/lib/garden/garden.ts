@@ -1,13 +1,11 @@
 import { ISecretManager } from './../secretManager/secretManager.types';
 import {
   IGardenJS,
-  IOrderExecutorCache,
   SwapParams,
   GardenConfigWithHTLCs,
   GardenConfigWithWallets,
 } from './garden.types';
 import {
-  AffiliateFee,
   BlockchainType,
   ChainAsset,
   CreateOrderRequest,
@@ -26,19 +24,12 @@ import {
   Ok,
 } from '@gardenfi/utils';
 import { IQuote } from '../quote/quote.types';
-import { BitcoinHTLC } from '../bitcoin/bitocinHtlc';
-import { ExecutorCache } from './cache/executorCache';
-import BigNumber from 'bignumber.js';
+import { BitcoinHTLC } from '../bitcoin/bitcoinHtlc';
 import {
   BlockNumberFetcher,
   IBlockNumberFetcher,
 } from '../blockNumberFetcher/blockNumber';
-import {
-  Api,
-  DEFAULT_AFFILIATE_ASSET,
-  solanaProgramAddress,
-  SolanaRelayerAddress,
-} from '../constants';
+import { Api, solanaProgramAddress, SolanaRelayerAddress } from '../constants';
 import { Quote } from '../quote/quote';
 import { SecretManager } from '../secretManager/secretManager';
 import { IEVMHTLC } from '../evm/htlc.types';
@@ -50,12 +41,14 @@ import { SolanaRelay } from '../solana/relayer/solanaRelay';
 import { ISuiHTLC } from '../sui/suiHTLC.types';
 import { SuiRelay } from '../sui/relay/suiRelay';
 import { resolveApiKey, resolveDigestKey } from './utils';
-// import { Executor } from './executor/executor';
+import { Executor } from './executor/executor';
 import { IBitcoinHTLC } from '../bitcoin/bitcoinhtlc.types';
 import {
   getBitcoinNetworkFromEnvironment,
   resolveApiConfig,
   toXOnly,
+  validateAmount,
+  withDefaultAffiliateFees,
 } from '../utils';
 import { isValidBitcoinPubKey } from '../utils';
 import { getBitcoinNetwork } from '../bitcoin/utils';
@@ -64,9 +57,7 @@ export class Garden implements IGardenJS {
   private network: Network;
   private _orderbook: IOrderbook;
   private _quote: IQuote;
-  private getOrderThreshold = 20;
   private _auth: IAuth;
-  private orderExecutorCache: IOrderExecutorCache;
   private _blockNumberFetcher: IBlockNumberFetcher;
   private _evmHTLC: IEVMHTLC | undefined;
   private _starknetHTLC: IStarknetHTLC | undefined;
@@ -74,6 +65,7 @@ export class Garden implements IGardenJS {
   private _suiHTLC: ISuiHTLC | undefined;
   private _btcHTLC: IBitcoinHTLC | undefined;
   private _api: Api | undefined;
+  private _executor: Executor | undefined;
 
   /**
    * If true, the redeem service will be enabled.
@@ -98,11 +90,22 @@ export class Garden implements IGardenJS {
     this._starknetHTLC = config.htlc.starknet;
     this._solanaHTLC = config.htlc.solana;
     this._suiHTLC = config.htlc.sui;
-
-    this.orderExecutorCache = new ExecutorCache();
+    this._btcHTLC = config.htlc.bitcoin;
     this._blockNumberFetcher =
       config.blockNumberFetcher ??
       new BlockNumberFetcher(new Url(this._api.info), this.network);
+    this._executor = new Executor(
+      this._digestKey!,
+      {
+        starknet: this._starknetHTLC,
+        solana: this._solanaHTLC,
+        sui: this._suiHTLC,
+        bitcoin: this._btcHTLC,
+      },
+      this._orderbook,
+      this._auth,
+      this._api,
+    );
   }
 
   /**
@@ -128,7 +131,7 @@ export class Garden implements IGardenJS {
     //   this._digestKey.digestKey,
     //   provider,
     // );
-
+    this._executor?.execute();
     return this;
   }
 
@@ -293,7 +296,7 @@ export class Garden implements IGardenJS {
             secret_hash: trim0x(secretHash),
           }
         : {}),
-      affiliate_fees: this.withDefaultAffiliateFees(params.affiliateFee),
+      affiliate_fees: withDefaultAffiliateFees(params.affiliateFee),
       slippage: 50,
     };
     console.log('req', JSON.stringify(orderRequest, null, 2));
@@ -371,16 +374,6 @@ export class Garden implements IGardenJS {
     return Ok(createOrderRes.val.order_id);
   }
 
-  private withDefaultAffiliateFees(
-    list: AffiliateFee[] | undefined,
-  ): AffiliateFee[] {
-    return (list ?? []).map((fee) => ({
-      fee: fee.fee,
-      address: fee.address,
-      asset: fee.asset ?? DEFAULT_AFFILIATE_ASSET.asset,
-    }));
-  }
-
   private async validateAndFillParams(params: SwapParams) {
     if (!params.fromAsset || !params.toAsset)
       return Err('Source and destination assets are required for swap');
@@ -393,10 +386,10 @@ export class Garden implements IGardenJS {
         'Both assets should be on the same network (either mainnet or testnet)',
       );
 
-    const inputAmount = this.validateAmount(params.sendAmount);
+    const inputAmount = validateAmount(params.sendAmount);
     if (!inputAmount.ok) return Err(inputAmount.error);
 
-    const outputAmount = this.validateAmount(params.receiveAmount);
+    const outputAmount = validateAmount(params.receiveAmount);
     if (!outputAmount.ok) return Err(outputAmount.error);
 
     if (inputAmount < outputAmount)
@@ -454,19 +447,5 @@ export class Garden implements IGardenJS {
       default:
         return Err('Unsupported chain');
     }
-  }
-
-  private validateAmount(amount: string) {
-    if (amount == null || amount.includes('.'))
-      return Err('Invalid amount ', amount);
-    const amountBigInt = new BigNumber(amount);
-    if (
-      !amountBigInt.isInteger() ||
-      amountBigInt.isNaN() ||
-      amountBigInt.lt(0) ||
-      amountBigInt.isLessThanOrEqualTo(0)
-    )
-      return Err('Invalid amount ', amount);
-    return Ok(amountBigInt);
   }
 }

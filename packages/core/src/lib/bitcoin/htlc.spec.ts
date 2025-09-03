@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { generateInternalkey } from './internalKey';
-import { BitcoinHTLC } from './bitocinHtlc';
+import { BitcoinHTLC } from './bitcoinHtlc';
 import { IBitcoinWallet } from './wallet/wallet.interface';
 
 describe('htlc', () => {

@@ -10,18 +10,19 @@ import {
   with0x,
   Network,
 } from '@gardenfi/utils';
-import { AssetHTLCInfo, Chain } from '@gardenfi/orderbook';
+import { AffiliateFee, AssetHTLCInfo, Chain } from '@gardenfi/orderbook';
 import { sha256 } from 'viem';
 import * as varuint from 'varuint-bitcoin';
 import * as secp256k1 from 'tiny-secp256k1';
 import * as bitcoin from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
 import { Signature } from 'starknet';
-import { API, Api } from './constants';
+import { API, Api, DEFAULT_AFFILIATE_ASSET } from './constants';
 import { ApiConfig } from './garden/garden.types';
 import { BitcoinNetwork } from './bitcoin/provider/provider.interface';
 import { IBaseWallet } from './bitcoin/wallet/baseWallet';
 import { web3 } from '@coral-xyz/anchor';
+import { BigNumber } from 'bignumber.js';
 
 export function resolveApiConfig(env: ApiConfig): {
   api: Api;
@@ -299,4 +300,28 @@ export const getAssetInfoFromOrder = async (
   const tokenAddress = assetInfo.token?.address || '';
 
   return Ok({ htlcAddress, tokenAddress });
+};
+
+export const validateAmount = (amount: string) => {
+  if (amount == null || amount.includes('.'))
+    return Err('Invalid amount ', amount);
+  const amountBigInt = new BigNumber(amount);
+  if (
+    !amountBigInt.isInteger() ||
+    amountBigInt.isNaN() ||
+    amountBigInt.lt(0) ||
+    amountBigInt.isLessThanOrEqualTo(0)
+  )
+    return Err('Invalid amount ', amount);
+  return Ok(amountBigInt);
+};
+
+export const withDefaultAffiliateFees = (
+  list: AffiliateFee[] | undefined,
+): AffiliateFee[] => {
+  return (list ?? []).map((fee) => ({
+    fee: fee.fee,
+    address: fee.address,
+    asset: fee.asset ?? DEFAULT_AFFILIATE_ASSET.asset,
+  }));
 };
