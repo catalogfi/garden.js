@@ -1081,6 +1081,24 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@gardenfi/swap@workspace:*, @gardenfi/swap@workspace:packages/swap":
+  version: 0.0.0-use.local
+  resolution: "@gardenfi/swap@workspace:packages/swap"
+  dependencies:
+    "@gardenfi/core": "workspace:*"
+    "@gardenfi/orderbook": "workspace:*"
+    "@gardenfi/react-hooks": "workspace:*"
+    "@gardenfi/utils": "workspace:*"
+    "@types/react": "npm:^18"
+    react: "npm:^18.3.1"
+    typescript: "npm:^5.2.2"
+    vite: "npm:^5.1.6"
+    vite-plugin-dts: "npm:^3.7.3"
+    vite-plugin-eslint: "npm:^1.8.1"
+    vitest: "npm:^1.6.0"
+  languageName: unknown
+  linkType: soft
+
 "@gardenfi/test@workspace:packages/test":
   version: 0.0.0-use.local
   resolution: "@gardenfi/test@workspace:packages/test"
@@ -1093,6 +1111,7 @@ __metadata:
     "@gardenfi/garden-book": "npm:^0.1.74"
     "@gardenfi/orderbook": "workspace:*"
     "@gardenfi/react-hooks": "workspace:*"
+    "@gardenfi/swap": "workspace:*"
     "@gardenfi/utils": "workspace:*"
     "@gardenfi/wallet-connectors": "workspace:*"
     "@reown/appkit": "npm:^1.7.0"

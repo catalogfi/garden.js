@@ -790,7 +790,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
             ).getTransactionTimes([order.destination_swap.redeem_tx_hash]);
             if (_redeemedAt !== 0) redeemedAt = _redeemedAt;
           } catch {
-            // Ignore error - fallback to using current timestamp
+            // Ignore error - fallback to using current timestamp.
             redeemedAt = Date.now();
           }
 

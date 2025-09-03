@@ -12,9 +12,7 @@ import { BitcoinNetwork } from './bitcoin/provider/provider.interface';
 import { IBaseWallet } from './bitcoin/wallet/baseWallet';
 import { web3 } from '@coral-xyz/anchor';
 
-export function resolveApiConfig(
-  env: ApiConfig,
-): {
+export function resolveApiConfig(env: ApiConfig): {
   api: Api;
   environment: Environment;
 } {
@@ -252,4 +250,8 @@ export const waitForSolanaTxConfirmation = async (
   }
 
   return false;
+};
+
+export const getOrderFunction = () => {
+  return Ok('hello');
 };
