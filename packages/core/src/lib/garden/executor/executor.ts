@@ -1,4 +1,11 @@
-import { DigestKey, EventBroker } from '@gardenfi/utils';
+import {
+  APIResponse,
+  DigestKey,
+  EventBroker,
+  Fetcher,
+  trim0x,
+  Url,
+} from '@gardenfi/utils';
 import {
   GardenEvents,
   GardenHTLCModules,
@@ -20,7 +27,7 @@ import {
 } from 'src/lib/orderStatus/orderStatus';
 import { ISecretManager } from 'src/lib/secretManager/secretManager.types';
 import { SecretManager } from 'src/lib/secretManager/secretManager';
-import { ExecutorCache } from '../cache/executorCache';
+import { Cache, ExecutorCache } from '../cache/executorCache';
 
 export class Executor extends EventBroker<GardenEvents> {
   private htlcs: GardenHTLCModules;
@@ -28,6 +35,12 @@ export class Executor extends EventBroker<GardenEvents> {
   #orderbook: IOrderbook;
   #secretManager: ISecretManager;
   #orderExecutorCache: IOrderExecutorCache;
+  private bitcoinRedeemCache = new Cache<{
+    redeemedFromUTXO: string;
+    redeemedAt: number;
+    redeemTxHash: string;
+  }>();
+  private refundSacpCache = new Map<string, any>();
 
   constructor(
     digestKey: DigestKey,
@@ -64,12 +77,12 @@ export class Executor extends EventBroker<GardenEvents> {
             // post refund sacp for bitcoin orders only at relevent statuses
             !isCompleted(order)
           ) {
-            const wallet = this._btcWallet;
-            if (!wallet) {
-              this.emit('error', order, 'BTC wallet not found');
-              continue;
-            }
-            await this.postRefundSACP(order, wallet);
+            // const wallet = this.btcHTLC;
+            // if (!wallet) {
+            //   this.emit('error', order, 'BTC wallet not found');
+            //   continue;
+            // }
+            await this.postRefundSACP(order);
           }
 
           switch (orderAction) {
@@ -88,12 +101,12 @@ export class Executor extends EventBroker<GardenEvents> {
                   await this.evmRedeem(order, secret);
                   break;
                 case BlockchainType.Bitcoin: {
-                  const destWallet = this.btcWallet;
-                  if (!destWallet) {
-                    this.emit('error', order, 'BTC wallet not found');
-                    return;
-                  }
-                  await this.btcRedeem(destWallet, order, secret);
+                  // const destWallet = this.btcHTLC;
+                  // if (!destWallet) {
+                  //   this.emit('error', order, 'BTC wallet not found');
+                  //   return;
+                  // }
+                  await this.btcRedeem(order, secret);
                   break;
                 }
                 case BlockchainType.Starknet: {
@@ -252,6 +265,209 @@ export class Executor extends EventBroker<GardenEvents> {
     if (res.val) {
       this.#orderExecutorCache.set(order, OrderAction.Redeem, res.val);
       this.emit('success', order, OrderAction.Redeem, res.val);
+    }
+  }
+
+  private async btcRedeem(order: Order, secret: string) {
+    const provider = this.htlcs.bitcoin?.getProvider();
+    if (!provider) {
+      this.emit('error', order, 'Bitcoin provider not found');
+      return;
+    }
+    const _cache = this.bitcoinRedeemCache.get(order.order_id);
+    const fillerInitTx = order.destination_swap.initiate_tx_hash
+      .split(',')
+      .at(-1)
+      ?.split(':')
+      .at(0);
+    if (!fillerInitTx) {
+      this.emit('error', order, 'Failed to get initiate_tx_hash');
+      return;
+    }
+
+    let rbf = false;
+    if (_cache) {
+      if (_cache.redeemedFromUTXO && _cache.redeemedFromUTXO !== fillerInitTx) {
+        rbf = true;
+        this.emit('log', order.order_id, 'rbf btc redeem');
+      } else if (
+        _cache.redeemedAt &&
+        Date.now() - _cache.redeemedAt > 1000 * 60 * 15 // 15 minutes
+      ) {
+        this.emit(
+          'log',
+          order.order_id,
+          'redeem not confirmed in last 15 minutes',
+        );
+        rbf = true;
+      } else {
+        this.emit('log', order.order_id, 'btcRedeem: already redeemed');
+        return;
+      }
+    } else if (
+      //check if redeem tx is valid if cache is not found.
+      order.destination_swap.redeem_tx_hash &&
+      !Number(order.destination_swap.redeem_block_number)
+    ) {
+      try {
+        const tx = await (
+          await provider
+        ).getTransaction(order.destination_swap.redeem_tx_hash);
+
+        let isValidRedeem = false;
+        for (const input of tx.vin) {
+          if (input.txid === fillerInitTx) {
+            isValidRedeem = true;
+            break;
+          }
+        }
+        if (isValidRedeem) {
+          this.emit('log', order.order_id, 'already a valid redeem');
+          let redeemedAt = 0;
+          try {
+            const [_redeemedAt] = await (
+              await provider
+            ).getTransactionTimes([order.destination_swap.redeem_tx_hash]);
+            if (_redeemedAt !== 0) redeemedAt = _redeemedAt;
+          } catch {
+            // Ignore error - fallback to using current timestamp
+            redeemedAt = Date.now();
+          }
+
+          this.bitcoinRedeemCache.set(order.order_id, {
+            redeemedFromUTXO: fillerInitTx,
+            redeemedAt,
+            redeemTxHash: order.destination_swap.redeem_tx_hash,
+          });
+          return;
+        }
+        rbf = true;
+      } catch (error) {
+        if ((error as Error).message.includes('Transaction not found')) {
+          rbf = true;
+        } else {
+          this.emit('error', order, 'Failed to get redeem tx: ' + error);
+          return;
+        }
+      }
+    }
+
+    this.emit('log', order.order_id, 'executing btc redeem');
+    try {
+      if (!this.htlcs.bitcoin) {
+        this.emit('error', order, 'Bitcoin HTLC is required');
+        return;
+      }
+      const redeemHex = await this.htlcs.bitcoin.getRedeemHex(
+        order,
+        trim0x(secret),
+        rbf ? [fillerInitTx] : [],
+      );
+      const res = await this.htlcs.bitcoin.broadcastRedeemTx(
+        redeemHex,
+        order.order_id,
+      );
+      if (!res.ok) {
+        this.emit('error', order, res.error || 'Failed to broadcast redeem tx');
+        return;
+      }
+
+      if (rbf) {
+        this.emit('log', order.order_id, 'rbf: btc redeem success');
+        this.emit('rbf', order, res.val);
+      } else this.emit('success', order, OrderAction.Redeem, res.val);
+      this.bitcoinRedeemCache.set(order.order_id, {
+        redeemedFromUTXO: fillerInitTx,
+        redeemedAt: Date.now(),
+        redeemTxHash: res.val,
+      });
+    } catch (error) {
+      this.emit('error', order, 'Failed btc redeem: ' + error);
+    }
+  }
+
+  private async postRefundSACP(order: Order) {
+    const cachedOrder = this.bitcoinRedeemCache.get(order.order_id);
+    if (cachedOrder?.initTxHash === order.source_swap.initiate_tx_hash) return;
+
+    // const bitcoinExecutor = await GardenHTLC.from(
+    //   wallet,
+    //   Number(order.source_swap.amount),
+    //   order.create_order?.secret_hash || '',
+    //   toXOnly(order.source_swap.initiator),
+    //   toXOnly(order.source_swap.redeemer),
+    //   order.source_swap.timelock,
+    // );
+    const userBTCAddress = order.destination_swap.delegate;
+    if (!userBTCAddress) return;
+
+    try {
+      if (!this.htlcs.bitcoin) {
+        this.emit('error', order, 'Bitcoin HTLC is required');
+        return;
+      }
+      const authHeaders = await this.#auth.getAuthHeaders();
+      if (authHeaders.error) {
+        this.emit(
+          'error',
+          order,
+          'Failed to get auth headers: ' + authHeaders.error,
+        );
+        return;
+      }
+
+      const hash = await Fetcher.post<APIResponse<string[]>>(
+        new Url(this._api.orderbook).endpoint(
+          'relayer/bitcoin/instant-refund-hash',
+        ),
+        {
+          body: JSON.stringify({
+            order_id: order.order_id,
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders.val,
+          },
+        },
+      );
+      if (hash.error || !hash.result) {
+        this.emit(
+          'error',
+          order,
+          'Failed to get hash while posting instant refund SACP: ' + hash.error,
+        );
+        return;
+      }
+
+      if (!this.htlcs.bitcoin) {
+        this.emit('error', order, 'Bitcoin HTLC is required');
+        return;
+      }
+      const signatures =
+        await this.htlcs.bitcoin.generateInstantRefundSACPWithHash(hash.result);
+
+      const url = new Url(this._api.orderbook).endpoint(
+        'relayer/bitcoin/instant-refund',
+      );
+
+      const res = await Fetcher.post<APIResponse<string>>(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders.val,
+        },
+        body: JSON.stringify({
+          order_id: order.order_id,
+          signatures: signatures,
+        }),
+      });
+      if (res.status === 'Ok') {
+        this.refundSacpCache.set(order.order_id, {
+          initTxHash: order.source_swap.initiate_tx_hash,
+        });
+      }
+    } catch (error) {
+      this.emit('error', order, 'Failed to generate and post SACP: ' + error);
+      return;
     }
   }
 }
