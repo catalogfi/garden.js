@@ -52,6 +52,8 @@ import {
 } from '../utils';
 import { isValidBitcoinPubKey } from '../utils';
 import { getBitcoinNetwork } from '../bitcoin/utils';
+import { BitcoinWallet } from '../bitcoin/wallet/wallet';
+import { BitcoinProvider } from '../bitcoin/provider/provider';
 
 export class Garden implements IGardenJS {
   private network: Network;
@@ -73,6 +75,10 @@ export class Garden implements IGardenJS {
   private redeemServiceEnabled: boolean = true;
   private _secretManager: ISecretManager | undefined;
   private _digestKey: DigestKey | undefined;
+
+  private executeInterval: number = 5000;
+  private backgroundService: NodeJS.Timeout | null = null;
+  private isBackgroundServiceRunning: boolean = false;
 
   constructor(config: GardenConfigWithHTLCs) {
     // super();
@@ -126,13 +132,49 @@ export class Garden implements IGardenJS {
     this._secretManager = SecretManager.fromDigestKey(
       this._digestKey.digestKey,
     );
-    // const provider = new BitcoinProvider(getBitcoinNetwork(this.network));
-    // this._btcWallet = BitcoinWallet.fromPrivateKey(
-    //   this._digestKey.digestKey,
-    //   provider,
-    // );
-    this._executor?.execute();
+
+    const provider = new BitcoinProvider(
+      getBitcoinNetworkFromEnvironment(this.network),
+    );
+    this._btcHTLC = new BitcoinHTLC(
+      BitcoinWallet.fromPrivateKey(this._digestKey.digestKey, provider),
+      getBitcoinNetwork(getBitcoinNetworkFromEnvironment(this.network)),
+    );
+    if (enabled) {
+      this.startBackgroundService();
+    } else {
+      this.stopBackgroundService();
+    }
+
     return this;
+  }
+
+  private startBackgroundService(): void {
+    if (this.isBackgroundServiceRunning) {
+      return;
+    }
+
+    this.isBackgroundServiceRunning = true;
+    this.backgroundService = setInterval(async () => {
+      try {
+        if (!this.redeemServiceEnabled) {
+          this.stopBackgroundService();
+          return;
+        }
+
+        await this._executor?.execute();
+      } catch (error) {
+        console.error('Error during background service iteration:', error);
+      }
+    }, this.executeInterval);
+  }
+
+  private stopBackgroundService(): void {
+    if (this.backgroundService) {
+      clearInterval(this.backgroundService);
+      this.backgroundService = null;
+    }
+    this.isBackgroundServiceRunning = false;
   }
 
   static fromWallets(config: GardenConfigWithWallets) {
@@ -275,11 +317,15 @@ export class Garden implements IGardenJS {
       ChainAsset.from(params.toAsset).getChain(),
     );
 
+    const shouldProvideBtcAddress =
+      (!isSourceBitcoin && !isDestinationBitcoin) || !!secretHash;
+
     const orderRequest: CreateOrderRequest = {
       source: {
         asset: ChainAsset.from(params.fromAsset),
         owner: isSourceBitcoin ? btcAddress ?? sendAddress : sendAddress,
-        delegate: isSourceBitcoin ? sendAddress : null,
+        delegate:
+          shouldProvideBtcAddress && isSourceBitcoin ? sendAddress : null,
         amount: params.sendAmount,
       },
       destination: {
@@ -287,7 +333,10 @@ export class Garden implements IGardenJS {
         owner: isDestinationBitcoin
           ? btcAddress ?? receiveAddress
           : receiveAddress,
-        delegate: isDestinationBitcoin ? receiveAddress : null,
+        delegate:
+          shouldProvideBtcAddress && isDestinationBitcoin
+            ? receiveAddress
+            : null,
         amount: params.receiveAmount,
       },
       nonce: Number(nonce),
