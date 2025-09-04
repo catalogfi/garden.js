@@ -1,5 +1,6 @@
 import {
   APIResponse,
+  AsyncResult,
   DigestKey,
   Err,
   EventBroker,
@@ -21,6 +22,7 @@ import {
 import {
   isCompleted,
   OrderAction,
+  OrderStatus,
   parseAction,
   ParseOrderStatus,
 } from '../../orderStatus/orderStatus';
@@ -37,6 +39,7 @@ export class Executor extends EventBroker<GardenEvents> {
   #cacheManager: GardenCache;
   #auth: IAuth;
   #api: Api;
+  #listenersInitialized: boolean = false;
 
   constructor(
     digestKey: DigestKey,
@@ -56,6 +59,7 @@ export class Executor extends EventBroker<GardenEvents> {
   }
 
   async execute(interval: number = 5000): Promise<() => void> {
+    this.setupEventListeners();
     return await this.#orderbook.subscribeOrders(
       {
         address: this.#digestKey.userId,
@@ -75,13 +79,14 @@ export class Executor extends EventBroker<GardenEvents> {
           if (
             isBitcoin(order.source_swap.chain) &&
             // post refund sacp for bitcoin orders only at relevent statuses
+            (order.status === OrderStatus.InitiateDetected ||
+              order.status === OrderStatus.AwaitingRefund ||
+              order.status === OrderStatus.Initiated ||
+              order.status === OrderStatus.RefundDetected ||
+              order.status === OrderStatus.Refunded ||
+              order.status === OrderStatus.Expired) &&
             !isCompleted(order)
           ) {
-            // const wallet = this.btcHTLC;
-            // if (!wallet) {
-            //   this.emit('error', order, 'BTC wallet not found');
-            //   continue;
-            // }
             await this.postRefundSACP(order);
           }
 
@@ -101,11 +106,6 @@ export class Executor extends EventBroker<GardenEvents> {
                   await this.evmRedeem(order, secret);
                   break;
                 case BlockchainType.Bitcoin: {
-                  // const destWallet = this.btcHTLC;
-                  // if (!destWallet) {
-                  //   this.emit('error', order, 'BTC wallet not found');
-                  //   return;
-                  // }
                   await this.btcRedeem(order, secret);
                   break;
                 }
@@ -125,11 +125,14 @@ export class Executor extends EventBroker<GardenEvents> {
                   this.emit(
                     'error',
                     order,
-                    'Unsupported chain: ' + order.destination_swap.chain,
+                    `Unsupported chain: ${order.destination_swap.chain}`,
                   );
               }
               break;
             }
+            case OrderAction.Idle:
+              break;
+            default:
             //TODO: handle refund case
             // case OrderAction.Refund:
           }
@@ -139,9 +142,33 @@ export class Executor extends EventBroker<GardenEvents> {
     );
   }
 
+  private setupEventListeners(): void {
+    if (this.#listenersInitialized) return;
+    this.#listenersInitialized = true;
+
+    this.on('error', (order, error) => {
+      console.error('❌', order.order_id, error);
+    });
+
+    this.on('success', (order, action, result) => {
+      console.log('✅', order.order_id, action, result);
+    });
+
+    this.on('onPendingOrdersChanged', (orders) => {
+      console.log('⏳Pending orders:', orders.length);
+      orders.forEach((order) => {
+        console.log('Order id :', order.order_id, 'status :', order.status);
+      });
+    });
+
+    this.on('rbf', (order, result) => {
+      console.log('RBF:', order.order_id, result);
+    });
+  }
+
   private async evmRedeem(order: Order, secret: string): Promise<void> {
     this.emit('log', order.order_id, 'executing evm redeem');
-    // const cache = this.#orderExecutorCache.get(order, OrderAction.Redeem);
+
     const cache = this.#cacheManager.getOrderExecution(
       order,
       OrderAction.Redeem,
@@ -152,7 +179,7 @@ export class Executor extends EventBroker<GardenEvents> {
     }
 
     if (!this.htlcs.evm) {
-      this.emit('error', order, 'EVMHTLC is required');
+      this.emit('error', order, 'EVM HTLC is required');
       return;
     }
 
@@ -185,7 +212,7 @@ export class Executor extends EventBroker<GardenEvents> {
       return;
     }
     if (!this.htlcs.starknet) {
-      this.emit('error', order, 'StarknetHTLC is required');
+      this.emit('error', order, 'Starknet HTLC is required');
       return;
     }
 
@@ -401,12 +428,10 @@ export class Executor extends EventBroker<GardenEvents> {
   }
 
   private async postRefundSACP(order: Order) {
-    const cachedOrder = this.#cacheManager.getSacpCache(order.order_id);
-    if (cachedOrder?.initTxHash === order.source_swap.initiate_tx_hash) return;
-
-    const userBTCAddress = order.destination_swap.delegate;
+    // const cachedOrder = this.#cacheManager.getSacpCache(order.order_id);
+    // if (cachedOrder?.initTxHash === order.source_swap.initiate_tx_hash) return;
+    const userBTCAddress = order.source_swap.delegate;
     if (!userBTCAddress) return;
-
     try {
       if (!this.htlcs.bitcoin) {
         this.emit('error', order, 'Bitcoin HTLC is required');
@@ -421,7 +446,6 @@ export class Executor extends EventBroker<GardenEvents> {
         );
         return;
       }
-
       const hash = await Fetcher.post<APIResponse<string[]>>(
         new Url(this.#api.baseurl).endpoint(
           'relayer/bitcoin/instant-refund-hash',
@@ -445,10 +469,6 @@ export class Executor extends EventBroker<GardenEvents> {
         return;
       }
 
-      if (!this.htlcs.bitcoin) {
-        this.emit('error', order, 'Bitcoin HTLC is required');
-        return;
-      }
       const signatures =
         await this.htlcs.bitcoin.generateInstantRefundSACPWithHash(hash.result);
 
@@ -456,17 +476,17 @@ export class Executor extends EventBroker<GardenEvents> {
         'relayer/bitcoin/instant-refund',
       );
 
-      const res = await Fetcher.post<APIResponse<string>>(url, {
+      const res = await Fetcher.post<AsyncResult<string, string>>(url, {
         headers: {
           'Content-Type': 'application/json',
           ...authHeaders.val,
         },
         body: JSON.stringify({
           order_id: order.order_id,
-          signatures: signatures,
+          signatures: signatures.val,
         }),
       });
-      if (res.status === 'Ok') {
+      if (res.ok) {
         this.#cacheManager.setSacpCache(order.order_id, {
           initTxHash: order.source_swap.initiate_tx_hash,
         });

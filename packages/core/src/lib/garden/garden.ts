@@ -4,6 +4,7 @@ import {
   SwapParams,
   GardenConfigWithHTLCs,
   GardenConfigWithWallets,
+  GardenEvents,
 } from './garden.types';
 import {
   BlockchainType,
@@ -22,6 +23,7 @@ import {
   Err,
   AsyncResult,
   Ok,
+  EventBroker,
 } from '@gardenfi/utils';
 import { IQuote } from '../quote/quote.types';
 import { BitcoinHTLC } from '../bitcoin/bitcoinHtlc';
@@ -55,7 +57,7 @@ import { getBitcoinNetwork } from '../bitcoin/utils';
 import { BitcoinWallet } from '../bitcoin/wallet/wallet';
 import { BitcoinProvider } from '../bitcoin/provider/provider';
 
-export class Garden implements IGardenJS {
+export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
   private network: Network;
   private _orderbook: IOrderbook;
   private _quote: IQuote;
@@ -77,11 +79,11 @@ export class Garden implements IGardenJS {
   private _digestKey: DigestKey | undefined;
 
   private executeInterval: number = 5000;
-  private backgroundService: NodeJS.Timeout | null = null;
   private isBackgroundServiceRunning: boolean = false;
+  private executorStop: (() => void) | null = null;
 
   constructor(config: GardenConfigWithHTLCs) {
-    // super();
+    super();
     const { api, network } = resolveApiConfig(config.environment);
     this.network = network;
     this._api = api;
@@ -103,6 +105,7 @@ export class Garden implements IGardenJS {
     this._executor = new Executor(
       this._digestKey!,
       {
+        evm: this._evmHTLC,
         starknet: this._starknetHTLC,
         solana: this._solanaHTLC,
         sui: this._suiHTLC,
@@ -124,55 +127,59 @@ export class Garden implements IGardenJS {
    */
   setRedeemServiceEnabled(enabled: boolean): this {
     this.redeemServiceEnabled = enabled;
-    if (enabled) return this;
 
-    if (!this._digestKey)
-      throw new Error('Digest key is required if redeem service is enabled');
-
-    this._secretManager = SecretManager.fromDigestKey(
-      this._digestKey.digestKey,
-    );
-
-    const provider = new BitcoinProvider(
-      getBitcoinNetworkFromEnvironment(this.network),
-    );
-    this._btcHTLC = new BitcoinHTLC(
-      BitcoinWallet.fromPrivateKey(this._digestKey.digestKey, provider),
-      getBitcoinNetwork(getBitcoinNetworkFromEnvironment(this.network)),
-    );
     if (enabled) {
-      this.startBackgroundService();
-    } else {
       this.stopBackgroundService();
+    } else {
+      if (!this._digestKey) {
+        throw new Error('Digest key is required for manual secret management');
+      }
+      this._secretManager = SecretManager.fromDigestKey(
+        this._digestKey.digestKey,
+      );
+      if (!this._btcHTLC) {
+        const provider = new BitcoinProvider(
+          getBitcoinNetworkFromEnvironment(this.network),
+        );
+        this._btcHTLC = new BitcoinHTLC(
+          BitcoinWallet.fromPrivateKey(this._digestKey.digestKey, provider),
+          getBitcoinNetwork(getBitcoinNetworkFromEnvironment(this.network)),
+        );
+      }
+      this.startBackgroundService();
     }
-
     return this;
   }
 
   private startBackgroundService(): void {
-    if (this.isBackgroundServiceRunning) {
+    if (this.isBackgroundServiceRunning || this.executorStop) {
       return;
     }
 
     this.isBackgroundServiceRunning = true;
-    this.backgroundService = setInterval(async () => {
+    (async () => {
       try {
-        if (!this.redeemServiceEnabled) {
+        if (this.redeemServiceEnabled) {
           this.stopBackgroundService();
           return;
         }
-
-        await this._executor?.execute();
+        const stop = await this._executor?.execute(this.executeInterval);
+        if (stop) this.executorStop = stop;
       } catch (error) {
-        console.error('Error during background service iteration:', error);
+        console.error('Error starting background executor:', error);
+        this.isBackgroundServiceRunning = false;
       }
-    }, this.executeInterval);
+    })();
   }
 
   private stopBackgroundService(): void {
-    if (this.backgroundService) {
-      clearInterval(this.backgroundService);
-      this.backgroundService = null;
+    if (this.executorStop) {
+      try {
+        this.executorStop();
+      } catch {
+        console.error('Error stopping background executor');
+      }
+      this.executorStop = null;
     }
     this.isBackgroundServiceRunning = false;
   }

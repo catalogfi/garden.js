@@ -7,7 +7,13 @@ import {
   Order,
 } from '@gardenfi/orderbook';
 import { OrderAction, OrderStatus } from '../orderStatus/orderStatus';
-import { ApiKey, AsyncResult, IAuth, Network } from '@gardenfi/utils';
+import {
+  ApiKey,
+  AsyncResult,
+  EventBroker,
+  IAuth,
+  Network,
+} from '@gardenfi/utils';
 import { ISecretManager } from '../secretManager/secretManager.types';
 import { IQuote } from '../quote/quote.types';
 import { IBlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
@@ -78,7 +84,7 @@ export type EventCallback = (...args: any[]) => void;
 /**
  * Interface representing the GardenJS library.
  */
-export interface IGardenJS {
+export interface IGardenJS extends EventBroker<GardenEvents> {
   /**
    * Create Order
    * @param {SwapParams} params - The parameters for creating the order.
