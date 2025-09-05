@@ -7,6 +7,7 @@ import {
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { describe, expect, it } from 'vitest';
+import { loadTestConfig } from '../../../../../test-config-loader';
 import {
   ChainAsset,
   // Chain,
@@ -35,7 +36,8 @@ import { EvmRelay } from '../evm/relay/evmRelay';
 // import { Orderbook } from 'gardenfi/orderbook';
 
 describe('checking garden initialisation', async () => {
-  const pk = '8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
+  const config = loadTestConfig();
+  const pk = config.EVM_PRIVATE_KEY.replace('0x', '');
   // const address = '0x52FE8afbbB800a33edcbDB1ea87be2547EB30000';
   const account = privateKeyToAccount(with0x(pk));
   // const digestKey = new DigestKey(
@@ -86,7 +88,8 @@ describe('checking garden initialisation', async () => {
 
 describe('swap and execute using garden', () => {
   // const bitcoinAddress = 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru';
-  const pk = '8fe869193b5010d1ee36e557478b43f2ade908f23cac40f024d4aa1cd1578a61';
+  const config = loadTestConfig();
+  const pk = config.EVM_PRIVATE_KEY.replace('0x', '');
   // const address = '0x52FE8afbbB800a33edcbDB1ea87be2547EB30000';
   const account = privateKeyToAccount(with0x(pk));
   const api = 'https://orderbook-v2-staging.hashira.io';

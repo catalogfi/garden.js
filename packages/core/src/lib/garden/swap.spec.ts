@@ -1,4 +1,4 @@
-import { Garden } from '../garden';
+import { Garden } from './garden';
 import { AssetToken, Order, SupportedAssets } from '@gardenfi/orderbook';
 import { with0x, Network, sleep } from '@gardenfi/utils';
 import { RpcProvider, Account } from 'starknet';
@@ -6,19 +6,19 @@ import { describe, expect, it } from 'vitest';
 import { privateKeyToAccount } from 'viem/accounts';
 import { createWalletClient, http } from 'viem';
 import { sepolia } from 'viem/chains';
-import { SwapParams } from '../garden.types';
-import { STARKNET_CONFIG } from './../../constants';
 import * as anchor from '@coral-xyz/anchor';
 import { web3 } from '@coral-xyz/anchor';
-import { BitcoinProvider } from '../../bitcoin/provider/provider';
-import { getBitcoinNetworkFromEnvironment } from '../../utils';
-import { BitcoinWallet } from '../../bitcoin/wallet/wallet';
-import { loadTestConfig } from '../../../../../../test-config-loader';
+import { STARKNET_CONFIG } from '../constants';
+import { BitcoinProvider } from '../bitcoin/provider/provider';
+import { getBitcoinNetworkFromEnvironment } from '../utils';
+import { BitcoinWallet } from '../bitcoin/wallet/wallet';
+import { SwapParams } from './garden.types';
+import { loadTestConfig } from '../../../../../test-config-loader';
 
 describe('StarkNet Integration Tests', () => {
-  // Wallet configurations
   const config = loadTestConfig();
-  const EVM_PRIVATE_KEY = config.EVM_PRIVATE_KEY;
+  // Wallet configurations
+  const EVM_PRIVATE_KEY = config.EVM_PRIVATE_KEY_2;
   const STARKNET_PRIVATE_KEY = config.STARKNET_PRIVATE_KEY;
   const STARKNET_ADDRESS = config.STARKNET_ADDRESS;
   const DIGEST_KEY =
@@ -28,8 +28,9 @@ describe('StarkNet Integration Tests', () => {
     throw new Error('Digest key is not defined');
   }
   console.log('digest key', DIGEST_KEY);
-  const TEST_RPC_URL = 'https://api.devnet.solana.com';
+  const TEST_RPC_URL = config.TEST_RPC_URL;
   const PRIV = config.SOLANA_PRIV;
+
   const connection = new web3.Connection(TEST_RPC_URL, {
     commitment: 'confirmed',
   });
@@ -122,6 +123,7 @@ describe('StarkNet Integration Tests', () => {
       // expect(result.error).toBeFalsy();
       // expect(result.val).toBeTruthy();
 
+      // Let the background service run for a while to process orders
       await sleep(1500000); // 25 minutes
     }, 1500000);
   });

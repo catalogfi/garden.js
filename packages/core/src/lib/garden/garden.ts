@@ -355,7 +355,7 @@ export class Garden extends EventBroker<GardenEvents> implements IGardenJS {
       affiliate_fees: withDefaultAffiliateFees(params.affiliateFee),
       slippage: 50,
     };
-    console.log('req', JSON.stringify(orderRequest, null, 2));
+    // console.log('req', JSON.stringify(orderRequest, null, 2));
     const createOrderRes = await this._orderbook.createOrder(
       orderRequest,
       this._auth,
