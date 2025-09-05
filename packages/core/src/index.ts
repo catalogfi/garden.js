@@ -1,22 +1,9 @@
 export { Garden } from './lib/garden/garden';
-export type {
-  IGardenJS,
-  SwapParams,
-  GardenEvents,
-  IOrderExecutorCache,
-  OrderCacheValue,
-  EventCallback,
-  OrderWithStatus,
-  GardenCoreConfig,
-  GardenWalletModules,
-  GardenHTLCModules,
-  GardenConfigWithWallets,
-  GardenConfigWithHTLCs,
-} from './lib/garden/garden.types';
-export { OrderActions } from './lib/garden/garden.types';
+export type * from './lib/garden/garden.types';
+export { OrderAction } from './lib/orderStatus/orderStatus';
 
 export { EvmRelay } from './lib/evm/relay/evmRelay';
-export type { IEVMRelay } from './lib/evm/relay/evmRelay.types';
+export type { IEVMRelay, EVMRelayOpts } from './lib/evm/relay/evmRelay.types';
 export type { IEVMHTLC } from './lib/evm/htlc.types';
 
 export { StarknetRelay } from './lib/starknet/relay/starknetRelay';
@@ -35,18 +22,15 @@ export { OrderStatus, SwapStatus } from './lib/orderStatus/status';
 export {
   parseAction,
   ParseOrderStatus,
-  ParseSwapStatus,
-  isExpired,
-  isOrderExpired,
-  filterDeadlineExpiredOrders,
-  parseActionFromStatus,
-} from './lib/orderStatus/orderStatusParser';
+  // ParseSwapStatus,
+  // isExpired,
+  // isOrderExpired,
+  // filterDeadlineExpiredOrders,
+  // parseActionFromStatus,
+} from './lib/orderStatus/orderStatus';
 
 export { SecretManager } from './lib/secretManager/secretManager';
-export type {
-  ISecretManager,
-  Secret,
-} from './lib/secretManager/secretManager.types';
+export type * from './lib/secretManager/secretManager.types';
 export {
   checkAllowanceAndApprove as checkStarknetAllowanceAndApprove,
   isAllowanceSufficient as isStarknetAllowanceSufficient,
@@ -54,15 +38,7 @@ export {
 } from './lib/starknet/checkAllowanceAndApprove';
 
 export { Quote } from './lib/quote/quote';
-export type {
-  IQuote,
-  QuoteResponse,
-  Strategies,
-  QuoteParamsForAssets,
-  QuoteParamsForOrderPair,
-  QuoteOptions,
-  BaseQuoteParams,
-} from './lib/quote/quote.types';
+export type * from './lib/quote/quote.types';
 
 export {
   constructOrderPair,
@@ -71,21 +47,10 @@ export {
   resolveApiConfig,
 } from './lib/utils';
 
-export {
-  evmToViemChainMap,
-  switchOrAddNetwork,
-  hyperliquidTestnet,
-  hyperliquid,
-  botanixMainnet as botanix,
-} from './lib/switchOrAddNetwork';
+export * from './lib/switchOrAddNetwork';
 
 export { BitcoinNetwork } from './lib/bitcoin/provider/provider.interface';
 export { BitcoinProvider } from './lib/bitcoin/provider/provider';
 export { BitcoinWallet } from './lib/bitcoin/wallet/wallet';
-export type { IBitcoinProvider } from './lib/bitcoin/provider/provider.interface';
-export {
-  API,
-  STARKNET_CONFIG,
-  SolanaRelayerAddress,
-  solanaProgramAddress,
-} from './lib/constants';
+export type * from './lib/bitcoin/provider/provider.interface';
+export * from './lib/constants';

@@ -1,29 +1,39 @@
-import { Environment, Err, Ok, trim0x, with0x } from '@gardenfi/utils';
-import { Chain } from '@gardenfi/orderbook';
+import {
+  APIResponse,
+  AsyncResult,
+  Environment,
+  Err,
+  Fetcher,
+  Ok,
+  trim0x,
+  Url,
+  with0x,
+  Network,
+} from '@gardenfi/utils';
+import { AffiliateFee, AssetHTLCInfo, Chain } from '@gardenfi/orderbook';
 import { sha256 } from 'viem';
 import * as varuint from 'varuint-bitcoin';
 import * as secp256k1 from 'tiny-secp256k1';
 import * as bitcoin from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
 import { Signature } from 'starknet';
-import { API, Api } from './constants';
+import { API, Api, DEFAULT_AFFILIATE_ASSET } from './constants';
 import { ApiConfig } from './garden/garden.types';
 import { BitcoinNetwork } from './bitcoin/provider/provider.interface';
 import { IBaseWallet } from './bitcoin/wallet/baseWallet';
 import { web3 } from '@coral-xyz/anchor';
+import { BigNumber } from 'bignumber.js';
 
-export function resolveApiConfig(
-  env: ApiConfig,
-): {
+export function resolveApiConfig(env: ApiConfig): {
   api: Api;
-  environment: Environment;
+  network: Network;
 } {
-  const environment = typeof env === 'string' ? env : env.environment;
+  const network = typeof env === 'string' ? env : env.network;
 
   const baseApi =
-    environment === Environment.MAINNET
+    network === Network.MAINNET
       ? API.mainnet
-      : Environment.TESTNET
+      : Network.TESTNET
       ? API.testnet
       : API.localnet;
 
@@ -35,7 +45,7 @@ export function resolveApiConfig(
           ...env,
         };
 
-  return { api, environment };
+  return { api, network };
 }
 
 export const computeSecret = async (
@@ -170,13 +180,23 @@ export function validateBTCAddress(address: string, networkType: Environment) {
   }
 }
 
-export const getBitcoinNetwork = (network: Environment): BitcoinNetwork => {
+export function generateOutputs(output: Buffer, count: number): Buffer[] {
+  const outputs: Buffer[] = [];
+  for (let i = 0; i < count; i++) {
+    outputs.push(output);
+  }
+  return outputs;
+}
+
+export const getBitcoinNetworkFromEnvironment = (
+  network: Network,
+): BitcoinNetwork => {
   switch (network) {
-    case Environment.MAINNET:
+    case Network.MAINNET:
       return BitcoinNetwork.Mainnet;
-    case Environment.TESTNET:
+    case Network.TESTNET:
       return BitcoinNetwork.Testnet;
-    case Environment.LOCALNET:
+    case Network.LOCALNET:
       return BitcoinNetwork.Regtest;
     default:
       throw new Error(`Invalid bitcoin network ${network}`);
@@ -222,6 +242,7 @@ export function isErrorWithMessage(err: unknown): err is { message: string } {
     typeof (err as any).message === 'string'
   );
 }
+
 export const waitForSolanaTxConfirmation = async (
   connection: web3.Connection,
   txHash: string,
@@ -252,4 +273,55 @@ export const waitForSolanaTxConfirmation = async (
   }
 
   return false;
+};
+
+export const getAssetInfoFromOrder = async (
+  order: string,
+  url: Url,
+): Promise<
+  AsyncResult<{ htlcAddress: string; tokenAddress: string }, string>
+> => {
+  const assetInfoRes = await Fetcher.get<APIResponse<AssetHTLCInfo[]>>(
+    url + '/v2/assets',
+  );
+
+  if (assetInfoRes.error) {
+    return Err('Failed to fetch asset info: ' + assetInfoRes.error);
+  }
+
+  const assetList = assetInfoRes.result || [];
+  const assetInfo = assetList.find((a) => a.id === order);
+
+  if (!assetInfo) {
+    return Err(`Asset info not found for asset id: ${order}`);
+  }
+
+  const htlcAddress = assetInfo.htlc?.address || '';
+  const tokenAddress = assetInfo.token?.address || '';
+
+  return Ok({ htlcAddress, tokenAddress });
+};
+
+export const validateAmount = (amount: string) => {
+  if (amount == null || amount.includes('.'))
+    return Err('Invalid amount ', amount);
+  const amountBigInt = new BigNumber(amount);
+  if (
+    !amountBigInt.isInteger() ||
+    amountBigInt.isNaN() ||
+    amountBigInt.lt(0) ||
+    amountBigInt.isLessThanOrEqualTo(0)
+  )
+    return Err('Invalid amount ', amount);
+  return Ok(amountBigInt);
+};
+
+export const withDefaultAffiliateFees = (
+  list: AffiliateFee[] | undefined,
+): AffiliateFee[] => {
+  return (list ?? []).map((fee) => ({
+    fee: fee.fee,
+    address: fee.address,
+    asset: fee.asset ?? DEFAULT_AFFILIATE_ASSET.asset,
+  }));
 };

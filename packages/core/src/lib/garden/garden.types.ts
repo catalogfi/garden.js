@@ -1,11 +1,19 @@
 import {
-  AffiliateFeeOptionalChainAsset,
+  AffiliateFee,
   Asset,
+  ChainAsset,
+  ChainAssetString,
   IOrderbook,
-  MatchedOrder,
+  Order,
 } from '@gardenfi/orderbook';
-import { OrderStatus } from '../orderStatus/status';
-import { AsyncResult, Environment, EventBroker, IAuth } from '@gardenfi/utils';
+import { OrderAction, OrderStatus } from '../orderStatus/orderStatus';
+import {
+  ApiKey,
+  AsyncResult,
+  EventBroker,
+  IAuth,
+  Network,
+} from '@gardenfi/utils';
 import { ISecretManager } from '../secretManager/secretManager.types';
 import { IQuote } from '../quote/quote.types';
 import { IBlockNumberFetcher } from '../blockNumberFetcher/blockNumber';
@@ -15,22 +23,24 @@ import { IStarknetHTLC } from '../starknet/starknetHTLC.types';
 import { DigestKey } from '@gardenfi/utils';
 import { AccountInterface } from 'starknet';
 import { WalletClient } from 'viem';
-import { Api } from '../constants';
 import { IBitcoinWallet } from '../bitcoin/wallet/wallet.interface';
 import { ISolanaHTLC } from '../solana/htlc/ISolanaHTLC';
 import { AnchorProvider } from '@coral-xyz/anchor';
+import { Api } from '../constants';
 import { ISuiHTLC } from '../sui/suiHTLC.types';
 import { WalletWithRequiredFeatures } from '@mysten/wallet-standard';
+import { IBitcoinHTLC } from '../bitcoin/bitcoinhtlc.types';
+import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 
 export type SwapParams = {
   /**
    * Asset to be sent.
    */
-  fromAsset: Asset;
+  fromAsset: Asset | ChainAsset | ChainAssetString;
   /**
    * Asset to be received.
    */
-  toAsset: Asset;
+  toAsset: Asset | ChainAsset | ChainAssetString;
   /**
    * Amount in lowest denomination of the sendAsset.
    */
@@ -40,25 +50,13 @@ export type SwapParams = {
    */
   receiveAmount: string;
   /**
-   * Time lock for the swap.
+   * Slippage for the order.
    */
-  timelock?: number;
-  /**
-   * This will wait for the specified number of confirmations before redeeming the funds.
-   */
-  minDestinationConfirmations?: number;
-  /**
-   * Unique nonce for generating secret and secret hashes. If not provided, it will be generated as the total order count until now + 1.
-   */
-  nonce?: number;
+  slippage?: number;
   /**
    * Additional data for the order.
    */
   additionalData: {
-    /**
-     * Get strategy id from the quote
-     */
-    strategyId: string;
     /**
      * Provide btcAddress if the destination or source chain is bitcoin. This address is used as refund address if source chain is bitcoin, and as redeem address if destination chain is bitcoin.
      */
@@ -67,19 +65,19 @@ export type SwapParams = {
   /**
    * Integrator fee for the order.
    */
-  affiliateFee?: AffiliateFeeOptionalChainAsset[];
+  affiliateFee?: AffiliateFee[];
 };
 
-export type OrderWithStatus = MatchedOrder & {
+export type OrderWithStatus = Order & {
   status: OrderStatus;
 };
 
 export type GardenEvents = {
-  error: (order: MatchedOrder, error: string) => void;
-  success: (order: MatchedOrder, action: OrderActions, result: string) => void;
+  error: (order: Order, error: string) => void;
+  success: (order: Order, action: OrderAction, result: string) => void;
   onPendingOrdersChanged: (orders: OrderWithStatus[]) => void;
   log: (id: string, message: string) => void;
-  rbf: (order: MatchedOrder, result: string) => void;
+  rbf: (order: Order, result: string) => void;
 };
 
 export type EventCallback = (...args: any[]) => void;
@@ -91,15 +89,15 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
   /**
    * Create Order
    * @param {SwapParams} params - The parameters for creating the order.
-   * @returns {AsyncResult<MatchedOrder, string>} The result of the swap operation.
+   * @returns {AsyncResult<string, string>} The result of the swap operation.
    */
-  swap(params: SwapParams): AsyncResult<MatchedOrder, string>;
+  swap(params: SwapParams): AsyncResult<string, string>;
 
-  /**
-   * Execute an action.
-   * @returns {Promise<() => void>} A promise that resolves to a function to cancel the execution.
-   */
-  execute(): Promise<() => void>;
+  // /**
+  //  * Execute an action.
+  //  * @returns {Promise<() => void>} A promise that resolves to a function to cancel the execution.
+  //  */
+  // execute(): Promise<() => void>;
 
   /**
    * The EVM relay.
@@ -135,7 +133,7 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
    * The BTC wallet.
    * @readonly
    */
-  get btcWallet(): IBitcoinWallet | undefined;
+  get btcHTLC(): IBitcoinHTLC | undefined;
 
   /**
    * The orderbook.
@@ -165,7 +163,7 @@ export interface IGardenJS extends EventBroker<GardenEvents> {
    * The digest key.
    * @readonly
    */
-  get digestKey(): DigestKey;
+  get digestKey(): DigestKey | undefined;
 }
 
 export type OrderCacheValue = {
@@ -175,62 +173,47 @@ export type OrderCacheValue = {
 };
 
 export interface IOrderExecutorCache {
-  set(
-    order: MatchedOrder,
-    action: OrderActions,
-    txHash: string,
-    utxo?: string,
-  ): void;
-  get(order: MatchedOrder, action: OrderActions): OrderCacheValue | null;
-  remove(order: MatchedOrder, action: OrderActions): void;
+  set(order: Order, action: OrderAction, txHash: string, utxo?: string): void;
+  get(order: Order, action: OrderAction): OrderCacheValue | null;
+  remove(order: Order, action: OrderAction): void;
 }
 
-export type ApiConfig =
-  | Environment
-  | (Partial<Api> & { environment: Environment });
+export type ApiConfig = Network | (Partial<Api> & { network: Network });
 
 export type GardenCoreConfig = {
   environment: ApiConfig;
-  digestKey: string | DigestKey;
+  apiKey: string | ApiKey;
+  digestKey?: string | DigestKey;
   secretManager?: ISecretManager;
   auth?: IAuth;
   orderbook?: IOrderbook;
   quote?: IQuote;
   blockNumberFetcher?: IBlockNumberFetcher;
-  btcWallet?: IBitcoinWallet;
   solanaProgramAddress?: {
     native?: string;
     spl?: string;
-  }
+  };
 };
 
 export type GardenHTLCModules = {
-  htlc: {
-    evm?: IEVMHTLC;
-    starknet?: IStarknetHTLC;
-    solana?: ISolanaHTLC;
-    sui?: ISuiHTLC;
-  };
+  evm?: IEVMHTLC;
+  starknet?: IStarknetHTLC;
+  solana?: ISolanaHTLC;
+  sui?: ISuiHTLC;
+  bitcoin?: IBitcoinHTLC;
 };
 
 export type GardenWalletModules = {
-  wallets: {
-    evm?: WalletClient;
-    starknet?: AccountInterface;
-    solana?: AnchorProvider;
-    sui?: WalletWithRequiredFeatures;
-  };
+  evm?: WalletClient;
+  starknet?: AccountInterface;
+  solana?: AnchorProvider;
+  sui?: WalletWithRequiredFeatures | Ed25519Keypair;
+  bitcoin?: IBitcoinWallet;
 };
 
-export type GardenConfigWithWallets = GardenCoreConfig & GardenWalletModules;
-export type GardenConfigWithHTLCs = GardenCoreConfig & GardenHTLCModules;
-
-/**
- * Actions that can be performed on the order.
- */
-export enum OrderActions {
-  Idle = 'Idle',
-  Initiate = 'Initiate',
-  Redeem = 'Redeem',
-  Refund = 'Refund',
-}
+export type GardenConfigWithWallets = GardenCoreConfig & {
+  wallets: GardenWalletModules;
+};
+export type GardenConfigWithHTLCs = GardenCoreConfig & {
+  htlc: GardenHTLCModules;
+};

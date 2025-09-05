@@ -1,4 +1,4 @@
-import { MatchedOrder } from '@gardenfi/orderbook';
+import { Order } from '@gardenfi/orderbook';
 import { AsyncResult, IStore } from '@gardenfi/utils';
 import { WalletClient } from 'viem';
 
@@ -16,10 +16,7 @@ export interface IEVMRelay {
    * @NOTE send the current block number of the L1 chain, if the order is on L2 chain (arbitrum).
    * @returns txHash of Initiation
    */
-  init(
-    walletClient: WalletClient,
-    order: MatchedOrder,
-  ): AsyncResult<string, string>;
+  init(walletClient: WalletClient, order: Order): AsyncResult<string, string>;
 
   /**
    * Redeems funds from the EVM atomic swap contract using relay service.
