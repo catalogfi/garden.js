@@ -67,12 +67,18 @@ describe('StarkNet Integration Tests', () => {
 
   const suiSigner = Ed25519Keypair.fromSecretKey(config.SUI_PRIVATE_KEY);
 
-  console.log('digest key', DIGEST_KEY);
-  console.log('EVM Wallet Address:', evmWallet.account.address);
-  console.log('Solana Wallet Address:', user.publicKey.toString());
-  console.log('Starknet Wallet Address:', starknetWallet.address);
-  console.log('Bitcoin Wallet Address', bitcoinWallet.getAddress());
-  console.log('Sui Wallet Address', suiSigner.toSuiAddress());
+  console.log(
+    `
+==== Wallet Addresses ====
+Digest Key:              ${DIGEST_KEY}
+EVM Wallet Address:      ${evmWallet.account.address}
+Solana Wallet Address:   ${user.publicKey.toString()}
+Starknet Wallet Address: ${starknetWallet.address}
+Bitcoin Wallet Address:  ${bitcoinWallet.getAddress()}
+Sui Wallet Address:      ${suiSigner.toSuiAddress()}
+=========================
+    `,
+  );
 
   const garden = Garden.fromWallets({
     environment: {
@@ -87,31 +93,33 @@ describe('StarkNet Integration Tests', () => {
       bitcoin: bitcoinWallet,
       sui: suiSigner,
     },
-  }).setRedeemServiceEnabled(false);
+  });
 
   // let matchedOrder: Order;
 
   describe.only('Should perform a swap', async () => {
     it('should create and execute a swap', async () => {
-      const from = ChainAsset.from(SupportedAssets.testnet.sui_testnet.SUI);
+      const from = ChainAsset.from(
+        SupportedAssets.testnet.ethereum_sepolia.WBTC,
+      );
       const to = ChainAsset.from(SupportedAssets.testnet.bitcoin_testnet.BTC);
       const order: SwapParams = {
         fromAsset: from,
         toAsset: to,
-        sendAmount: '3000000000',
-        receiveAmount: '9001',
+        sendAmount: '50000',
+        receiveAmount: '49000',
         additionalData: {
           btcAddress: 'tb1qxtztdl8qn24axe7dnvp75xgcns6pl5ka9tzjru',
         },
       };
       console.log(order);
       console.log(garden.digestKey?.userId);
-      // const result = await garden.swap(order);
-      // if (!result.ok) {
-      //   console.log('Error while creating order ❌:', result.error);
-      //   throw new Error(result.error);
-      // }
-      // console.log('Order created and initiated ✅', result.val);
+      const result = await garden.swap(order);
+      if (!result.ok) {
+        console.log('Error while creating order ❌:', result.error);
+        throw new Error(result.error);
+      }
+      console.log('Order created and initiated ✅', result.val);
       // expect(result.error).toBeFalsy();
       // expect(result.val).toBeTruthy();
 

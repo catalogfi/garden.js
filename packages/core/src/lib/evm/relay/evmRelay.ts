@@ -232,14 +232,14 @@ export class EvmRelay implements IEVMHTLC {
     order: EvmOrderResponse,
   ): AsyncResult<string, string> {
     if (!this.wallet.account) return Err('No account found');
-    console.log('executing approval transaction');
+
     if (!order.approval_transaction) {
       return Ok('No approval transaction required');
     }
 
     try {
       const approvalTx = order.approval_transaction;
-      console.log('approval tx', approvalTx);
+
       const txHash = await this.wallet.sendTransaction({
         account: this.wallet.account,
         to: with0x(approvalTx.to),
@@ -248,9 +248,9 @@ export class EvmRelay implements IEVMHTLC {
         gas: BigInt(approvalTx.gas_limit),
         chain: this.wallet.chain,
       });
-      console.log('tx hash', txHash);
+
       const receipt = await waitForTransactionReceipt(this.wallet, txHash);
-      console.log('receipt', receipt);
+
       if (receipt.val?.status !== 'success') {
         return Err('Approval transaction failed');
       }
