@@ -252,7 +252,7 @@ done
 
 if [[ "$VERSION_BUMP" != "prerelease" ]]; then
   git tag "v$NEW_ROOT_VERSION"
-  git push https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git HEAD:main --tags
+  git push https://x-access-token:${GH_PAT}@github.com/hashiraio/garden.js.git HEAD:main --tags
 fi
 
 if [[ "$IS_PR" != "true" ]]; then
@@ -262,7 +262,7 @@ if [[ "$IS_PR" != "true" ]]; then
     git -c user.email="$COMMIT_EMAIL" \
         -c user.name="$COMMIT_NAME" \
         commit -m "v$NEW_ROOT_VERSION"
-  git push https://x-access-token:${GH_PAT}@github.com/catalogfi/garden.js.git HEAD:main
+  git push https://x-access-token:${GH_PAT}@github.com/hashiraio/garden.js.git HEAD:main
 fi
 
 yarn config unset yarnPath

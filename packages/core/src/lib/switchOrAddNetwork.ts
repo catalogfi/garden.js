@@ -115,6 +115,7 @@ export const evmToViemChainMap: Record<EvmChain, viemChain> = {
   base: base,
   bera_testnet: berachainTestnetbArtio,
   citrea_testnet: citreaTestnet,
+  core: coreDao,
   bera: berachain,
   monad_testnet: monadTestnet,
   hyperliquid_testnet: hyperliquidTestnet,
