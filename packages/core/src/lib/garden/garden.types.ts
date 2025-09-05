@@ -30,6 +30,7 @@ import { Api } from '../constants';
 import { ISuiHTLC } from '../sui/suiHTLC.types';
 import { WalletWithRequiredFeatures } from '@mysten/wallet-standard';
 import { IBitcoinHTLC } from '../bitcoin/bitcoinhtlc.types';
+import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 
 export type SwapParams = {
   /**
@@ -206,7 +207,7 @@ export type GardenWalletModules = {
   evm?: WalletClient;
   starknet?: AccountInterface;
   solana?: AnchorProvider;
-  sui?: WalletWithRequiredFeatures;
+  sui?: WalletWithRequiredFeatures | Ed25519Keypair;
   bitcoin?: IBitcoinWallet;
 };
 

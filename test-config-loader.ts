@@ -51,6 +51,7 @@ Expected config location: ${configPath}
   try {
     // Clear require cache to ensure fresh import
     delete require.cache[require.resolve(configPath)];
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const configModule = require(configPath);
     config = configModule.TEST_CONFIG;
 
